@@ -28,6 +28,11 @@ const (
 	ProbabilityVoteType = "probability"
 	ApprovalVoteType    = "approval"
 
+	// Possible likeable types
+	ChangeLogLikeableType = "changeLog"
+	PageLikeableType      = "page"
+	RedLinkLikeableType   = "redLink"
+
 	// Various events we log when a page changes
 	NewParentChangeLog          = "newParent"
 	DeleteParentChangeLog       = "deleteParent"
@@ -76,14 +81,10 @@ var (
 	StrictAliasRegexp = regexp.MustCompile("^[0-9A-Za-z_]*[A-Za-z_][0-9A-Za-z_]*$")
 )
 
-type Vote struct {
-	Value     int    `json:"value"`
-	UserId    string `json:"userId"`
-	CreatedAt string `json:"createdAt"`
-}
-
 // corePageData has data we load directly from the pages and pageInfos tables.
 type corePageData struct {
+	Likeable
+
 	// === Basic data. ===
 	// Any time we load a page, you can at least expect all this data.
 	PageId                   string `json:"pageId"`
@@ -129,6 +130,13 @@ type corePageData struct {
 	MetaText string `json:"metaText"`
 }
 
+// NewPage returns a pointer to a new corePageData object created with the given page id
+func NewCorePageData(pageId string) *corePageData {
+	data := &corePageData{PageId: pageId}
+	data.Likeable = *NewLikeable(PageLikeableType)
+	return data
+}
+
 type Page struct {
 	corePageData
 
@@ -140,12 +148,7 @@ type Page struct {
 	IsSubscribedAsMaintainer bool `json:"isSubscribedAsMaintainer"`
 	SubscriberCount          int  `json:"subscriberCount"`
 	MaintainerCount          int  `json:"maintainerCount"`
-	LikeCount                int  `json:"likeCount"`
-	DislikeCount             int  `json:"dislikeCount"`
-	MyLikeValue              int  `json:"myLikeValue"`
-	// Computed from LikeCount and DislikeCount
-	LikeScore int `json:"likeScore"`
-	ViewCount int `json:"viewCount"`
+	ViewCount                int  `json:"viewCount"`
 	// Last time the user visited this page.
 	LastVisit string `json:"lastVisit"`
 	// True iff the user has a work-in-progress draft for this page
@@ -196,8 +199,6 @@ type Page struct {
 	// options + pipeline for users)
 	// For user pages, this is the domains user has access to
 	DomainMembershipIds []string `json:"domainMembershipIds"`
-	// List of user ids who liked this page
-	IndividualLikes []string `json:"individualLikes"`
 
 	// Edit history for when we need to know which edits are based on which edits (key is 'edit' number)
 	EditHistory map[string]*EditInfo `json:"editHistory"`
@@ -230,7 +231,7 @@ type Page struct {
 
 // NewPage returns a pointer to a new page object created with the given page id
 func NewPage(pageId string) *Page {
-	p := &Page{corePageData: corePageData{PageId: pageId}}
+	p := &Page{corePageData: *NewCorePageData(pageId)}
 	p.Votes = make([]*Vote, 0)
 	p.Summaries = make(map[string]string)
 	p.CreatorIds = make([]string, 0)
@@ -247,7 +248,6 @@ func NewPage(pageId string) *Page {
 	p.ParentIds = make([]string, 0)
 	p.MarkIds = make([]string, 0)
 	p.DomainMembershipIds = make([]string, 0)
-	p.IndividualLikes = make([]string, 0)
 	p.DomainSubmissions = make(map[string]*PageToDomainSubmission)
 	p.Answers = make([]*Answer, 0)
 	p.SearchStrings = make(map[string]string)
@@ -260,8 +260,36 @@ func NewPage(pageId string) *Page {
 	return p
 }
 
+type Vote struct {
+	Value     int    `json:"value"`
+	UserId    string `json:"userId"`
+	CreatedAt string `json:"createdAt"`
+}
+
+type Likeable struct {
+	LikeableId   string `json:"likeableId"`
+	LikeableType string `json:"likeableType"`
+	MyLikeValue  int    `json:"myLikeValue"`
+	LikeCount    int    `json:"likeCount"`
+	DislikeCount int    `json:"dislikeCount"`
+	// Computed from LikeCount and DislikeCount
+	LikeScore int `json:"likeScore"`
+
+	// List of user ids who liked this page
+	IndividualLikes []string `json:"individualLikes"`
+}
+
+func NewLikeable(likeableType string) *Likeable {
+	return &Likeable{
+		LikeableType:    likeableType,
+		IndividualLikes: make([]string, 0),
+	}
+}
+
 // ChangeLog describes a row from changeLogs table.
 type ChangeLog struct {
+	Likeable
+
 	Id               string `json:"id"`
 	PageId           string `json:"pageId"`
 	UserId           string `json:"userId"`
@@ -271,8 +299,12 @@ type ChangeLog struct {
 	AuxPageId        string `json:"auxPageId"`
 	OldSettingsValue string `json:"oldSettingsValue"`
 	NewSettingsValue string `json:"newSettingsValue"`
-	MyLikeValue      int    `json:"myLikeValue"`
-	LikeCount        int    `json:"likeCount"`
+}
+
+func NewChangeLog() *ChangeLog {
+	var cl ChangeLog
+	cl.Likeable = *NewLikeable(ChangeLogLikeableType)
+	return &cl
 }
 
 // Concise information about a particular edit
@@ -597,7 +629,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 	// Load change logs
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.ChangeLogs })
-	err = LoadChangeLogsForPages(db, u.Id, data, &LoadDataOptions{
+	err = LoadChangeLogsForPages(db, u, data, &LoadDataOptions{
 		ForPages: filteredPageMap,
 	})
 	if err != nil {
@@ -620,14 +652,6 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		return fmt.Errorf("LoadDraftExistence failed: %v", err)
 	}
 
-	// Load (dis)likes
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Likes })
-	individualLikesPageMap := filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.IndividualLikes })
-	err = LoadLikes(db, u, filteredPageMap, individualLikesPageMap, userMap)
-	if err != nil {
-		return fmt.Errorf("LoadLikes failed: %v", err)
-	}
-
 	// Load views
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.ViewCount })
 	err = LoadViewCounts(db, filteredPageMap)
@@ -639,7 +663,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Votes })
 	err = LoadVotes(db, u.Id, filteredPageMap, userMap)
 	if err != nil {
-		return fmt.Errorf("LoadLikes failed: %v", err)
+		return fmt.Errorf("LoadVotes failed: %v", err)
 	}
 
 	// Load last visit dates
@@ -721,6 +745,14 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	err = LoadPagesWithOptions(db, u, filteredPageMap, PageInfosTableWithOptions(u, &PageInfosOptions{Deleted: true}))
 	if err != nil {
 		return fmt.Errorf("LoadPages (deleted) failed: %v", err)
+	}
+
+	// Load (dis)likes
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Likes })
+	individualLikesPageMap := filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.IndividualLikes })
+	err = LoadLikesForPages(db, u, filteredPageMap, individualLikesPageMap, userMap)
+	if err != nil {
+		return fmt.Errorf("LoadLikesForPages failed: %v", err)
 	}
 
 	// Compute edit permissions
@@ -892,7 +924,7 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 			length(p.text),p.metaText,pi.type,pi.hasVote,pi.voteType,
 			pi.alias,pi.createdAt,pi.createdBy,pi.sortChildrenBy,pi.seeGroupId,pi.editGroupId,
 			pi.lensIndex,pi.isEditorComment,pi.isEditorCommentIntention,pi.isResolved,
-			pi.isRequisite,pi.indirectTeacher,pi.currentEdit, p.isAutosave,p.isSnapshot,
+			pi.isRequisite,pi.indirectTeacher,pi.currentEdit,pi.likeableId,p.isAutosave,p.isSnapshot,
 			p.isLiveEdit,p.isMinorEdit,p.editSummary,pi.isDeleted,pi.mergedInto,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset
 		FROM pages AS p
@@ -900,19 +932,19 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 		ON (p.pageId = pi.pageId AND p.edit = pi.currentEdit)
 		WHERE p.pageId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var p corePageData
+		p := NewCorePageData("")
 		err := rows.Scan(
 			&p.PageId, &p.Edit, &p.PrevEdit, &p.EditCreatorId, &p.EditCreatedAt, &p.Title, &p.Clickbait,
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.HasVote,
 			&p.VoteType, &p.Alias, &p.PageCreatedAt, &p.PageCreatorId, &p.SortChildrenBy,
 			&p.SeeGroupId, &p.EditGroupId, &p.LensIndex, &p.IsEditorComment, &p.IsEditorCommentIntention,
-			&p.IsResolved, &p.IsRequisite, &p.IndirectTeacher, &p.CurrentEdit,
+			&p.IsResolved, &p.IsRequisite, &p.IndirectTeacher, &p.CurrentEdit, &p.LikeableId,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.EditSummary, &p.IsDeleted, &p.MergedInto,
 			&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
 			return fmt.Errorf("Failed to scan a page: %v", err)
 		}
-		pageMap[p.PageId].corePageData = p
+		pageMap[p.PageId].corePageData = *p
 		pageMap[p.PageId].WasPublished = true
 		return nil
 	})
@@ -1003,12 +1035,12 @@ type ProcessChangeLogCallback func(db *database.DB, changeLog *ChangeLog) error
 // LoadChangeLogs loads the change logs matching the given condition.
 func LoadChangeLogs(db *database.DB, queryPart *database.QueryPart, resultData *CommonHandlerData, callback ProcessChangeLogCallback) error {
 	rows := database.NewQuery(`
-			SELECT id,pageId,userId,edit,type,createdAt,auxPageId,oldSettingsValue,newSettingsValue
+			SELECT id,pageId,userId,edit,type,createdAt,auxPageId,likeableId,oldSettingsValue,newSettingsValue
 			FROM changeLogs`).AddPart(queryPart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var l ChangeLog
+		l := NewChangeLog()
 		err := rows.Scan(&l.Id, &l.PageId, &l.UserId, &l.Edit, &l.Type, &l.CreatedAt,
-			&l.AuxPageId, &l.OldSettingsValue, &l.NewSettingsValue)
+			&l.AuxPageId, &l.LikeableId, &l.OldSettingsValue, &l.NewSettingsValue)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
@@ -1016,7 +1048,7 @@ func LoadChangeLogs(db *database.DB, queryPart *database.QueryPart, resultData *
 			AddUserToMap(l.UserId, resultData.UserMap)
 			AddPageToMap(l.AuxPageId, resultData.PageMap, TitlePlusIncludeDeletedLoadOptions)
 		}
-		return callback(db, &l)
+		return callback(db, l)
 	})
 	if err != nil {
 		return fmt.Errorf("Couldn't load changeLogs: %v", err)
@@ -1025,13 +1057,13 @@ func LoadChangeLogs(db *database.DB, queryPart *database.QueryPart, resultData *
 }
 
 // LoadChangeLogsForPages loads the edit history for the given pages.
-func LoadChangeLogsForPages(db *database.DB, userId string, resultData *CommonHandlerData, options *LoadDataOptions) error {
+func LoadChangeLogsForPages(db *database.DB, u *CurrentUser, resultData *CommonHandlerData, options *LoadDataOptions) error {
 	sourcePageMap := options.ForPages
 	for _, p := range sourcePageMap {
 		p.ChangeLogs = make([]*ChangeLog, 0)
 		queryPart := database.NewQuery(`
 			WHERE pageId=?`, p.PageId).Add(`
-				AND (userId=? OR type!=?)`, userId, NewSnapshotChangeLog).Add(`
+				AND (userId=? OR type!=?)`, u.Id, NewSnapshotChangeLog).Add(`
 			ORDER BY createdAt DESC`)
 		err := LoadChangeLogs(db, queryPart, resultData, func(db *database.DB, changeLog *ChangeLog) error {
 			p.ChangeLogs = append(p.ChangeLogs, changeLog)
@@ -1041,7 +1073,7 @@ func LoadChangeLogsForPages(db *database.DB, userId string, resultData *CommonHa
 			return fmt.Errorf("Couldn't load changeLogs: %v", err)
 		}
 
-		err = LoadLikesForChangeLogs(db, userId, p.ChangeLogs)
+		err = LoadLikesForChangeLogs(db, u, p.ChangeLogs)
 		if err != nil {
 			return err
 		}
@@ -1066,43 +1098,14 @@ func LoadChangeLogsByIds(db *database.DB, ids []string, typeConstraint string) (
 }
 
 // Load LikeCount and MyLikeValue for a set of ChangeLogs
-func LoadLikesForChangeLogs(db *database.DB, currentUserId string, changeLogs []*ChangeLog) error {
-	if len(changeLogs) == 0 {
-		return nil
-	}
-
-	changeLogMap := make(map[string]*ChangeLog)
-	changeLogIds := make([]interface{}, 0)
+func LoadLikesForChangeLogs(db *database.DB, u *CurrentUser, changeLogs []*ChangeLog) error {
+	likeablesMap := make(map[string]*Likeable)
 	for _, changeLog := range changeLogs {
-		changeLogMap[changeLog.Id] = changeLog
-		changeLogIds = append(changeLogIds, changeLog.Id)
-		changeLog.MyLikeValue = 0
-		changeLog.LikeCount = 0
+		if changeLog.LikeableId != "" {
+			likeablesMap[changeLog.LikeableId] = &changeLog.Likeable
+		}
 	}
-
-	rows := database.NewQuery(`
-		SELECT cl.id, l.userId,l.value
-		FROM likes as l
-		JOIN changeLogs as cl
-		ON cl.likeableId=l.likeableId
-		WHERE cl.id IN`).AddArgsGroup(changeLogIds).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var changeLogId string
-		var value int
-		var likeUserId string
-		err := rows.Scan(&changeLogId, &likeUserId, &value)
-		if err != nil {
-			return fmt.Errorf("failed to load likes for a changelog: %v", err)
-		}
-		changeLog := changeLogMap[changeLogId]
-		if likeUserId == currentUserId {
-			changeLog.MyLikeValue = value
-		} else {
-			changeLog.LikeCount += value
-		}
-		return nil
-	})
-	return err
+	return LoadLikes(db, u, likeablesMap, nil, nil)
 }
 
 type LoadEditOptions struct {
@@ -1182,7 +1185,7 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 			pi.alias,p.creatorId,pi.sortChildrenBy,pi.hasVote,pi.voteType,
 			p.createdAt,pi.seeGroupId,pi.editGroupId,pi.createdAt,
 			pi.createdBy,pi.lensIndex,pi.isEditorComment,pi.isEditorCommentIntention,
-			pi.isResolved,p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,p.editSummary,
+			pi.isResolved,pi.likeableId,p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,p.editSummary,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset,
 			pi.currentEdit>0,pi.isDeleted,pi.mergedInto,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
 			pi.voteType,pi.isRequisite,pi.indirectTeacher
@@ -1195,7 +1198,7 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 		&p.Text, &p.MetaText, &p.Alias, &p.EditCreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.EditCreatedAt, &p.SeeGroupId,
 		&p.EditGroupId, &p.PageCreatedAt, &p.PageCreatorId, &p.LensIndex,
-		&p.IsEditorComment, &p.IsEditorCommentIntention, &p.IsResolved,
+		&p.IsEditorComment, &p.IsEditorCommentIntention, &p.IsResolved, &p.LikeableId,
 		&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.EditSummary,
 		&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
 		&p.IsDeleted, &p.MergedInto, &p.CurrentEdit, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType,
@@ -1236,52 +1239,73 @@ func LoadPageIds(rows *database.Rows, pageMap map[string]*Page, loadOptions *Pag
 	return ids, err
 }
 
-// LoadLikes loads likes corresponding to the given pages and updates the pages.
-func LoadLikes(db *database.DB, u *CurrentUser, pageMap map[string]*Page, individualLikesPageMap map[string]*Page, userMap map[string]*User) error {
-	if len(pageMap) <= 0 {
+// LoadLikes loads likes corresponding to the given likeable objects.
+func LoadLikes(db *database.DB, u *CurrentUser, likeablesMap map[string]*Likeable, individualLikesPageMap map[string]*Likeable, userMap map[string]*User) error {
+	if len(likeablesMap) <= 0 {
 		return nil
 	}
-	pageIds := PageIdsListFromMap(pageMap)
+
+	likeableIds := make([]string, 0)
+	for id, _ := range likeablesMap {
+		likeableIds = append(likeableIds, id)
+	}
+
 	rows := database.NewQuery(`
-		SELECT l.userId,pi.pageId,l.value
-		FROM likes as l
-		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
-		ON l.likeableId=pi.likeableId
-		WHERE pi.pageId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
+		SELECT likeableId,userId,value
+		FROM likes
+		WHERE likeableId IN`).AddArgsGroupStr(likeableIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var userId string
-		var pageId string
+		var likeableId, userId string
 		var value int
-		err := rows.Scan(&userId, &pageId, &value)
+		err := rows.Scan(&likeableId, &userId, &value)
 		if err != nil {
-			return fmt.Errorf("failed to scan for a like: %v", err)
+			return fmt.Errorf("Failed to scan: %v", err)
 		}
-		page := pageMap[pageId]
+		likeable := likeablesMap[likeableId]
 		// We count the current user's like value towards the sum here in the FE.
 		if userId == u.Id {
-			page.MyLikeValue = value
+			likeable.MyLikeValue = value
 		} else if value > 0 {
-			if page.LikeCount >= page.DislikeCount {
-				page.LikeScore++
+			if likeable.LikeCount >= likeable.DislikeCount {
+				likeable.LikeScore++
 			} else {
-				page.LikeScore += 2
+				likeable.LikeScore += 2
 			}
-			page.LikeCount++
+			likeable.LikeCount++
 		} else if value < 0 {
-			if page.DislikeCount >= page.LikeCount {
-				page.LikeScore--
+			if likeable.DislikeCount >= likeable.LikeCount {
+				likeable.LikeScore--
 			}
-			page.DislikeCount++
+			likeable.DislikeCount++
 		}
 
 		// Store the like itself for pages that want it
-		if page, ok := individualLikesPageMap[pageId]; ok {
-			page.IndividualLikes = append(page.IndividualLikes, userId)
-			AddUserIdToMap(userId, userMap)
+		if individualLikesPageMap != nil {
+			if likeable, ok := individualLikesPageMap[likeableId]; ok {
+				likeable.IndividualLikes = append(likeable.IndividualLikes, userId)
+				AddUserIdToMap(userId, userMap)
+			}
 		}
 		return nil
 	})
 	return err
+}
+
+// LoadLikesForPages loads likes corresponding to the given pages and updates the pages.
+func LoadLikesForPages(db *database.DB, u *CurrentUser, pageMap map[string]*Page, individualLikesPageMap map[string]*Page, userMap map[string]*User) error {
+	likeablesMap := make(map[string]*Likeable)
+	for _, page := range pageMap {
+		if page.LikeableId != "" {
+			likeablesMap[page.LikeableId] = &page.Likeable
+		}
+	}
+	individualLikeablesMap := make(map[string]*Likeable)
+	for _, page := range individualLikesPageMap {
+		if page.LikeableId != "" {
+			individualLikeablesMap[page.LikeableId] = &page.Likeable
+		}
+	}
+	return LoadLikes(db, u, likeablesMap, individualLikeablesMap, userMap)
 }
 
 // LoadSearchStrings loads all the search strings for the given pages

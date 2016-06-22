@@ -1,5 +1,5 @@
 // Contains helpers for likeable things, like pages and changeLogs.
-package site
+package core
 
 import (
 	"fmt"
@@ -7,17 +7,11 @@ import (
 	"zanaduu3/src/database"
 )
 
-const (
-	// Possible likeable types
-	ChangelogLikeableType = "changeLog"
-	PageLikeableType      = "page"
-)
-
 // Get the likeableId of the given likeable. If it doesn't have one, create one for it.
 // Returns the likeableId of the likeable.
 func GetOrCreateLikeableId(tx *database.Tx, likeableType string, id string) (int64, error) {
 	// Figure out which table to look into
-	tableName, idField, err := getTableAndIdFieldForLikeable(likeableType)
+	tableName, idField, err := GetTableAndIdFieldForLikeable(likeableType)
 	if err != nil {
 		return 0, err
 	}
@@ -61,13 +55,21 @@ func GetOrCreateLikeableId(tx *database.Tx, likeableType string, id string) (int
 }
 
 // Get the name of the table and id field for the given likeableType.
-func getTableAndIdFieldForLikeable(likeableType string) (string, string, error) {
+func GetTableAndIdFieldForLikeable(likeableType string) (string, string, error) {
 	switch likeableType {
 	case PageLikeableType:
 		return "pageInfos", "pageId", nil
-	case ChangelogLikeableType:
+	case ChangeLogLikeableType:
 		return "changeLogs", "id", nil
+	case RedLinkLikeableType:
+		return "redLinks", "alias", nil
 	default:
 		return "", "", fmt.Errorf("invalid likeableType")
 	}
+}
+
+// Check if the given likeableType is valid.
+func IsValidLikeableType(likeableType string) bool {
+	return likeableType == ChangeLogLikeableType || likeableType == PageLikeableType ||
+		likeableType == RedLinkLikeableType
 }

@@ -10,6 +10,10 @@ import (
 	"zanaduu3/src/pages"
 )
 
+const (
+	redoWindow = 60 // number of seconds during which a user can redo their like
+)
+
 // newVoteData contains data given to us in the request.
 type newVoteData struct {
 	PageId string

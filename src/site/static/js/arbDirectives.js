@@ -265,57 +265,35 @@ app.directive('arbLikes', function($http, arb) {
 	return {
 		templateUrl: versionUrl('static/html/likes.html'),
 		scope: {
-			// The type of likeable, such as 'changeLog'.
-			likeableType: '@',
-			// The id of the likeable object.
-			likeableId: '@',
-			// The likeable object this button corresponds to.
-			// If likeableType is 'page', we'll look it up in the pageMap.
+			// ObjectId of the likeable object.
+			objectId: '@',
+			// The likeable object this button corresponds to. If it's not set, we assume
+			// objectId is a pageId and fetch the corresponding page.
 			likeable: '=',
-
 			// If true, the button is not an icon button, but is a normal button
 			isStretched: '=',
 			// Whether or not we show likes as a button or a span
 			isButton: '=',
+			// If true, show the +1 version of the button
+			isPlusOne: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-
 			// For now, just allow people to like from anywhere
 			$scope.isButton = true;
 
-			if (!($scope.likeableType == 'page' || $scope.likeableType == 'changeLog')) {
-				console.error('Unknown likeableType in arb-likes: ' + $scope.likeableType);
-			}
-			if (!$scope.likeable && $scope.likeableType == 'page') {
-				$scope.$watch('likeableId', function() {
-					$scope.likeable = arb.stateService.pageMap[$scope.likeableId];
-				});
+			if (!$scope.likeable) {
+				$scope.likeable = arb.stateService.pageMap[$scope.objectId];
 			}
 
 			// Sort individual likes by name.
+			// TODO: move this to BE, otherwise we are sorting this array each time an
+			// instance of the like button is created.
 			if ($scope.likeable && $scope.likeable.individualLikes) {
 				$scope.likeable.individualLikes.sort(function(userId1, userId2) {
 					return arb.userService.getFullName(userId1).localeCompare(arb.userService.getFullName(userId2));
 				});
 			}
-
-			// User clicked on the like button
-			$scope.likeClick = function() {
-				if (!$scope.likeable) return;
-
-				$scope.likeable.myLikeValue = Math.min(1, 1 - $scope.likeable.myLikeValue);
-
-				var data = {
-					likeableType: $scope.likeableType,
-					id: $scope.likeableId,
-					value: $scope.likeable.myLikeValue,
-				};
-				$http({method: 'POST', url: '/newLike/', data: JSON.stringify(data)})
-				.error(function(data, status) {
-					console.error('Error changing a like:'); console.log(data); console.log(status);
-				});
-			};
 		},
 	};
 });

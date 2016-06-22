@@ -126,9 +126,12 @@ app.directive('arbExplanationRequestRow', function(arb) {
 		templateUrl: versionUrl('static/html/rows/explanationRequestRow.html'),
 		scope: {
 			alias: '@',
-			refCount: '@',
+			row: '=',
 		},
 		controller: function($scope) {
+			$scope.arb = arb;
+			$scope.alias = $scope.alias || $scope.row.alias;
+
 			var aliasWithSpaces = $scope.alias.replace(/_/g, ' ');
 			$scope.prettyName = aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
 
@@ -152,6 +155,10 @@ app.directive('arbExplanationRequestRow', function(arb) {
 						$scope.linkedByPageIds = data.result.moreRelationshipIds;
 					}
 				);
+			};
+
+			$scope.stopSuggesting = function() {
+				arb.stateService.processLikeClick($scope.row, $scope.row.alias, -1);
 			};
 		},
 	};

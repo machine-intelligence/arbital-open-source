@@ -1,4 +1,4 @@
-// newLikeHandler.go adds a new like for for a page.
+// newLikeHandler.go adds a new (dis)like for a likeable object
 package site
 
 import (
@@ -11,14 +11,15 @@ import (
 	"zanaduu3/src/sessions"
 )
 
-const (
-	redoWindow = 60 // number of seconds during which a user can redo their like
-)
-
 // newLikeData contains data given to us in the request.
 type newLikeData struct {
+	// If LikeableId is given, we'll modify the corresponding likeable directly, ignoring id
+	LikeableId int64 `json:"likeableId,string"`
+	// If objectId is given, we'll look up likeableId in the appropriate table (based on LikeableType)
+	// For example, if likeableType=='page', the objectId is the corresponding pageId
+	ObjectId string
+
 	LikeableType string // Eg 'changelog', 'page'
-	Id           string
 	Value        int
 }
 
@@ -41,33 +42,35 @@ func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if data.LikeableType == PageLikeableType && !core.IsIdValid(data.Id) {
-		return pages.Fail("Invalid page id", nil).Status(http.StatusBadRequest)
-	}
 	if data.Value < -1 || data.Value > 1 {
 		return pages.Fail("Value has to be -1, 0, or 1", nil).Status(http.StatusBadRequest)
 	}
-	if !(data.LikeableType == ChangelogLikeableType || data.LikeableType == PageLikeableType) {
-		return pages.Fail("LikeableType has to be 'changelog' or 'page'", nil).Status(http.StatusBadRequest)
+	if !core.IsValidLikeableType(data.LikeableType) {
+		return pages.Fail("LikeableType is not valid", nil).Status(http.StatusBadRequest)
 	}
 
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		// Snapshot the state of the user's trust.
-		snapshotId, err := InsertUserTrustSnapshots(tx, u)
-		if err != nil {
-			return sessions.NewError("Couldn't insert userTrustSnapshot", err)
+		if data.LikeableId == 0 {
+			// Get the likeableId of this likeable.
+			data.LikeableId, err = core.GetOrCreateLikeableId(tx, data.LikeableType, data.ObjectId)
+			if err != nil {
+				return sessions.NewError("Couldn't get the likeableId", err)
+			}
 		}
 
-		// Get the likeableId of this likeable.
-		likeableId, err := GetOrCreateLikeableId(tx, data.LikeableType, data.Id)
-		if err != nil {
-			return sessions.NewError("Couldn't get the likeableId", err)
+		// Snapshot the state of the user's trust.
+		var snapshotId int64
+		if data.LikeableType == core.ChangeLogLikeableType || data.LikeableType == core.PageLikeableType {
+			snapshotId, err = InsertUserTrustSnapshots(tx, u)
+			if err != nil {
+				return sessions.NewError("Couldn't insert userTrustSnapshot", err)
+			}
 		}
 
 		// Create/update the like.
 		hashmap := make(map[string]interface{})
 		hashmap["userId"] = u.Id
-		hashmap["likeableId"] = likeableId
+		hashmap["likeableId"] = data.LikeableId
 		hashmap["value"] = data.Value
 		hashmap["createdAt"] = database.Now()
 		hashmap["updatedAt"] = database.Now()
