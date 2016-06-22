@@ -1,20 +1,29 @@
-<arb-update-row update="::update" on-dismiss="::onDismiss" show-like-button="true">
+<div layout="row" layout-align="start center">
+	<div layout="row" layout-align="start center" flex>
 
-	<!-- a user -->
-	<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
+		<arb-update-row-like-button></arb-update-row-like-button>
 
-	<!-- deleted or republished -->
-	<span ng-switch="::update.changeLog.type">
-		<span ng-switch-when="deletePage">deleted</span>
-		<span ng-switch-when="undeletePage">republished</span>
-	</span>
+		<div>
+			<!-- a user -->
+			<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
 
-	<!-- a page -->
-	<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
+			<!-- deleted or republished -->
+			<span ng-switch="::update.changeLog.type">
+				<span ng-switch-when="deletePage">deleted</span>
+				<span ng-switch-when="undeletePage">republished</span>
+			</span>
 
-	<!-- with this edit summary -->
-	<span ng-if="::update.changeLog.type == 'undeletePage' && update.changeLog.newSettingsValue">
-		&mdash; <i>{{::update.changeLog.newSettingsValue}}</i>
-	</span>
+			<!-- a page -->
+			<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 
-</arb-update-row>
+			<!-- with this edit summary -->
+			<span ng-if="::update.changeLog.type == 'undeletePage' && update.changeLog.newSettingsValue">
+				&mdash; <i>{{::update.changeLog.newSettingsValue}}</i>
+			</span>
+
+			<arb-update-timestamp></arb-update-timestamp>
+		</div>
+	</div>
+
+	<arb-update-row-dismiss-button></arb-update-row-dismiss-button>
+</div>

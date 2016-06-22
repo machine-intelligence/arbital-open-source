@@ -6,6 +6,7 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 		templateUrl: versionUrl('static/html/editDiff.html'),
 		scope: {
 			changeLog: '=',
+			justDiff: '=', // whether to just show the diff
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -50,6 +51,10 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 					computeDiffHtml();
 				}
 			};
+
+			if ($scope.justDiff) {
+				computeDiffHtml();
+			}
 		},
 	};
 });

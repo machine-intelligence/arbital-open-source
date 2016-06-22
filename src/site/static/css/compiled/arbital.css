@@ -1277,6 +1277,9 @@ md-icon.icon-first {
   margin-bottom: -3px;
   padding-bottom: 20px; }
 
+.expand-tray {
+  padding-top: 10px; }
+
 .popover-panel {
   margin-top: 12px;
   width: 600px; }

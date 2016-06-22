@@ -1,66 +1,75 @@
-<arb-update-row update="::update" on-dismiss="::onDismiss" show-like-button="true">
+<div layout="row" layout-align="start center">
+	<div layout="row" layout-align="start center" flex>
 
-	<!-- a user -->
-	<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
+		<arb-update-row-like-button></arb-update-row-like-button>
 
-	<!-- set or unset -->
-	<span ng-switch="::update.changeLog.type">
-		<span ng-switch-when="newParent">added</span>
-		<span ng-switch-when="newChild">added</span>
-		<span ng-switch-when="newLens">added</span>
-		<span ng-switch-when="newTag">added</span>
-		<span ng-switch-when="newUsedAsTag">tagged</span>
-		<span ng-switch-when="newRequirement">added</span>
-		<span ng-switch-when="newRequiredBy">set</span>
-		<span ng-switch-when="newSubject">added</span>
-		<span ng-switch-when="newTeacher">set</span>
+		<div>
+			<!-- a user -->
+			<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
 
-		<span ng-switch-when="deleteParent">removed</span>
-		<span ng-switch-when="deleteChild">removed</span>
-		<span ng-switch-when="deleteTag">removed</span>
-		<span ng-switch-when="deleteUsedAsTag">set</span>
-		<span ng-switch-when="deleteRequirement">removed</span>
-		<span ng-switch-when="deleteRequiredBy">set</span>
-		<span ng-switch-when="deleteSubject">removed</span>
-		<span ng-switch-when="deleteTeacher">set</span>
+			<!-- set or unset -->
+			<span ng-switch="::update.changeLog.type">
+				<span ng-switch-when="newParent">added</span>
+				<span ng-switch-when="newChild">added</span>
+				<span ng-switch-when="newLens">added</span>
+				<span ng-switch-when="newTag">added</span>
+				<span ng-switch-when="newUsedAsTag">tagged</span>
+				<span ng-switch-when="newRequirement">added</span>
+				<span ng-switch-when="newRequiredBy">set</span>
+				<span ng-switch-when="newSubject">added</span>
+				<span ng-switch-when="newTeacher">set</span>
 
-		<span ng-switch-when="answerChange">
-			<span ng-if="::update.changeLog.newSettingsValue">added</span>
-			<span ng-if="::update.changeLog.oldSettingsValue">removed</span>
-		</span>
-	</span>
+				<span ng-switch-when="deleteParent">removed</span>
+				<span ng-switch-when="deleteChild">removed</span>
+				<span ng-switch-when="deleteTag">removed</span>
+				<span ng-switch-when="deleteUsedAsTag">set</span>
+				<span ng-switch-when="deleteRequirement">removed</span>
+				<span ng-switch-when="deleteRequiredBy">set</span>
+				<span ng-switch-when="deleteSubject">removed</span>
+				<span ng-switch-when="deleteTeacher">set</span>
 
-	<!-- another page -->
-	<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
+				<span ng-switch-when="answerChange">
+					<span ng-if="::update.changeLog.newSettingsValue">added</span>
+					<span ng-if="::update.changeLog.oldSettingsValue">removed</span>
+				</span>
+			</span>
 
-	<!-- as being related to -->
-	<span ng-switch="::update.changeLog.type">
-		<span ng-switch-when="newParent">as a parent of</span>
-		<span ng-switch-when="newChild">as a child of</span>
-		<span ng-switch-when="newLens">as a lens for</span>
-		<span ng-switch-when="newTag">as a tag for</span>
-		<span ng-switch-when="newUsedAsTag">with</span>
-		<span ng-switch-when="newRequirement">as a requirement for</span>
-		<span ng-switch-when="newRequiredBy">as requiring</span>
-		<span ng-switch-when="newSubject">as a subject taught by</span>
-		<span ng-switch-when="newTeacher">as a teacher of</span>
+			<!-- another page -->
+			<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 
-		<span ng-switch-when="deleteParent">as a parent of</span>
-		<span ng-switch-when="deleteChild">as a child of</span>
-		<span ng-switch-when="deleteTag">as a tag for</span>
-		<span ng-switch-when="deleteUsedAsTag">as no longer tagged with</span>
-		<span ng-switch-when="deleteRequirement">as a requirement for</span>
-		<span ng-switch-when="deleteRequiredBy">as no longer requiring</span>
-		<span ng-switch-when="deleteSubject">from the list of subjects taught by</span>
-		<span ng-switch-when="deleteTeacher">as no longer a teacher of</span>
+			<!-- as being related to -->
+			<span ng-switch="::update.changeLog.type">
+				<span ng-switch-when="newParent">as a parent of</span>
+				<span ng-switch-when="newChild">as a child of</span>
+				<span ng-switch-when="newLens">as a lens for</span>
+				<span ng-switch-when="newTag">as a tag for</span>
+				<span ng-switch-when="newUsedAsTag">with</span>
+				<span ng-switch-when="newRequirement">as a requirement for</span>
+				<span ng-switch-when="newRequiredBy">as requiring</span>
+				<span ng-switch-when="newSubject">as a subject taught by</span>
+				<span ng-switch-when="newTeacher">as a teacher of</span>
 
-		<span ng-switch-when="answerChange">as an answer for
-			<span ng-if="::update.changeLog.newSettingsValue">to</span>
-			<span ng-if="::update.changeLog.oldSettingsValue">for</span>
-		</span>
-	</span>
+				<span ng-switch-when="deleteParent">as a parent of</span>
+				<span ng-switch-when="deleteChild">as a child of</span>
+				<span ng-switch-when="deleteTag">as a tag for</span>
+				<span ng-switch-when="deleteUsedAsTag">as no longer tagged with</span>
+				<span ng-switch-when="deleteRequirement">as a requirement for</span>
+				<span ng-switch-when="deleteRequiredBy">as no longer requiring</span>
+				<span ng-switch-when="deleteSubject">from the list of subjects taught by</span>
+				<span ng-switch-when="deleteTeacher">as no longer a teacher of</span>
 
-	<!-- a page this user is subscribed to -->
-	<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
+				<span ng-switch-when="answerChange">as an answer for
+					<span ng-if="::update.changeLog.newSettingsValue">to</span>
+					<span ng-if="::update.changeLog.oldSettingsValue">for</span>
+				</span>
+			</span>
 
-</arb-update-row>
+			<!-- a page this user is subscribed to -->
+			<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
+
+			<arb-update-timestamp></arb-update-timestamp>
+		</div>
+	</div>
+
+	<arb-update-row-dismiss-button></arb-update-row-dismiss-button>
+</div>
