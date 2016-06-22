@@ -293,7 +293,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		});
 		// Process $mathjax$ spans.
-		var mathjaxSpanRegexp = new RegExp(notEscaped + '(~D' + getMathjaxRegexp(false) + '~D)', 'g');
+		var mathjaxSpanRegexp = new RegExp('(^|\\s)(~D' + getMathjaxRegexp(false) + '~D)', 'g');
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(mathjaxSpanRegexp, function(whole, prefix, mathjaxText) {
 				if (mathjaxText.substring(0, 4) == '~D~D') return whole;
