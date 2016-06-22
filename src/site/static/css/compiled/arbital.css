@@ -1263,7 +1263,8 @@ md-icon.icon-first {
   padding-left: 16px;
   margin-right: -16px;
   padding-right: 16px;
-  margin-bottom: -3px; }
+  margin-bottom: -3px;
+  padding-bottom: 20px; }
 
 .popover-panel {
   margin-top: 12px;

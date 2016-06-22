@@ -27,10 +27,10 @@
 		<arb-update-row-dismiss-button></arb-update-row-dismiss-button>
 	</div>
 
-	<div ng-if="expanded">
+	<div class="expand-tray" ng-if="expanded">
 		<md-progress-circular md-mode="indeterminate" ng-if="!threadLoaded"></md-progress-circular>
 		<div arb-subpage class="reveal-after-render"
-				lens-id="{{::comment.getCommentParentPage().pageId}}"
+				lens-id="{{::topLevelComment.getCommentParentPage().pageId}}"
 				page-id="{{::topLevelComment.pageId}}"
 				show-even-if-resolved="true"
 				ng-if="threadLoaded"></div>

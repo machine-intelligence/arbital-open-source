@@ -60,7 +60,8 @@ app.directive('arbCommentRowInternal', function($location, arb) {
 			$scope.arb = arb;
 			$scope.topLevelComment = $scope.comment.getTopLevelComment();
 
-			arb.pageService.loadCommentThread($scope.comment.pageId, {
+			$scope.threadLoaded = false;
+			arb.pageService.loadCommentThread($scope.topLevelComment.pageId, {
 				success: function() {
 					$scope.threadLoaded = true;
 				},
