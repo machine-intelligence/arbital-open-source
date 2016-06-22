@@ -716,6 +716,7 @@ app.directive('arbLensToolbar', function($window, $mdConstant, $mdUtil, $compile
 		scope: false,
 		controller: function($scope) {
 			$scope.arb = arb;
+			$scope.noFloater = true;
 
 			// Process click on "Subscribe as maintainer"
 			$scope.toggleMaintainerSub = function() {
@@ -766,7 +767,6 @@ app.directive('arbLensToolbar', function($window, $mdConstant, $mdUtil, $compile
 				});
 			};
 			setUpLensToolbar();
-			angular.element($window).bind('click', setUpLensToolbar);
 		},
 	};
 });

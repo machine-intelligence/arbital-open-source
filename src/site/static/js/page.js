@@ -16,6 +16,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 			$scope.isTinyScreen = !$mdMedia('gt-sm');
 			$scope.isSingleColumn = !$mdMedia('gt-md');
 			$scope.isUser = !!arb.userService.userMap[$scope.pageId];
+			$scope.selectedLens = undefined;
 
 			// Check if the user has all the requisites for the given lens
 			$scope.hasAllReqs = function(lensId) {
@@ -102,6 +103,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 
 				var $pageLensBody = $(element).find('.page-lens-body');
 				scope.selectedLens = arb.stateService.pageMap[lensId];
+				console.log(scope.selectedLens);
 				$pageLensBody.animate({opacity: 0}, 400, 'swing', function() {
 					switchingLenses = true;
 					$timeout(function() {
