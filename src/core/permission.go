@@ -10,6 +10,7 @@ import (
 
 type Permissions struct {
 	DomainAccess Permission `json:"domainAccess"`
+	DomainTrust  Permission `json:"domainTrust"`
 	Edit         Permission `json:"edit"`
 	ProposeEdit  Permission `json:"proposeEdit"`
 	Delete       Permission `json:"delete"`
@@ -178,7 +179,6 @@ func (p *Page) computeCommentPermissions(c sessions.Context, u *CurrentUser) {
 func (p *Page) ComputePermissions(c sessions.Context, u *CurrentUser) {
 	p.Permissions = &Permissions{}
 	// Order is important
-	p.computeDomainPermissions(c, u)
 	p.computeEditPermissions(c, u)
 	p.computeDeletePermissions(c, u)
 	p.computeCommentPermissions(c, u)

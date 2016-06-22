@@ -42,7 +42,7 @@
 				</span>
 				<md-button class='md-primary md-raised'
 						ng-click="arb.pageService.approvePageToDomain(page.pageId, '1lw')"
-						ng-if="page.domainSubmissions['1lw'].approverId == '' && arb.userService.user.trustMap['1lw'].permissions.edit.has">
+						ng-if="page.domainSubmissions['1lw'].approverId == '' && arb.userService.user.trustMap['1lw'].permissions.domainTrust.has">
 					Approve
 				</md-button>
 				<span ng-if="page.domainSubmissions['1lw'].approverId != ''">

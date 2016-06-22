@@ -411,14 +411,14 @@ func LoadUserTrust(db *database.DB, u *CurrentUser) error {
 			u.IsDomainMember = true
 		}
 
-		// load whether the user has ever had any maintenance updates
+		// Load whether the user has ever had any maintenance updates
 		hasReceivedMaintenanceUpdates, err := LoadHasReceivedMaintenanceUpdates(db, u)
 		if err != nil {
 			return fmt.Errorf("Couldn't process maintenance updates: %v", err)
 		}
 		u.HasReceivedMaintenanceUpdates = hasReceivedMaintenanceUpdates
 
-		// load whether the user has ever had any notifications
+		// Load whether the user has ever had any notifications
 		hasReceivedNotifications, err := LoadHasReceivedNotifications(db, u)
 		if err != nil {
 			return fmt.Errorf("Couldn't process notifications: %v", err)
@@ -430,6 +430,10 @@ func LoadUserTrust(db *database.DB, u *CurrentUser) error {
 	for _, trust := range u.TrustMap {
 		if !trust.Permissions.DomainAccess.Has {
 			trust.Permissions.DomainAccess.Reason = "You don't have access to this domain"
+		}
+		trust.Permissions.DomainTrust.Has = u.IsTrusted
+		if !trust.Permissions.DomainTrust.Has {
+			trust.Permissions.DomainTrust.Reason = "You don't have full trust for this domain"
 		}
 		trust.Permissions.Edit.Has = trust.EditTrust >= EditPageKarmaReq
 		if !trust.Permissions.Edit.Has {

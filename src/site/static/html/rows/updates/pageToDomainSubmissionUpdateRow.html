@@ -8,7 +8,8 @@
 	<div>
 		<md-button class="md-primary"
 				ng-click="arb.pageService.approvePageToDomain(update.goToPageId, update.subscribedToId)"
-				ng-if="goToPage.domainSubmissions[update.subscribedToId].approverId == ''">
+				ng-if="goToPage.domainSubmissions[update.subscribedToId].approverId == '' &&
+					arb.userService.user.trustMap['1lw'].permissions.domainTrust.has">
 			Approve
 		</md-button>
 		<!-- Check that goToPage exists, because it might have been deleted -->
