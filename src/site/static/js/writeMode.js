@@ -134,7 +134,6 @@ app.directive('arbExplanationRequestRow', function(arb) {
 
 			var aliasWithSpaces = $scope.alias.replace(/_/g, ' ');
 			$scope.prettyName = aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
-
 			$scope.editUrl = arb.urlService.getEditPageUrl($scope.alias);
 
 			$scope.editLinkClicked = function(event) {

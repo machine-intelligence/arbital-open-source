@@ -1,9 +1,11 @@
-<arb-update-row update="::update" on-dismiss="::onDismiss">
+<div layout="row" layout-align="start center">
+	<div flex>
+		<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
+		merged
+		<arb-page-title page-id="{{::acquireeId}}" is-link="true"></arb-page-title>
+		into
+		<arb-page-title page-id="{{::acquirerId}}" is-link="true"></arb-page-title>
+	</div>
 
-	<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
-	merged
-	<arb-page-title page-id="{{::acquireeId}}" is-link="true"></arb-page-title>
-	into
-	<arb-page-title page-id="{{::acquirerId}}" is-link="true"></arb-page-title>
-
-</arb-update-row>
+	<arb-update-row-dismiss-button></arb-update-row-dismiss-button>
+</div>

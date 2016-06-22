@@ -1,7 +1,10 @@
-<arb-update-row update="::update" on-dismiss="::onDismiss">
+<div layout="row" layout-align="start center">
+	<div flex>
+		<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
+		mentioned you in a
+		<arb-page-title page-id="{{::update.goToPageId}}" is-link="true" custom-page-title="comment"></arb-page-title>
+		<arb-update-timestamp></arb-update-timestamp>
+	</div>
 
-	<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
-	mentioned you in a
-	<arb-page-title page-id="{{::update.goToPageId}}" is-link="true" custom-page-title="comment"></arb-page-title>
-
-</arb-update-row>
+	<arb-update-row-dismiss-button></arb-update-row-dismiss-button>
+</div>
