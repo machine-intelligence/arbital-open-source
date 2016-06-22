@@ -1,4 +1,4 @@
-<md-list-item layout="row" layout-align="start start" ng-if="row.myLikeValue >= 0">
+<md-list-item layout="row" layout-align="start start" ng-if="!row || row.myLikeValue >= 0">
 	<div layout="row" layout-align="start start" flex>
 
 		<div ng-if="::row.refCount">
