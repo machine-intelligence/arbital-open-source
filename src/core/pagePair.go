@@ -232,3 +232,56 @@ func LoadFullEditsForPagePair(db *database.DB, pagePair *PagePair, u *CurrentUse
 	}
 	return parent, child, nil
 }
+
+func _getChildren(db *database.DB, pageId string) ([]string, error) {
+	children := make([]string, 0)
+	rows := db.NewStatement(`
+		SELECT childId
+		FROM pagePairs
+		WHERE parentId=? AND type=?`).Query(pageId, ParentPagePairType)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var childId string
+		if err := rows.Scan(&childId); err != nil {
+			return fmt.Errorf("failed to scan for childId: %v", err)
+		}
+
+		children = append(children, childId)
+		return nil
+	})
+	return children, err
+}
+
+// Returns a map with all of the given page's descendants as keys (and all of their children as values)
+func GetAllDescendants(db *database.DB, pageId string) (map[string][]string, error) {
+	descendants := make(map[string][]string)
+	toVisit := []string{pageId}
+
+	for len(toVisit) > 0 {
+		currentId := toVisit[0]
+		toVisit = toVisit[1:]
+
+		children, err := _getChildren(db, currentId)
+		if err != nil {
+			return nil, err
+		}
+
+		descendants[currentId] = children
+		for _, childId := range children {
+			if _, is_visited := descendants[childId]; !is_visited {
+				toVisit = append(toVisit, childId)
+			}
+		}
+	}
+
+	return descendants, nil
+}
+
+// Checks to see if one page is an ancestor of another
+func IsAncestor(db *database.DB, potentialAncestorId string, potentialDescendantId string) (bool, error) {
+	descendants, err := GetAllDescendants(db, potentialAncestorId)
+	if err != nil {
+		return false, err
+	}
+	_, isDescendant := descendants[potentialDescendantId]
+	return isDescendant, nil
+}

@@ -73,6 +73,16 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		return pages.Success(nil)
 	}
 
+	// Check if adding the relationship would create a parent-child cycle
+	if data.Type == core.ParentPagePairType {
+		childIsAncestor, err := core.IsAncestor(db, data.ChildId, data.ParentId)
+		if err != nil {
+			return pages.Fail("Failed to check for ancestor: %v", err)
+		} else if childIsAncestor {
+			return pages.Fail("Error: adding the relationship would create a cycle", nil)
+		}
+	}
+
 	// Load pages
 	pagePair = &core.PagePair{
 		ParentId: data.ParentId,
