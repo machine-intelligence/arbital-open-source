@@ -484,7 +484,8 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		this.getNewPage({
 			type: 'comment',
 			parentIds: parentIds,
-			isEditorComment: !stateService.pageMap[options.parentPageId].permissions.comment.has,
+			// For now, all comments are editor-only
+			isEditorComment: true,//!stateService.pageMap[options.parentPageId].permissions.comment.has,
 			success: function(newCommentId) {
 				if (options.success) {
 					options.success(newCommentId);

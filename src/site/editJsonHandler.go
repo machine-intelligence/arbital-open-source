@@ -56,7 +56,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 		} else {
 			// We tried to load an edit by alias, it wasn't found, but we can create a
 			// new page with that alias.
-			return newPageJsonInternalHandler(params, &newPageJsonData{
+			return newPageInternalHandler(params, &newPageData{
 				Type:  core.WikiPageType,
 				Alias: data.PageAlias,
 			})
