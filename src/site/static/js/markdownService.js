@@ -423,8 +423,8 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			var $wmdPreview = $('#wmd-preview' + pageId);
 			converter.hooks.chain('postConversion', function(text) {
 				$timeout(function() {
-					that.processLinks(scope, $wmdPreview, true);
-					that.compileChildren(scope, $wmdPreview, true);
+					that.processLinks(scope, $wmdPreview);
+					that.compileChildren(scope, $wmdPreview);
 				});
 				return text;
 			});
@@ -446,12 +446,14 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 	};
 
 	// Compile all the children of arb-markdown
-	this.compileChildren = function(scope, $pageText, isEditor) {
+	this.compileChildren = function(scope, $pageText, skipCompile) {
 		// NOTE: have to compile children individually because otherwise there is a bug
 		// with intrasite popovers in preview.
-		$pageText.children().each(function(index) {
-			$compile($(this))(scope);
-		});
+		if (!skipCompile) {
+			$pageText.children().each(function(index) {
+				$compile($(this))(scope);
+			});
+		}
 
 		// If first time around, set up the functions
 		if (scope._currentMathCounter === undefined) {
@@ -502,15 +504,13 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 
 		// Go through all mathjax elements, and queue them up
 		// Delay to wait for $compile to finish.
-		$timeout(function() {
-			$pageText.find('[arb-math-compiler]').each(function() {
-				scope._mathQueue.push($(this));
-			});
-			$timeout.cancel(scope._mathRenderPromise);
-			scope._mathRenderPromise = $timeout(function() {
-				scope._processMathQueue(scope._currentMathCounter);
-			}, scope._mathRenderPromise ? 500 : 0);
+		$pageText.find('[arb-math-compiler]').each(function() {
+			scope._mathQueue.push($(this));
 		});
+		$timeout.cancel(scope._mathRenderPromise);
+		scope._mathRenderPromise = $timeout(function() {
+			scope._processMathQueue(scope._currentMathCounter);
+		}, scope._mathRenderPromise ? 500 : 0);
 	};
 
 	this.createConverter = function(scope, pageId) {
