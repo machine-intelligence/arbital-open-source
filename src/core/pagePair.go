@@ -233,6 +233,26 @@ func LoadFullEditsForPagePair(db *database.DB, pagePair *PagePair, u *CurrentUse
 	return parent, child, nil
 }
 
+// Returns the ids of all the children of the given page (including deleted and unpublished children)
+func _getChildren(db *database.DB, pageId string) ([]string, error) {
+	children := make([]string, 0)
+	rows := db.NewStatement(`
+		SELECT childId
+		FROM pagePairs
+		WHERE parentId=? AND type=?`).Query(pageId, ParentPagePairType)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var childId string
+		if err := rows.Scan(&childId); err != nil {
+			return fmt.Errorf("failed to scan for childId: %v", err)
+		}
+
+		children = append(children, childId)
+		return nil
+	})
+	return children, err
+}
+
+// Returns the ids of all the parents of the given page (does *not* include deleted and unpublished parents)
 func _getParents(db *database.DB, pageId string) ([]string, error) {
 	parents := make([]string, 0)
 	rows := db.NewStatement(`
@@ -255,20 +275,21 @@ type GetRelatedFunc func(db *database.DB, pageId string) ([]string, error)
 
 // Finds all pages reachable from the source page by recursively following the given getRelated function
 // (see: https://en.wikipedia.org/wiki/Transitive_closure)
-func _getReachablePages(db *database.DB, sourceId string, getRelated GetRelatedFunc) (map[string][]string, error) {
-	reachablePages := make(map[string][]string)
+func _getReachablePages(db *database.DB, sourceId string, getRelated GetRelatedFunc) (map[string]bool, error) {
+	reachablePages := make(map[string]bool)
 	toVisit := []string{sourceId}
 
 	for len(toVisit) > 0 {
 		currentId := toVisit[0]
 		toVisit = toVisit[1:]
 
+		reachablePages[currentId] = true
+
 		relatedPages, err := getRelated(db, currentId)
 		if err != nil {
 			return nil, err
 		}
 
-		reachablePages[currentId] = relatedPages
 		for _, relatedId := range relatedPages {
 			if _, is_visited := reachablePages[relatedId]; !is_visited {
 				toVisit = append(toVisit, relatedId)
@@ -277,6 +298,11 @@ func _getReachablePages(db *database.DB, sourceId string, getRelated GetRelatedF
 	}
 
 	return reachablePages, nil
+}
+
+// Returns the subgraph composed of the given page and all of its descendants
+func GetDescendants(db *database.DB, pageId string) (map[string]bool, error) {
+	return _getReachablePages(db, pageId, _getChildren)
 }
 
 // Checks to see if one page is an ancestor of another
