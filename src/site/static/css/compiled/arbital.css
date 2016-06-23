@@ -888,9 +888,10 @@ arb-intrasite-popover, arb-user-popover, arb-text-popover {
   z-index: 60; }
   arb-intrasite-popover .intrasite-popover-title, arb-user-popover .intrasite-popover-title, arb-text-popover .intrasite-popover-title {
     font-size: 18px;
-    font-weight: 500;
     padding-bottom: 10px;
     padding-top: 12px; }
+    arb-intrasite-popover .intrasite-popover-title :not(.md-caption), arb-user-popover .intrasite-popover-title :not(.md-caption), arb-text-popover .intrasite-popover-title :not(.md-caption) {
+      font-weight: 500; }
 
 arb-intrasite-popover {
   border: 3px solid #00796B;
