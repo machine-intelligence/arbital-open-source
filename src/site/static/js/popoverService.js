@@ -33,7 +33,6 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 
 	// Remove the popover.
 	var removePopover = function() {
-		return;
 		if (popoverElement) {
 			popoverScope.$destroy();
 			popoverElement.remove();
