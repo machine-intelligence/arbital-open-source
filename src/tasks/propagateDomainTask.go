@@ -66,24 +66,28 @@ func propagateDomainsToPageAndDescendants(db *database.DB, pageId string) error 
 	}
 
 	// the set of all the parents
-	allParents := make(map[string]bool)
+	allParentsSet := make(map[string]bool)
 	for _, parents := range parentMap {
 		for parentId := range parents {
-			allParents[parentId] = true
+			allParentsSet[parentId] = true
 		}
 	}
 
 	// both the pages-to-update and their parents
-	allPages := make(map[string]bool)
-	for id := range pagesToUpdate {
-		allPages[id] = true
+	allPagesSet := make(map[string]bool)
+	for _, id := range pagesToUpdate {
+		allPagesSet[id] = true
 	}
-	for id := range allParents {
-		allPages[id] = true
+	for id := range allParentsSet {
+		allPagesSet[id] = true
+	}
+	allPagesArray := make([]string, 0)
+	for id := range allPagesSet {
+		allPagesArray = append(allPagesArray, id)
 	}
 
 	// set of pages in our subgraph that are themselves domain pages
-	domainPages, err := _getDomainPages(db, allPages)
+	domainPagesSet, err := _getDomainPages(db, allPagesArray)
 	if err != nil {
 		return fmt.Errorf("Faled to load domain pages: %v", err)
 	}
@@ -91,23 +95,27 @@ func propagateDomainsToPageAndDescendants(db *database.DB, pageId string) error 
 	// set of pages we're assuming already have the right domains
 	// (that is, the parents of the to-be-updated pages that are not
 	// also to-be-updated pages themselves)
-	pagesWithValidDomains := make(map[string]bool)
-	for parentId := range allParents {
-		if _, toBeUpdated := pagesToUpdate[parentId]; !toBeUpdated {
-			pagesWithValidDomains[parentId] = true
+	pagesWithValidDomainsSet := make(map[string]bool)
+	pagesToUpdateSet := make(map[string]bool)
+	for _, id := range pagesToUpdate {
+		pagesToUpdateSet[id] = true
+	}
+	for parentId := range allParentsSet {
+		if _, toBeUpdated := pagesToUpdateSet[parentId]; !toBeUpdated {
+			pagesWithValidDomainsSet[parentId] = true
 		}
 	}
 
 	// map from pages to their current domains
 	// (used to get the domains of the pages-with-valid-domains, and also
 	// so that we can diff with our computed domains for the to-be-updated pages)
-	originalDomainsMap, err := _getOriginalDomains(db, allPages)
+	originalDomainsMap, err := _getOriginalDomains(db, allPagesArray)
 	if err != nil {
 		return fmt.Errorf("Faled to load original domains: %v", err)
 	}
 
 	// figure out what the new domains should be
-	computedDomainsMap := _getComputedDomains(db, originalDomainsMap, pagesToUpdate, pagesWithValidDomains, parentMap, domainPages)
+	computedDomainsMap := _getComputedDomains(db, originalDomainsMap, pagesToUpdate, pagesWithValidDomainsSet, parentMap, domainPagesSet)
 
 	// diff with the original domains, so we can do minimal db writes
 	domainsToAddMap, domainsToRemoveMap := _getDomainsToAddRemove(originalDomainsMap, computedDomainsMap)
@@ -122,13 +130,8 @@ func propagateDomainsToPageAndDescendants(db *database.DB, pageId string) error 
 }
 
 // gets a map from a set of pages to sets of their parents
-func _getParentMap(db *database.DB, pageIds map[string]bool) (map[string]map[string]bool, error) {
+func _getParentMap(db *database.DB, pageIds []string) (map[string]map[string]bool, error) {
 	parentMap := make(map[string]map[string]bool)
-
-	pageIdsArray := make([]string, 0)
-	for id := range pageIds {
-		pageIdsArray = append(pageIdsArray, id)
-	}
 
 	rows := database.NewQuery(`
 		SELECT childId, parentId
@@ -136,7 +139,7 @@ func _getParentMap(db *database.DB, pageIds map[string]bool) (map[string]map[str
 		JOIN`).AddPart(core.PageInfosTable(nil)).Add(`AS pi
 		ON pp.parentId=pi.pageId
 		WHERE pp.type=?`, core.ParentPagePairType).Add(`
-			AND childId IN`).AddArgsGroupStr(pageIdsArray).ToStatement(db).Query()
+			AND childId IN`).AddArgsGroupStr(pageIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var childId, parentId string
 		if err := rows.Scan(&childId, &parentId); err != nil {
@@ -154,46 +157,36 @@ func _getParentMap(db *database.DB, pageIds map[string]bool) (map[string]map[str
 }
 
 // gets the set of pages, from among those given, that are domain pages
-func _getDomainPages(db *database.DB, pageIds map[string]bool) (map[string]bool, error) {
-	pageIdsArray := make([]string, 0)
-	for id := range pageIds {
-		pageIdsArray = append(pageIdsArray, id)
-	}
-
-	domainPages := make(map[string]bool)
+func _getDomainPages(db *database.DB, pageIds []string) (map[string]bool, error) {
+	domainPagesSet := make(map[string]bool)
 	rows := database.NewQuery(`
 		SELECT pageId
 		FROM`).AddPart(core.PageInfosTable(nil)).Add(`AS pi
-		WHERE pageId IN`).AddArgsGroupStr(pageIdsArray).Add(`
+		WHERE pageId IN`).AddArgsGroupStr(pageIds).Add(`
 			AND type=?`, core.DomainPageType).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId string
 		if err := rows.Scan(&pageId); err != nil {
 			return fmt.Errorf("failed to scan for domain page: %v", err)
 		}
-		domainPages[pageId] = true
+		domainPagesSet[pageId] = true
 		return nil
 	})
 
-	return domainPages, err
+	return domainPagesSet, err
 }
 
 // gets the current set of domains for each of the given pages
-func _getOriginalDomains(db *database.DB, pageIds map[string]bool) (map[string]map[string]bool, error) {
+func _getOriginalDomains(db *database.DB, pageIds []string) (map[string]map[string]bool, error) {
 	originalDomainsMap := make(map[string]map[string]bool)
-	for id := range pageIds {
+	for _, id := range pageIds {
 		originalDomainsMap[id] = make(map[string]bool)
-	}
-
-	pageIdsArray := make([]string, 0)
-	for id := range pageIds {
-		pageIdsArray = append(pageIdsArray, id)
 	}
 
 	rows := database.NewQuery(`
 		SELECT pageId, domainId
 		FROM pageDomainPairs
-		WHERE pageId IN`).AddArgsGroupStr(pageIdsArray).ToStatement(db).Query()
+		WHERE pageId IN`).AddArgsGroupStr(pageIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId, domainId string
 		if err := rows.Scan(&pageId, &domainId); err != nil {
@@ -211,60 +204,51 @@ func _getOriginalDomains(db *database.DB, pageIds map[string]bool) (map[string]m
 }
 
 // computes the correct domains for each page in toUpdate, assuming that
-// the domains for pages in pagesWithValidDomains are correct
-func _getComputedDomains(db *database.DB, originalDomainsMap map[string]map[string]bool, toUpdate map[string]bool, pagesWithValidDomains map[string]bool,
-	parentMap map[string]map[string]bool, domainPages map[string]bool) map[string]map[string]bool {
+// the domains for pages in pagesWithValidDomainsSet are correct
+func _getComputedDomains(db *database.DB, originalDomainsMap map[string]map[string]bool, toUpdate []string, pagesWithValidDomainsSet map[string]bool,
+	parentMap map[string]map[string]bool, domainPagesSet map[string]bool) map[string]map[string]bool {
 
 	// initialize the map with the page-domain-pairs we believe are already correct
 	computedDomainsMap := make(map[string]map[string]bool)
-	for id := range pagesWithValidDomains {
+	for id := range pagesWithValidDomainsSet {
 		computedDomainsMap[id] = originalDomainsMap[id]
 	}
 
 	// re-compute the domains for pages in toUpdate
-	for id := range toUpdate {
-		_computeDomainsRecursive(db, id, parentMap, domainPages, computedDomainsMap, make(map[string]bool))
+	for _, id := range toUpdate {
+		_computeDomainsRecursive(db, id, parentMap, domainPagesSet, computedDomainsMap)
 	}
 	return computedDomainsMap
 }
 
 // does a depth-first search up the hierarchy towards parents to find the page's domains
-func _computeDomainsRecursive(db *database.DB, pageId string, parentMap map[string]map[string]bool, domainPages map[string]bool,
-	computedDomainsMap map[string]map[string]bool, visiting map[string]bool) map[string]bool {
+func _computeDomainsRecursive(db *database.DB, pageId string, parentMap map[string]map[string]bool, domainPagesSet map[string]bool,
+	computedDomainsMap map[string]map[string]bool) map[string]bool {
 
 	// if we already know the domains for this page, we're done
 	if computedDomains, ok := computedDomainsMap[pageId]; ok {
 		return computedDomains
 	}
 
-	db.C.Debugf("visiting: %v", pageId)
-
-	// track pages we're working on so we don't infinitely recurse
-	// visiting[pageId] = true
-	// defer delete(visiting, pageId)
-
-	domains := make(map[string]bool)
+	domainsSet := make(map[string]bool)
 
 	// add this page if it's a domain page
-	if _, isDomainPage := domainPages[pageId]; isDomainPage {
-		domains[pageId] = true
+	if _, isDomainPage := domainPagesSet[pageId]; isDomainPage {
+		domainsSet[pageId] = true
 	}
 
 	// add the domains from all of this page's parents
 	if parents, ok := parentMap[pageId]; ok {
 		for parentId := range parents {
-			// ROGTODO: is this needed?
-			// if _, isVisiting := visiting[parentId]; !isVisiting {
-			domainsFromParent := _computeDomainsRecursive(db, parentId, parentMap, domainPages, computedDomainsMap, visiting)
+			domainsFromParent := _computeDomainsRecursive(db, parentId, parentMap, domainPagesSet, computedDomainsMap)
 			for domainId := range domainsFromParent {
-				domains[domainId] = true
+				domainsSet[domainId] = true
 			}
-			// }
 		}
 	}
 
-	computedDomainsMap[pageId] = domains
-	return domains
+	computedDomainsMap[pageId] = domainsSet
+	return domainsSet
 }
 
 // diffs the new computed domains with the orignal domains
@@ -277,24 +261,24 @@ func _getDomainsToAddRemove(originalDomainsMap map[string]map[string]bool, compu
 	for id, computedDomains := range computedDomainsMap {
 		originalDomains := originalDomainsMap[id]
 
-		domainsToAdd := make(map[string]bool)
-		domainsToRemove := make(map[string]bool)
+		domainsToAddSet := make(map[string]bool)
+		domainsToRemoveSet := make(map[string]bool)
 		for domainId := range computedDomains {
 			if _, alreadyApplied := originalDomains[domainId]; !alreadyApplied {
-				domainsToAdd[domainId] = true
+				domainsToAddSet[domainId] = true
 			}
 		}
 		for domainId := range originalDomains {
 			if _, shouldKeep := computedDomains[domainId]; !shouldKeep {
-				domainsToRemove[domainId] = true
+				domainsToRemoveSet[domainId] = true
 			}
 		}
 
-		if len(domainsToAdd) > 0 {
-			domainsToAddMap[id] = domainsToAdd
+		if len(domainsToAddSet) > 0 {
+			domainsToAddMap[id] = domainsToAddSet
 		}
-		if len(domainsToRemove) > 0 {
-			domainsToRemoveMap[id] = domainsToRemove
+		if len(domainsToRemoveSet) > 0 {
+			domainsToRemoveMap[id] = domainsToRemoveSet
 		}
 	}
 	return domainsToAddMap, domainsToRemoveMap
@@ -305,14 +289,14 @@ func _updateDomains(db *database.DB, domainsToAddMap map[string]map[string]bool,
 	addDomainArgs := make([]interface{}, 0)
 	removeDomainArgsMap := make(map[string][]interface{}, 0)
 
-	for pageId, domainsToAdd := range domainsToAddMap {
-		for domainId := range domainsToAdd {
+	for pageId, domainsToAddSet := range domainsToAddMap {
+		for domainId := range domainsToAddSet {
 			addDomainArgs = append(addDomainArgs, domainId, pageId)
 		}
 	}
-	for pageId, domainsToRemove := range domainsToRemoveMap {
+	for pageId, domainsToRemoveSet := range domainsToRemoveMap {
 		removeDomainArgs := make([]interface{}, 0)
-		for domainId := range domainsToRemove {
+		for domainId := range domainsToRemoveSet {
 			removeDomainArgs = append(removeDomainArgs, domainId)
 		}
 		if len(removeDomainArgs) > 0 {

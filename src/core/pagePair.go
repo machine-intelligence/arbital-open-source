@@ -301,8 +301,18 @@ func _getReachablePages(db *database.DB, sourceId string, getRelated GetRelatedF
 }
 
 // Returns the subgraph composed of the given page and all of its descendants
-func GetDescendants(db *database.DB, pageId string) (map[string]bool, error) {
-	return _getReachablePages(db, pageId, _getChildren)
+func GetDescendants(db *database.DB, pageId string) ([]string, error) {
+	reachablePagesSet, err := _getReachablePages(db, pageId, _getChildren)
+	if err != nil {
+		return nil, err
+	}
+
+	reachablePagesArray := make([]string, 0)
+	for id := range reachablePagesSet {
+		reachablePagesArray = append(reachablePagesArray, id)
+	}
+
+	return reachablePagesArray, nil
 }
 
 // Checks to see if one page is an ancestor of another
