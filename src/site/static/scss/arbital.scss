@@ -744,14 +744,44 @@ md-toast {
 
 // Text inside a popover
 .popover-text-container {
-	font-size: 18px;
-	line-height: 24px;
+	font-size: 15px;
+	line-height: 22px;
 }
 
 // Intrasite popover
 arb-intrasite-popover, arb-user-popover, arb-text-popover {
 	position: absolute;
+	background: white;
 	z-index: $popoverZ;
+
+	.intrasite-popover-title {
+		font-size: 18px;
+		padding-bottom: 10px;
+		padding-top: 12px;
+
+		:not(.md-caption) {
+			font-weight: 500;
+		}
+	}
+}
+
+arb-intrasite-popover {
+	border: 3px solid $primary-hue-2;
+
+	box-shadow: 0 6px 6px -3px rgba(0,96,88,0.4),
+		0 10px 14px 1px rgba(0,96,88,0.4),
+		0 4px 18px 3px rgba(0,96,88,0.4);
+
+	md-tabs-wrapper {
+		md-tabs-canvas,
+		md-pagination-wrapper {
+			height: 31px;
+		}
+
+		.md-tab {
+			line-height: 6px;
+		}
+	}
 }
 
 .popover-tab-body {
@@ -761,10 +791,6 @@ arb-intrasite-popover, arb-user-popover, arb-text-popover {
 		padding: 10px;
 		overflow-y: auto;
 	}
-}
-
-.popover-body {
-	background-color: whitesmoke;
 }
 
 $triangle-size: 15px;
@@ -1261,6 +1287,20 @@ md-icon.icon-first {
   height: 24px;
 }
 
+arb-likes.s20 {
+	margin-right: 0px;
+
+	md-icon {
+		width: 20px;
+		height: 20px;
+	}
+
+	.like-icon {
+		min-width: 20px;
+		margin-right: 0px !important;
+	}
+}
+
 .page-row {
 	& .page-row-caption {
 	    min-width: 0px;
@@ -1342,7 +1382,7 @@ md-icon.icon-first {
 	box-shadow: inherit;
 }
 
-// BEGIN STYLES FOR POPOVER PANEL TRIANGLES
+// BEGIN STYLES FOR POPOVER TRIANGLES
 .popover-panel:before,
 .popover-panel:after {
 	content: '';
@@ -1356,11 +1396,9 @@ md-icon.icon-first {
 	-ms-transform: rotate(45deg);
 	-o-transform: rotate(45deg);
 	transform: rotate(45deg);
-}
-
-.popover-panel:before {
 	z-index: -1;
 }
+
 .popover-panel.arrow-top:before,
 .popover-panel.arrow-top:after {
 	bottom: 100%;
