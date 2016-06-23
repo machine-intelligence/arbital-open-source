@@ -255,10 +255,13 @@ func _getChildren(db *database.DB, pageId string) ([]string, error) {
 // Returns the ids of all the parents of the given page (does *not* include deleted and unpublished parents)
 func _getParents(db *database.DB, pageId string) ([]string, error) {
 	parents := make([]string, 0)
-	rows := db.NewStatement(`
+
+	rows := database.NewQuery(`
 		SELECT parentId
-		FROM pagePairs
-		WHERE childId=? AND type=?`).Query(pageId, ParentPagePairType)
+		FROM pagePairs AS pp
+		JOIN`).AddPart(PageInfosTable(nil)).Add(`AS pi
+		ON pp.parentId=pi.pageId
+		WHERE pp.childId=?`, pageId).Add(`AND pp.type=?`, ParentPagePairType).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentId string
 		if err := rows.Scan(&parentId); err != nil {
