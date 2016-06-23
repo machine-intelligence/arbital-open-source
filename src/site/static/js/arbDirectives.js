@@ -39,6 +39,7 @@ app.directive('arbIntrasitePopover', function($timeout, arb) {
 			direction: '@',
 			arrowOffset: '@',
 		},
+		priority: 0,
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.page = arb.stateService.pageMap[$scope.pageId];
@@ -61,8 +62,12 @@ app.directive('arbIntrasitePopover', function($timeout, arb) {
 				isDestroyed = true;
 			});
 
+			element.find('md-tabs-wrapper').append('text');
+			console.log('ee');
+
 			// Convert the name of the tab into an index for sorting.
 			var nameToTabIndex = function(name) {
+				if (name === scope.page.title) return -1;
 				if (name === 'Brief') return 0;
 				if (name === 'Summary') return 1;
 				if (name === 'Technical') return 2;
@@ -72,6 +77,7 @@ app.directive('arbIntrasitePopover', function($timeout, arb) {
 			// Convert page's summaries into our local array
 			var processPageSummaries = function() {
 				if (!scope.page) return;
+
 				for (var name in scope.page.summaries) {
 					scope.summaries.push({name: name, text: scope.page.summaries[name]});
 				}

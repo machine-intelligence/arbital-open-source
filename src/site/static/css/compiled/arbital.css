@@ -879,21 +879,33 @@ md-toast md-icon {
   text-align: right; }
 
 .popover-text-container {
-  font-size: 18px;
-  line-height: 24px; }
+  font-size: 15px;
+  line-height: 22px; }
 
 arb-intrasite-popover, arb-user-popover, arb-text-popover {
   position: absolute;
+  background: white;
   z-index: 60; }
+  arb-intrasite-popover .intrasite-popover-title, arb-user-popover .intrasite-popover-title, arb-text-popover .intrasite-popover-title {
+    font-size: 18px;
+    font-weight: 500;
+    padding-bottom: 10px;
+    padding-top: 12px; }
+
+arb-intrasite-popover {
+  border: 3px solid #00796B;
+  box-shadow: 0 6px 6px -3px rgba(0, 96, 88, 0.4), 0 10px 14px 1px rgba(0, 96, 88, 0.4), 0 4px 18px 3px rgba(0, 96, 88, 0.4); }
+  arb-intrasite-popover md-tabs-wrapper md-tabs-canvas,
+  arb-intrasite-popover md-tabs-wrapper md-pagination-wrapper {
+    height: 31px; }
+  arb-intrasite-popover md-tabs-wrapper .md-tab {
+    line-height: 6px; }
 
 .popover-tab-body {
   max-height: 32vh; }
   .popover-tab-body.toolbarless-version {
     padding: 10px;
     overflow-y: auto; }
-
-.popover-body {
-  background-color: whitesmoke; }
 
 .top-triangle-track {
   position: relative;
@@ -1240,6 +1252,15 @@ md-icon.icon-first {
   width: 24px;
   height: 24px; }
 
+arb-likes.s20 {
+  margin-right: 0px; }
+  arb-likes.s20 md-icon {
+    width: 20px;
+    height: 20px; }
+  arb-likes.s20 .like-icon {
+    min-width: 20px;
+    margin-right: 0px !important; }
+
 .page-row .page-row-caption {
   min-width: 0px;
   overflow: hidden;
@@ -1307,9 +1328,7 @@ md-icon.icon-first {
   -moz-transform: rotate(45deg);
   -ms-transform: rotate(45deg);
   -o-transform: rotate(45deg);
-  transform: rotate(45deg); }
-
-.popover-panel:before {
+  transform: rotate(45deg);
   z-index: -1; }
 
 .popover-panel.arrow-top:before,
