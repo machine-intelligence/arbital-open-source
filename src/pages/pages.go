@@ -33,12 +33,13 @@ var (
 
 // HandlerParams are passed to all handlers.
 type HandlerParams struct {
-	W              http.ResponseWriter
-	R              *http.Request
-	C              sessions.Context
-	DB             *database.DB
-	U              *core.CurrentUser
-	PrivateGroupId string
+	core.GlobalHandlerData
+
+	W  http.ResponseWriter
+	R  *http.Request
+	C  sessions.Context
+	DB *database.DB
+	U  *core.CurrentUser
 }
 
 // Renderer is a function to render a page result. Returns:
@@ -61,7 +62,8 @@ type PageOptions struct {
 	AdminOnly      bool
 	RequireLogin   bool
 	RequireTrusted bool
-	// If true, we don't care if the user is signed in or not
+	// If true, we don't care if the user is signed in or not.
+	// This is used specifically for log-in and sign-up pages in private domains
 	AllowAnyone bool
 }
 

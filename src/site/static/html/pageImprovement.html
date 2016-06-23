@@ -1,0 +1,31 @@
+<div class="improvement-header"
+		layout="row"
+		layout-align="start center"
+		ng-if="shouldShowImprovements()">
+	<div flex>This page is just getting off the ground. Can you help?</div>
+	<md-button ng-click="toggleExpand()" class="short-button" aria-label="Expand">
+		<span ng-if="!expanded">Expand</span>
+		<arb-expand-icon expanded="expanded"></arb-expand-icon>
+	</md-button>
+</div>
+
+<div class="improvement-body expand-tray" layout="row" ng-if="expanded">
+	<div class="improvement-column" flex ng-if="shouldShowTagsColumn()">
+		The following issues have been raised by editors:
+		<ul>
+			<li ng-repeat="tagId in page.improvementTagIds">
+				<arb-page-title page-id="{{::tagId}}" is-link="true" show-clickbait="true"></arb-page-title>
+			</li>
+		</ul>
+	</div>
+	<div class="improvement-column" flex ng-if="shouldShowTodosColumn()">
+		This page has {{page.todos.length}} TODO
+		<ng-pluralize count="page.todos.length"
+				when="{'one': 'item', 'other': 'items'}"></ng-pluralize>:
+		<ul>
+			<li ng-repeat="text in page.todos">
+				{{text}}
+			</li>
+		</ul>
+	</div>
+</div>

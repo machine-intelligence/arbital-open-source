@@ -17,6 +17,9 @@ app.service('stateService', function($http, $compile, $location, $mdToast, $root
 	// All loaded edits. (These are the pages we will be editing.)
 	this.editMap = {};
 
+	// Collection of various data we got from the server.
+	this.globalData = undefined;
+
 	// Id of the private group we are in. (Corresponds to the subdomain).
 	this.privateGroupId = '';
 
@@ -117,6 +120,9 @@ app.service('stateService', function($http, $compile, $location, $mdToast, $root
 	this.processServerData = function(data) {
 		for (var key in postDataCallbacks) {
 			postDataCallbacks[key](data);
+		}
+		if (data.globalData) {
+			that.globalData = data.globalData;
 		}
 	};
 

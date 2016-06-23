@@ -70,6 +70,9 @@
 							custom-page-title="{{::(lensId === page.pageId ? 'Main' : arb.stateService.pageMap[lensId].lensTitle())}}"></arb-page-title>
 				</md-button>
 			</div>
+			
+			<!-- How to make this page better box -->
+			<div arb-page-improvement page="selectedLens" class="md-whiteframe-1dp" ng-if="selectedLens"></div>
 
 			<!-- For each lens -->
 			<div ng-repeat="lensId in ::page.lensIds" ng-if="lensId === selectedLens.pageId">
@@ -94,7 +97,7 @@
 							layout-gt-sm="row"
 							layout-align="start start"
 							layout-padding
-							ng-if="selectedLens.parentIds.length > 0 || (selectedLens.taggedAsIds.length > 0 && !isSimpleEmbed)">
+							ng-if="selectedLens.parentIds.length > 0 || (selectedLens.nonMetaTagIds.length > 0 && !isSimpleEmbed)">
 						<!-- Parents -->
 						<div layout-align="start center"
 								ng-if="selectedLens.parentIds.length > 0" flex>
@@ -107,9 +110,9 @@
 
 						<!-- Tags -->
 						<div layout-align="start center"
-				 				ng-if="selectedLens.taggedAsIds.length > 0 && !isSimpleEmbed">
-				 			<span>Tagged as:</span>
-				 			<span ng-repeat="(index, tagId) in selectedLens.taggedAsIds">
+				 				ng-if="selectedLens.nonMetaTagIds.length > 0 && !isSimpleEmbed">
+				 			<span>Tags:</span>
+				 			<span ng-repeat="(index, tagId) in selectedLens.nonMetaTagIds">
 				 				<span class="comma" ng-if="::(index > 0)">,</span>
 				 				<arb-page-title page-id="{{::tagId}}" is-link="true"></arb-page-title>
 				 			</span>

@@ -22,9 +22,6 @@ const (
 	TaggedforEditModeRowType = "taggedForEdit"
 	MaintenanceUpdateRowType = "maintenanceUpdate"
 	NotificationRowType      = "notification"
-
-	requestForEditTagParentPageId = "3zj"
-	MathDomainId                  = "1lw"
 )
 
 type modeRowData struct {
@@ -362,7 +359,7 @@ func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 		JOIN pageDomainPairs AS pdp ON pi.pageId=pdp.pageId
 		WHERE pi.type IN (?,?,?,?)`, core.WikiPageType, core.LensPageType, core.DomainPageType, core.QuestionPageType).Add(`
 			AND pi.`+pageInfoField+`!=0
-			AND (pdp.domainId=?`, MathDomainId).Add(`OR pdp.domainId IN(`).AddPart(subscribedDomains).Add(`))
+			AND (pdp.domainId=?`, core.MathDomainId).Add(`OR pdp.domainId IN(`).AddPart(subscribedDomains).Add(`))
 		ORDER BY pi.`+pageInfoField+` DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -452,7 +449,7 @@ func loadTaggedForEditRows(db *database.DB, returnData *core.CommonHandlerData, 
 	}).Add(core.TitlePlusLoadOptions)
 
 	// Tags that mean a page should be edited
-	tagsForEdit, err := core.LoadMetaTags(db, requestForEditTagParentPageId)
+	tagsForEdit, err := core.LoadMetaTags(db, core.RequestForEditTagParentPageId)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load meta tags: %v", err)
 	}

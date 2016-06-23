@@ -75,7 +75,7 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 		FROM `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS mathPi
 		JOIN pageDomainPairs AS pdp
 		ON pdp.pageId=mathPi.pageId
-			AND pdp.domainId=?`, MathDomainId).Add(`
+			AND pdp.domainId=?`, core.MathDomainId).Add(`
 		JOIN links AS l
 		ON l.parentId=mathPi.pageId
 		LEFT JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS linkedPi
