@@ -381,12 +381,7 @@ func loadUpdateCountInternal(db *database.DB, userId string, updateTypes []strin
 }
 
 // LoadUserTrust returns the trust that the user has in all domains.
-func LoadUserTrust(db *database.DB, u *CurrentUser) error {
-	domainIds, err := LoadAllDomainIds(db, nil)
-	if err != nil {
-		return err
-	}
-
+func LoadUserTrust(db *database.DB, u *CurrentUser, domainIds []string) error {
 	for _, domainId := range domainIds {
 		u.TrustMap[domainId] = &Trust{}
 	}

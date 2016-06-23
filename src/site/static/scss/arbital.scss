@@ -45,7 +45,7 @@ body {
 	background-size: 100%;
 }
 
-.like-button {
+.short-button {
 	min-width: 0 !important;
 }
 
@@ -567,7 +567,7 @@ arb-likes, .likes-in-autocomplete {
 		margin-right: 2px !important;
 	}
 
-	.like-button, .icon-likes {
+	.short-button, .icon-likes {
 		// Number of likes
 		.like-count {
 			color: #666;
@@ -1421,4 +1421,33 @@ md-icon.icon-first {
 
 .query-info-button-div {
 	min-width: 200px !important;
+}
+
+arb-page-improvement, [arb-page-improvement] {
+
+	.improvement-header {
+		background-color: $accent-hue-1;
+		margin-top: 20px;
+		padding: 5px 20px;
+	}
+
+	.improvement-body {
+		padding: 10px 20px;
+		font-size: 16px;
+		line-height: 16px;
+	}
+
+	.improvement-column {
+		margin-bottom: 10px;
+	}
+
+	.improvement-column + .improvement-column {
+		margin-left: 40px;
+	}
+
+	ul {
+		margin: 0;
+		margin-top: 5px;
+		padding-left: 30px;
+	}
 }

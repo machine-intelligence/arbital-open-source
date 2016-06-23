@@ -2,8 +2,8 @@
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 
 // Directive to show a lens' content
-app.directive('arbLens', function($http, $location, $compile, $timeout, $interval, $mdMedia, $mdBottomSheet, $rootScope,
-	arb) {
+app.directive('arbLens', function($http, $location, $compile, $timeout, $interval,
+			$mdMedia, $mdBottomSheet, $rootScope, arb) {
 	return {
 		templateUrl: versionUrl('static/html/lens.html'),
 		scope: {
@@ -13,13 +13,17 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
+			$scope.isTinyScreen = !$mdMedia('gt-xs');
+			$scope.isSmallScreen = !$mdMedia('gt-sm');
 
 			$scope.page = arb.stateService.pageMap[$scope.pageId];
 			if ($scope.lensParentId) {
 				$scope.lensParentPage = arb.stateService.pageMap[$scope.lensParentId];
 			}
-			$scope.isTinyScreen = !$mdMedia('gt-xs');
-			$scope.isSmallScreen = !$mdMedia('gt-sm');
+
+			$scope.page.nonMetaTagIds = $scope.page.taggedAsIds.filter(function(tagId) {
+				return arb.stateService.globalData.improvementTagIds.indexOf(tagId) < 0;
+			});
 
 			$scope.mastery = arb.masteryService.masteryMap[$scope.pageId];
 			if (!$scope.mastery) {
