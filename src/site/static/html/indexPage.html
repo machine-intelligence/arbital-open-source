@@ -1,11 +1,12 @@
 <div id="index-header" layout="row" layout-align="center center" class="md-whiteframe-1dp" flex>
 	<span>
-		<arb-page-title page-id="3d" is-link="true" custom-page-title="Arbital"></arb-page-title>
-		<span>is the place for</span>
-		<arb-page-title page-id="1sl" is-link="true" custom-page-title="crowdsourced"></arb-page-title>
-		<span class="comma">, intuitive math</span>
-		<arb-page-title page-id="1sm" is-link="true" custom-page-title="explanations"></arb-page-title>
-		<span class="comma">.</span>
+		<a ng-href="{{::arb.urlService.getPageUrl('3d')}}"
+				class="intrasite-link"
+				page-id="3d">Arbital</a>
+		is the place for crowdsourced, intuitive math
+		<a ng-href="{{::arb.urlService.getPageUrl('4d6')}}"
+				class="intrasite-link"
+				page-id="4d6">explanations</a>.
 	</span>
 </div>
 
