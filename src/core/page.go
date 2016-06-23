@@ -69,6 +69,9 @@ const (
 	// How long the page lock lasts
 	PageQuickLockDuration = 5 * 60  // in seconds
 	PageLockDuration      = 30 * 60 // in seconds
+
+	RequestForEditTagParentPageId = "3zj"
+	MathDomainId                  = "1lw"
 )
 
 var (
@@ -227,6 +230,8 @@ type Page struct {
 	// This data isn't loaded on the BE, but populated on the FE
 	// Map: red alias -> pretty text
 	RedAliases map[string]string `json:"redAliases"`
+	// List of page's meta tags that indicate the page should be improved
+	ImprovementTagIds []string `json:"improvementTagIds"`
 	// List of page's tags that are not meta tags
 	NonMetaTagIds []string `json:"nonMetaTagIds"`
 	// TODOs extracted from the page's text
@@ -258,6 +263,7 @@ func NewPage(pageId string) *Page {
 	p.Members = make(map[string]*Member)
 	p.EditHistory = make(map[string]*EditInfo)
 	p.RedAliases = make(map[string]string)
+	p.ImprovementTagIds = make([]string, 0)
 	p.NonMetaTagIds = make([]string, 0)
 	p.Todos = make([]string, 0)
 
@@ -390,7 +396,8 @@ type SearchString struct {
 	Text   string
 }
 
-// GlobalHandlerData includes data that's
+// GlobalHandlerData includes misc data that we send to the FE with each request
+// that resets FE data.
 type GlobalHandlerData struct {
 	// Id of the private group the current user is in
 	PrivateGroupId string `json:"privateGroupId"`

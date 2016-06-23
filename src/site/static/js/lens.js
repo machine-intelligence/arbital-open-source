@@ -21,8 +21,12 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				$scope.lensParentPage = arb.stateService.pageMap[$scope.lensParentId];
 			}
 
+			// Process meta tags
 			$scope.page.nonMetaTagIds = $scope.page.taggedAsIds.filter(function(tagId) {
 				return arb.stateService.globalData.improvementTagIds.indexOf(tagId) < 0;
+			});
+			$scope.page.improvementTagIds = $scope.page.taggedAsIds.filter(function(tagId) {
+				return arb.stateService.globalData.improvementTagIds.indexOf(tagId) >= 0;
 			});
 
 			$scope.mastery = arb.masteryService.masteryMap[$scope.pageId];

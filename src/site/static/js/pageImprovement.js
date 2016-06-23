@@ -5,18 +5,13 @@ app.directive('arbPageImprovement', function($timeout, $http, $compile, arb) {
 	return {
 		templateUrl: versionUrl('static/html/pageImprovement.html'),
 		scope: {
-			pageId: '@',
+			page: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.page = arb.stateService.pageMap[$scope.pageId];
-
-			$scope.improvementTagIds = $scope.page.taggedAsIds.filter(function(tagId) {
-				return arb.stateService.globalData.improvementTagIds.indexOf(tagId) >= 0;
-			});
 
 			$scope.shouldShowTagsColumn = function() {
-				return $scope.improvementTagIds.length > 0;
+				return $scope.page.improvementTagIds.length > 0;
 			};
 			$scope.shouldShowTodosColumn = function() {
 				return $scope.page.todos.length > 0;
@@ -29,8 +24,6 @@ app.directive('arbPageImprovement', function($timeout, $http, $compile, arb) {
 			$scope.toggleExpand = function() {
 				$scope.expanded = !$scope.expanded;
 			};
-		},
-		link: function(scope, element, attrs) {
 		},
 	};
 });

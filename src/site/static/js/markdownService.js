@@ -54,7 +54,12 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
 		var editor = isEditor ? new Markdown.Editor(converter, pageId) : undefined;
-		var markdownPage = !isEditor ? stateService.pageMap[pageId] : undefined;
+		var markdownPage = undefined;
+		if (!isEditor) {
+			markdownPage = stateService.pageMap[pageId];
+			markdownPage.todos = [];
+			markdownPage.redAliases = {};
+		}
 
 		// Get the html for linking to the given alias. If alias is not found in page mape, the
 		// link will be red.

@@ -1357,12 +1357,11 @@ md-icon.icon-first {
 
 arb-page-improvement .improvement-header, [arb-page-improvement] .improvement-header {
   background-color: #FFCCBC;
-  margin-top: 20px;
   padding: 5px 20px; }
 arb-page-improvement .improvement-body, [arb-page-improvement] .improvement-body {
   padding: 10px 20px;
   font-size: 16px;
-  line-height: 16px; }
+  line-height: 18px; }
 arb-page-improvement .improvement-column, [arb-page-improvement] .improvement-column {
   margin-bottom: 10px; }
 arb-page-improvement .improvement-column + .improvement-column, [arb-page-improvement] .improvement-column + .improvement-column {

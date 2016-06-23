@@ -70,6 +70,9 @@
 							custom-page-title="{{::(lensId === page.pageId ? 'Main' : arb.stateService.pageMap[lensId].lensTitle())}}"></arb-page-title>
 				</md-button>
 			</div>
+			
+			<!-- How to make this page better box -->
+			<div arb-page-improvement page="selectedLens" class="md-whiteframe-1dp" ng-if="selectedLens"></div>
 
 			<!-- For each lens -->
 			<div ng-repeat="lensId in ::page.lensIds" ng-if="lensId === selectedLens.pageId">

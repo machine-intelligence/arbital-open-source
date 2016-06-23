@@ -126,7 +126,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			if handlerData.ResetEverything {
 				// Fetch some more global data and pass it to the FE
 				handlerData.GlobalData = &params.GlobalHandlerData
-				handlerData.GlobalData.ImprovementTagIds, err = core.LoadMetaTags(db, "3zj")
+				handlerData.GlobalData.ImprovementTagIds, err = core.LoadMetaTags(db, core.RequestForEditTagParentPageId)
 				if err != nil {
 					fail(http.StatusInternalServerError, "Couldn't load improvement tags", err)
 					return
