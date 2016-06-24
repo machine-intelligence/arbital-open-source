@@ -1,27 +1,33 @@
-<div flex>
-	<div layout="column" layout-gt-sm="row" layout-align-gt-sm="start center" flex>
+<div layout="column">
+	<div layout="row" layout-align="start center">
 		<arb-update-row-expand-button ng-show="modeRow.changeLog.id"></arb-update-row-expand-button>
-		<div flex>
-			<!-- Names of people -->
-			{{::userNames}}
 
-			<ng-pluralize count="::modeRow.userIds.length" when="{'1': 'likes', 'other': 'like'}"></ng-pluralize>
+		<!-- People like -->
+		<span>
+			{{::userNames}} {{modeRow.userIds.length == 1 ? 'likes' : 'like'}}
 
-			<span ng-if="::arb.stateService.pageMap[modeRow.pageId].isComment()">
-				your comment on
-				<arb-page-title page-id="{{::arb.stateService.pageMap[modeRow.pageId].getCommentParentPage().pageId}}"
-						is-link="true"></arb-page-title>
+			<span>
+				<span ng-if="::arb.stateService.pageMap[modeRow.pageId].isComment()">
+					your comment on
+				</span>
+				<span ng-if="::modeRow.changeLog.id">
+					your edit to
+				</span>
 			</span>
-			<span ng-if="::modeRow.changeLog.id">
-				your edit to
-			</span>
+
+			<arb-page-title page-id="{{::arb.stateService.pageMap[modeRow.pageId].getCommentParentPage().pageId}}"
+					is-link="true"
+					ng-if="::arb.stateService.pageMap[modeRow.pageId].isComment()">
+			</arb-page-title>
 			<arb-page-title page-id="{{::modeRow.pageId}}"
 					is-link="true"
-					ng-if="::!arb.stateService.pageMap[modeRow.pageId].isComment()"></arb-page-title>
-		</div>
-		<div class="md-caption" layout="row" layout-align="start center">
-			<span ng-bind="::(modeRow.activityDate | smartDateTime)"></span>
-		</div>
+					ng-if="::!arb.stateService.pageMap[modeRow.pageId].isComment()">
+			</arb-page-title>
+
+			&nbsp;
+
+			<span class="md-caption" ng-bind="::(modeRow.activityDate | smartDateTime)"></span>
+		</span>
 	</div>
 	<div class="expand-tray" ng-if="modeRow.changeLog.id && expanded">
 		<arb-edit-diff change-log="::modeRow.changeLog" just-diff="true"></arb-edit-diff>
