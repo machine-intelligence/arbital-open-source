@@ -204,4 +204,5 @@ app.service('stateService', function($http, $compile, $location, $mdToast, $root
 	};
 
 	this.isSmallScreen = !$mdMedia('gt-sm');
+	this.isTinyScreen = !$mdMedia('gt-xs');
 });

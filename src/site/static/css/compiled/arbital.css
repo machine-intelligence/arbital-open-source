@@ -1326,6 +1326,10 @@ arb-likes.tiny {
   margin-bottom: -3px;
   padding-bottom: 20px; }
 
+.tiny-panel md-list-item {
+  padding-left: 6px !important;
+  padding-right: 6px !important; }
+
 .expand-tray {
   padding-top: 10px; }
 
