@@ -9,7 +9,7 @@
 	</md-button>
 </div>
 
-<div class="improvement-body expand-tray" layout="row" ng-if="expanded">
+<div class="improvement-body expand-tray" layout="row" ng-if="expanded && shouldShowImprovements()">
 	<div class="improvement-column" flex ng-if="shouldShowTagsColumn()">
 		The following issues have been raised by editors:
 		<ul>
