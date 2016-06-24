@@ -762,6 +762,14 @@ arb-intrasite-popover, arb-user-popover, arb-text-popover {
 	}
 }
 
+arb-text-popover {
+	border: 2px solid $primary-hue-1;
+	border-radius: 5px;
+	box-shadow: 0 6px 6px -3px rgba(224,242,241,0.4),
+		0 10px 14px 1px rgba(224,242,241,0.4),
+		0 4px 18px 3px rgba(224,242,241,0.4);
+}
+
 arb-intrasite-popover {
 	border: 3px solid $primary-hue-2;
 
@@ -1241,11 +1249,15 @@ arb-log-row, [arb-log-row] {
 	position: relative;
 	top: -5px;
 	background-color: $primary-hue-1;
-	border: $primary-color 1px solid;
 	min-width: 20px;
 	text-align: center;
+	font-weight: 500;
+    color: #666;
+	box-shadow: 0 4px 6px -2px rgba(0,0,0,0.25);
 	border-radius: 15px;
 	cursor: pointer;
+	line-height: 20px;
+    font-size: 15px;
 }
 
 arb-list-sub-header,
