@@ -26,13 +26,12 @@
 					<md-content class="prevent-scroll-leak popover-tab-body" layout="column" layout-padding>
 						<!-- Title row -->
 						<div class="intrasite-popover-title" layout="row" layout-align="start center">
-							<!-- Title -->
-							<arb-page-title page-id="{{::page.pageId}}"
-									custom-page-title="{{::page.isComment() ? 'Comment': undefined}}"
-									ng-if="::page" flex></arb-page-title>
-
-							<!-- Number of characters -->
-							<div class="md-caption">See {{::page.textLength}} characters on the full page</div>
+							<div flex>
+								<!-- Title -->
+								<arb-page-title page-id="{{::page.pageId}}"
+										custom-page-title="{{::page.isComment() ? 'Comment': undefined}}"
+										ng-if="::page" flex></arb-page-title>
+							</div>
 
 							<!-- Likes -->
 							<arb-likes class="s20" object-id="{{::pageId}}" is-button="true"></arb-likes>
@@ -42,6 +41,9 @@
 						<arb-markdown class="popover-text-container"
 								page-id="{{::pageId}}"
 								summary-name="{{::summary.name}}"></arb-markdown>
+
+						<!-- Number of characters -->
+						<div class="md-caption">{{::page.textLength}} characters on the full page</div>
 					</md-content>
 				</div>
 			</md-tab-body>
