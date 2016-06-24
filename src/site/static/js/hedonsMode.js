@@ -10,6 +10,7 @@ app.directive('arbHedonsModePanel', function($http, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
+			$scope.allowDense = true;
 
 			$scope.title = 'Achievements';
 			$scope.moreLink = '/achievements';
@@ -33,6 +34,7 @@ app.directive('arbHedonsModePage', function($http, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
+			$scope.allowDense = true;
 		},
 	};
 });
