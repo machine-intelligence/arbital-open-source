@@ -765,9 +765,9 @@ arb-intrasite-popover, arb-user-popover, arb-text-popover {
 arb-intrasite-popover {
 	border: 3px solid $primary-hue-2;
 
-	box-shadow: 0 6px 6px -3px rgba(0,96,88,0.4),
-		0 10px 14px 1px rgba(0,96,88,0.4),
-		0 4px 18px 3px rgba(0,96,88,0.4);
+	box-shadow: 0 6px 6px -3px rgba(0,96,88,0.25),
+		0 10px 14px 1px rgba(0,96,88,0.25),
+		0 4px 18px 3px rgba(0,96,88,0.25);
 
 	md-tabs-wrapper {
 		md-tabs-canvas,
