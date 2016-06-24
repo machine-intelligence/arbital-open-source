@@ -889,7 +889,8 @@ arb-intrasite-popover, arb-user-popover, arb-text-popover {
   arb-intrasite-popover .intrasite-popover-title, arb-user-popover .intrasite-popover-title, arb-text-popover .intrasite-popover-title {
     font-size: 18px;
     padding-bottom: 10px;
-    padding-top: 12px; }
+    padding-top: 12px;
+    font-weight: 500; }
 
 arb-intrasite-popover {
   border: 3px solid #00796B;
