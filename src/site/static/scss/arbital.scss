@@ -1294,6 +1294,27 @@ arb-likes.s20 {
 
 	.like-icon {
 		min-width: 20px;
+		font-size: 20px;
+		margin-right: 0px !important;
+	}
+}
+
+arb-likes.tiny {
+	line-height: 5px;
+	width: 14px;
+	height: 14px;
+
+	.md-button {
+		line-height: 5px;
+		min-height: 0px;
+		min-width: 0px;
+		font-size: 12px;
+	}
+
+	md-icon {
+		width: 14px;
+		height: 14px;
+		min-width: 0px;
 		margin-right: 0px !important;
 	}
 }
