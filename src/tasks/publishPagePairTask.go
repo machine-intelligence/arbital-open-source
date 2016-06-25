@@ -89,11 +89,12 @@ func (task PublishPagePairTask) Execute(db *database.DB) (delay int, err error) 
 			return sessions.NewError("Couldn't add to changelog of child", err)
 		}
 
-		// Update people subscribed to either page
+		// Update people subscribed to the parent
 		err = EnqueuePagePairUpdate(tx.DB.C, pagePair, parentChangeLogId, false)
 		if err != nil {
 			tx.DB.C.Errorf("Couldn't enqueue a task: %v", err)
 		}
+		// Update people subscribed to the child
 		err = EnqueuePagePairUpdate(tx.DB.C, pagePair, childChangeLogId, true)
 		if err != nil {
 			tx.DB.C.Errorf("Couldn't enqueue a task: %v", err)

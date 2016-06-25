@@ -131,12 +131,13 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return sessions.NewError("Couldn't get parent changeLogId", err)
 		}
 
-		// Send updates for users subscribed to the parent or child.
-		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, deletedParentChangeLogId, false)
+		// Send updates for users subscribed to the parent.
+		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, deletedChildChangeLogId, false)
 		if err != nil {
 			return sessions.NewError("Couldn't enqueue child updates", err)
 		}
-		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, deletedChildChangeLogId, true)
+		// Send updates for users subscribed to the child.
+		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, deletedParentChangeLogId, true)
 		if err != nil {
 			return sessions.NewError("Couldn't enqueue parent updates", err)
 		}
