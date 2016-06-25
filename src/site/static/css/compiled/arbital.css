@@ -401,14 +401,29 @@ body {
 .body-fix {
   height: auto; }
 
-.facebook-button {
+arb-signup md-input-container {
+  margin: 0;
+  width: 222px; }
+arb-signup .centered-hr-text {
+  line-height: 0px;
+  text-align: center;
+  margin: 25px 10px;
+  color: #555;
+  font-weight: 500;
+  border-bottom: 1px solid #999;
+  padding: 0;
+  width: 270px; }
+  arb-signup .centered-hr-text span {
+    background: white;
+    padding: 0 10px; }
+arb-signup .md-button.md-raised.facebook-button {
   background-color: #3b5998;
   color: white; }
-  .facebook-button md-icon {
+  arb-signup .md-button.md-raised.facebook-button md-icon {
     color: white; }
-  .facebook-button:hover {
+  arb-signup .md-button.md-raised.facebook-button:hover {
     background-color: #8b9dc3 !important; }
-  .facebook-button:focus {
+  arb-signup .md-button.md-raised.facebook-button:focus {
     background-color: #8b9dc3 !important; }
 
 .beta-label {
@@ -477,8 +492,6 @@ arb-markdown, [arb-markdown], .preview-area {
     max-width: 1100px; }
   arb-dashboard-page > .capped-body-width {
     max-width: 1100px; }
-  arb-signup > .capped-body-width {
-    max-width: 560px; }
   arb-login > .capped-body-width {
     max-width: 560px; }
   arb-updates > .capped-body-width {

@@ -59,7 +59,7 @@
 		</md-button>&nbsp;
 
 		<!-- Login/signup buttons -->
-		<md-button ng-href="{{getSignupUrl()}}"
+		<md-button ng-click="arb.signupService.openSignupDialog()"
 				ng-if="showSignupButton()">
 			Sign Up
 		</md-button>
