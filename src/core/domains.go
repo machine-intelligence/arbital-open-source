@@ -5,13 +5,26 @@ import (
 	"fmt"
 
 	"zanaduu3/src/database"
+	"zanaduu3/src/sessions"
 )
 
+// recalculate and update the domains for the given pages
 func PropagateDomains(db *database.DB, pagesToUpdate []string) error {
+	serr := db.Transaction(func(tx *database.Tx) sessions.Error {
+		return sessions.PassThrough(PropagateDomainsWithTx(tx, pagesToUpdate))
+	})
+	if serr != nil {
+		return fmt.Errorf("Failed to propagate domains: %v", serr)
+	}
+	return nil
+}
+
+// recalculate and update the domains for the given pages
+func PropagateDomainsWithTx(tx *database.Tx, pagesToUpdate []string) error {
 	// map from each page-to-be-updated to its parents
-	parentMap, err := _getParentMap(db, pagesToUpdate)
+	parentMap, err := _getParentMap(tx, pagesToUpdate)
 	if err != nil {
-		return fmt.Errorf("Faled to load parents: %v", err)
+		return fmt.Errorf("Failed to load parents: %v", err)
 	}
 
 	// the set of all the parents
@@ -36,7 +49,7 @@ func PropagateDomains(db *database.DB, pagesToUpdate []string) error {
 	}
 
 	// set of pages in our subgraph that are themselves domain pages
-	domainPagesSet, err := _getDomainPages(db, allPagesArray)
+	domainPagesSet, err := _getDomainPages(tx, allPagesArray)
 	if err != nil {
 		return fmt.Errorf("Faled to load domain pages: %v", err)
 	}
@@ -58,19 +71,19 @@ func PropagateDomains(db *database.DB, pagesToUpdate []string) error {
 	// map from pages to their current domains
 	// (used to get the domains of the pages-with-valid-domains, and also
 	// so that we can diff with our computed domains for the to-be-updated pages)
-	originalDomainsMap, err := _getOriginalDomains(db, allPagesArray)
+	originalDomainsMap, err := _getOriginalDomains(tx, allPagesArray)
 	if err != nil {
 		return fmt.Errorf("Faled to load original domains: %v", err)
 	}
 
 	// figure out what the new domains should be
-	computedDomainsMap := _getComputedDomains(db, originalDomainsMap, pagesToUpdate, pagesWithValidDomainsSet, parentMap, domainPagesSet)
+	computedDomainsMap := _getComputedDomains(originalDomainsMap, pagesToUpdate, pagesWithValidDomainsSet, parentMap, domainPagesSet)
 
 	// diff with the original domains, so we can do minimal db writes
 	domainsToAddMap, domainsToRemoveMap := _getDomainsToAddRemove(originalDomainsMap, computedDomainsMap)
 
 	// update the domains in the db
-	err = _updateDomains(db, domainsToAddMap, domainsToRemoveMap)
+	err = _updateDomains(tx, domainsToAddMap, domainsToRemoveMap)
 	if err != nil {
 		return fmt.Errorf("Faled to update domains: %v", err)
 	}
@@ -79,7 +92,7 @@ func PropagateDomains(db *database.DB, pagesToUpdate []string) error {
 }
 
 // gets a map from a set of pages to sets of their parents
-func _getParentMap(db *database.DB, pageIds []string) (map[string]map[string]bool, error) {
+func _getParentMap(tx *database.Tx, pageIds []string) (map[string]map[string]bool, error) {
 	parentMap := make(map[string]map[string]bool)
 
 	rows := database.NewQuery(`
@@ -88,7 +101,7 @@ func _getParentMap(db *database.DB, pageIds []string) (map[string]map[string]boo
 		JOIN`).AddPart(PageInfosTable(nil)).Add(`AS pi
 		ON pp.parentId=pi.pageId
 		WHERE pp.type=?`, ParentPagePairType).Add(`
-			AND childId IN`).AddArgsGroupStr(pageIds).ToStatement(db).Query()
+			AND childId IN`).AddArgsGroupStr(pageIds).ToTxStatement(tx).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var childId, parentId string
 		if err := rows.Scan(&childId, &parentId); err != nil {
@@ -106,13 +119,13 @@ func _getParentMap(db *database.DB, pageIds []string) (map[string]map[string]boo
 }
 
 // gets the set of pages, from among those given, that are domain pages
-func _getDomainPages(db *database.DB, pageIds []string) (map[string]bool, error) {
+func _getDomainPages(tx *database.Tx, pageIds []string) (map[string]bool, error) {
 	domainPagesSet := make(map[string]bool)
 	rows := database.NewQuery(`
 		SELECT pageId
 		FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
 		WHERE pageId IN`).AddArgsGroupStr(pageIds).Add(`
-			AND type=?`, DomainPageType).ToStatement(db).Query()
+			AND type=?`, DomainPageType).ToTxStatement(tx).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId string
 		if err := rows.Scan(&pageId); err != nil {
@@ -126,7 +139,7 @@ func _getDomainPages(db *database.DB, pageIds []string) (map[string]bool, error)
 }
 
 // gets the current set of domains for each of the given pages
-func _getOriginalDomains(db *database.DB, pageIds []string) (map[string]map[string]bool, error) {
+func _getOriginalDomains(tx *database.Tx, pageIds []string) (map[string]map[string]bool, error) {
 	originalDomainsMap := make(map[string]map[string]bool)
 	for _, id := range pageIds {
 		originalDomainsMap[id] = make(map[string]bool)
@@ -135,7 +148,7 @@ func _getOriginalDomains(db *database.DB, pageIds []string) (map[string]map[stri
 	rows := database.NewQuery(`
 		SELECT pageId, domainId
 		FROM pageDomainPairs
-		WHERE pageId IN`).AddArgsGroupStr(pageIds).ToStatement(db).Query()
+		WHERE pageId IN`).AddArgsGroupStr(pageIds).ToTxStatement(tx).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId, domainId string
 		if err := rows.Scan(&pageId, &domainId); err != nil {
@@ -154,7 +167,7 @@ func _getOriginalDomains(db *database.DB, pageIds []string) (map[string]map[stri
 
 // computes the correct domains for each page in toUpdate, assuming that
 // the domains for pages in pagesWithValidDomainsSet are correct
-func _getComputedDomains(db *database.DB, originalDomainsMap map[string]map[string]bool, toUpdate []string, pagesWithValidDomainsSet map[string]bool,
+func _getComputedDomains(originalDomainsMap map[string]map[string]bool, toUpdate []string, pagesWithValidDomainsSet map[string]bool,
 	parentMap map[string]map[string]bool, domainPagesSet map[string]bool) map[string]map[string]bool {
 
 	// initialize the map with the page-domain-pairs we believe are already correct
@@ -165,13 +178,13 @@ func _getComputedDomains(db *database.DB, originalDomainsMap map[string]map[stri
 
 	// re-compute the domains for pages in toUpdate
 	for _, id := range toUpdate {
-		_computeDomainsRecursive(db, id, parentMap, domainPagesSet, computedDomainsMap)
+		_computeDomainsRecursive(id, parentMap, domainPagesSet, computedDomainsMap)
 	}
 	return computedDomainsMap
 }
 
 // does a depth-first search up the hierarchy towards parents to find the page's domains
-func _computeDomainsRecursive(db *database.DB, pageId string, parentMap map[string]map[string]bool, domainPagesSet map[string]bool,
+func _computeDomainsRecursive(pageId string, parentMap map[string]map[string]bool, domainPagesSet map[string]bool,
 	computedDomainsMap map[string]map[string]bool) map[string]bool {
 
 	// if we already know the domains for this page, we're done
@@ -189,7 +202,7 @@ func _computeDomainsRecursive(db *database.DB, pageId string, parentMap map[stri
 	// add the domains from all of this page's parents
 	if parents, ok := parentMap[pageId]; ok {
 		for parentId := range parents {
-			domainsFromParent := _computeDomainsRecursive(db, parentId, parentMap, domainPagesSet, computedDomainsMap)
+			domainsFromParent := _computeDomainsRecursive(parentId, parentMap, domainPagesSet, computedDomainsMap)
 			for domainId := range domainsFromParent {
 				domainsSet[domainId] = true
 			}
@@ -234,7 +247,7 @@ func _getDomainsToAddRemove(originalDomainsMap map[string]map[string]bool, compu
 }
 
 // adds and removes the specified domains to/from the specified pages
-func _updateDomains(db *database.DB, domainsToAddMap map[string]map[string]bool, domainsToRemoveMap map[string]map[string]bool) error {
+func _updateDomains(tx *database.Tx, domainsToAddMap map[string]map[string]bool, domainsToRemoveMap map[string]map[string]bool) error {
 	addDomainArgs := make([]interface{}, 0)
 	removeDomainArgsMap := make(map[string][]interface{}, 0)
 
@@ -255,9 +268,9 @@ func _updateDomains(db *database.DB, domainsToAddMap map[string]map[string]bool,
 
 	// Add missing domains
 	if len(addDomainArgs) > 0 {
-		statement := db.NewStatement(`
+		statement := tx.DB.NewStatement(`
 			INSERT INTO pageDomainPairs
-			(domainId,pageId) VALUES ` + database.ArgsPlaceholder(len(addDomainArgs), 2))
+			(domainId,pageId) VALUES ` + database.ArgsPlaceholder(len(addDomainArgs), 2)).WithTx(tx)
 		if _, err := statement.Exec(addDomainArgs...); err != nil {
 			return fmt.Errorf("Failed to add to pageDomainPairs: %v", err)
 		}
@@ -266,9 +279,9 @@ func _updateDomains(db *database.DB, domainsToAddMap map[string]map[string]bool,
 	for pageId, removeDomainArgs := range removeDomainArgsMap {
 		// Remove obsolete domains
 		if len(removeDomainArgs) > 0 {
-			statement := db.NewStatement(`
+			statement := tx.DB.NewStatement(`
 				DELETE FROM pageDomainPairs
-				WHERE pageId=? AND domainId IN ` + database.InArgsPlaceholder(len(removeDomainArgs)))
+				WHERE pageId=? AND domainId IN ` + database.InArgsPlaceholder(len(removeDomainArgs))).WithTx(tx)
 			args := append([]interface{}{pageId}, removeDomainArgs...)
 			if _, err := statement.Exec(args...); err != nil {
 				return fmt.Errorf("Failed to remove pageDomainPairs: %v", err)

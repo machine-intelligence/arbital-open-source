@@ -290,7 +290,6 @@ func (rows *Rows) Process(f ProcessRowCallback) error {
 // Scan processes the row and outputs the results into the given variables.
 func (rows *Rows) Scan(dest ...interface{}) error {
 	result := rows.rows.Scan(dest...)
-	rows.stmt.Close()
 	return result
 }
 
