@@ -113,6 +113,7 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 	//	 permalink: if true, we'll include page's id, otherwise, we'll use alias
 	//	 useEditMap: if true, use edit map to retrieve info for this page
 	//	 noHost: if true, don't add the host part of the URL
+	//	 lensId: if set, select the given lens
 	//	 markId: if set, select the given mark on the page
 	//	 discussionHash: if true, jump to the discussion part of the page
 	//	 answersHash: if true, jump to the answers part of the page
@@ -136,22 +137,18 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 			url = that.getBaseUrl('p', options.permalink ? pageId : pageAlias, pageAlias);
 			if (options.permalink) {
 				url += '?l=' + pageId;
+			} else if (options.lensId) {
+				url += '?l=' + options.lensId;
 			}
 
 			// Check page's type to see if we need a special url
-			if (page.isLens()) {
-				for (var n = 0; n < page.parentIds.length; n++) {
-					var parent = stateService.pageMap[page.parentIds[n]];
-					if (parent) {
-						url = that.getBaseUrl('p', options.permalink ? parent.pageId : parent.alias, parent.alias);
-						url += '?l=' + pageId;
-						break;
-					}
-				}
-			} else if (page.isComment()) {
+			if (page.isComment()) {
 				var parent = page.getCommentParentPage();
 				if (parent) {
-					url = that.getPageUrl(parent.pageId, {permalink: options.permalink, noHost: true});
+					url = that.getPageUrl(parent.pageId, {
+						permalink: options.permalink,
+						noHost: true,
+					});
 					url += '#subpage-' + pageId;
 				}
 			}

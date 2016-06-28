@@ -122,12 +122,13 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	// the page in pageMap if it hasn't been published yet, so the only "page" on the FE
 	// is the one from editMap
 	livePage := returnData.PageMap[pageId]
-	p.LensIds = livePage.LensIds
+	p.LensParentId = livePage.LensParentId
 	p.ChildIds = livePage.ChildIds
 	p.ParentIds = livePage.ParentIds
 	p.TaggedAsIds = livePage.TaggedAsIds
 	p.RequirementIds = livePage.RequirementIds
 	p.SubjectIds = livePage.SubjectIds
+	p.Lenses = livePage.Lenses
 	p.ChangeLogs = livePage.ChangeLogs
 	p.SearchStrings = livePage.SearchStrings
 	returnData.EditMap[pageId] = p

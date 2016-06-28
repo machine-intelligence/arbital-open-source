@@ -357,7 +357,7 @@ func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 		SELECT DISTINCT pi.pageId, pi.`+pageInfoField+`
 		FROM`).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
 		JOIN pageDomainPairs AS pdp ON pi.pageId=pdp.pageId
-		WHERE pi.type IN (?,?,?,?)`, core.WikiPageType, core.LensPageType, core.DomainPageType, core.QuestionPageType).Add(`
+		WHERE pi.type IN (?,?,?)`, core.WikiPageType, core.DomainPageType, core.QuestionPageType).Add(`
 			AND pi.`+pageInfoField+`!=0
 			AND (pdp.domainId=?`, core.MathDomainId).Add(`OR pdp.domainId IN(`).AddPart(subscribedDomains).Add(`))
 		ORDER BY pi.`+pageInfoField+` DESC

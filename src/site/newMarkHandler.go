@@ -146,7 +146,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load mark to return it
-	returnData.AddMark(markIdStr)
+	core.AddMarkToMap(markIdStr, returnData.MarkMap)
 	core.AddPageToMap("370", returnData.PageMap, core.TitlePlusLoadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {

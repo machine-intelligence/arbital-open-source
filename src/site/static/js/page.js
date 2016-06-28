@@ -29,22 +29,20 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 				return true;
 			};
 
-			// Sort lenses (from most technical to least)
-			$scope.page.lensIds.sort(function(a, b) {
-				return arb.stateService.pageMap[a].lensIndex - arb.stateService.pageMap[b].lensIndex;
+			// Compute lenses
+			$scope.lenses = $scope.page.lenses.slice();
+			$scope.lenses.unshift({
+				lensId: $scope.page.pageId,
+				lensName: 'Main',
 			});
-			$scope.page.lensIds.unshift($scope.page.pageId);
 
 			// Determine which lens is selected
 			$scope.computeSelectedLensId = function() {
 				if ($location.search().l) {
 					// Lens is explicitly specified in the URL
 					return $location.search().l;
-				} else if (arb.pathService.path && arb.pathService.path.onPath) {
-					// The learning list specified this page specifically
-					return $scope.page.pageId;
 				}
-				return $scope.page.lensIds[0];
+				return $scope.page.pageId;
 			};
 
 			// Monitor URL to see if we need to switch lenses
@@ -53,7 +51,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 			}, function() {
 				// NOTE: this also gets called when the user clicks on a link to go to another page,
 				// but in that case we don't want to do anything.
-				// TODO: create a better workaround
+				// TODO: create a better workaround (we can broadcast an event)
 				if ($location.path().indexOf($scope.pageId) >= 0 || $location.path().indexOf($scope.page.alias) >= 0) {
 					$scope.tabSelect($scope.computeSelectedLensId());
 				}

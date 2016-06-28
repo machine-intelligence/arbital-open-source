@@ -42,6 +42,7 @@ type PageLoadOptions struct {
 	// Load options for loading a page for editing
 	ChangeLogs    bool
 	SearchStrings bool
+	LensParentId  bool
 
 	// Options for what data to load for the page itself
 	HasDraft        bool
@@ -107,6 +108,7 @@ var (
 		DomainsAndPermissions: true,
 		ChangeLogs:            true,
 		SearchStrings:         true,
+		LensParentId:          true,
 		Links:                 true,
 		LinkedMarkCount:       true,
 		Text:                  true,
@@ -115,6 +117,7 @@ var (
 	// Options for loading a full lens
 	LensFullLoadOptions = (&PageLoadOptions{
 		Questions:       true,
+		Children:        true,
 		Tags:            true,
 		SubpageCounts:   true,
 		Requirements:    true,
@@ -150,9 +153,7 @@ var (
 		Summaries:     true,
 	}).Add(TitlePlusLoadOptions)
 	// Options for loading info about a lens
-	LensInfoLoadOptions = (&PageLoadOptions{
-		Requirements: true,
-	}).Add(TitlePlusLoadOptions)
+	LensInfoLoadOptions = (&PageLoadOptions{}).Add(TitlePlusLoadOptions)
 	// Options for loading an answer
 	AnswerLoadOptions = (&PageLoadOptions{
 		SubpageCounts: true,

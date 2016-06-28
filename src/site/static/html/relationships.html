@@ -17,10 +17,55 @@
 				is-link="true"
 				custom-page-title="Teaches requisites"
 				ng-if="::isSubjectType"></arb-page-title>
+		<arb-page-title page-id="17b"
+				is-link="true"
+				custom-page-title="Lenses and children"
+				ng-if="::isChildType"></arb-page-title>
 	</div>
 
 	<div class="md-caption" ng-if="::readonly">
 		You can't edit this field for this type of page.
+	</div>
+
+	<div class="md-caption" ng-if="::isChildType && page.lensParentId && !readonly">
+		This page can't have lenses because it's already a lens for
+		<arb-page-title page-id="{{::page.lensParentId}}" is-link="true"></arb-page-title>
+		<br><br>
+	</div>
+
+	<!-- List of lenses -->
+	<div ng-if="::isChildType && !page.lensParentId && !readonly">
+		<div data-as-sortable="::lensSortListeners" data-ng-model="page.lenses" ng-if="page.lenses.length > 0">
+			<div data-ng-repeat="lens in page.lenses" data-as-sortable-item>
+				<div data-as-sortable-item-handle
+						class="edit-page-lens-row md-primary md-hue-1 md-whiteframe-1dp"
+						layout="row"
+						layout-align="start center">
+					<div flex>
+						<md-icon>reorder</md-icon>
+						<span>#{{lens.lensIndex}}&nbsp;</span>
+						<md-button ng-click="showLensName=true" ng-show="!showLensName">
+							<span ng-bind="lens.lensName"></span>
+							<md-tooltip>Update the lens name</md-tooltip>
+						</md-button>
+						<span ng-show="showLensName">
+							<input ng-model="lens.lensName" maxlength="30" placeholder="Lens name">
+							<md-button class="md-icon-button" ng-click="showLensName=changeLensName(lens)">
+								<md-icon>check</md-icon>
+								<md-tooltip>Update the lens name</md-tooltip>
+							</md-button>
+						</span>
+						<arb-page-title page-id="{{::lens.lensId}}" is-link="true"></arb-page-title>
+					</div>
+
+					<!-- Convert a child into a lens -->
+					<md-button class="short-button" ng-click="removeLens(lens)">
+						<md-icon>check_box</md-icon>
+						<md-tooltip md-delay="500">Lens -&gt; child</md-tooltip>
+					</md-button>
+				</div>
+			</div>
+		</div>
 	</div>
 
 	<!-- List of relationships -->
@@ -29,21 +74,29 @@
 			layout-align="start center"
 			ng-repeat="otherPageId in idsSource">
 
-		<!-- Delete button -->
-		<md-button class="md-icon-button"
-				ng-click="deleteRelationship(otherPageId)"
-				ng-if="::!readonly">
-			<md-icon>clear</md-icon>
+		<div layout="row" layout-align="start center" flex>
+			<!-- Delete button -->
+			<md-button class="md-icon-button"
+					ng-click="deleteRelationship(otherPageId)"
+					ng-if="::!readonly">
+				<md-icon>clear</md-icon>
+			</md-button>
+
+			<!-- Relationship page title -->
+			<arb-page-title page-id="{{::otherPageId}}"
+					is-link="true"
+					show-clickbait="true"
+					ng-if="!(otherPageId === pageId && isSubjectType && !page.wasPublished)"></arb-page-title>
+
+			<span ng-bind="arb.stateService.editMap[pageId].title ? arb.stateService.editMap[pageId].title : '*Untitled*'"
+					ng-if="otherPageId === pageId && isSubjectType && !page.wasPublished"></span>
+		</div>
+
+		<!-- Convert a child into a lens -->
+		<md-button class="short-button" ng-click="newLens(otherPageId)" ng-if="::isChildType">
+			<md-icon>check_box_outline_blank</md-icon>
+			<md-tooltip md-delay="500">Child -&gt; lens</md-tooltip>
 		</md-button>
-
-		<!-- Relationship page title -->
-		<arb-page-title page-id="{{::otherPageId}}"
-				is-link="true"
-				show-clickbait="true"
-				ng-if="!(otherPageId === pageId && isSubjectType && !page.wasPublished)"></arb-page-title>
-
-		<span ng-bind="arb.stateService.editMap[pageId].title ? arb.stateService.editMap[pageId].title : '*Untitled*'"
-				ng-if="otherPageId === pageId && isSubjectType && !page.wasPublished"></span>
 	</div>
 
 	<!-- Add a relationship -->
@@ -58,6 +111,7 @@
 		</md-button>
 	</div>
 
+	<!-- Quick parent button -->
 	<div layout="row" layout-align="start center" ng-if="quickParentId && isParentType && !readonly">
 		<md-button class="md-icon-button" ng-click="addQuickParent()">
 			<md-icon>add</md-icon>

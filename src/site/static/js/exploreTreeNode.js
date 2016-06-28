@@ -11,15 +11,15 @@ app.directive('arbExploreTreeNode', function(RecursionHelper, arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.page = arb.stateService.pageMap[$scope.pageId];
-			$scope.pageIds = $scope.page.childIds.concat($scope.page.lensIds);
+			$scope.pageIds = $scope.page.childIds;
 			$scope.showChildren = true;
 
 			// Sort children.
 			$scope.pageIds.sort(function(aId, bId) {
 				var pageA = arb.stateService.pageMap[aId];
 				var pageB = arb.stateService.pageMap[bId];
-				var varsA = [pageA.isLens() ? 0 : 1, pageA.hasChildren ? 0 : 1, pageA.title];
-				var varsB = [pageB.isLens() ? 0 : 1, pageB.hasChildren ? 0 : 1, pageB.title];
+				var varsA = [/*pageA.isLens() ? 0 : 1,*/pageA.hasChildren ? 0 : 1, pageA.title];
+				var varsB = [/*pageB.isLens() ? 0 : 1,*/pageB.hasChildren ? 0 : 1, pageB.title];
 				for (var n = 0; n < varsA.length; n++) {
 					if (varsA[n] == varsB[n]) continue;
 					return varsA[n] < varsB[n] ? -1 : 1;
@@ -42,7 +42,7 @@ app.directive('arbExploreTreeNode', function(RecursionHelper, arb) {
 			};
 
 			$scope.getExploreIcon = function() {
-				if ($scope.page.isLens()) return 'lens';
+				//if ($scope.page.isLens()) return 'lens';
 				if ($scope.page.isQuestion()) return 'help_outline';
 				return '';
 			};

@@ -1,67 +1,40 @@
 /* This file contains the recent changes to schemas, sorted from oldest to newest. */
-alter table updates add column dismissed boolean not null;
 
-delete from updates where type="commentEdit";
-alter table updates add column seen boolean not null;
-update updates set seen=(NOT unseen);
-update updates set type="changeLog" where type IN ("newParent","deleteParent","newChild","deleteChild","newTag","deleteTag","newUsedAsTag","deleteUsedAsTag","newRequirement","deleteRequirement","newRequiredBy","deleteRequiredBy","newSubject","deleteSubject","newTeacher","deleteTeacher","deletePage","undeletePage");
-delete from updates where type="changeLog" and (changeLogId="0" OR changeLogId="");
-alter table updates drop column unseen;
-
-alter table subscriptions add column asMaintainer boolean not null;
-update subscriptions join pageInfos on subscriptions.toId=pageInfos.pageId set subscriptions.asMaintainer=true where pageInfos.createdBy=subscriptions.userId;
-update updates set type="changeLog" where type="pageInfoEdit";
-
-alter table users add column showAdvancedEditorMode bool not null;
-delete from invites where domainId="";
-CREATE TABLE pageToDomainSubmissions (
-	/* Id of the submitted page. FK into pageInfos. */
+CREATE TABLE copyLenses (
+	/* Id of the lens relationships. */
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	/* Id of the page that has the lens. FK into pageInfos. */
 	pageId VARCHAR(32) NOT NULL,
-	/* Id of the domain it's submitted to. FK into pageInfos. */
-	domainId VARCHAR(32) NOT NULL,
-	/* When this submission was originally created. */
+	/* Id of the lens page. FK into pageInfos. */
+	lensId VARCHAR(32) NOT NULL,
+	/* Ordering index when sorting the page's lenses. */
+	lensIndex INT NOT NULL,
+	/* Lens name that shows up in the tab. */
+	lensName VARCHAR(32) NOT NULL,
+	/* Id of the user who created the relationship. FK into users. */
+	createdBy VARCHAR(32) NOT NULL,
+	/* When this lens relationship was originally created. */
 	createdAt DATETIME NOT NULL,
-	/* Id of the user who submitted. FK into users. */
-	submitterId VARCHAR(32) NOT NULL,
+	/* Id of the last user who updated the relationship. FK into users. */
+	updatedBy VARCHAR(32) NOT NULL,
+	/* When this relationship was updated last. */
+	updatedAt DATETIME NOT NULL,
 
-	/* When this submission was approved. */
-	approvedAt DATETIME NOT NULL,
-	/* Id of the user who approved the submission. FK into users. */
-	approverId VARCHAR(32) NOT NULL,
-
-	PRIMARY KEY(pageId,domainId)
+	UNIQUE(pageId,lensId),
+	PRIMARY KEY(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
-alter table pageInfos add column featuredAt datetime not null;
-alter table pageInfos add column isResolved bool not null;
-create index pageId on visits (pageId);
-create index userId on visits (userId);
-create index createdAt on updates (createdAt);
-create index userId on updates (userId);
+insert into copyLenses (pageId,lensId,lensIndex,lensName,createdBy,createdAt,updatedBy,updatedAt) select pp.parentId,pp.childId,pi.lensIndex,trim(substring_index(p.title,":",-1)),pp.creatorId,pp.createdAt,pp.creatorId,pp.createdAt from pagePairs as pp join pageInfos as pi on (pp.childId=pi.pageId) join pages as p on (pi.pageId=p.pageId and pi.currentEdit=p.edit) where pi.type="lens" and pp.type="parent"; 
+create table copyLenses2 like copyLenses;
+insert into copyLenses2 select * from copyLenses;
+update copyLenses as l1 set l1.lensIndex=l1.id where l1.pageId in (select l3.pageId from copyLenses2 as l3 group by 1 having sum(l3.lensIndex=0)>1);
+update copyLenses as l1 set l1.lensIndex=l1.id where l1.pageId in (select l3.pageId from copyLenses2 as l3 group by 1 having sum(l3.lensIndex=1)>1);
+insert into lenses select * from copyLenses;
+update lenses as l1 set l1.lensIndex=l1.lensIndex-(select min(l2.lensIndex) from copyLenses as l2 where l1.pageId=l2.pageId) order by l1.lensIndex;
+drop table copyLenses;
+drop table copyLenses2;
+/* Might need to delete some rows? */
+ALTER TABLE lenses ADD CONSTRAINT lensId UNIQUE (lensId);
 
-delete from updates where type="inviteReceived" and goToPageId="";
-
-alter table users add column pretendToBeUserId VARCHAR(32) NOT NULL;
-
-alter table pages add column editSummary VARCHAR(512) NOT NULL after isMinorEdit;
-
-alter table pagePairs add column creatorId varchar(32) not null;
-alter table pagePairs add column createdAt datetime not null;
-update pagePairs set createdAt=now();
-update pagePairs set creatorId="198";
-update changeLogs set type="newChild" where type="newLens";
-
-/* An entry for every red link. */
-CREATE TABLE redLinks (
-	/* Alias of the red link. */
-	alias VARCHAR(64) NOT NULL,
-
-	/* Id by which we track likes. Partial FK into likes. */
-	likeableId BIGINT NOT NULL,
-
-	/* Date this entry was created. */
-	createdAt DATETIME NOT NULL,
-
-	PRIMARY KEY(alias)
-) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-drop table base10tobase36;
+update pageInfos set type="wiki" where type="lens";
+alter table pageInfos drop column lensIndex;

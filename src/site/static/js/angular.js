@@ -443,14 +443,24 @@ app.run(function($http, $location, arb) {
 	arb.urlService.addUrlHandler('/p/:alias/:alias2?', {
 		name: 'PrimaryPage',
 		handler: function(args, $scope) {
+			// Check if we are just switching to the primary lens
+			// TODO: this is kind of hacky. We need a better solution (I hope React will help us with this).
+			var primaryPage = arb.stateService.primaryPage;
+			if (primaryPage && !(primaryPage.pageId in arb.stateService.editMap) &&
+					(primaryPage.pageId == args.alias || primaryPage.alias == args.alias)) {
+				return true;
+			}
+
 			// Get the primary page data
 			var postData = {
 				pageAlias: args.alias,
+				lensId: $location.search().l,
 				markId: $location.search().markId,
 			};
 			$http({method: 'POST', url: '/json/primaryPage/', data: JSON.stringify(postData)})
 			.success($scope.getSuccessFunc(function(data) {
-				var page = arb.stateService.pageMap[postData.pageAlias];
+				var primaryPageId = data.result.primaryPageId;
+				var page = arb.stateService.pageMap[primaryPageId];
 				var pageTemplate = '<arb-primary-page></arb-primary-page>';
 
 				if (!page) {
@@ -465,8 +475,15 @@ app.run(function($http, $location, arb) {
 					}
 					return {
 						title: 'Not Found',
-						error: 'Page doesn\'t exist, was deleted, or you don\'t have permission to view it.',
+						error: 'Page doesn\'t exist or you don\'t have permission to view it.',
 					};
+				}
+
+				// For comments, redirect to the primary page
+				if (page.isComment()) {
+					// TODO: allow BE to catch this case and send correct data, so we don't have to reload
+					arb.urlService.goToUrl(arb.urlService.getPageUrl(page.getCommentParentPage().pageId), true);
+					return {};
 				}
 
 				// If this page has been merged into another, go there
@@ -486,13 +503,8 @@ app.run(function($http, $location, arb) {
 							'\' user_page_data=\'::userPageIdsMap\'></arb-user-page>';
 				}
 
-				if (page.isLens() || page.isComment()) {
-					arb.urlService.goToUrl(arb.urlService.getPageUrl(page.pageId), true);
-					return {};
-				}
-
-				arb.urlService.ensureCanonPath(arb.urlService.getPageUrl(page.pageId));
 				arb.stateService.primaryPage = page;
+				arb.urlService.ensureCanonPath(arb.urlService.getPageUrl(page.pageId, {lensId: data.result.lensId}));
 				return {
 					title: page.title,
 					content: $scope.newElement(pageTemplate),

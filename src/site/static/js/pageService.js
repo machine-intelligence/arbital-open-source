@@ -2,7 +2,7 @@
 
 // pages stores all the loaded pages and provides multiple helper functions for
 // working with pages.
-app.service('pageService', function($http, $compile, $location, $mdToast, $rootScope, $interval, stateService, userService, urlService) {
+app.service('pageService', function($http, $compile, $location, $rootScope, $interval, stateService, userService, urlService) {
 	var that = this;
 
 	// Call this to process data we received from the server.
@@ -66,9 +66,6 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		isWiki: function() {
 			return this.type === 'wiki';
 		},
-		isLens: function() {
-			return this.type === 'lens';
-		},
 		isQuestion: function() {
 			return this.type === 'question';
 		},
@@ -116,11 +113,6 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		// Get url to edit the page
 		editUrl: function() {
 			return urlService.getEditPageUrl(this.pageId);
-		},
-		// Return just the title to display for a lens.
-		lensTitle: function() {
-			var parts = this.title.split(':');
-			return parts[parts.length - 1].trim();
 		},
 		// Return "pageInfo" component of the page.
 		getPageInfo: function() {

@@ -4,6 +4,7 @@ package core
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 
 	"zanaduu3/src/database"
@@ -14,7 +15,6 @@ const (
 	WikiPageType     = "wiki"
 	CommentPageType  = "comment"
 	QuestionPageType = "question"
-	LensPageType     = "lens"
 	GroupPageType    = "group"
 	DomainPageType   = "domain"
 
@@ -112,7 +112,6 @@ type corePageData struct {
 	IsRequisite              bool   `json:"isRequisite"`
 	IndirectTeacher          bool   `json:"indirectTeacher"`
 	TodoCount                int    `json:"todoCount"`
-	LensIndex                int    `json:"lensIndex"`
 	IsEditorComment          bool   `json:"isEditorComment"`
 	IsEditorCommentIntention bool   `json:"isEditorCommentIntention"`
 	IsResolved               bool   `json:"isResolved"`
@@ -184,7 +183,6 @@ type Page struct {
 	// Relevant ids.
 	CommentIds     []string `json:"commentIds"`
 	QuestionIds    []string `json:"questionIds"`
-	LensIds        []string `json:"lensIds"`
 	TaggedAsIds    []string `json:"taggedAsIds"`
 	RelatedIds     []string `json:"relatedIds"`
 	RequirementIds []string `json:"requirementIds"`
@@ -193,6 +191,11 @@ type Page struct {
 	ChildIds       []string `json:"childIds"`
 	ParentIds      []string `json:"parentIds"`
 	MarkIds        []string `json:"markIds"`
+
+	// Lens stuff
+	Lenses       LensList `json:"lenses"`
+	LensParentId string   `json:"lensParentId"`
+
 	// TODO: eventually move this to the user object (once we have load
 	// options + pipeline for users)
 	// For user pages, this is the domains user has access to
@@ -246,7 +249,6 @@ func NewPage(pageId string) *Page {
 	p.CreatorIds = make([]string, 0)
 	p.CommentIds = make([]string, 0)
 	p.QuestionIds = make([]string, 0)
-	p.LensIds = make([]string, 0)
 	p.TaggedAsIds = make([]string, 0)
 	p.RelatedIds = make([]string, 0)
 	p.RequirementIds = make([]string, 0)
@@ -257,6 +259,7 @@ func NewPage(pageId string) *Page {
 	p.ParentIds = make([]string, 0)
 	p.MarkIds = make([]string, 0)
 	p.DomainMembershipIds = make([]string, 0)
+	p.Lenses = make(LensList, 0)
 	p.DomainSubmissions = make(map[string]*PageToDomainSubmission)
 	p.Answers = make([]*Answer, 0)
 	p.SearchStrings = make(map[string]string)
@@ -272,6 +275,25 @@ func NewPage(pageId string) *Page {
 	p.Permissions = nil
 	return p
 }
+
+// Lens connection
+type Lens struct {
+	Id        int64  `json:"id,string"`
+	PageId    string `json:"pageId"`
+	LensId    string `json:"lensId"`
+	LensIndex int    `json:"lensIndex"`
+	LensName  string `json:"lensName"`
+	CreatedBy string `json:"createdBy"`
+	CreatedAt string `json:"createdAt"`
+	UpdatedBy string `json:"updatedBy"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+type LensList []*Lens
+
+func (a LensList) Len() int           { return len(a) }
+func (a LensList) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a LensList) Less(i, j int) bool { return a[i].LensIndex < a[j].LensIndex }
 
 type Vote struct {
 	Value     int    `json:"value"`
@@ -442,12 +464,6 @@ func NewHandlerData(u *CurrentUser) *CommonHandlerData {
 	return &data
 }
 
-func (data CommonHandlerData) AddMark(idStr string) {
-	if _, ok := data.MarkMap[idStr]; !ok {
-		data.MarkMap[idStr] = &Mark{Id: idStr}
-	}
-}
-
 func (data CommonHandlerData) SetResetEverything() *CommonHandlerData {
 	data.ResetEverything = true
 	return &data
@@ -536,11 +552,8 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 	// Load available lenses
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Lenses })
-	err = LoadChildIds(db, pageMap, u, &LoadChildIdsOptions{
-		ForPages:     filteredPageMap,
-		Type:         LensPageType,
-		PagePairType: ParentPagePairType,
-		LoadOptions:  LensInfoLoadOptions,
+	err = LoadLensesForPages(db, data, &LoadDataOptions{
+		ForPages: filteredPageMap,
 	})
 	if err != nil {
 		return fmt.Errorf("LoadChildIds for lenses failed: %v", err)
@@ -667,6 +680,15 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	err = LoadSearchStrings(db, filteredPageMap)
 	if err != nil {
 		return fmt.Errorf("LoadSearchStrings failed: %v", err)
+	}
+
+	// Load whether the pages are lenses for other pages
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.LensParentId })
+	err = LoadLensParentIds(db, pageMap, &LoadDataOptions{
+		ForPages: filteredPageMap,
+	})
+	if err != nil {
+		return fmt.Errorf("LoadLensParentIds failed: %v", err)
 	}
 
 	// Load whether or not the pages have an unpublished draft
@@ -949,7 +971,7 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 		SELECT p.pageId,p.edit,p.prevEdit,p.creatorId,p.createdAt,p.title,p.clickbait,`).AddPart(textSelect).Add(`,
 			length(p.text),p.metaText,pi.type,pi.hasVote,pi.voteType,
 			pi.alias,pi.createdAt,pi.createdBy,pi.sortChildrenBy,pi.seeGroupId,pi.editGroupId,
-			pi.lensIndex,pi.isEditorComment,pi.isEditorCommentIntention,pi.isResolved,
+			pi.isEditorComment,pi.isEditorCommentIntention,pi.isResolved,
 			pi.isRequisite,pi.indirectTeacher,pi.currentEdit,pi.likeableId,p.isAutosave,p.isSnapshot,
 			p.isLiveEdit,p.isMinorEdit,p.editSummary,pi.isDeleted,pi.mergedInto,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset
@@ -963,7 +985,7 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 			&p.PageId, &p.Edit, &p.PrevEdit, &p.EditCreatorId, &p.EditCreatedAt, &p.Title, &p.Clickbait,
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.HasVote,
 			&p.VoteType, &p.Alias, &p.PageCreatedAt, &p.PageCreatorId, &p.SortChildrenBy,
-			&p.SeeGroupId, &p.EditGroupId, &p.LensIndex, &p.IsEditorComment, &p.IsEditorCommentIntention,
+			&p.SeeGroupId, &p.EditGroupId, &p.IsEditorComment, &p.IsEditorCommentIntention,
 			&p.IsResolved, &p.IsRequisite, &p.IndirectTeacher, &p.CurrentEdit, &p.LikeableId,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.EditSummary, &p.IsDeleted, &p.MergedInto,
 			&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
@@ -1210,7 +1232,7 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 		SELECT p.pageId,p.edit,p.prevEdit,pi.type,p.title,p.clickbait,p.text,p.metaText,
 			pi.alias,p.creatorId,pi.sortChildrenBy,pi.hasVote,pi.voteType,
 			p.createdAt,pi.seeGroupId,pi.editGroupId,pi.createdAt,
-			pi.createdBy,pi.lensIndex,pi.isEditorComment,pi.isEditorCommentIntention,
+			pi.createdBy,pi.isEditorComment,pi.isEditorCommentIntention,
 			pi.isResolved,pi.likeableId,p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,p.editSummary,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset,
 			pi.currentEdit>0,pi.isDeleted,pi.mergedInto,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
@@ -1223,7 +1245,7 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 	exists, err := row.Scan(&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.Title, &p.Clickbait,
 		&p.Text, &p.MetaText, &p.Alias, &p.EditCreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.EditCreatedAt, &p.SeeGroupId,
-		&p.EditGroupId, &p.PageCreatedAt, &p.PageCreatorId, &p.LensIndex,
+		&p.EditGroupId, &p.PageCreatedAt, &p.PageCreatorId,
 		&p.IsEditorComment, &p.IsEditorCommentIntention, &p.IsResolved, &p.LikeableId,
 		&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.EditSummary,
 		&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
@@ -2018,7 +2040,7 @@ func loadOrderedChildrenIds(db *database.DB, u *CurrentUser, parentId string, so
 		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
 		ON (pi.pageId=p.pageId)
 		WHERE p.isLiveEdit
-			AND pi.type!=? AND pi.type!=? AND pi.type!=?`, CommentPageType, QuestionPageType, LensPageType).Add(`
+			AND pi.type!=? AND pi.type!=?`, CommentPageType, QuestionPageType).Add(`
 			AND pp.type=?`, ParentPagePairType).Add(`AND pp.parentId=?`, parentId).Add(`
 		ORDER BY ` + orderClause).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -2370,4 +2392,89 @@ func LoadAliasAndPageId(db *database.DB, u *CurrentUser, alias string) (string, 
 	}
 
 	return "", "", false, err
+}
+
+type ProcessLensCallback func(db *database.DB, lens *Lens) error
+
+// Load all lenses for the given pages
+func LoadLenses(db *database.DB, queryPart *database.QueryPart, resultData *CommonHandlerData, callback ProcessLensCallback) error {
+	rows := database.NewQuery(`
+		SELECT l.id,l.pageId,l.lensId,l.lensIndex,l.lensName,l.createdBy,l.createdAt,l.updatedBy,l.updatedAt
+		FROM lenses AS l`).AddPart(queryPart).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var lens Lens
+		err := rows.Scan(&lens.Id, &lens.PageId, &lens.LensId, &lens.LensIndex, &lens.LensName,
+			&lens.CreatedBy, &lens.CreatedAt, &lens.UpdatedBy, &lens.UpdatedAt)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		if resultData != nil {
+			AddPageToMap(lens.LensId, resultData.PageMap, LensInfoLoadOptions)
+		}
+		return callback(db, &lens)
+	})
+	if err != nil {
+		return fmt.Errorf("Couldn't load lenses: %v", err)
+	}
+	return nil
+}
+
+// Load all lenses for the given pages
+func LoadLensesForPages(db *database.DB, resultData *CommonHandlerData, options *LoadDataOptions) error {
+	sourcePageMap := options.ForPages
+	if len(sourcePageMap) <= 0 {
+		return nil
+	}
+
+	pageIds := PageIdsListFromMap(sourcePageMap)
+	queryPart := database.NewQuery(`
+		JOIN`).AddPart(PageInfosTable(resultData.User)).Add(`AS pi
+		ON (l.pageId=pi.pageId)`).Add(`
+		WHERE l.pageId IN`).AddArgsGroup(pageIds)
+	err := LoadLenses(db, queryPart, resultData, func(db *database.DB, lens *Lens) error {
+		sourcePageMap[lens.PageId].Lenses = append(sourcePageMap[lens.PageId].Lenses, lens)
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("Couldn't load lenses: %v", err)
+	}
+
+	for _, p := range sourcePageMap {
+		sort.Sort(p.Lenses)
+	}
+	return nil
+}
+
+// Load parent pages for which the given pages are lenses
+func LoadLensParentIds(db *database.DB, pageMap map[string]*Page, options *LoadDataOptions) error {
+	if options == nil {
+		options = &LoadDataOptions{}
+	}
+	sourcePageMap := options.ForPages
+	if sourcePageMap == nil {
+		sourcePageMap = pageMap
+	}
+	if len(sourcePageMap) <= 0 {
+		return nil
+	}
+
+	lensIds := PageIdsListFromMap(sourcePageMap)
+	rows := database.NewQuery(`
+		SELECT pageId,lensId
+		FROM lenses
+		WHERE lensId IN`).AddArgsGroup(lensIds).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageId, lensId string
+		err := rows.Scan(&pageId, &lensId)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		sourcePageMap[lensId].LensParentId = pageId
+		AddPageIdToMap(pageId, pageMap)
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("Couldn't load lens parent ids: %v", err)
+	}
+	return nil
 }

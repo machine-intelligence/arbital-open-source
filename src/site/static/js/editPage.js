@@ -37,9 +37,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			// Modify the page
 			$scope.page.text = arb.pageService.convertPageIdsToAliases($scope.page.text);
-			if ($scope.page.isLens()) {
-				$scope.page.title = $scope.page.lensTitle();
-			}
 
 			$scope.getPublishText = function() {
 				if ($scope.page.isDeleted) return "Republish";
@@ -115,25 +112,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				});
 			};
 
-			// Lens sort listeners (using ng-sortable library)
-			$scope.page.lensIds.sort(function(a, b) {
-				return arb.stateService.pageMap[a].lensIndex - arb.stateService.pageMap[b].lensIndex;
-			});
-			$scope.lensSortListeners = {
-				orderChanged: function(event) {
-					var data = {pageId: $scope.page.pageId, orderMap: {}};
-					for (var n = 0; n < $scope.page.lensIds.length; n++) {
-						var pageId = $scope.page.lensIds[n];
-						arb.stateService.pageMap[pageId].lensIndex = n + 1;
-						data.orderMap[pageId] = n + 1;
-					}
-					$http({method: 'POST', url: '/updateLensOrder/', data: JSON.stringify(data)})
-					.error(function(data) {
-						$scope.addMessage('lensOrder', 'Error updating lens order: ' + data, 'error');
-					});
-				},
-			};
-
 			// Toggle in and out of preview when not in fullView
 			$scope.inPreview = false;
 			$scope.togglePreview = function(show) {
@@ -141,7 +119,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 
 			// Setup all the settings
-			$scope.forceExpandSimilarPagesCount = 10;
 			$scope.isNormalEdit = !($scope.page.isSnapshot || $scope.page.isAutosave);
 
 			// if this is a work in progress, load the saved edit summary, otherwise edit summary should be blank
@@ -151,11 +128,8 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// Set up page types.
 			if ($scope.page.isComment()) {
 				$scope.pageTypes = {comment: 'Comment'};
-			} else if ($scope.page.isWiki() || $scope.page.isLens() || $scope.page.isQuestion()) {
-				$scope.pageTypes = {wiki: 'Wiki', lens: 'Lens', question: 'Question'};
-			}
-			if ($scope.page.isLens()) {
-				$scope.lensParent = arb.stateService.pageMap[$scope.page.parentIds[0]];
+			} else if ($scope.page.isWiki() || $scope.page.isQuestion()) {
+				$scope.pageTypes = {wiki: 'Wiki', question: 'Question'};
 			}
 
 			// Set up group names.

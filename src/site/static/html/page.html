@@ -61,13 +61,12 @@
 			<div class="page-tabs"
 					layout="row"
 					layout-xs="column"
-					ng-if="::page.lensIds.length > 1">
-				<md-button ng-repeat="lensId in ::page.lensIds"
-						ng-click="tabsClicked($event,lensId)"
-						ng-class="{'active-tab': lensId == selectedLens.pageId}"
+					ng-if="::lenses.length > 1">
+				<md-button ng-repeat="lens in ::lenses"
+						ng-click="tabsClicked($event, lens.lensId)"
+						ng-class="{'active-tab': lens.lensId == selectedLens.pageId}"
 						aria-label="Switch tab">
-					<arb-page-title page-id="{{::lensId}}"
-							custom-page-title="{{::(lensId === page.pageId ? 'Main' : arb.stateService.pageMap[lensId].lensTitle())}}"></arb-page-title>
+					<span ng-bind="::lens.lensName"></span>
 				</md-button>
 			</div>
 			
@@ -75,21 +74,21 @@
 			<div arb-page-improvement page="selectedLens" class="md-whiteframe-1dp" ng-if="selectedLens"></div>
 
 			<!-- For each lens -->
-			<div ng-repeat="lensId in ::page.lensIds" ng-if="lensId === selectedLens.pageId">
+			<div ng-repeat="lens in ::lenses" ng-if="lens.lensId === selectedLens.pageId">
 				<!-- Lens body -->
 				<div class="md-whiteframe-1dp">
 					<div class="md-whiteframe-1dp page-lens-body">
 						<div ng-style="{'min-height': 500}"
 								layout="column"
 								layout-align="center center"
-								ng-if="!isLoaded(lensId)">
+								ng-if="!isLoaded(lens.lensId)">
 							<md-progress-circular md-mode="indeterminate"></md-progress-circular>
 						</div>
 						<arb-lens class="reveal-after-render"
-								page-id="{{::lensId}}"
+								page-id="{{::lens.lensId}}"
 								lens-parent-id="{{::page.pageId}}"
 								is-simple-embed="::isSimpleEmbed"
-								ng-if="isLoaded(lensId)"></arb-lens>
+								ng-if="isLoaded(lens.lensId)"></arb-lens>
 					</div>
 
 					<!-- Parents and tags -->
@@ -155,18 +154,18 @@
 
 		<!-- Marks section -->
 		<div class="discussion-container" ng-if="::!isSimpleEmbed">
-			<arb-marks ng-repeat="lensId in ::page.lensIds"
+			<arb-marks ng-repeat="lens in ::lenses"
 					class="reveal-after-render"
-					page-id="{{::lensId}}"
-					ng-if="isLoaded(lensId) && lensId === selectedLens.pageId"></arb-marks>
+					page-id="{{::lens.lensId}}"
+					ng-if="isLoaded(lens.lensId) && lens.lensId === selectedLens.pageId"></arb-marks>
 		</div>
 
 		<!-- Discussion section -->
 		<div class="discussion-container" ng-if="::!isSimpleEmbed">
-			<arb-page-discussion ng-repeat="lensId in ::page.lensIds"
+			<arb-page-discussion ng-repeat="lens in ::lenses"
 					class="reveal-after-render"
-					page-id="{{::lensId}}"
-					ng-if="isLoaded(lensId) && lensId === selectedLens.pageId"></arb-page-discussion>
+					page-id="{{::lens.lensId}}"
+					ng-if="isLoaded(lens.lensId) && lens.lensId === selectedLens.pageId"></arb-page-discussion>
 		</div>
 	</div>
 </div>
