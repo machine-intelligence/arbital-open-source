@@ -4,6 +4,7 @@
 app.directive('arbSignup', function($location, $http, arb) {
 	return {
 		templateUrl: versionUrl('static/html/signupPage.html'),
+		scope: {},
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.formData = {};
