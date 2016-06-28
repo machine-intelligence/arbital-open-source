@@ -31,7 +31,7 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 	var anchorElementStack = [];
 
 	var $targetCandidate = undefined;
-	var	targetCandidateLinkType;
+	var targetCandidateLinkType;
 	var createPromise = undefined;
 	var removePromise = undefined;
 	var anchorHovering = false;
