@@ -70,7 +70,7 @@
 							custom-page-title="{{::(lensId === page.pageId ? 'Main' : arb.stateService.pageMap[lensId].lensTitle())}}"></arb-page-title>
 				</md-button>
 			</div>
-			
+
 			<!-- How to make this page better box -->
 			<div arb-page-improvement page="selectedLens" class="md-whiteframe-1dp" ng-if="selectedLens"></div>
 
@@ -120,10 +120,9 @@
 					</div>
 				</div>
 
+				<!-- Action bar -->
+				<arb-lens-toolbar ng-if="selectedLens"></arb-lens-toolbar>
 			</div>
-
-			<!-- Action bar -->
-			<arb-lens-toolbar ng-if="selectedLens"></arb-lens-toolbar>
 		</div>
 
 		<!-- Answers section -->
