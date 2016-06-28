@@ -6,7 +6,6 @@ package site
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
@@ -49,12 +48,6 @@ func revertPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 	if !page.Permissions.Edit.Has {
 		return pages.Fail("Can't revert: "+page.Permissions.Edit.Reason, nil).Status(http.StatusBadRequest)
-	}
-
-	if page.Type == core.LensPageType {
-		// Need to get the actual lens title
-		parts := strings.Split(page.Title, ":")
-		page.Title = strings.TrimSpace(parts[len(parts)-1])
 	}
 
 	// Create the data to pass to the edit page handler

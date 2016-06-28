@@ -6,7 +6,7 @@ app.directive('arbUpdateRowExpandButton', function(arb) {
 		templateUrl: versionUrl('static/html/rows/updates/updateRowExpandButton.html'),
 		scope: false,
 		require: '^updateRow'
-	}
+	};
 });
 
 // directive for an update like button
@@ -15,7 +15,7 @@ app.directive('arbUpdateRowLikeButton', function(arb) {
 		templateUrl: versionUrl('static/html/rows/updates/updateRowLikeButton.html'),
 		scope: false,
 		require: '^updateRow'
-	}
+	};
 });
 
 // directive for an update dismiss button
@@ -24,7 +24,7 @@ app.directive('arbUpdateRowDismissButton', function(arb) {
 		templateUrl: versionUrl('static/html/rows/updates/updateRowDismissButton.html'),
 		scope: false,
 		require: '^updateRow'
-	}
+	};
 });
 
 // directive for an update timestamp
@@ -33,7 +33,7 @@ app.directive('arbUpdateTimestamp', function(arb) {
 		template: '<span class="md-caption nowrap" ng-bind="::(update.createdAt | smartDateTime)"></span>',
 		scope: false,
 		require: '^updateRow'
-	}
+	};
 });
 
 var getUpdateRowDirectiveFunc = function(templateUrl, controllerInternal) {

@@ -191,16 +191,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 
 	// Compute title
-	if oldPage.Type == core.LensPageType {
-		if strings.ContainsAny(data.Title, ":") {
-			return pages.Fail(`Lens title can't include ":" character`, nil).Status(http.StatusBadRequest)
-		}
-		parentTitle, err := core.GetPrimaryParentTitle(db, u, data.PageId)
-		if err != nil {
-			return pages.Fail("Couldn't load lens's parent", err)
-		}
-		data.Title = fmt.Sprintf("%s: %s", parentTitle, data.Title)
-	} else if oldPage.Type == core.CommentPageType {
+	if oldPage.Type == core.CommentPageType {
 		if len(data.Text) > CommentTitleLength {
 			data.Title = fmt.Sprintf("\"%s...\"", data.Text[:CommentTitleLength-3])
 		} else {

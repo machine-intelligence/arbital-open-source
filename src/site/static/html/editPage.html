@@ -22,10 +22,9 @@
 						</div>
 
 						<md-input-container>
-							<label ng-if="!page.isLens()">Title</label>
-							<label ng-if="page.isLens()">Lens title</label>
+							<label>Title</label>
 							<input ng-model="page.title"
-									md-maxlength="{{(page.isLens() ? 50 : 100)}}"
+									md-maxlength="100"
 									aria-label="Title"
 									autofocus>
 						</md-input-container>
@@ -302,7 +301,7 @@
 									page-id="{{::page.pageId}}"
 									type="tag"
 									force-edit-mode="true"
-									readonly="::!(page.isWiki() || page.isLens() || page.isQuestion())"></div>
+									readonly="::!(page.isWiki() || page.isQuestion())"></div>
 
 							<!-- Requirements -->
 							<div arb-relationships
@@ -310,7 +309,7 @@
 									page-id="{{::page.pageId}}"
 									type="requirement"
 									force-edit-mode="true"
-									readonly="::!(page.isWiki() || page.isLens() || page.isQuestion())"></div>
+									readonly="::!(page.isWiki() || page.isQuestion())"></div>
 
 							<!-- Teaches -->
 							<div arb-relationships
@@ -318,32 +317,15 @@
 									page-id="{{::page.pageId}}"
 									type="subject"
 									force-edit-mode="true"
-									readonly="::!(page.isWiki() || page.isLens())"></div>
+									readonly="::!(page.isWiki())"></div>
 
-							<!-- Lens ordering -->
-							<div class="edit-relationship-div" ng-if="::!page.isLens()">
-								<div class="md-subhead">
-									<!-- HARDCODED -->
-									<arb-page-title page-id="17b"
-											is-link="true"
-											custom-page-title="Lens order"></arb-page-title>
-									<div class="md-caption">
-										Sorted from most technical to most simple. (Main lens is always the most technical.)
-									</div>
-								</div>
-								<div class="md-caption" ng-if="page.lensIds.length <= 0">This page has no lenses.</div>
-
-								<!-- List of lenses -->
-								<div data-as-sortable="::lensSortListeners" data-ng-model="page.lensIds" ng-if="page.lensIds.length > 0">
-									<div data-ng-repeat="lensId in page.lensIds" data-as-sortable-item>
-										<div class="md-primary md-hue-1 md-whiteframe-1dp" data-as-sortable-item-handle>
-											<md-icon>reorder</md-icon>
-											<span>#{{arb.stateService.pageMap[lensId].lensIndex}}&nbsp;</span>
-											<arb-page-title page-id="{{::lensId}}" is-link="true"></arb-page-title>
-										</div>
-									</div>
-								</div>
-							</div>
+							<!-- Children and lenses -->
+							<div arb-relationships
+									class="edit-relationship-div"
+									page-id="{{::page.pageId}}"
+									type="child"
+									force-edit-mode="true"
+									readonly="::!(page.isWiki())"></div>
 
 							<!-- List of strings (for questions) -->
 							<div ng-if="::page.isQuestion()">
@@ -489,9 +471,6 @@
 								<div class="md-caption" layout-margin flex>
 									<span ng-if="page.isWiki()">
 										Standard wiki page
-									</span>
-									<span ng-if="page.isLens()">
-										A lens page is used to present the same material as another page but with a different emphasis
 									</span>
 									<span ng-if="page.isQuestion()">
 										A canonical question page
@@ -717,7 +696,6 @@
 		<!-- Live preview -->
 		<md-content class="preview-area" flex ng-show="(fullView || inPreview) && !otherDiff && !sideEdit">
 			<div class="md-display-3" ng-if="page.title != '' || page.text != ''">
-				<span ng-bind="::lensParent.title + ': '" ng-if="::lensParent"></span>
 				<span ng-bind="page.title"></span>
 			</div>
 			<div class="md-caption" ng-if="page.title === '' && page.text === ''">

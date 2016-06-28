@@ -58,6 +58,16 @@ func AddUserToMap(userId string, userMap map[string]*User) *User {
 	return u
 }
 
+// Add a markId to the mark map if it's not there already.
+func AddMarkToMap(markId string, markMap map[string]*Mark) *Mark {
+	mark, ok := markMap[markId]
+	if !ok {
+		mark = &Mark{Id: markId}
+		markMap[markId] = mark
+	}
+	return mark
+}
+
 // PageIdsStringFromMap returns a comma separated string of all pageIds in the given map.
 func PageIdsStringFromMap(pageMap map[string]*Page) string {
 	var buffer bytes.Buffer
@@ -330,7 +340,6 @@ func GetNewPageUrl(alias string) string {
 func CorrectPageType(pageType string) (string, error) {
 	pageType = strings.ToLower(pageType)
 	if pageType != WikiPageType &&
-		pageType != LensPageType &&
 		pageType != QuestionPageType &&
 		pageType != CommentPageType &&
 		pageType != GroupPageType &&

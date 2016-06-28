@@ -108,10 +108,7 @@ func LoadChildIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, opt
 		newPage := AddPageToMap(childId, pageMap, options.LoadOptions)
 
 		parent := sourcePageMap[parentId]
-		if piType == LensPageType {
-			parent.LensIds = append(parent.LensIds, newPage.PageId)
-			newPage.ParentIds = append(newPage.ParentIds, parent.PageId)
-		} else if piType == CommentPageType {
+		if piType == CommentPageType {
 			parent.CommentIds = append(parent.CommentIds, newPage.PageId)
 		} else if piType == QuestionPageType {
 			parent.QuestionIds = append(parent.QuestionIds, newPage.PageId)

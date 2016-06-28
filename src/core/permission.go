@@ -260,7 +260,7 @@ func isParentRelationshipSupported(parent *Page, child *Page) bool {
 	}
 	parentOk := parent.Type == DomainPageType || parent.Type == GroupPageType ||
 		parent.Type == QuestionPageType || parent.Type == WikiPageType
-	childOk := child.Type == LensPageType || child.Type == QuestionPageType || child.Type == WikiPageType
+	childOk := child.Type == QuestionPageType || child.Type == WikiPageType
 	return parentOk && childOk
 }
 
@@ -274,7 +274,7 @@ func isRequirementRelationshipSupported(parent *Page, child *Page) bool {
 	if child.Type == CommentPageType || parent.Type == CommentPageType {
 		return false
 	}
-	childOk := child.Type == DomainPageType || child.Type == LensPageType || child.Type == WikiPageType
+	childOk := child.Type == DomainPageType || child.Type == WikiPageType
 	return childOk
 }
 
@@ -283,8 +283,8 @@ func isSubjectRelationshipSupported(parent *Page, child *Page) bool {
 	if child.Type == CommentPageType || parent.Type == CommentPageType {
 		return false
 	}
-	parentOk := parent.Type == DomainPageType || parent.Type == LensPageType || parent.Type == WikiPageType
-	childOk := child.Type == DomainPageType || child.Type == LensPageType || child.Type == WikiPageType
+	parentOk := parent.Type == DomainPageType || parent.Type == WikiPageType
+	childOk := child.Type == DomainPageType || child.Type == WikiPageType
 	return parentOk && childOk
 }
 

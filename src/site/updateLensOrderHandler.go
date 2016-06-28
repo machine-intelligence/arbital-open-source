@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"zanaduu3/src/core"
@@ -16,12 +17,12 @@ import (
 type updateLensOrderData struct {
 	// Id of the page the lenses are for
 	PageId string
-	// Lens id -> order index map
-	OrderMap map[string]int
+	// Map of ids -> lens index
+	LensOrder map[string]int
 }
 
 var updateLensOrderHandler = siteHandler{
-	URI:         "/updateLensOrder/",
+	URI:         "/json/updateLensOrder/",
 	HandlerFunc: updateLensOrderHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
@@ -42,16 +43,31 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if !core.IsIdValid(data.PageId) {
 		return pages.Fail("Page id isn't specified", err).Status(http.StatusBadRequest)
 	}
-	if len(data.OrderMap) <= 0 {
-		return pages.Success(nil)
+
+	// Load all the lenses
+	pageMap := make(map[string]*core.Page)
+	ids := make([]string, 0)
+	for lensId, _ := range data.LensOrder {
+		ids = append(ids, lensId)
+	}
+	lenses := make([]*core.Lens, 0)
+	queryPart := database.NewQuery(`
+		WHERE l.id IN`).AddArgsGroupStr(ids)
+	err = core.LoadLenses(db, queryPart, nil, func(db *database.DB, lens *core.Lens) error {
+		lenses = append(lenses, lens)
+		core.AddPageIdToMap(lens.PageId, pageMap)
+		return nil
+	})
+	if err != nil {
+		return pages.Fail("Couldn't load the lens: %v", err)
+	} else if len(lenses) <= 0 {
+		return pages.Fail("No lenses found for this page", nil).Status(http.StatusBadRequest)
+	} else if len(pageMap) > 1 {
+		return pages.Fail("Changing lenses that belong to different pages", nil).Status(http.StatusBadRequest)
 	}
 
 	// Check permissions
-	pageIds := []string{data.PageId}
-	for pageId, _ := range data.OrderMap {
-		pageIds = append(pageIds, pageId)
-	}
-	permissionError, err := core.VerifyEditPermissionsForList(db, pageIds, u)
+	permissionError, err := core.VerifyEditPermissionsForMap(db, pageMap, u)
 	if err != nil {
 		return pages.Fail("Error verifying permissions", err).Status(http.StatusForbidden)
 	} else if permissionError != "" {
@@ -59,21 +75,23 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Set up the lens indices
-	lensIndexValues := make([]interface{}, 0)
-	for pageId, index := range data.OrderMap {
-		lensIndexValues = append(lensIndexValues, pageId, index)
+	hashmaps := make(database.InsertMaps, 0)
+	for _, lens := range lenses {
+		hashmap := make(database.InsertMap)
+		hashmap["id"] = lens.Id
+		hashmap["lensIndex"] = data.LensOrder[fmt.Sprintf("%d", lens.Id)]
+		hashmap["updatedBy"] = u.Id
+		hashmap["updatedAt"] = database.Now()
+		hashmaps = append(hashmaps, hashmap)
 	}
 
 	// Begin the transaction.
 	var changeLogId int64
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		// Update the lens indices.
-		statement := db.NewStatement(`
-			INSERT INTO pageInfos (pageId, lensIndex)
-			VALUES ` + database.ArgsPlaceholder(len(lensIndexValues), 2) + `
-			ON DUPLICATE KEY UPDATE lensIndex=VALUES(lensIndex)`).WithTx(tx)
-		if _, err = statement.Exec(lensIndexValues...); err != nil {
-			return sessions.NewError("Couldn't update a lens index", err)
+		// Update the lenses
+		statement := db.NewMultipleInsertStatement("lenses", hashmaps, "lensIndex", "updatedBy", "updatedAt").WithTx(tx)
+		if _, err = statement.Exec(); err != nil {
+			return sessions.NewError("Couldn't update lenses", err)
 		}
 
 		// Create changelogs entry

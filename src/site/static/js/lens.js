@@ -122,29 +122,6 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				}
 			};
 
-			var primaryPage = arb.stateService.pageMap[$scope.lensParentId];
-			var simplestLensId = primaryPage.lensIds[primaryPage.lensIds.length - 1];
-			$scope.isSimplestLens = $scope.page.pageId === simplestLensId;
-
-			// Compute simpler lens id if necessary
-			if ($scope.showRequirementsPanel) {
-				var simplerLensId = undefined;
-				for (var n = $scope.page.lensIndex + 1; n < primaryPage.lensIds.length; n++) {
-					var lens = arb.stateService.pageMap[primaryPage.lensIds[n]];
-					if ($scope.meetsAllRequirements(lens.pageId)) {
-						simplerLensId = lens.pageId;
-						break;
-					}
-				}
-				if (!simplerLensId && !$scope.isSimplestLens) {
-					// We haven't found a lens for which we've met all requirements, so just suggest the simplest lens
-					simplerLensId = simplestLensId;
-				}
-				if (simplerLensId) {
-					$scope.simplerLens = arb.stateService.pageMap[simplerLensId];
-				}
-			}
-
 			$scope.getToggleSubjectsText = function() {
 				if ($scope.knowsAllSubjects()) {
 					if ($scope.page.subjectIds.length > 1) {

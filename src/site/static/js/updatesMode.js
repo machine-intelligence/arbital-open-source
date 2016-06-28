@@ -36,41 +36,41 @@ app.directive('arbUpdatesPanel', function($http, arb) {
 			// Given the type of the the changelog update, return the type of row we should use
 			$scope.getChangeLogCategory = function(changeLogType) {
 				switch (changeLogType) {
-					case "newParent":
-					case "newChild":
-					case "newLens":
-					case "newTag":
-					case "newUsedAsTag":
-					case "newRequirement":
-					case "newRequiredBy":
-					case "newSubject":
-					case "newTeacher":
+					case 'newParent':
+					case 'newChild':
+					case 'newLens':
+					case 'newTag':
+					case 'newUsedAsTag':
+					case 'newRequirement':
+					case 'newRequiredBy':
+					case 'newSubject':
+					case 'newTeacher':
 
-					case "deleteParent":
-					case "deleteChild":
-					case "deleteTag":
-					case "deleteUsedAsTag":
-					case "deleteRequirement":
-					case "deleteRequiredBy":
-					case "deleteSubject":
-					case "deleteTeacher":
+					case 'deleteParent':
+					case 'deleteChild':
+					case 'deleteTag':
+					case 'deleteUsedAsTag':
+					case 'deleteRequirement':
+					case 'deleteRequiredBy':
+					case 'deleteSubject':
+					case 'deleteTeacher':
 
-					case "answerChange":
-						return "relationship";
+					case 'answerChange':
+						return 'relationship';
 
-					case "newAlias":
-					case "newSortChildrenBy":
-					case "setVoteType":
-					case "newEditGroup":
-					case "lensOrderChanged":
-					case "turnOnVote":
-					case "turnOffVote":
-					case "searchStringChange":
-						return "settings";
+					case 'newAlias':
+					case 'newSortChildrenBy':
+					case 'setVoteType':
+					case 'newEditGroup':
+					case 'lensOrderChanged':
+					case 'turnOnVote':
+					case 'turnOffVote':
+					case 'searchStringChange':
+						return 'settings';
 
-					case "deletePage":
-					case "undeletePage":
-						return "deletedPage";
+					case 'deletePage':
+					case 'undeletePage':
+						return 'deletedPage';
 				}
 				return false;
 			};

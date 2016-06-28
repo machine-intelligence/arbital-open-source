@@ -73,9 +73,9 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		data.EditGroupId = u.Id
 	}
 	if oldPage.WasPublished {
-		if (data.Type == core.WikiPageType || data.Type == core.LensPageType || data.Type == core.QuestionPageType) &&
-			(oldPage.Type == core.WikiPageType || oldPage.Type == core.LensPageType || oldPage.Type == core.QuestionPageType) {
-			// Allow type changing from wiki <-> lens <-> question
+		if (data.Type == core.WikiPageType || data.Type == core.QuestionPageType) &&
+			(oldPage.Type == core.WikiPageType || oldPage.Type == core.QuestionPageType) {
+			// Allow type changing from wiki <-> question
 		} else {
 			// Don't allow type changing
 			data.Type = oldPage.Type

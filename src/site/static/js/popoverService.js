@@ -42,7 +42,7 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 		while ($popoverElement) {
 			removePopover();
 		}
-	}
+	};
 
 	// Remove the popover.
 	var removePopover = function() {

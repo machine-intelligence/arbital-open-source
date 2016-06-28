@@ -19,16 +19,11 @@
 			</md-button>
 		</div>
 
-		<!-- Learn / simpler lens suggestion -->
+		<!-- Learn suggestion -->
 		<div class="lens-suggestion" ng-show="!meetsAllRequirements()">
 			<a ng-href="/learn/{{::page.alias}}">
 				Learn the requisites
 			</a>
-			<span ng-if="::simplerLens">
-				or try a simpler lens:
-				<a ng-href="{{::arb.urlService.getPageUrl(simplerLens.pageId)}}"
-						ng-bind="::('&quot;' + simplerLens.lensTitle() + '&quot;')"></a>.
-			</span>
 		</div>
 	</div>
 

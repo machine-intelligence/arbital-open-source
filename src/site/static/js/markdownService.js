@@ -92,7 +92,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			}
 			return '<a href="' + url + '" class="' + classText + '" page-id="">' + text + '</a>';
 		};
-	
+
 		// Get info from BE to render the given page alias
 		var fetchLink = function(pageAlias, editor) {
 			if (!editor || pageAlias in failedPageAliases) return;

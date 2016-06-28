@@ -596,7 +596,7 @@ app.directive('arbTag', function(arb) {
 		controller: function($scope) {
 			var tag = arb.stateService.getPage($scope.tagId);
 			$scope.tagName = tag.title;
-			$scope.url = arb.urlService.getPageUrl(tag.pageId)
+			$scope.url = arb.urlService.getPageUrl(tag.pageId);
 		},
 	};
 });

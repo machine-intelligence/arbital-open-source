@@ -173,7 +173,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		if row.MarkId == "0" {
 			row.MarkId = ""
 		} else {
-			resultData.AddMark(row.MarkId)
+			AddMarkToMap(row.MarkId, resultData.MarkMap)
 		}
 
 		// Process the change log
