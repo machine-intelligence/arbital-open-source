@@ -37,13 +37,11 @@ func newPagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 
-	return newPagePairHandlerInternal(params, &data)
+	return newPagePairHandlerInternal(params.DB, params.U, &data)
 }
 
-func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairData) *pages.Result {
-	c := params.C
-	db := params.DB
-	u := params.U
+func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newPagePairData) *pages.Result {
+	c := db.C
 	var err error
 
 	// Error checking
@@ -95,7 +93,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	}
 
 	// Check edit permissions
-	permissionError, err := core.CanAffectRelationship(c, parent, child, data.Type)
+	permissionError, err := core.CanAffectRelationship(db.C, parent, child, data.Type)
 	if err != nil {
 		return pages.Fail("Error verifying permissions", err)
 	} else if permissionError != "" {
