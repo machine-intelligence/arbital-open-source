@@ -1,5 +1,5 @@
 application: zanaduu3
-version: 002a
+version: 002b
 runtime: go
 api_version: go1
 automatic_scaling:

@@ -23,10 +23,6 @@
 		</md-icon>
 	</md-fab-trigger>
 	<md-fab-actions ng-if="data.isOpen">
-		<md-button ng-href="{{editPageUrl}}" class="md-fab md-raised md-mini md-accent" ng-if="editPageUrl">
-			<md-icon>create</md-icon>
-			<md-tooltip md-direction="left" md-visible="showTooltips">Edit this page (ALT+CTRL+E)</md-tooltip>
-		</md-button>
 		<md-button ng-click="newQueryMark()" class="md-fab md-raised md-mini md-accent" ng-if="arb.stateService.primaryPage">
 			<md-icon md-svg-icon="cursor_pointer"></md-icon>
 			<md-tooltip md-direction="left" md-visible="showTooltips">New question/objection (ALT+CTRL+Q)</md-tooltip>

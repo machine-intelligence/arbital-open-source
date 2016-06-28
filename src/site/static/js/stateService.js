@@ -2,7 +2,7 @@
 
 // Manages common state for services
 // NOTE: stateService should be includable by any service that relies on any kind of app state
-app.service('stateService', function($http, $compile, $location, $rootScope, $interval, popupService) {
+app.service('stateService', function($http, $mdMedia, popupService) {
 	var that = this;
 
 	// Primary page is the one with its id in the url
@@ -202,4 +202,7 @@ app.service('stateService', function($http, $compile, $location, $rootScope, $in
 		mathjaxCache = {};
 		mathjaxRecency = {};
 	};
+
+	this.isSmallScreen = !$mdMedia('gt-sm');
+	this.isTinyScreen = !$mdMedia('gt-xs');
 });

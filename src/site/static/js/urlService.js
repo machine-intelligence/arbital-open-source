@@ -55,8 +55,8 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 			return domain;
 		}
 		var domain = 'localhost:8012';
-			if (withHttpPrefix) return 'http://' + domain;
-			return domain;
+		if (withHttpPrefix) return 'http://' + domain;
+		return domain;
 	};
 
 	// Get a domain url (with optional subdomain)

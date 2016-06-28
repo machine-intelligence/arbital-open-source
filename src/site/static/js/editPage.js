@@ -39,16 +39,16 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.page.text = arb.pageService.convertPageIdsToAliases($scope.page.text);
 
 			$scope.getPublishText = function() {
-				if ($scope.page.isDeleted) return "Republish";
-				if ($scope.page.permissions.edit.has) return "Publish";
-				if ($scope.page.permissions.proposeEdit.has) return "Propose";
-				return "";
+				if ($scope.page.isDeleted) return 'Republish';
+				if ($scope.page.permissions.edit.has) return 'Publish';
+				if ($scope.page.permissions.proposeEdit.has) return 'Propose';
+				return '';
 			};
 			$scope.getPublishTooltipText = function() {
-				if ($scope.page.isDeleted) return "Republish this page";
-				if ($scope.page.permissions.edit.has) return "Make this version live";
-				if ($scope.page.permissions.proposeEdit.has) return "Propose an edit to this page";
-				return "";
+				if ($scope.page.isDeleted) return 'Republish this page';
+				if ($scope.page.permissions.edit.has) return 'Make this version live';
+				if ($scope.page.permissions.proposeEdit.has) return 'Propose an edit to this page';
+				return '';
 			};
 
 			// Whether the editor should be in advanced mode.
@@ -123,7 +123,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			// if this is a work in progress, load the saved edit summary, otherwise edit summary should be blank
 			// (that is, do *not* load the edit summary for the previous edit that we're working off of)
-			$scope.page.newEditSummary = $scope.isNormalEdit ? "" : $scope.page.editSummary;
+			$scope.page.newEditSummary = $scope.isNormalEdit ? '' : $scope.page.editSummary;
 
 			// Set up page types.
 			if ($scope.page.isComment()) {

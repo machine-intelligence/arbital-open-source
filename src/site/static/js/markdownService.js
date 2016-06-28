@@ -92,7 +92,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			}
 			return '<a href="' + url + '" class="' + classText + '" page-id="">' + text + '</a>';
 		};
-	
+
 		// Get info from BE to render the given page alias
 		var fetchLink = function(pageAlias, editor) {
 			if (!editor || pageAlias in failedPageAliases) return;
@@ -302,7 +302,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		});
 		// Process $mathjax$ spans.
-		var mathjaxSpanRegexp = new RegExp('(^|\\s|"|\')(~D' + getMathjaxRegexp(false) + '~D)', 'g');
+		var mathjaxSpanRegexp = new RegExp('(^|\\s|"|\'|\\(|\\[)(~D' + getMathjaxRegexp(false) + '~D)', 'g');
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(mathjaxSpanRegexp, function(whole, prefix, mathjaxText) {
 				if (mathjaxText.substring(0, 4) == '~D~D') return whole;

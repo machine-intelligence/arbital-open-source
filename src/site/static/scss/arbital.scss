@@ -14,19 +14,42 @@ body {
 	height: auto;
 }
 
-.facebook-button {
-	background-color: #3b5998;
-	color: white;
+arb-signup {
+	md-input-container {
+		margin: 0;
+		width: 222px;
+	}
 
-	md-icon {
+	.centered-hr-text {
+		line-height: 0px;
+		text-align: center;
+		margin: 25px 10px;
+		color: #555;
+		font-weight: 500;
+		border-bottom: 1px solid #999;
+		padding: 0;
+		width: 270px;
+
+		span {
+			background: white;
+			padding: 0 10px;
+		}
+	}
+
+	.md-button.md-raised.facebook-button {
+		background-color: #3b5998;
 		color: white;
-	}
 
-	&:hover {
-		background-color: #8b9dc3 !important;
-	}
-	&:focus {
-		background-color: #8b9dc3 !important;
+		md-icon {
+			color: white;
+		}
+
+		&:hover {
+			background-color: #8b9dc3 !important;
+		}
+		&:focus {
+			background-color: #8b9dc3 !important;
+		}
 	}
 }
 
@@ -139,9 +162,6 @@ arb-markdown, [arb-markdown], .preview-area {
 	}
 	arb-dashboard-page > & {
 		max-width: 1100px;
-	}
-	arb-signup > & {
-		max-width: 560px;
 	}
 	arb-login > & {
 		max-width: 560px;
@@ -744,14 +764,49 @@ md-toast {
 
 // Text inside a popover
 .popover-text-container {
-	font-size: 18px;
-	line-height: 24px;
+	font-size: 15px;
+	line-height: 22px;
 }
 
 // Intrasite popover
 arb-intrasite-popover, arb-user-popover, arb-text-popover {
 	position: absolute;
+	background: white;
 	z-index: $popoverZ;
+
+	.intrasite-popover-title {
+		font-size: 18px;
+		padding-bottom: 10px;
+		padding-top: 12px;
+		font-weight: 500;
+	}
+}
+
+arb-text-popover {
+	border: 2px solid $primary-hue-1;
+	border-radius: 5px;
+	box-shadow: 0 6px 6px -3px rgba(224,242,241,0.4),
+		0 10px 14px 1px rgba(224,242,241,0.4),
+		0 4px 18px 3px rgba(224,242,241,0.4);
+}
+
+arb-intrasite-popover {
+	border: 3px solid $primary-hue-2;
+
+	box-shadow: 0 6px 6px -3px rgba(0,96,88,0.25),
+		0 10px 14px 1px rgba(0,96,88,0.25),
+		0 4px 18px 3px rgba(0,96,88,0.25);
+
+	md-tabs-wrapper {
+		md-tabs-canvas,
+		md-pagination-wrapper {
+			height: 31px;
+		}
+
+		.md-tab {
+			line-height: 6px;
+		}
+	}
 }
 
 .popover-tab-body {
@@ -761,10 +816,6 @@ arb-intrasite-popover, arb-user-popover, arb-text-popover {
 		padding: 10px;
 		overflow-y: auto;
 	}
-}
-
-.popover-body {
-	background-color: whitesmoke;
 }
 
 $triangle-size: 15px;
@@ -1218,11 +1269,15 @@ arb-log-row, [arb-log-row] {
 	position: relative;
 	top: -5px;
 	background-color: $primary-hue-1;
-	border: $primary-color 1px solid;
 	min-width: 20px;
 	text-align: center;
+	font-weight: 500;
+    color: #666;
+	box-shadow: 0 4px 6px -2px rgba(0,0,0,0.25);
 	border-radius: 15px;
 	cursor: pointer;
+	line-height: 20px;
+    font-size: 15px;
 }
 
 arb-list-sub-header,
@@ -1259,6 +1314,41 @@ md-icon.icon-first {
 .md-icon.s24 {
   width: 24px;
   height: 24px;
+}
+
+arb-likes.s20 {
+	margin-right: 0px;
+
+	md-icon {
+		width: 20px;
+		height: 20px;
+	}
+
+	.like-icon {
+		min-width: 20px;
+		font-size: 20px;
+		margin-right: 0px !important;
+	}
+}
+
+arb-likes.tiny {
+	line-height: 5px;
+	width: 14px;
+	height: 14px;
+
+	.md-button {
+		line-height: 5px;
+		min-height: 0px;
+		min-width: 0px;
+		font-size: 12px;
+	}
+
+	md-icon {
+		width: 14px;
+		height: 14px;
+		min-width: 0px;
+		margin-right: 0px !important;
+	}
 }
 
 .page-row {
@@ -1318,6 +1408,13 @@ md-icon.icon-first {
 	}
 }
 
+.tiny-panel {
+	md-list-item {
+		padding-left: 6px !important;
+		padding-right: 6px !important;
+	}
+}
+
 .expand-tray {
 	padding-top: 10px;
 }
@@ -1342,7 +1439,7 @@ md-icon.icon-first {
 	box-shadow: inherit;
 }
 
-// BEGIN STYLES FOR POPOVER PANEL TRIANGLES
+// BEGIN STYLES FOR POPOVER TRIANGLES
 .popover-panel:before,
 .popover-panel:after {
 	content: '';
@@ -1356,11 +1453,9 @@ md-icon.icon-first {
 	-ms-transform: rotate(45deg);
 	-o-transform: rotate(45deg);
 	transform: rotate(45deg);
-}
-
-.popover-panel:before {
 	z-index: -1;
 }
+
 .popover-panel.arrow-top:before,
 .popover-panel.arrow-top:after {
 	bottom: 100%;
