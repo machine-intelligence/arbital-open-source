@@ -37,6 +37,13 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 	var anchorHovering = false;
 	var popoverHovering = false;
 
+	// Remove all popovers
+	var removeAllPopovers = function() {
+		while ($popoverElement) {
+			removePopover();
+		}
+	}
+
 	// Remove the popover.
 	var removePopover = function() {
 		// Remove the popoverElement, and get the next one if there is one.
@@ -47,13 +54,12 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 		$popoverElement = undefined;
 		if (popoverElementStack.length > 0) {
 			$popoverElement = popoverElementStack.pop();
-			attachListenersToPopover();
 		}
 
 		// Get the next anchorElement down.
 		$anchorElement = undefined;
 		if (anchorElementStack.length > 0) {
-		 $anchorElement = anchorElementStack.pop();
+			$anchorElement = anchorElementStack.pop();
 		}
 
 		$targetCandidate = undefined;
@@ -67,21 +73,23 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 	var shutItDown = function() {
 		$timeout.cancel(createPromise);
 		$timeout.cancel(removePromise);
-		while ($popoverElement) {
-			removePopover();
-		}
+		removeAllPopovers();
 	};
 
 	// Update the timeout timer.
 	var updateTimeout = function() {
-		if (anchorHovering || popoverHovering) {
+		if (anchorHovering || $popoverElement.popoverHovering) {
 			// Cancel timeout
 			$timeout.cancel(removePromise);
 			removePromise = undefined;
 		} else {
 			if (!removePromise) {
 				// Start the timer to remove the popover
-				removePromise = $timeout(removePopover, hideDelay);
+				removePromise = $timeout(function() {
+					while ($popoverElement && !$popoverElement.popoverHovering) {
+						removePopover();
+					}
+				}, hideDelay);
 			}
 		}
 	};
@@ -107,7 +115,6 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 		// Create the popover
 		popoverScope = $rootScope.$new();
 		if ($popoverElement) {
-			detachListenersFromPopover();
 			popoverElementStack.push($popoverElement);
 		}
 		if (targetCandidateLinkType == linkTypeIntrasite) {
@@ -138,7 +145,16 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 		$popoverElement.css('left', left)
 			.css('position', '') // IE fix, because it sets position to "relative"
 			.width(isTouchDevice ? $('body').width() : popoverWidth);
-		attachListenersToPopover();
+
+		var thisPopoverElement = $popoverElement;
+		$popoverElement.on('mouseenter', function(event) {
+			thisPopoverElement.popoverHovering = true;
+			updateTimeout();
+		});
+		$popoverElement.on('mouseleave', function(event) {
+			thisPopoverElement.popoverHovering = false;
+			updateTimeout();
+		});
 
 		$('body').append($popoverElement);
 
@@ -147,22 +163,6 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 		}
 		$anchorElement = $target;
 		anchorHovering = true;
-	};
-
-	var detachListenersFromPopover = function() {
-		$popoverElement.off('mouseenter');
-		$popoverElement.off('mouseleave');
-	};
-
-	var attachListenersToPopover = function() {
-		$popoverElement.on('mouseenter', function(event) {
-			popoverHovering = true;
-			updateTimeout();
-		});
-		$popoverElement.on('mouseleave', function(event) {
-			popoverHovering = false;
-			updateTimeout();
-		});
 	};
 
 	var mouseEnterPopoverLink = function(event, linkType) {
