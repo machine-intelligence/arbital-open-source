@@ -289,8 +289,7 @@ func (rows *Rows) Process(f ProcessRowCallback) error {
 
 // Scan processes the row and outputs the results into the given variables.
 func (rows *Rows) Scan(dest ...interface{}) error {
-	result := rows.rows.Scan(dest...)
-	return result
+	return rows.rows.Scan(dest...)
 }
 
 // QueryRowSql executes the given SQL statement that's expected to return only
