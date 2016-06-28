@@ -36,13 +36,7 @@ func deleteLensHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check if this lens exists
-	var lens *core.Lens
-	queryPart := database.NewQuery(`
-		WHERE l.id=?`, data.Id)
-	err = core.LoadLenses(db, queryPart, nil, func(db *database.DB, l *core.Lens) error {
-		lens = l
-		return nil
-	})
+	lens, err := core.LoadLens(db, data.Id)
 	if err != nil {
 		return pages.Fail("Couldn't load the lens: %v", err)
 	} else if lens == nil {

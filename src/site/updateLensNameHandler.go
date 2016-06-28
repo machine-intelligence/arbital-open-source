@@ -13,7 +13,7 @@ import (
 
 // updateLensNameData contains the data we get in the request
 type updateLensNameData struct {
-	Id   int64 `json:"id,string"`
+	Id   string
 	Name string
 }
 
@@ -40,13 +40,7 @@ func updateLensNameHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the lens
-	var lens *core.Lens
-	queryPart := database.NewQuery(`
-		WHERE l.id=?`, data.Id)
-	err = core.LoadLenses(db, queryPart, nil, func(db *database.DB, l *core.Lens) error {
-		lens = l
-		return nil
-	})
+	lens, err := core.LoadLens(db, data.Id)
 	if err != nil {
 		return pages.Fail("Couldn't load the lens: %v", err)
 	} else if lens == nil {

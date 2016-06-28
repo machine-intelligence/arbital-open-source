@@ -2408,9 +2408,6 @@ func LoadLenses(db *database.DB, queryPart *database.QueryPart, resultData *Comm
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
-		if resultData != nil {
-			AddPageToMap(lens.LensId, resultData.PageMap, LensInfoLoadOptions)
-		}
 		return callback(db, &lens)
 	})
 	if err != nil {
@@ -2433,6 +2430,7 @@ func LoadLensesForPages(db *database.DB, resultData *CommonHandlerData, options 
 		WHERE l.pageId IN`).AddArgsGroup(pageIds)
 	err := LoadLenses(db, queryPart, resultData, func(db *database.DB, lens *Lens) error {
 		sourcePageMap[lens.PageId].Lenses = append(sourcePageMap[lens.PageId].Lenses, lens)
+		AddPageToMap(lens.LensId, resultData.PageMap, LensInfoLoadOptions)
 		return nil
 	})
 	if err != nil {
@@ -2443,6 +2441,22 @@ func LoadLensesForPages(db *database.DB, resultData *CommonHandlerData, options 
 		sort.Sort(p.Lenses)
 	}
 	return nil
+}
+
+// Load the given lens
+func LoadLens(db *database.DB, id string) (*Lens, error) {
+	var lens *Lens
+	queryPart := database.NewQuery(`WHERE l.id=?`, id)
+	err := LoadLenses(db, queryPart, nil, func(db *database.DB, l *Lens) error {
+		lens = l
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load the lens: %v", err)
+	} else if lens == nil {
+		return nil, fmt.Errorf("Couldn't find the lens")
+	}
+	return lens, nil
 }
 
 // Load parent pages for which the given pages are lenses

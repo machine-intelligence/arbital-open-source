@@ -102,11 +102,7 @@ func newLensHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the newly created lens
-	queryPart = database.NewQuery(`WHERE l.id=?`, id)
-	err = core.LoadLenses(db, queryPart, nil, func(db *database.DB, lens *core.Lens) error {
-		returnData.ResultMap["lens"] = lens
-		return nil
-	})
+	returnData.ResultMap["lens"], err = core.LoadLens(db, fmt.Sprintf("%d", id))
 	if err != nil {
 		return pages.Fail("Couldn't load the lens: %v", err)
 	} else if _, ok := returnData.ResultMap["lens"]; !ok {

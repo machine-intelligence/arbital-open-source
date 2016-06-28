@@ -18,8 +18,10 @@ app.directive('arbExploreTreeNode', function(RecursionHelper, arb) {
 			$scope.pageIds.sort(function(aId, bId) {
 				var pageA = arb.stateService.pageMap[aId];
 				var pageB = arb.stateService.pageMap[bId];
-				var varsA = [/*pageA.isLens() ? 0 : 1,*/pageA.hasChildren ? 0 : 1, pageA.title];
-				var varsB = [/*pageB.isLens() ? 0 : 1,*/pageB.hasChildren ? 0 : 1, pageB.title];
+				var pageAIsLens = $scope.page.lenses.some(function(lens) { return lens.lensId == aId; });
+				var pageBIsLens = $scope.page.lenses.some(function(lens) { return lens.lensId == bId; });
+				var varsA = [pageAIsLens ? 0 : 1, pageA.hasChildren ? 0 : 1, pageA.title];
+				var varsB = [pageBIsLens ? 0 : 1, pageB.hasChildren ? 0 : 1, pageB.title];
 				for (var n = 0; n < varsA.length; n++) {
 					if (varsA[n] == varsB[n]) continue;
 					return varsA[n] < varsB[n] ? -1 : 1;
