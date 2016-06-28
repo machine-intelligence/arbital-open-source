@@ -124,7 +124,10 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		// Go ahead and update the domains for the child page
 		// (we'll handle its descendants in the PublishPagePairTask)
 		if data.Type == core.ParentPagePairType {
-			core.PropagateDomainsWithTx(tx, []string{data.ChildId})
+			err = core.PropagateDomainsWithTx(tx, []string{data.ChildId})
+			if err != nil {
+				return sessions.NewError("Couldn't update domains for the child page", err)
+			}
 		}
 
 		var task tasks.PublishPagePairTask

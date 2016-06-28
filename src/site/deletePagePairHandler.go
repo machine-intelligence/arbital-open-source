@@ -134,7 +134,10 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Go ahead and update the domains for the child page
 		// (we'll handle its descendants in the PropagateDomainTask)
 		if pagePair.Type == core.ParentPagePairType {
-			core.PropagateDomainsWithTx(tx, []string{child.PageId})
+			err = core.PropagateDomainsWithTx(tx, []string{child.PageId})
+			if err != nil {
+				return sessions.NewError("Couldn't update domains for the child page", err)
+			}
 		}
 
 		// Send updates for users subscribed to the parent.
