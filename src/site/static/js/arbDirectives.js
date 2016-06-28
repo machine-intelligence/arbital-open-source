@@ -732,8 +732,8 @@ app.directive('arbLensToolbar', function($window, $mdConstant, $mdUtil, $compile
 			};
 		},
 		link: function(scope, element) {
-			var staticBar = angular.element('#static-toolbar');
-			var floaterBar = angular.element('#floater-toolbar');
+			var staticBar = angular.element(element.find('#static-toolbar'));
+			var floaterBar = angular.element(element.find('#floater-toolbar'));
 
 			// Control the width of the floater bar
 			var setFloaterWidth = function() {
