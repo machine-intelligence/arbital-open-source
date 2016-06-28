@@ -68,7 +68,6 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 		anchorHovering = false;
 		popoverHovering = false;
 	};
-	removePopover(); // init all the variables
 
 	var shutItDown = function() {
 		$timeout.cancel(createPromise);
