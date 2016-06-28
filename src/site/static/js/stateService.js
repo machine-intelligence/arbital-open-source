@@ -2,7 +2,7 @@
 
 // Manages common state for services
 // NOTE: stateService should be includable by any service that relies on any kind of app state
-app.service('stateService', function($http, $compile, $location, $mdToast, $rootScope, $interval, popupService) {
+app.service('stateService', function($http, $compile, $location, $mdToast, $rootScope, $interval, popupService, $mdMedia) {
 	var that = this;
 
 	// Primary page is the one with its id in the url
@@ -16,6 +16,9 @@ app.service('stateService', function($http, $compile, $location, $mdToast, $root
 
 	// All loaded edits. (These are the pages we will be editing.)
 	this.editMap = {};
+
+	// Collection of various data we got from the server.
+	this.globalData = undefined;
 
 	// Id of the private group we are in. (Corresponds to the subdomain).
 	this.privateGroupId = '';
@@ -118,6 +121,9 @@ app.service('stateService', function($http, $compile, $location, $mdToast, $root
 		for (var key in postDataCallbacks) {
 			postDataCallbacks[key](data);
 		}
+		if (data.globalData) {
+			that.globalData = data.globalData;
+		}
 	};
 
 	// Load data from the server and process it.
@@ -196,4 +202,7 @@ app.service('stateService', function($http, $compile, $location, $mdToast, $root
 		mathjaxCache = {};
 		mathjaxRecency = {};
 	};
+
+	this.isSmallScreen = !$mdMedia('gt-sm');
+	this.isTinyScreen = !$mdMedia('gt-xs');
 });

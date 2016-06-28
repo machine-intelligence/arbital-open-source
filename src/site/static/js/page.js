@@ -16,6 +16,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 			$scope.isTinyScreen = !$mdMedia('gt-sm');
 			$scope.isSingleColumn = !$mdMedia('gt-md');
 			$scope.isUser = !!arb.userService.userMap[$scope.pageId];
+			$scope.selectedLens = undefined;
 
 			// Check if the user has all the requisites for the given lens
 			$scope.hasAllReqs = function(lensId) {

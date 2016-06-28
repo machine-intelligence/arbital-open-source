@@ -48,7 +48,7 @@ func moreRelationshipsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if data.RestrictToMathDomain {
 		query.Add(`
 			JOIN pageDomainPairs as pdp
-			ON pdp.pageId=l.parentId AND pdp.domainId=?`, MathDomainId)
+			ON pdp.pageId=l.parentId AND pdp.domainId=?`, core.MathDomainId)
 	}
 
 	query.Add(`WHERE l.childAlias=?`, data.PageAlias)

@@ -214,8 +214,7 @@ app.directive('arbTextPopover', function($compile, $timeout, arb) {
 // arb-text-popover-anchor is the thing you can hover over to get a text popover
 app.directive('arbTextPopoverAnchor', function($timeout, arb) {
 	return {
-		scope: {
-		},
+		scope: {},
 		controller: function($scope) {
 			$scope.arb = arb;
 		},
@@ -716,6 +715,7 @@ app.directive('arbLensToolbar', function($window, $mdConstant, $mdUtil, $compile
 		scope: false,
 		controller: function($scope) {
 			$scope.arb = arb;
+			$scope.noFloater = true;
 
 			// Process click on "Subscribe as maintainer"
 			$scope.toggleMaintainerSub = function() {
@@ -766,7 +766,6 @@ app.directive('arbLensToolbar', function($window, $mdConstant, $mdUtil, $compile
 				});
 			};
 			setUpLensToolbar();
-			angular.element($window).bind('click', setUpLensToolbar);
 		},
 	};
 });

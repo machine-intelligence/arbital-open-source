@@ -27,7 +27,8 @@
 				<div ng-repeat="pageId in linkedByPageIds">
 					<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
 				</div>
-				<md-button ng-click="stopSuggesting()" ng-if="::arb.userService.user.isAdmin">
+				<md-button ng-click="stopSuggesting()"
+						ng-if="::arb.userService.user.trustMap['1lw'].permissions.domainTrust.has">
 					Don't suggest this alias to public
 				</md-button>
 			</div>

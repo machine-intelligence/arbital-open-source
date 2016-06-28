@@ -19,11 +19,6 @@ func (task PropagateDomainTask) Tag() string {
 	return "propagateDomain"
 }
 
-type domainFlags struct {
-	Has        bool
-	ShouldHave bool
-}
-
 // Check if this task is valid, and we can safely execute it.
 func (task PropagateDomainTask) IsValid() error {
 	if !core.IsIdValid(task.PageId) {
@@ -44,10 +39,7 @@ func (task PropagateDomainTask) Execute(db *database.DB) (delay int, err error) 
 	c.Infof("==== PROPAGATE DOMAIN START ====")
 	defer c.Infof("==== PROPAGATE DOMAIN COMPLETED ====")
 
-	// Process the first page.
-	// Map of pageId -> whether or not we processed the children
-	pageMap := make(map[string]bool)
-	err = propagateDomainToPage(db, task.PageId, pageMap)
+	err = propagateDomainsToPageAndDescendants(db, task.PageId)
 	if err != nil {
 		return -1, fmt.Errorf("Error propagating domain: %v", err)
 	}
@@ -55,121 +47,13 @@ func (task PropagateDomainTask) Execute(db *database.DB) (delay int, err error) 
 	return 0, nil
 }
 
-// propagateDomainToPage forces domain recalculation for the given page.
-// It uses a depth-first search to process the children of the page.
-func propagateDomainToPage(db *database.DB, pageId string, pageMap map[string]bool) error {
-	db.C.Infof("Processing %s", pageId)
-	processedChildren, processedPage := pageMap[pageId]
-	if !processedPage {
-		// Compute what domains the page already has
-		domainMap := make(map[string]*domainFlags)
-		rows := db.NewStatement(`
-			SELECT domainId
-			FROM pageDomainPairs
-			WHERE pageId=?`).Query(pageId)
-		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var domainId string
-			if err := rows.Scan(&domainId); err != nil {
-				return fmt.Errorf("failed to scan for pageDomainPair: %v", err)
-			}
-			domainMap[domainId] = &domainFlags{Has: true}
-			return nil
-		})
-		if err != nil {
-			return fmt.Errorf("Faled to load pageDomainPairs: %v", err)
-		}
-
-		// Compute what domains the page should have based on its parents and
-		// whether or not it's a root page for some domain
-		rows = database.NewQuery(`
-			(
-				SELECT pd.domainId,pi.seeGroupId
-				FROM pageDomainPairs AS pd
-				JOIN pagePairs AS pp
-				ON (pp.parentId=pd.pageId AND pp.type=?)`, core.ParentPagePairType).Add(`
-				JOIN`).AddPart(core.PageInfosTable(nil)).Add(`AS pi
-				ON (pd.pageId=pi.pageId)
-				WHERE pp.childId=?`, pageId).Add(`
-			) UNION (
-				SELECT pi2.pageId,pi2.seeGroupId
-				FROM`).AddPart(core.PageInfosTable(nil)).Add(`AS pi2
-				WHERE pi2.pageId=?`, pageId).Add(`
-					AND pi2.type=?`, core.DomainPageType).Add(`
-			)`).ToStatement(db).Query()
-		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var domainId, seeGroupId string
-			if err := rows.Scan(&domainId, &seeGroupId); err != nil {
-				return fmt.Errorf("failed to scan for pageDomainPair: %v", err)
-			}
-			if flags, ok := domainMap[domainId]; ok {
-				flags.ShouldHave = !core.IsIdValid(seeGroupId)
-			} else {
-				domainMap[domainId] = &domainFlags{ShouldHave: seeGroupId == ""}
-			}
-			return nil
-		})
-		if err != nil {
-			return fmt.Errorf("Faled to load pageDomainPairs2: %v", err)
-		}
-
-		// Compute which domains to add/remove
-		addDomainArgs := make([]interface{}, 0)
-		removeDomainArgs := make([]interface{}, 0)
-		for domainId, flags := range domainMap {
-			if flags.ShouldHave && !flags.Has {
-				addDomainArgs = append(addDomainArgs, domainId, pageId)
-			} else if !flags.ShouldHave && flags.Has {
-				removeDomainArgs = append(removeDomainArgs, domainId)
-			}
-		}
-
-		// Add missing domains
-		if len(addDomainArgs) > 0 {
-			statement := db.NewStatement(`
-				INSERT INTO pageDomainPairs
-				(domainId,pageId) VALUES ` + database.ArgsPlaceholder(len(addDomainArgs), 2))
-			if _, err = statement.Exec(addDomainArgs...); err != nil {
-				return fmt.Errorf("Failed to add to pageDomainPairs: %v", err)
-			}
-		}
-
-		// Remove obsolete domains
-		if len(removeDomainArgs) > 0 {
-			statement := db.NewStatement(`
-				DELETE FROM pageDomainPairs
-				WHERE pageId=? AND domainId IN ` + database.InArgsPlaceholder(len(removeDomainArgs)))
-			args := append([]interface{}{pageId}, removeDomainArgs...)
-			if _, err = statement.Exec(args...); err != nil {
-				return fmt.Errorf("Failed to remove pageDomainPairs: %v", err)
-			}
-		}
-
-		// Make the page as processed
-		// Mark children as processed iff there were no changes
-		pageMap[pageId] = len(addDomainArgs) <= 0 && len(removeDomainArgs) <= 0
+// Recalculates the domains for the given page and all of its descendants
+func propagateDomainsToPageAndDescendants(db *database.DB, pageId string) error {
+	// All the descendants of the page (plus the page itself)
+	pagesToUpdate, err := core.GetDescendants(db, pageId)
+	if err != nil {
+		return err
 	}
 
-	if !processedChildren {
-		// Get all the children and add them for processing
-		rows := db.NewStatement(`
-			SELECT childId
-			FROM pagePairs
-			WHERE parentId=? AND type=?`).Query(pageId, core.ParentPagePairType)
-		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var childId string
-			if err := rows.Scan(&childId); err != nil {
-				return fmt.Errorf("failed to scan for childId: %v", err)
-			}
-			err := propagateDomainToPage(db, childId, pageMap)
-			return err
-		})
-		if err != nil {
-			return err
-		}
-
-		// Mark the page's children processed
-		pageMap[pageId] = true
-	}
-
-	return nil
+	return core.PropagateDomains(db, pagesToUpdate)
 }

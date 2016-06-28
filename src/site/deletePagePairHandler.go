@@ -131,12 +131,19 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return sessions.NewError("Couldn't get parent changeLogId", err)
 		}
 
-		// Send updates for users subscribed to the parent or child.
-		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, deletedParentChangeLogId, false)
+		// Go ahead and update the domains for the child page
+		// (we'll handle its descendants in the PropagateDomainTask)
+		if pagePair.Type == core.ParentPagePairType {
+			core.PropagateDomainsWithTx(tx, []string{child.PageId})
+		}
+
+		// Send updates for users subscribed to the parent.
+		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, deletedChildChangeLogId, false)
 		if err != nil {
 			return sessions.NewError("Couldn't enqueue child updates", err)
 		}
-		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, deletedChildChangeLogId, true)
+		// Send updates for users subscribed to the child.
+		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, deletedParentChangeLogId, true)
 		if err != nil {
 			return sessions.NewError("Couldn't enqueue parent updates", err)
 		}

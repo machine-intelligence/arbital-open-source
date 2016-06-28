@@ -48,38 +48,54 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		return text.substring(0, 1).toUpperCase() + text.substring(1);
 	};
 
-	// Get the html for linking to the given alias. If alias is not found in page mape, the
-	// link will be red.
-	// text - optional text value for the url. If none is given, page's title will be used.
-	//	If page is not found, page's alias will be used.
-	var getLinkHtml = function(editor, alias, text) {
-		var firstAliasChar = alias.substring(0, 1);
-		var trimmedAlias = trimAlias(alias);
-		var classText = 'intrasite-link';
-		var page = stateService.pageMap[trimmedAlias];
-		if (page) {
-			var url = urlService.getPageUrl(page.pageId);
-			if (!text) {
-				text = getCasedText(page.title, firstAliasChar);
-			}
-			if (page.isDeleted) {
-				classText += ' red-link';
-			}
-			return '<a href="' + url + '" class="' + classText + '" page-id="' + page.pageId + '">' +
-				text + '</a>';
+	// Pass in a pageId to create an editor for that page
+	var createConverterInternal = function(scope, pageId, isEditor) {
+		// NOTE: not using $location, because we need port number
+		var host = window.location.host;
+		var converter = Markdown.getSanitizingConverter();
+		var editor = isEditor ? new Markdown.Editor(converter, pageId) : undefined;
+		var markdownPage = undefined;
+		if (!isEditor) {
+			markdownPage = stateService.pageMap[pageId];
+			markdownPage.todos = [];
+			markdownPage.redAliases = {};
 		}
-		fetchLink(trimmedAlias, editor);
-		classText += ' red-link';
-		var url = urlService.getEditPageUrl(trimmedAlias);
-		if (!text) {
-			text = getCasedText(trimmedAlias, firstAliasChar).replace(/_/g, ' ');
-		}
-		return '<a href="' + url + '" class="' + classText + '" page-id="">' + text + '</a>';
-	};
 
-	// Get info from BE to render the given page alias
-	var fetchLink = function(pageAlias, editor) {
-		if (editor && !(pageAlias in failedPageAliases)) {
+		// Get the html for linking to the given alias. If alias is not found in page mape, the
+		// link will be red.
+		// text - optional text value for the url. If none is given, page's title will be used.
+		//	If page is not found, page's alias will be used.
+		var getLinkHtml = function(editor, alias, text) {
+			var firstAliasChar = alias.substring(0, 1);
+			var trimmedAlias = trimAlias(alias);
+			var classText = 'intrasite-link';
+			var page = stateService.pageMap[trimmedAlias];
+			if (page) {
+				var url = urlService.getPageUrl(page.pageId);
+				if (!text) {
+					text = getCasedText(page.title, firstAliasChar);
+				}
+				if (page.isDeleted) {
+					classText += ' red-link';
+				}
+				return '<a href="' + url + '" class="' + classText + '" page-id="' + page.pageId + '">' +
+					text + '</a>';
+			}
+			fetchLink(trimmedAlias, editor);
+			classText += ' red-link';
+			var url = urlService.getEditPageUrl(trimmedAlias);
+			if (!text) {
+				text = getCasedText(trimmedAlias, firstAliasChar).replace(/_/g, ' ');
+			}
+			if (!isEditor && markdownPage) {
+				markdownPage.redAliases[alias] = text;
+			}
+			return '<a href="' + url + '" class="' + classText + '" page-id="">' + text + '</a>';
+		};
+	
+		// Get info from BE to render the given page alias
+		var fetchLink = function(pageAlias, editor) {
+			if (!editor || pageAlias in failedPageAliases) return;
 			// Try to load the page
 			pageService.loadTitle(pageAlias, {
 				silentFail: true,
@@ -91,15 +107,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 					}
 				}
 			});
-		}
-	};
-
-	// Pass in a pageId to create an editor for that page
-	var createConverterInternal = function(scope, pageId, isEditor) {
-		// NOTE: not using $location, because we need port number
-		var host = window.location.host;
-		var converter = Markdown.getSanitizingConverter();
-		var editor = isEditor ? new Markdown.Editor(converter, pageId) : undefined;
+		};
 
 		// Process [summary(optional):markdown] blocks.
 		var summaryBlockRegexp = new RegExp('^\\[summary(\\([^)\n\r]+\\))?: ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)', 'gm');
@@ -146,6 +154,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				if (isEditor) {
 					return '<div class=\'todo-text editor-block\'>' + runBlockGamut(markdown) + '\n\n</div>';
 				}
+				markdownPage.todos.push(markdown);
 				return '';
 			});
 		});
@@ -293,7 +302,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		});
 		// Process $mathjax$ spans.
-		var mathjaxSpanRegexp = new RegExp('(^|\\s)(~D' + getMathjaxRegexp(false) + '~D)', 'g');
+		var mathjaxSpanRegexp = new RegExp('(^|\\s|"|\'|\\(|\\[)(~D' + getMathjaxRegexp(false) + '~D)', 'g');
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(mathjaxSpanRegexp, function(whole, prefix, mathjaxText) {
 				if (mathjaxText.substring(0, 4) == '~D~D') return whole;
@@ -349,6 +358,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				if (isEditor) {
 					return prefix + '<span class=\'todo-text\'>' + text + '</span>';
 				}
+				markdownPage.todos.push(text);
 				return prefix;
 			});
 		});

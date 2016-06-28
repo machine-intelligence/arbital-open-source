@@ -68,7 +68,7 @@ arb-signup {
 	background-size: 100%;
 }
 
-.like-button {
+.short-button {
 	min-width: 0 !important;
 }
 
@@ -587,7 +587,7 @@ arb-likes, .likes-in-autocomplete {
 		margin-right: 2px !important;
 	}
 
-	.like-button, .icon-likes {
+	.short-button, .icon-likes {
 		// Number of likes
 		.like-count {
 			color: #666;
@@ -778,19 +778,24 @@ arb-intrasite-popover, arb-user-popover, arb-text-popover {
 		font-size: 18px;
 		padding-bottom: 10px;
 		padding-top: 12px;
-
-		:not(.md-caption) {
-			font-weight: 500;
-		}
+		font-weight: 500;
 	}
+}
+
+arb-text-popover {
+	border: 2px solid $primary-hue-1;
+	border-radius: 5px;
+	box-shadow: 0 6px 6px -3px rgba(224,242,241,0.4),
+		0 10px 14px 1px rgba(224,242,241,0.4),
+		0 4px 18px 3px rgba(224,242,241,0.4);
 }
 
 arb-intrasite-popover {
 	border: 3px solid $primary-hue-2;
 
-	box-shadow: 0 6px 6px -3px rgba(0,96,88,0.4),
-		0 10px 14px 1px rgba(0,96,88,0.4),
-		0 4px 18px 3px rgba(0,96,88,0.4);
+	box-shadow: 0 6px 6px -3px rgba(0,96,88,0.25),
+		0 10px 14px 1px rgba(0,96,88,0.25),
+		0 4px 18px 3px rgba(0,96,88,0.25);
 
 	md-tabs-wrapper {
 		md-tabs-canvas,
@@ -1264,11 +1269,15 @@ arb-log-row, [arb-log-row] {
 	position: relative;
 	top: -5px;
 	background-color: $primary-hue-1;
-	border: $primary-color 1px solid;
 	min-width: 20px;
 	text-align: center;
+	font-weight: 500;
+    color: #666;
+	box-shadow: 0 4px 6px -2px rgba(0,0,0,0.25);
 	border-radius: 15px;
 	cursor: pointer;
+	line-height: 20px;
+    font-size: 15px;
 }
 
 arb-list-sub-header,
@@ -1317,6 +1326,27 @@ arb-likes.s20 {
 
 	.like-icon {
 		min-width: 20px;
+		font-size: 20px;
+		margin-right: 0px !important;
+	}
+}
+
+arb-likes.tiny {
+	line-height: 5px;
+	width: 14px;
+	height: 14px;
+
+	.md-button {
+		line-height: 5px;
+		min-height: 0px;
+		min-width: 0px;
+		font-size: 12px;
+	}
+
+	md-icon {
+		width: 14px;
+		height: 14px;
+		min-width: 0px;
 		margin-right: 0px !important;
 	}
 }
@@ -1375,6 +1405,13 @@ arb-likes.s20 {
 		padding-right: 16px;
 		margin-bottom: -3px;
 		padding-bottom: 20px;
+	}
+}
+
+.tiny-panel {
+	md-list-item {
+		padding-left: 6px !important;
+		padding-right: 6px !important;
 	}
 }
 
@@ -1479,4 +1516,32 @@ arb-likes.s20 {
 
 .query-info-button-div {
 	min-width: 200px !important;
+}
+
+arb-page-improvement, [arb-page-improvement] {
+
+	.improvement-header {
+		background-color: $accent-hue-1;
+		padding: 5px 20px;
+	}
+
+	.improvement-body {
+		padding: 10px 20px;
+		font-size: 16px;
+		line-height: 18px;
+	}
+
+	.improvement-column {
+		margin-bottom: 10px;
+	}
+
+	.improvement-column + .improvement-column {
+		margin-left: 40px;
+	}
+
+	ul {
+		margin: 0;
+		margin-top: 5px;
+		padding-left: 30px;
+	}
 }

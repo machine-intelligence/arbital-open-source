@@ -1,5 +1,5 @@
 <md-button arb-user-check
-		ng-class="::{'like-button': !isStretched, 'plus-one-button': isPlusOne}"
+		ng-class="::{'short-button': !isStretched, 'plus-one-button': isPlusOne}"
 		ng-click="arb.stateService.processLikeClick(likeable, objectId)"
 		aria-label="Like"
 		ng-if="::isButton">
@@ -8,8 +8,13 @@
 	<md-icon class="like-icon"
 			md-svg-icon="thumb_up_outline"
 			ng-if="!isPlusOne && likeable.myLikeValue <= 0"></md-icon>
-	<span class="like-count">
+	<span class="like-count" ng-if="likeable.myLikeValue == 0">
 		<span ng-if="isPlusOne && (likeable.likeCount + likeable.myLikeValue) >= 0">+</span>{{likeable.likeCount + likeable.myLikeValue}}
+	</span>
+	<span class="like-count" ng-if="likeable.myLikeValue == 1">
+		<b>
+			<span ng-if="isPlusOne && (likeable.likeCount + likeable.myLikeValue) >= 0">+</span>{{likeable.likeCount + likeable.myLikeValue}}
+		</b>
 	</span>
 	<md-tooltip class="unlimited"
 			md-direction="top"

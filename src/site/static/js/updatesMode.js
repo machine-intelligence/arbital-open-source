@@ -13,6 +13,7 @@ app.directive('arbUpdatesPanel', function($http, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
+			$scope.allowDense = true;
 
 			arb.stateService.postData($scope.postUrl, {
 					numPagesToLoad: $scope.numToDisplay,
@@ -85,6 +86,7 @@ app.directive('arbBellUpdatesPage', function($http, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
+			$scope.allowDense = true;
 		},
 	};
 });
@@ -97,6 +99,7 @@ app.directive('arbMaintenanceModePage', function($http, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
+			$scope.allowDense = true;
 		},
 	};
 });

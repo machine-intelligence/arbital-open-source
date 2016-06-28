@@ -147,7 +147,7 @@ span.md-warn {
 
 .md-caption {
   font-size: 12px;
-  color: darkgray;
+  opacity: 0.6;
   line-height: normal; }
 
 .md-body-2 {
@@ -438,7 +438,7 @@ arb-signup .md-button.md-raised.facebook-button {
   background-repeat: no-repeat;
   background-size: 100%; }
 
-.like-button {
+.short-button {
   min-width: 0 !important; }
 
 .nice-blockquote, arb-markdown blockquote, [arb-markdown] blockquote, .preview-area blockquote {
@@ -758,7 +758,7 @@ arb-likes, .likes-in-autocomplete {
   arb-likes .like-icon, .likes-in-autocomplete .like-icon {
     min-width: 24px;
     margin-right: 2px !important; }
-  arb-likes .like-button .like-count, arb-likes .icon-likes .like-count, .likes-in-autocomplete .like-button .like-count, .likes-in-autocomplete .icon-likes .like-count {
+  arb-likes .short-button .like-count, arb-likes .icon-likes .like-count, .likes-in-autocomplete .short-button .like-count, .likes-in-autocomplete .icon-likes .like-count {
     color: #666;
     font-weight: normal;
     min-width: 16px; }
@@ -902,13 +902,17 @@ arb-intrasite-popover, arb-user-popover, arb-text-popover {
   arb-intrasite-popover .intrasite-popover-title, arb-user-popover .intrasite-popover-title, arb-text-popover .intrasite-popover-title {
     font-size: 18px;
     padding-bottom: 10px;
-    padding-top: 12px; }
-    arb-intrasite-popover .intrasite-popover-title :not(.md-caption), arb-user-popover .intrasite-popover-title :not(.md-caption), arb-text-popover .intrasite-popover-title :not(.md-caption) {
-      font-weight: 500; }
+    padding-top: 12px;
+    font-weight: 500; }
+
+arb-text-popover {
+  border: 2px solid #E0F2F1;
+  border-radius: 5px;
+  box-shadow: 0 6px 6px -3px rgba(224, 242, 241, 0.4), 0 10px 14px 1px rgba(224, 242, 241, 0.4), 0 4px 18px 3px rgba(224, 242, 241, 0.4); }
 
 arb-intrasite-popover {
   border: 3px solid #00796B;
-  box-shadow: 0 6px 6px -3px rgba(0, 96, 88, 0.4), 0 10px 14px 1px rgba(0, 96, 88, 0.4), 0 4px 18px 3px rgba(0, 96, 88, 0.4); }
+  box-shadow: 0 6px 6px -3px rgba(0, 96, 88, 0.25), 0 10px 14px 1px rgba(0, 96, 88, 0.25), 0 4px 18px 3px rgba(0, 96, 88, 0.25); }
   arb-intrasite-popover md-tabs-wrapper md-tabs-canvas,
   arb-intrasite-popover md-tabs-wrapper md-pagination-wrapper {
     height: 31px; }
@@ -1232,11 +1236,15 @@ arb-log-row, [arb-log-row] {
   position: relative;
   top: -5px;
   background-color: #E0F2F1;
-  border: #009688 1px solid;
   min-width: 20px;
   text-align: center;
+  font-weight: 500;
+  color: #666;
+  box-shadow: 0 4px 6px -2px rgba(0, 0, 0, 0.25);
   border-radius: 15px;
-  cursor: pointer; }
+  cursor: pointer;
+  line-height: 20px;
+  font-size: 15px; }
 
 arb-list-sub-header,
 arb-explanation-request-row {
@@ -1273,6 +1281,22 @@ arb-likes.s20 {
     height: 20px; }
   arb-likes.s20 .like-icon {
     min-width: 20px;
+    font-size: 20px;
+    margin-right: 0px !important; }
+
+arb-likes.tiny {
+  line-height: 5px;
+  width: 14px;
+  height: 14px; }
+  arb-likes.tiny .md-button {
+    line-height: 5px;
+    min-height: 0px;
+    min-width: 0px;
+    font-size: 12px; }
+  arb-likes.tiny md-icon {
+    width: 14px;
+    height: 14px;
+    min-width: 0px;
     margin-right: 0px !important; }
 
 .page-row .page-row-caption {
@@ -1314,6 +1338,10 @@ arb-likes.s20 {
   padding-right: 16px;
   margin-bottom: -3px;
   padding-bottom: 20px; }
+
+.tiny-panel md-list-item {
+  padding-left: 6px !important;
+  padding-right: 6px !important; }
 
 .expand-tray {
   padding-top: 10px; }
@@ -1387,5 +1415,21 @@ arb-likes.s20 {
 
 .query-info-button-div {
   min-width: 200px !important; }
+
+arb-page-improvement .improvement-header, [arb-page-improvement] .improvement-header {
+  background-color: #FFCCBC;
+  padding: 5px 20px; }
+arb-page-improvement .improvement-body, [arb-page-improvement] .improvement-body {
+  padding: 10px 20px;
+  font-size: 16px;
+  line-height: 18px; }
+arb-page-improvement .improvement-column, [arb-page-improvement] .improvement-column {
+  margin-bottom: 10px; }
+arb-page-improvement .improvement-column + .improvement-column, [arb-page-improvement] .improvement-column + .improvement-column {
+  margin-left: 40px; }
+arb-page-improvement ul, [arb-page-improvement] ul {
+  margin: 0;
+  margin-top: 5px;
+  padding-left: 30px; }
 
 /*# sourceMappingURL=arbital.css.map */

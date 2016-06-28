@@ -69,6 +69,9 @@ const (
 	// How long the page lock lasts
 	PageQuickLockDuration = 5 * 60  // in seconds
 	PageLockDuration      = 30 * 60 // in seconds
+
+	RequestForEditTagParentPageId = "3zj"
+	MathDomainId                  = "1lw"
 )
 
 var (
@@ -222,6 +225,17 @@ type Page struct {
 
 	// Populated for groups
 	Members map[string]*Member `json:"members"`
+
+	// === FE data ===
+	// This data isn't loaded on the BE, but populated on the FE
+	// Map: red alias -> pretty text
+	RedAliases map[string]string `json:"redAliases"`
+	// List of page's meta tags that indicate the page should be improved
+	ImprovementTagIds []string `json:"improvementTagIds"`
+	// List of page's tags that are not meta tags
+	NonMetaTagIds []string `json:"nonMetaTagIds"`
+	// TODOs extracted from the page's text
+	Todos []string `json:"todos"`
 }
 
 // NewPage returns a pointer to a new page object created with the given page id
@@ -248,6 +262,10 @@ func NewPage(pageId string) *Page {
 	p.SearchStrings = make(map[string]string)
 	p.Members = make(map[string]*Member)
 	p.EditHistory = make(map[string]*EditInfo)
+	p.RedAliases = make(map[string]string)
+	p.ImprovementTagIds = make([]string, 0)
+	p.NonMetaTagIds = make([]string, 0)
+	p.Todos = make([]string, 0)
 
 	// NOTE: we want permissions to be explicitly null so that if someone refers to them
 	// they get an error. The permissions are only set when they are also fully computed.
@@ -378,6 +396,17 @@ type SearchString struct {
 	Text   string
 }
 
+// GlobalHandlerData includes misc data that we send to the FE with each request
+// that resets FE data.
+type GlobalHandlerData struct {
+	// Id of the private group the current user is in
+	PrivateGroupId string `json:"privateGroupId"`
+	// List of all domains
+	DomainIds []string `json:"domainIds"`
+	// List of tags ids that mean a page should be improved
+	ImprovementTagIds []string `json:"improvementTagIds"`
+}
+
 // CommonHandlerData is what handlers fill out and return
 type CommonHandlerData struct {
 	// If set, then this packet will erase all data on the FE
@@ -395,6 +424,8 @@ type CommonHandlerData struct {
 	PageObjectMap map[string]map[string]*PageObject `json:"pageObjects"`
 	// ResultMap contains various data the specific handler returns
 	ResultMap map[string]interface{} `json:"result"`
+
+	GlobalData *GlobalHandlerData `json:"globalData"`
 }
 
 // NewHandlerData creates and initializes a new commonHandlerData object.
