@@ -42,4 +42,16 @@ app.service('analyticsService', function($http, $location, stateService) {
 			eventValue: 1,
 		});
 	};
+
+	// Called when a user does something with the signup dialog
+	this.reportSignupAction = function(action, attemptedAction) {
+		if (!isLive()) return;
+		ga('send', {
+			hitType: 'event',
+			eventCategory: 'Signup',
+			eventAction: action,
+			eventLabel: attemptedAction,
+			eventValue: 1,
+		});
+	};
 });
