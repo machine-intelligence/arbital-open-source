@@ -131,7 +131,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return sessions.NewError("Couldn't get parent changeLogId", err)
 		}
 
-		// go ahead and update the domains for the child page
+		// Go ahead and update the domains for the child page
 		// (we'll handle its descendants in the PropagateDomainTask)
 		if pagePair.Type == core.ParentPagePairType {
 			core.PropagateDomainsWithTx(tx, []string{child.PageId})
