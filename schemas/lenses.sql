@@ -19,7 +19,7 @@ CREATE TABLE lenses (
 	/* When this relationship was updated last. */
 	updatedAt DATETIME NOT NULL,
 
-	UNIQUE(pageId,lensId),
+	UNIQUE(lensId),
 	/* This constraint should apply, but makes it very difficult to update the lensIndex for multiple rows */
 	/*UNIQUE(pageId,lensIndex),*/
 	PRIMARY KEY(id)
