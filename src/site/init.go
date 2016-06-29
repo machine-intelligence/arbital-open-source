@@ -139,6 +139,7 @@ func init() {
 	s.HandleFunc(pendingModeHandler.URI, handlerWrapper(pendingModeHandler)).Methods("POST")
 	s.HandleFunc(primaryPageHandler.URI, handlerWrapper(primaryPageHandler)).Methods("POST")
 	s.HandleFunc(readModeHandler.URI, handlerWrapper(readModeHandler)).Methods("POST")
+	s.HandleFunc(recentChangesHandler.URI, handlerWrapper(recentChangesHandler)).Methods("POST")
 	s.HandleFunc(requisitesHandler.URI, handlerWrapper(requisitesHandler)).Methods("POST")
 	s.HandleFunc(resolveMarkHandler.URI, handlerWrapper(resolveMarkHandler)).Methods("POST")
 	s.HandleFunc(resolveThreadHandler.URI, handlerWrapper(resolveThreadHandler)).Methods("POST")

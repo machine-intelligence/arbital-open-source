@@ -35,6 +35,7 @@
 
 				<div ng-switch-when="pageToDomainSubmission"
 						arb-page-to-domain-submission-update-row
+						submission="::modeRow.pageToDomainSubmission"
 						update="::modeRow.update"
 						on-dismiss="dismissRow(modeRows, index)"></div>
 
@@ -90,6 +91,7 @@
 				<!-- maintenance updates -->
 				<div ng-switch-when="pageEdit"
 						arb-page-edit-update-row
+						change-log="::modeRow.update.changeLog"
 						update="::modeRow.update"
 						on-dismiss="dismissRow(modeRows, index)"></div>
 
@@ -135,6 +137,17 @@
 				<arb-comment-mode-row mode-row="::modeRow" ng-switch-when="comment"></arb-comment-mode-row>
 				<arb-draft-row mode-row="::modeRow" ng-switch-when="draft"></arb-draft-row>
 				<arb-tagged-for-edit-row mode-row="::modeRow" ng-switch-when="taggedForEdit"></arb-tagged-for-edit-row>
+				<div ng-switch-when="newEditProposal"
+						arb-edit-proposal-row
+						change-log="::modeRow.changeLog"></div>
+				<div ng-switch-when="deletePage"
+						arb-deleted-page-update-row
+						change-log="::modeRow.changeLog"></div>
+				<div ng-switch-when="newEdit"
+						arb-page-edit-update-row
+						change-log="::modeRow.changeLog"></div>
+
+				<div ng-switch-default class="md-warn">unhandled row type: {{modeRow.rowType}}</div>
 			</div>
 
 			<md-divider ng-if="::!$last"></md-divider>

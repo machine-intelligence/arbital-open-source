@@ -2,26 +2,26 @@
 	<div layout="row" layout-align="start center" flex>
 		<div>
 			<!-- a user -->
-			<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
+			<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 
 			<!-- deleted or republished -->
-			<span ng-switch="::update.changeLog.type">
+			<span ng-switch="::changeLog.type">
 				<span ng-switch-when="deletePage">deleted</span>
 				<span ng-switch-when="undeletePage">republished</span>
 			</span>
 
 			<!-- a page -->
-			<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
+			<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 
 			<!-- with this edit summary -->
-			<span ng-if="::update.changeLog.type == 'undeletePage' && update.changeLog.newSettingsValue">
-				&mdash; <i>{{::update.changeLog.newSettingsValue}}</i>
+			<span ng-if="::changeLog.type == 'undeletePage' && changeLog.newSettingsValue">
+				&mdash; <i>{{::changeLog.newSettingsValue}}</i>
 			</span>
 
-			<arb-update-timestamp></arb-update-timestamp>
 		</div>
 	</div>
 
-	<arb-update-row-like-button></arb-update-row-like-button>
+	<arb-update-timestamp></arb-update-timestamp>
+	<arb-change-log-row-like-button></arb-change-log-row-like-button>
 	<arb-update-row-dismiss-button></arb-update-row-dismiss-button>
 </div>

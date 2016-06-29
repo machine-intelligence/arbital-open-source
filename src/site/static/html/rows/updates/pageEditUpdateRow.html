@@ -4,32 +4,32 @@
 			<arb-update-row-expand-button></arb-update-row-expand-button>
 			<span>
 				<!-- a user -->
-				<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
+				<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 
 				<!-- made or proposed an edit -->
-				<span ng-switch="update.changeLog.type">
+				<span ng-switch="changeLog.type">
 					<span ng-switch-when="newEditProposal">proposed an edit to</span>
 					<span ng-switch-default>edited</span>
 				</span>
 
 				<!-- to a page -->
-				<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
+				<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 
 				<!-- with this edit summary -->
-				<span ng-if="::update.changeLog.newSettingsValue">
-					&mdash; <i>{{::update.changeLog.newSettingsValue}}</i>
+				<span ng-if="::changeLog.newSettingsValue">
+					&mdash; <i>{{::changeLog.newSettingsValue}}</i>
 				</span>
 
-				<arb-update-timestamp></arb-update-timestamp>
 			</span>
 		</div>
+		<arb-update-timestamp></arb-update-timestamp>
 		<arb-update-row-dismiss-button></arb-update-row-dismiss-button>
 	</div>
 
 	<div class="expand-tray" ng-if="expanded">
-		<arb-edit-diff change-log="::update.changeLog" just-diff="true"></arb-edit-diff>
-		<md-button ng-click="arb.pageService.approveEditProposal(update.changeLog)"
-			ng-if="update.changeLog.type == 'newEditProposal'">Approve</md-button>
-		<arb-update-row-like-button></arb-update-row-like-button>
+		<arb-edit-diff change-log="::changeLog" just-diff="true"></arb-edit-diff>
+		<md-button ng-click="arb.pageService.approveEditProposal(changeLog)"
+			ng-if="changeLog.type == 'newEditProposal'">Approve</md-button>
+		<arb-change-log-row-like-button></arb-change-log-row-like-button>
 	</div>
 </div>
