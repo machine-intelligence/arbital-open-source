@@ -64,10 +64,37 @@ func approvePageToDomainHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Begin the transaction.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		return approvePageToDomainTx(tx, u, data.PageId, data.DomainId, oldPage.PageCreatorId, submission)
+		return approvePageToDomainTx(tx, u, submission, oldPage.PageCreatorId)
 	})
 	if err2 != nil {
 		return pages.FailWith(err2)
+	}
+
+	// Check if the page already has a parent that's in the math domain
+	var parentCount int
+	_, err = database.NewQuery(`
+		SELECT COUNT(*)
+		FROM pagePairs AS pp
+		JOIN pageDomainPairs AS pdp
+		ON (pp.parentId=pdp.pageId)
+		WHERE pp.type=?`, core.ParentPagePairType).Add(`
+			AND pp.childId=?`, submission.PageId).Add(`
+			AND pdp.domainId=?`, submission.DomainId).ToStatement(db).QueryRow().Scan(&parentCount)
+	if err != nil {
+		return pages.Fail("Couldn't load parents", err)
+	}
+
+	// If no parent, add domain as a parent
+	if parentCount <= 0 {
+		handlerData := newPagePairData{
+			ParentId: submission.DomainId,
+			ChildId:  submission.PageId,
+			Type:     core.ParentPagePairType,
+		}
+		result := newPagePairHandlerInternal(db, u, &handlerData)
+		if result.Err != nil {
+			return pages.Fail("Couldn't add domain as parent", fmt.Errorf("Failed to add page pair: %v", result.Err))
+		}
 	}
 
 	// Load the page with the new domain permissions
@@ -84,13 +111,13 @@ func approvePageToDomainHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	return pages.Success(returnData)
 }
 
-func approvePageToDomainTx(tx *database.Tx, approver *core.CurrentUser, pageId, domainId, pageCreatorId string,
-	submission *core.PageToDomainSubmission) sessions.Error {
+func approvePageToDomainTx(tx *database.Tx, approver *core.CurrentUser, submission *core.PageToDomainSubmission,
+	pageCreatorId string) sessions.Error {
 
 	// Approve the page
 	hashmap := make(map[string]interface{})
-	hashmap["pageId"] = pageId
-	hashmap["domainId"] = domainId
+	hashmap["pageId"] = submission.PageId
+	hashmap["domainId"] = submission.DomainId
 	hashmap["approverId"] = approver.Id
 	hashmap["approvedAt"] = database.Now()
 	statement := tx.DB.NewInsertStatement("pageToDomainSubmissions", hashmap, "approvedAt", "approverId").WithTx(tx)
@@ -98,47 +125,20 @@ func approvePageToDomainTx(tx *database.Tx, approver *core.CurrentUser, pageId, 
 		return sessions.NewError("Couldn't add submission", err)
 	}
 
-	// Check if the page already has a parent that's in the math domain
-	var parentCount int
-	_, err := database.NewQuery(`
-		SELECT COUNT(*)
-		FROM pagePairs AS pp
-		JOIN pageDomainPairs AS pdp
-		ON (pp.parentId=pdp.pageId)
-		WHERE pp.type=?`, core.ParentPagePairType).Add(`
-			AND pp.childId=?`, pageId).Add(`
-			AND pdp.domainId=?`, domainId).ToTxStatement(tx).QueryRow().Scan(&parentCount)
-	if err != nil {
-		return sessions.NewError("Couldn't load parents", err)
-	}
-
-	// If no parent, add domain as a parent
-	if parentCount <= 0 {
-		handlerData := newPagePairData{
-			ParentId: domainId,
-			ChildId:  pageId,
-			Type:     core.ParentPagePairType,
-		}
-		result := newPagePairHandlerInternal(tx.DB, approver, &handlerData)
-		if result.Err != nil {
-			return result.Err
-		}
-	}
-
 	// Notify page creator and the person who submitted the page to domain
-	err = insertPageToDomainAcceptedUpdate(tx, approver.Id, submission.SubmitterId, pageId, domainId)
+	err := insertPageToDomainAcceptedUpdate(tx, approver.Id, submission.SubmitterId, submission.PageId, submission.DomainId)
 	if err != nil {
 		return sessions.NewError("Couldn't insert update for submitter", err)
 	}
 	if submission.SubmitterId != pageCreatorId {
-		err = insertPageToDomainAcceptedUpdate(tx, approver.Id, pageCreatorId, pageId, domainId)
+		err = insertPageToDomainAcceptedUpdate(tx, approver.Id, pageCreatorId, submission.PageId, submission.DomainId)
 		if err != nil {
 			return sessions.NewError("Couldn't insert update for creator", err)
 		}
 	}
 
 	// Subscribe the approver as a maintainer
-	serr := addSubscription(tx, approver.Id, pageId, true)
+	serr := addSubscription(tx, approver.Id, submission.PageId, true)
 	if serr != nil {
 		return serr
 	}
