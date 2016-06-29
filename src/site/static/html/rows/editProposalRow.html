@@ -1,26 +1,34 @@
-<div layout="column">
+<div class="full-width" layout="column">
 	<div layout="row" layout-align="start center">
-		<div layout="row" layout-align="start center" flex>
-			<arb-update-row-expand-button></arb-update-row-expand-button>
+		<arb-update-row-expand-button></arb-update-row-expand-button>
+		<div flex>
 			<arb-user-name user-id="{{::changeLog.userId}}"></arb-user-name>
 			submitted an edit proposal to
 			<arb-page-title page-id="{{::changeLog.pageId}}" is-link="true"></arb-page-title>
-			<arb-update-timestamp></arb-update-timestamp>
+			{{::changeLog.createdAt | relativeDateTime}}
 			<span ng-if="isObsolete">
+				<br>
 				A new version of the page has been published since then, so this change can only
 				be applied manually.
 			</span>
 		</div>
-		<arb-update-row-dismiss-button></arb-update-row-dismiss-button>
+		<div>
+			<md-button ng-click="arb.pageService.approveEditProposal(changeLog)"
+				ng-if="showApprove()">Approve</md-button>
+			<span ng-if="changeLog.type != 'newEditProposal'">
+				Edit approved!
+			</span>
+		</div>
 	</div>
 
 	<div class="expand-tray" ng-if="expanded">
-		<arb-edit-diff change-log="::update.changeLog" just-diff="true"></arb-edit-diff>
+		<arb-edit-diff change-log="::changeLog" just-diff="true"></arb-edit-diff>
 		<md-button ng-click="arb.pageService.approveEditProposal(changeLog)"
 				ng-if="showApprove()">Approve</md-button>
 		<span ng-if="changeLog.type != 'newEditProposal'">
 			Edit approved!
 		</span>
-		<arb-update-row-like-button></arb-update-row-like-button>
+		<!-- TODO: show the likes button -->
+		<!--<arb-update-row-like-button></arb-update-row-like-button>-->
 	</div>
 </div>

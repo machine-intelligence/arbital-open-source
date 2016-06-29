@@ -150,7 +150,6 @@ func insertPageToDomainAcceptedUpdate(tx *database.Tx, u *core.CurrentUser, forU
 	hashmap["userId"] = forUserId
 	hashmap["byUserId"] = u.Id
 	hashmap["type"] = core.PageToDomainAcceptedUpdateType
-	hashmap["groupByPageId"] = pageId
 	hashmap["subscribedToId"] = domainId
 	hashmap["goToPageId"] = pageId
 	hashmap["createdAt"] = database.Now()

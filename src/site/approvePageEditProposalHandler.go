@@ -104,7 +104,6 @@ func approvePageEditProposalHandlerFunc(params *pages.HandlerParams) *pages.Resu
 			hashmap["userId"] = changeLog.UserId
 			hashmap["byUserId"] = u.Id
 			hashmap["type"] = core.EditProposalAcceptedUpdateType
-			hashmap["groupByPageId"] = proposedEdit.PageId
 			hashmap["subscribedToId"] = proposedEdit.PageId
 			hashmap["goToPageId"] = proposedEdit.PageId
 			hashmap["changeLogId"] = data.ChangeLogId

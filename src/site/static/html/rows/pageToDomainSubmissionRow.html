@@ -1,25 +1,20 @@
-<div>
-	<div class="full-width" layout="row" layout-align="start center">
-		<div flex>
-			<div>
-				<arb-user-name user-id="{{::submission.submitterId}}"></arb-user-name>
-				submitted
-				<arb-page-title page-id="{{::submission.pageId}}" is-link="true"></arb-page-title>
-				to the
-				<arb-page-title page-id="{{::submission.domainId}}" is-link="true"></arb-page-title>
-				domain {{::submission.createdAt | relativeDateTime}}.
-			</div>
-			<!-- Check that page exists, because it might have been deleted -->
-			<div ng-if="page && page.domainSubmissions[submission.domainId].approverId != ''">
-				This submission has been approved by
-				<arb-user-name user-id="{{::page.domainSubmissions[submission.domainId].approverId}}"></arb-user-name>
-			</div>
-		</div>
+<div class="full-width" layout="row" layout-align="start center">
+	<div flex>
 		<div>
-			<md-button ng-click="arb.pageService.approvePageToDomain(submission.pageId, submission.domainId)"
-					ng-if="page.domainSubmissions[submission.domainId].approverId == ''">
-				Approve
-			</md-button>
+			<arb-user-name user-id="{{::submission.submitterId}}"></arb-user-name>
+			submitted
+			<arb-page-title page-id="{{::submission.pageId}}" is-link="true"></arb-page-title>
+			to the
+			<arb-page-title page-id="{{::submission.domainId}}" is-link="true"></arb-page-title>
+			domain.
 		</div>
+		<!-- Check that page exists, because it might have been deleted -->
+		<div ng-if="page && page.domainSubmissions[submission.domainId].approverId != ''">
+			This submission has been approved by
+			<arb-user-name user-id="{{::page.domainSubmissions[submission.domainId].approverId}}"></arb-user-name>
+		</div>
+	</div>
+	<div class="md-caption">
+		{{::submission.createdAt | relativeDateTime}}
 	</div>
 </div>

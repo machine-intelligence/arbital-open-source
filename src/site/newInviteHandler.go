@@ -118,7 +118,6 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				hashmap["userId"] = invite.ToUserId
 				hashmap["type"] = core.InviteReceivedUpdateType
 				hashmap["createdAt"] = database.Now()
-				hashmap["groupByUserId"] = u.Id
 				hashmap["subscribedToId"] = u.Id
 				hashmap["goToPageId"] = domainId
 				hashmap["byUserId"] = u.Id
