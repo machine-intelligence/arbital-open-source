@@ -1,0 +1,39 @@
+<div layout="column">
+	<div layout="row" layout-align="start center">
+		<arb-update-row-expand-button ng-show="modeRow.changeLog.id"></arb-update-row-expand-button>
+
+		<!-- People like -->
+		<span>
+			{{::userNames}} {{modeRow.userIds.length == 1 ? 'likes' : 'like'}}
+
+			<span>
+				<span ng-if="::arb.stateService.pageMap[modeRow.pageId].isComment()">
+					your comment on
+				</span>
+				<span ng-if="::modeRow.changeLog.id">
+					your edit to
+				</span>
+			</span>
+
+			<arb-page-title page-id="{{::arb.stateService.pageMap[modeRow.pageId].getCommentParentPage().pageId}}"
+					is-link="true"
+					ng-if="::arb.stateService.pageMap[modeRow.pageId].isComment()">
+			</arb-page-title>
+			<arb-page-title page-id="{{::modeRow.pageId}}"
+					is-link="true"
+					ng-if="::!arb.stateService.pageMap[modeRow.pageId].isComment()">
+			</arb-page-title>
+
+			&nbsp;
+
+			<span class="md-caption" ng-bind="::(modeRow.activityDate | smartDateTime)"></span>
+		</span>
+	</div>
+	<div class="expand-tray" ng-if="modeRow.changeLog.id && expanded">
+		<arb-edit-diff change-log="::modeRow.changeLog" just-diff="true"></arb-edit-diff>
+		<arb-likes class="s20"
+				object-id="{{::modeRow.changeLog.id}}"
+				likeable="::modeRow.changeLog"
+				is-button="true"></arb-likes>
+	</div>
+</div>

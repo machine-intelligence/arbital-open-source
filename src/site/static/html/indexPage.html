@@ -1,17 +1,71 @@
-<!-- If the user is not logged in, show the full list of new stuff -->
-<div arb-read-mode-page ng-if="userService.user.id == ''"></div>
+<div id="index-header" layout="row" layout-align="center center" class="md-whiteframe-1dp" flex>
+	<span>
+		<a ng-href="{{::arb.urlService.getPageUrl('3d')}}"
+				class="intrasite-link"
+				page-id="3d">Arbital</a>
+		is the place for crowdsourced, intuitive math
+		<a ng-href="{{::arb.urlService.getPageUrl('4d6')}}"
+				class="intrasite-link"
+				page-id="4d6">explanations</a>.
+	</span>
+</div>
 
-<!-- If the user is logged in, show various panels -->
-<md-content layout="column"
-		layout-gt-sm="row"
-		class="md-padding"
-		ng-if="userService.user.id !== ''">
-	<div flex>
-		<div arb-read-mode-panel></div>
+<div layout="column" layout-padding layout-gt-sm="row">
+	<!-- Left half -->
+	<div class="full-page-panel" flex>
+		<div class="tab-panel-header" layout="row" layout-align="start end">
+			<div class="tab-panel-title">Read</div>
+			<div flex></div>
+			<md-button class="tab-panel-tab"
+					ng-class="{'active-tab': readTab==0}"
+					ng-click="selectReadTab(0)">
+				Featured
+			</md-button>
+			<md-button class="tab-panel-tab"
+					ng-class="{'active-tab': readTab==1}"
+					ng-click="selectReadTab(1)">
+				New
+			</md-button>
+		</div>
+		<div arb-read-mode-panel
+				class="support-visited-links"
+				hide-title="::true"
+				type="featured"
+				is-full-page="true"
+				ng-if="readTab==0"></div>
+		<div arb-read-mode-panel
+				class="support-visited-links"
+				hide-title="::true"
+				type="new"
+				is-full-page="true"
+				ng-if="readTab==1"></div>
 	</div>
-	<div flex>
-		<div arb-hedons-mode-panel num-to-display="5"></div>
-		<div arb-discussion-mode-panel num-to-display="5"></div>
-	</div>
-</md-content>
 
+	<!-- Right half -->
+	<div class="full-page-panel" flex>
+		<div class="tab-panel-header" layout="row" layout-align="start end">
+			<div class="tab-panel-title">Write</div>
+			<div flex></div>
+			<md-button class="tab-panel-tab"
+					ng-class="{'active-tab': writeTab==0}"
+					ng-click="selectWriteTab(0)">
+				New
+			</md-button>
+			<md-button class="tab-panel-tab"
+					ng-class="{'active-tab': writeTab==1}"
+					ng-click="selectWriteTab(1)"
+					ng-if="arb.userService.userIsLoggedIn()">
+				Continue
+			</md-button>
+			<md-button class="tab-panel-tab"
+					ng-class="{'active-tab': writeTab==2}"
+					ng-click="selectWriteTab(2)"
+					ng-if="arb.userService.userIsLoggedIn()">
+				Pending
+			</md-button>
+		</div>
+		<div arb-write-new-mode-panel hide-title="::true" is-full-page="true" ng-if="writeTab==0"></div>
+		<div arb-continue-writing-mode-panel hide-title="::true" is-full-page="true" ng-if="writeTab==1"></div>
+		<div arb-pending-mode-panel hide-title="::true" is-full-page="true" ng-if="writeTab==2"></div>
+	</div>
+</div>

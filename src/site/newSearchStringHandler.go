@@ -60,7 +60,6 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err != nil {
 			return sessions.NewError("Couldn't insert into DB", err)
 		}
-
 		newId, err = resp.LastInsertId()
 		if err != nil {
 			return sessions.NewError("Couldn't get inserted id", err)
@@ -74,9 +73,26 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["type"] = core.SearchStringChangeChangeLog
 		hashmap["newSettingsValue"] = data.Text
 		statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
-		if _, err = statement.Exec(); err != nil {
+		resp, err = statement.Exec()
+		if err != nil {
 			return sessions.NewError("Couldn't add to changeLogs", err)
 		}
+		changeLogId, err := resp.LastInsertId()
+		if err != nil {
+			return sessions.NewError("Couldn't get changeLog id", err)
+		}
+
+		// Insert updates
+		var task tasks.NewUpdateTask
+		task.UserId = u.Id
+		task.GoToPageId = data.PageId
+		task.SubscribedToId = data.PageId
+		task.UpdateType = core.ChangeLogUpdateType
+		task.ChangeLogId = changeLogId
+		if err := tasks.Enqueue(c, &task, nil); err != nil {
+			return sessions.NewError("Couldn't enqueue a task: %v", err)
+		}
+
 		return nil
 	})
 	if err2 != nil {

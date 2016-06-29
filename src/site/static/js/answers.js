@@ -1,18 +1,17 @@
 'use strict';
 
 // Directive for the list of answers
-app.directive('arbAnswers', function($timeout, $http, $compile, pageService, userService) {
+app.directive('arbAnswers', function($timeout, $http, $compile, arb) {
 	return {
-		templateUrl: 'static/html/answers.html',
+		templateUrl: versionUrl('static/html/answers.html'),
 		scope: {
 			pageId: '@',
 			// Variable that toggles whether to show the delete buttons
 			showDelete: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
-			$scope.page = pageService.pageMap[$scope.pageId];
+			$scope.arb = arb;
+			$scope.page = arb.stateService.pageMap[$scope.pageId];
 
 			// Called from autocomplete when a new answer should be added.
 			$scope.addAnswer = function(result) {

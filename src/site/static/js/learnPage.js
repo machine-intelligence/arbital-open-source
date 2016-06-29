@@ -1,9 +1,9 @@
 'use strict';
 
 // Directive for the learn page.
-app.directive('arbLearnPage', function($location, $compile, pageService, userService) {
+app.directive('arbLearnPage', function($location, $compile, arb) {
 	return {
-		templateUrl: 'static/html/learnPage.html',
+		templateUrl: versionUrl('static/html/learnPage.html'),
 		scope: {
 			pageIds: '=',
 			optionsMap: '=',
@@ -12,8 +12,8 @@ app.directive('arbLearnPage', function($location, $compile, pageService, userSer
 			continueLearning: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+
 			// Ordered list of page ids in the generated learn
 			$scope.readIds = [];
 			// If a requisite can't be learned (probably because there is no page that
@@ -24,7 +24,7 @@ app.directive('arbLearnPage', function($location, $compile, pageService, userSer
 
 			// Check to see if the given page has "Just a Requisite" (22t) tag.
 			var isJustARequisite = function(pageId) {
-				return pageService.pageMap[pageId].taggedAsIds.indexOf('22t') >= 0;
+				return arb.stateService.pageMap[pageId].taggedAsIds.indexOf('22t') >= 0;
 			};
 
 			// Figure our the order of pages through which to take the user
@@ -79,7 +79,7 @@ app.directive('arbLearnPage', function($location, $compile, pageService, userSer
 				Cookies.set('path', path);
 				if (redirect) {
 					// Start them off with the first page
-					$location.url(pageService.getPageUrl($scope.readIds[0]));
+					arb.urlService.goToUrl(arb.urlService.getPageUrl($scope.readIds[0]));
 				}
 			};
 
@@ -105,12 +105,12 @@ app.directive('arbLearnPage', function($location, $compile, pageService, userSer
 });
 
 // Directive for a recursive part of a learn.
-app.directive('arbLearnPart', function(pageService, userService, RecursionHelper) {
+app.directive('arbLearnPart', function(arb, RecursionHelper) {
 	return {
-		templateUrl: 'static/html/learnPart.html',
+		templateUrl: versionUrl('static/html/learnPart.html'),
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+
 			$scope.requirement = $scope.requirementMap[$scope.pageId];
 			$scope.tutor = $scope.requirement.bestTutorId ? $scope.tutorMap[$scope.requirement.bestTutorId] : undefined;
 		},

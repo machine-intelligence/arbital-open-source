@@ -24,7 +24,6 @@ var deletePagePairHandler = siteHandler{
 	HandlerFunc: deletePagePairHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
-		MinKarma:     200,
 	},
 }
 
@@ -42,39 +41,34 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if !core.IsIdValid(data.ParentId) || !core.IsIdValid(data.ChildId) {
-		return pages.Fail("ParentId and ChildId have to be set", err).Status(http.StatusBadRequest)
+		return pages.Fail("ParentId and ChildId have to be set", nil).Status(http.StatusBadRequest)
 	}
 	data.Type, err = core.CorrectPagePairType(data.Type)
 	if err != nil {
 		return pages.Fail("Incorrect type", err).Status(http.StatusBadRequest)
 	}
 
-	// Load pages.
-	parent, err := core.LoadFullEdit(db, data.ParentId, u, nil)
+	// Load the page pair
+	var pagePair *core.PagePair
+	queryPart := database.NewQuery(`WHERE parentId=? AND childId=? AND type=?`, data.ParentId, data.ChildId, data.Type)
+	err = core.LoadPagePairs(db, queryPart, func(db *database.DB, pp *core.PagePair) error {
+		pagePair = pp
+		return nil
+	})
 	if err != nil {
-		return pages.Fail("Error while loading parent page", err)
-	} else if parent == nil {
-		parent, err = core.LoadFullEdit(db, data.ParentId, u, &core.LoadEditOptions{LoadNonliveEdit: true})
-		if err != nil {
-			return pages.Fail("Error while loading parent page (2)", err)
-		} else if parent == nil {
-			return pages.Fail("Parent page doesn't exist", nil)
-		}
+		return pages.Fail("Failed to load the page pair: %v", err)
+	} else if pagePair == nil {
+		return pages.Fail("Failed to find the page pair: %v", err)
 	}
-	child, err := core.LoadFullEdit(db, data.ChildId, u, nil)
+
+	// Load pages
+	parent, child, err := core.LoadFullEditsForPagePair(db, pagePair, u)
 	if err != nil {
-		return pages.Fail("Error while loading child page", err)
-	} else if child == nil {
-		child, err = core.LoadFullEdit(db, data.ChildId, u, &core.LoadEditOptions{LoadNonliveEdit: true})
-		if err != nil {
-			return pages.Fail("Error while loading child page (2)", err)
-		} else if child == nil {
-			return pages.Fail("Child page doesn't exist", nil)
-		}
+		return pages.Fail("Error loading pagePair pages", err)
 	}
 
 	// Check edit permissions
-	permissionError, err := core.CanAffectRelationship(c, parent, child, data.Type)
+	permissionError, err := core.CanAffectRelationship(c, parent, child, pagePair.Type)
 	if err != nil {
 		return pages.Fail("Error verifying permissions", err)
 	} else if permissionError != "" {
@@ -83,91 +77,93 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Do it!
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		return deletePagePair(tx, u.Id, data.Type, parent, child)
-	})
-	if err2 != nil {
-		return pages.FailWith(err2)
-	}
-
-	if data.Type == core.ParentPagePairType || data.Type == core.TagPagePairType {
-		// Create a task to propagate the domain change to all children
-		var task tasks.PropagateDomainTask
-		task.PageId = data.ChildId
-		if err := tasks.Enqueue(c, &task, nil); err != nil {
-			c.Errorf("Couldn't enqueue a task: %v", err)
+		// Delete the pair
+		query := tx.DB.NewStatement(`DELETE FROM pagePairs WHERE id=?`).WithTx(tx)
+		if _, err := query.Exec(pagePair.Id); err != nil {
+			return sessions.NewError("Couldn't delete the page pair", err)
 		}
-	}
-	return pages.Success(nil)
-}
 
-// deletePagePair deletes the parent-child pagePair of the given type.
-func deletePagePair(tx *database.Tx, userId string, pairType string, parent *core.Page, child *core.Page) sessions.Error {
-	// Delete the pair
-	query := tx.DB.NewStatement(`
-			DELETE FROM pagePairs
-			WHERE parentId=? AND childId=? AND type=?`).WithTx(tx)
-	if _, err := query.Exec(parent.PageId, child.PageId, pairType); err != nil {
-		return sessions.NewError("Couldn't delete a page pair", err)
-	}
+		// If we never published this page pair, there is nothing to do
+		if !pagePair.EverPublished {
+			return nil
+		}
 
-	childIsLive := child.WasPublished && !child.IsDeleted
-	parentIsLive := parent.WasPublished && !parent.IsDeleted
-
-	// Update change logs
-	var newChildChangeLogId int64
-	var newParentChangeLogId int64
-
-	if childIsLive {
+		// Update change logs
 		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = parent.PageId
 		hashmap["auxPageId"] = child.PageId
-		hashmap["userId"] = userId
+		hashmap["userId"] = u.Id
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = map[string]string{
 			core.ParentPagePairType:      core.DeleteChildChangeLog,
 			core.TagPagePairType:         core.DeleteUsedAsTagChangeLog,
 			core.RequirementPagePairType: core.DeleteRequiredByChangeLog,
 			core.SubjectPagePairType:     core.DeleteTeacherChangeLog,
-		}[pairType]
+		}[pagePair.Type]
 		statement := tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
 		result, err := statement.Exec()
 		if err != nil {
-			return sessions.NewError("Couldn't insert new child change log", err)
+			return sessions.NewError("Couldn't add to parent change log", err)
 		}
-		newChildChangeLogId, err = result.LastInsertId()
+		deletedChildChangeLogId, err := result.LastInsertId()
 		if err != nil {
-			return sessions.NewError("Couldn't get changeLogId", err)
+			return sessions.NewError("Couldn't get child changeLogId", err)
 		}
-	}
 
-	if parentIsLive {
-		hashmap := make(database.InsertMap)
+		hashmap = make(database.InsertMap)
 		hashmap["pageId"] = child.PageId
 		hashmap["auxPageId"] = parent.PageId
-		hashmap["userId"] = userId
+		hashmap["userId"] = u.Id
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = map[string]string{
 			core.ParentPagePairType:      core.DeleteParentChangeLog,
 			core.TagPagePairType:         core.DeleteTagChangeLog,
 			core.RequirementPagePairType: core.DeleteRequirementChangeLog,
 			core.SubjectPagePairType:     core.DeleteSubjectChangeLog,
-		}[pairType]
-		statement := tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
-		result, err := statement.Exec()
+		}[pagePair.Type]
+		statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
+		result, err = statement.Exec()
 		if err != nil {
-			return sessions.NewError("Couldn't insert new child change log", err)
+			return sessions.NewError("Couldn't add to child change log", err)
 		}
-		newParentChangeLogId, err = result.LastInsertId()
+		deletedParentChangeLogId, err := result.LastInsertId()
 		if err != nil {
-			return sessions.NewError("Couldn't get changeLogId", err)
+			return sessions.NewError("Couldn't get parent changeLogId", err)
 		}
+
+		// Go ahead and update the domains for the child page
+		// (we'll handle its descendants in the PropagateDomainTask)
+		if pagePair.Type == core.ParentPagePairType {
+			err = core.PropagateDomainsWithTx(tx, []string{child.PageId})
+			if err != nil {
+				return sessions.NewError("Couldn't update domains for the child page", err)
+			}
+		}
+
+		// Send updates for users subscribed to the parent.
+		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, u.Id, deletedChildChangeLogId, false)
+		if err != nil {
+			return sessions.NewError("Couldn't enqueue child updates", err)
+		}
+		// Send updates for users subscribed to the child.
+		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, u.Id, deletedParentChangeLogId, true)
+		if err != nil {
+			return sessions.NewError("Couldn't enqueue parent updates", err)
+		}
+
+		return nil
+	})
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 
-	// Send updates for users subscribed to the parent or child.
-	if childIsLive && parentIsLive {
-		tasks.EnqueueDeleteRelationshipUpdates(tx.DB.C, userId, pairType, child.Type,
-			parent.PageId, child.PageId, newParentChangeLogId, newChildChangeLogId)
+	if pagePair.Type == core.ParentPagePairType {
+		// Create a task to propagate the domain change to all children
+		var task tasks.PropagateDomainTask
+		task.PageId = pagePair.ChildId
+		if err := tasks.Enqueue(c, &task, nil); err != nil {
+			c.Errorf("Couldn't enqueue a task: %v", err)
+		}
 	}
-
-	return nil
+	return pages.Success(nil)
 }

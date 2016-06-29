@@ -1,15 +1,16 @@
 'use strict';
 
 // Popover service is used to display the intrasite popover.
-app.service('popoverService', function($rootScope, $compile, $timeout, pageService, userService) {
+app.service('popoverService', function($rootScope, $compile, $timeout, pageService, userService, stateService) {
 	// TODO: enable popovers on mobile again once we can make them good
-	if (userService.isTouchDevice) return;
+	if (isTouchDevice) return;
 
 	var that = this;
 
 	var showDelay = 400; // milliseconds
 	var hideDelay = 300; // milliseconds
-	var popoverWidth = 600; // pixels
+	var smallPopoverWidth = 400; // pixels
+	var largePopoverWidth = 600; // pixels
 	var awayFromEdge = 20; // min distance from edge of the screen in pixels
 
 	var mousePageX;
@@ -17,50 +18,77 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 
 	var linkTypeIntrasite = 'intrasite';
 	var linkTypeUser = 'user';
+	var linkTypeText = 'text';
 
 	var popoverScope;
+	// The topmost popover element
 	var $popoverElement;
-	var $currentTarget;
-	var $targetCandidate;
+	// The topmost anchor element
+	var $anchorElement;
+	// The stack of previous popover elements
+	var popoverElementStack = [];
+	// The stack of previous anchor elements
+	var anchorElementStack = [];
 
-	var	targetCandidateLinkType;
-	var createPromise;
-	var removePromise;
-	var anchorHovering;
-	var popoverHovering;
+	var $targetCandidate = undefined;
+	var targetCandidateLinkType;
+	var createPromise = undefined;
+	var removePromise = undefined;
+	var anchorHovering = false;
+	var popoverHovering = false;
+
+	// Remove all popovers
+	var removeAllPopovers = function() {
+		while ($popoverElement) {
+			removePopover();
+		}
+	};
 
 	// Remove the popover.
 	var removePopover = function() {
+		// Remove the popoverElement, and get the next one if there is one.
 		if ($popoverElement) {
 			popoverScope.$destroy();
 			$popoverElement.remove();
 		}
-		$targetCandidate = undefined;
 		$popoverElement = undefined;
-		$currentTarget = undefined;
+		if (popoverElementStack.length > 0) {
+			$popoverElement = popoverElementStack.pop();
+		}
+
+		// Get the next anchorElement down.
+		$anchorElement = undefined;
+		if (anchorElementStack.length > 0) {
+			$anchorElement = anchorElementStack.pop();
+		}
+
+		$targetCandidate = undefined;
 		createPromise = undefined;
 		removePromise = undefined;
 		anchorHovering = false;
 		popoverHovering = false;
 	};
-	removePopover(); // init all the variables
 
 	var shutItDown = function() {
 		$timeout.cancel(createPromise);
 		$timeout.cancel(removePromise);
-		removePopover();
+		removeAllPopovers();
 	};
 
 	// Update the timeout timer.
 	var updateTimeout = function() {
-		if (anchorHovering || popoverHovering) {
+		if (anchorHovering || $popoverElement.popoverHovering) {
 			// Cancel timeout
 			$timeout.cancel(removePromise);
 			removePromise = undefined;
 		} else {
 			if (!removePromise) {
 				// Start the timer to remove the popover
-				removePromise = $timeout(removePopover, hideDelay);
+				removePromise = $timeout(function() {
+					while ($popoverElement && !$popoverElement.popoverHovering) {
+						removePopover();
+					}
+				}, hideDelay);
 			}
 		}
 	};
@@ -69,20 +97,25 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 	var createPopover = function(event) {
 		var $target = $(event.currentTarget);
 
-		// Delete old popover
-		removePopover();
-
 		// If mouse is in the top part of the screen, show popover down, otherwise up.
 		var mouseInTopPart = ((mousePageY - $('body').scrollTop()) / $(window).height()) <= 0.4;
 		var direction = mouseInTopPart ? 'down' : 'up';
 
+		var popoverWidth = largePopoverWidth;
+		if (targetCandidateLinkType == linkTypeText) {
+			popoverWidth = smallPopoverWidth;
+		}
+
 		var left = Math.max(0, mousePageX - popoverWidth / 2 - awayFromEdge) + awayFromEdge;
 		left = Math.min(left, $('body').width() - popoverWidth - awayFromEdge);
-		if (userService.isTouchDevice) left = 0;
+		if (isTouchDevice) left = 0;
 		var arrowOffset = mousePageX - left;
 
 		// Create the popover
 		popoverScope = $rootScope.$new();
+		if ($popoverElement) {
+			popoverElementStack.push($popoverElement);
+		}
 		if (targetCandidateLinkType == linkTypeIntrasite) {
 			$popoverElement = $compile('<arb-intrasite-popover page-id=\'' + $target.attr('page-id') +
 				'\' direction=\'' + direction + '\' arrow-offset=\'' + arrowOffset +
@@ -91,6 +124,13 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 			$popoverElement = $compile('<arb-user-popover user-id=\'' + $target.attr('user-id') +
 				'\' direction=\'' + direction + '\' arrow-offset=\'' + arrowOffset +
 				'\'></arb-user-popover>')(popoverScope);
+		} else if (targetCandidateLinkType == linkTypeText) {
+			// NOTE: it's important to have normal-quotes around encoded HTML
+			$popoverElement = $compile('<arb-text-popover encoded-html="' + $target.attr('encoded-html') +
+				'" direction=\'' + direction + '\' arrow-offset=\'' + arrowOffset +
+				'\'></arb-user-popover>')(popoverScope);
+		} else {
+			console.error('Unknown link type: ' + targetCandidateLinkType);
 		}
 
 		// Set popover properties
@@ -102,30 +142,39 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 			$popoverElement.css('bottom', $('body').height() - top);
 		}
 		$popoverElement.css('left', left)
-		.css('position', '') // IE fix, because it sets position to "relative"
-		.width(userService.isTouchDevice ? $('body').width() : popoverWidth)
-		.on('mouseenter', function(event) {
-			popoverHovering = true;
+			.css('position', '') // IE fix, because it sets position to "relative"
+			.width(isTouchDevice ? $('body').width() : popoverWidth);
+
+		var thisPopoverElement = $popoverElement;
+		$popoverElement.on('mouseenter', function(event) {
+			thisPopoverElement.popoverHovering = true;
 			updateTimeout();
-		})
-		.on('mouseleave', function(event) {
-			popoverHovering = false;
+		});
+		$popoverElement.on('mouseleave', function(event) {
+			thisPopoverElement.popoverHovering = false;
 			updateTimeout();
 		});
 
 		$('body').append($popoverElement);
-		$currentTarget = $target;
+
+		if ($anchorElement) {
+			anchorElementStack.push($anchorElement);
+		}
+		$anchorElement = $target;
 		anchorHovering = true;
 	};
 
 	var mouseEnterPopoverLink = function(event, linkType) {
 		var $target = $(event.currentTarget);
 		if ($target.hasClass('red-link')) return;
-		// Don't allow recursive hover in popovers.
-		if ($target.closest('arb-intrasite-popover').length > 0) return;
-		if ($target.closest('arb-user-popover').length > 0) return;
-		if ($target.closest('.md-button').length > 0) return;
-		if ($currentTarget && $target[0] == $currentTarget[0]) {
+
+		// DO allow recursive hover in popovers
+		// if ($target.closest('arb-intrasite-popover').length > 0) return;
+		// if ($target.closest('arb-user-popover').length > 0) return;
+		// if ($target.closest('.md-button').length > 0) return;
+		// if ($target.closest('arb-text-popover').length > 0) return;
+
+		if ($anchorElement && $target[0] == $anchorElement[0]) {
 			// Hovering over the element we already created a popover for
 			anchorHovering = true;
 			updateTimeout();
@@ -144,16 +193,19 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 			// Prefetch the data
 			if (targetCandidateLinkType == linkTypeIntrasite) {
 				var pageId = $target.attr('page-id');
-				var page = pageService.pageMap[pageId];
+				var page = stateService.pageMap[pageId];
 				if (!page || Object.keys(page.summaries).length <= 0) {
 					pageService.loadIntrasitePopover(pageId);
 				}
-			} else {
+			} else if (targetCandidateLinkType == linkTypeUser) {
 				var userId = $target.attr('user-id');
-				var page = pageService.pageMap[userId];
+				var page = stateService.pageMap[userId];
 				if (!page || Object.keys(page.summaries).length <= 0) {
-					pageService.loadUserPopover(userId);
+					userService.loadUserPopover(userId);
 				}
+			} else if (targetCandidateLinkType == linkTypeText) {
+			} else {
+				console.error('Unknown link type: ' + targetCandidateLinkType);
 			}
 		}
 	};
@@ -164,6 +216,10 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 
 	$('body').on('mouseenter', '.user-link', function(event) {
 		mouseEnterPopoverLink(event, linkTypeUser);
+	});
+
+	$('body').on('mouseenter', '[arb-text-popover-anchor]', function(event) {
+		mouseEnterPopoverLink(event, linkTypeText);
 	});
 
 	var mouseMovePopoverLink = function(event) {
@@ -179,9 +235,13 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 		mouseMovePopoverLink(event);
 	});
 
+	$('body').on('mousemove', '[arb-text-popover-anchor]', function(event) {
+		mouseMovePopoverLink(event);
+	});
+
 	var mouseLeavePopoverLink = function(event) {
 		var $target = $(event.currentTarget);
-		if ($currentTarget && $target[0] == $currentTarget[0]) {
+		if ($anchorElement && $target[0] == $anchorElement[0]) {
 			// Leaving the element we created a popover for
 			anchorHovering = false;
 			updateTimeout();
@@ -203,11 +263,15 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 		mouseLeavePopoverLink(event);
 	});
 
+	$('body').on('mouseleave', '[arb-text-popover-anchor]', function(event) {
+		mouseLeavePopoverLink(event);
+	});
+
 	// On mobile, we want to intercept the click.
-	if (userService.isTouchDevice) {
+	if (isTouchDevice) {
 		var touchDeviceLinkClick = function(event, linkType) {
 			var $target = $(event.currentTarget);
-			if ($target.is($currentTarget)) {
+			if ($target.is($anchorElement)) {
 				// User clicked on a link that already has a popover up
 				return true;
 			}
@@ -226,6 +290,10 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 		$('body').on('click', '.user-link', function(event) {
 			return touchDeviceLinkClick(event, linkTypeUser);
 		});
+
+		$('body').on('click', '[arb-text-popover-anchor]', function(event) {
+			return touchDeviceLinkClick(event, linkTypeText);
+		});
 	} else {
 		// On desktop, clicking the link kills the popover
 		$('body').on('click', '.intrasite-link', function(event) {
@@ -236,20 +304,6 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 			shutItDown();
 		});
 	}
-
-	// Don't allow the body to scroll when scrolling a popover tab body
-	$('body').on('mousewheel DOMMouseScroll', '.popover-tab-body', function(event) {
-		// Don't prevent body scrolling if there is no scroll bar
-		if (this.scrollHeight <= this.clientHeight) return true;
-
-		var delta = event.wheelDelta || (event.originalEvent && event.originalEvent.wheelDelta) || -event.detail;
-		var bottomOverflow = this.scrollTop + this.offsetHeight >= this.scrollHeight - 2;
-		var topOverflow = this.scrollTop <= 0;
-
-		if ((delta < 0 && bottomOverflow) || (delta > 0 && topOverflow)) {
-			event.preventDefault();
-		}
-	});
 
 	$rootScope.$on('$locationChangeStart', function(event) {
 		shutItDown();

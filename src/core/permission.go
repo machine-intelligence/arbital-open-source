@@ -10,7 +10,9 @@ import (
 
 type Permissions struct {
 	DomainAccess Permission `json:"domainAccess"`
+	DomainTrust  Permission `json:"domainTrust"`
 	Edit         Permission `json:"edit"`
+	ProposeEdit  Permission `json:"proposeEdit"`
 	Delete       Permission `json:"delete"`
 
 	// Note that for comments, this means "can reply to this comment"
@@ -27,22 +29,77 @@ type Permission struct {
 	Reason string `json:"reason"`
 }
 
+func (p *Page) computeDomainPermissions(c sessions.Context, u *CurrentUser) {
+	if len(p.DomainIds) <= 0 {
+		p.Permissions.DomainAccess.Has = true
+		return
+	}
+	for _, domainId := range p.DomainIds {
+		if u.TrustMap[domainId].Permissions.DomainAccess.Has {
+			p.Permissions.DomainAccess.Has = true
+		}
+	}
+	p.Permissions.DomainAccess.Reason = "You are not a member of the domain(s) this page belongs to"
+}
+
 func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
-	// Check the page isn't locked by someone else
+	// Compute proposeEdit reason after we compute edit permission
+	defer func() {
+		if p.IsDeleted {
+			p.Permissions.ProposeEdit.Has = false
+			p.Permissions.ProposeEdit.Reason = "This page is deleted"
+			return
+		}
+		if p.Permissions.Edit.Has {
+			p.Permissions.ProposeEdit.Has = true
+		}
+		if !p.Permissions.ProposeEdit.Has {
+			p.Permissions.ProposeEdit.Reason = p.Permissions.Edit.Reason
+		}
+	}()
+
 	if p.LockedUntil > database.Now() && p.LockedBy != u.Id {
 		p.Permissions.Edit.Reason = "Can't change locked page"
 		return
 	}
+
 	if IsIdValid(p.SeeGroupId) && !u.IsMemberOfGroup(p.SeeGroupId) {
 		p.Permissions.Edit.Reason = "You don't have group permission to EVEN SEE this page"
 		return
 	}
+
 	if IsIdValid(p.EditGroupId) && !u.IsMemberOfGroup(p.EditGroupId) {
-		p.Permissions.Edit.Reason = "You don't have group permission to edit this page"
+		p.Permissions.Edit.Reason = "You don't have group permission to edit this page, but you can propose edits"
+		p.Permissions.ProposeEdit.Has = true
 		return
 	}
-	if !p.WasPublished {
+
+	// The page creator can always edit the page
+	if p.PageCreatorId == u.Id {
 		p.Permissions.Edit.Has = true
+		return
+	}
+
+	// If a page hasn't been published, only the creator can edit it
+	if !p.WasPublished {
+		p.Permissions.Edit.Has = false
+		p.Permissions.Edit.Reason = "Can't edit an unpublished page you didn't create"
+		return
+	}
+	// If it's a comment, only the creator can edit it
+	if p.Type == CommentPageType {
+		p.Permissions.Edit.Has = false
+		p.Permissions.Edit.Reason = "Can't edit a comment you didn't create"
+		return
+	}
+	// If the page is part of the general domain, only the creator and domain members
+	// can edit it.
+	if len(p.DomainIds) <= 0 {
+		p.Permissions.Edit.Has = u.IsDomainMember
+		if !p.Permissions.Edit.Has {
+			p.Permissions.Edit.Reason = "Only the creator and domain members can edit an unlisted page, but you can still propose edits"
+			p.Permissions.ProposeEdit.Has = true
+		}
 		return
 	}
 	// Compute whether the user can edit via any of the domains
@@ -52,12 +109,9 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 			return
 		}
 	}
-	// Check if the user is editing their own comment
 	if !p.Permissions.Edit.Has {
-		p.Permissions.Edit.Has = p.Type == CommentPageType && p.PageCreatorId == u.Id
-	}
-	if !p.Permissions.Edit.Has {
-		p.Permissions.Edit.Reason = "Not enough reputation to edit this page"
+		p.Permissions.Edit.Reason = "Not enough reputation to edit this page, but you can still propose edits"
+		p.Permissions.ProposeEdit.Has = true
 	}
 }
 
@@ -70,16 +124,29 @@ func (p *Page) computeDeletePermissions(c sessions.Context, u *CurrentUser) {
 		p.Permissions.Delete.Reason = p.Permissions.Edit.Reason
 		return
 	}
+	// If it's a comment, only the creator can delete it
+	if p.Type == CommentPageType {
+		p.Permissions.Delete.Has = p.PageCreatorId == u.Id || u.IsAdmin
+		if !p.Permissions.Delete.Has {
+			p.Permissions.Delete.Reason = "Can't delete a comment you didn't create"
+		}
+		return
+	}
+	// If the page is part of the general domain, only the creator and domain members
+	// can edit it.
+	if len(p.DomainIds) <= 0 {
+		p.Permissions.Delete.Has = p.PageCreatorId == u.Id || u.IsDomainMember
+		if !p.Permissions.Delete.Has {
+			p.Permissions.Delete.Reason = "Only the creator and domain members can delete an unlisted page"
+		}
+		return
+	}
 	// Compute whether the user can delete via any of the domains
 	for _, domainId := range p.DomainIds {
 		if u.TrustMap[domainId].Permissions.Delete.Has {
 			p.Permissions.Delete.Has = true
 			return
 		}
-	}
-	// Check if the user is deleting their own comment
-	if !p.Permissions.Delete.Has {
-		p.Permissions.Delete.Has = p.Type == CommentPageType && p.PageCreatorId == u.Id
 	}
 	if !p.Permissions.Delete.Has {
 		p.Permissions.Delete.Reason = "Not enough reputation to delete this page"
@@ -91,16 +158,17 @@ func (p *Page) computeCommentPermissions(c sessions.Context, u *CurrentUser) {
 		p.Permissions.Comment.Reason = "Can't comment on an unpublished page"
 		return
 	}
+	// Anyone who can edit the page can also comment
+	if p.Permissions.Edit.Has {
+		p.Permissions.Comment.Has = true
+		return
+	}
 	// Compute whether the user can comment via any of the domains
 	for _, domainId := range p.DomainIds {
 		if u.TrustMap[domainId].Permissions.Comment.Has {
 			p.Permissions.Comment.Has = true
 			return
 		}
-	}
-	// Check if this page is a comment owned by the user, which means they can reply
-	if !p.Permissions.Comment.Has {
-		p.Permissions.Comment.Has = p.Type == CommentPageType && p.PageCreatorId == u.Id
 	}
 	if !p.Permissions.Comment.Has {
 		p.Permissions.Comment.Reason = "Not enough reputation to comment"
@@ -110,6 +178,7 @@ func (p *Page) computeCommentPermissions(c sessions.Context, u *CurrentUser) {
 // ComputePermissions computes all the permissions for the given page.
 func (p *Page) ComputePermissions(c sessions.Context, u *CurrentUser) {
 	p.Permissions = &Permissions{}
+	// Order is important
 	p.computeEditPermissions(c, u)
 	p.computeDeletePermissions(c, u)
 	p.computeCommentPermissions(c, u)
@@ -129,6 +198,12 @@ func VerifyEditPermissionsForMap(db *database.DB, pageMap map[string]*Page, u *C
 	if err != nil {
 		return "", fmt.Errorf("Couldn't load domains: %v", err)
 	}
+
+	err = LoadPages(db, u, pageMap)
+	if err != nil {
+		return "", fmt.Errorf("Couldn't load pages: %v", err)
+	}
+
 	ComputePermissionsForMap(db.C, pageMap, u)
 	for _, p := range pageMap {
 		if !p.Permissions.Edit.Has {
@@ -185,7 +260,7 @@ func isParentRelationshipSupported(parent *Page, child *Page) bool {
 	}
 	parentOk := parent.Type == DomainPageType || parent.Type == GroupPageType ||
 		parent.Type == QuestionPageType || parent.Type == WikiPageType
-	childOk := child.Type == LensPageType || child.Type == QuestionPageType || child.Type == WikiPageType
+	childOk := child.Type == QuestionPageType || child.Type == WikiPageType
 	return parentOk && childOk
 }
 
@@ -199,7 +274,7 @@ func isRequirementRelationshipSupported(parent *Page, child *Page) bool {
 	if child.Type == CommentPageType || parent.Type == CommentPageType {
 		return false
 	}
-	childOk := child.Type == DomainPageType || child.Type == LensPageType || child.Type == WikiPageType
+	childOk := child.Type == DomainPageType || child.Type == WikiPageType
 	return childOk
 }
 
@@ -208,8 +283,8 @@ func isSubjectRelationshipSupported(parent *Page, child *Page) bool {
 	if child.Type == CommentPageType || parent.Type == CommentPageType {
 		return false
 	}
-	parentOk := parent.Type == DomainPageType || parent.Type == LensPageType || parent.Type == WikiPageType
-	childOk := child.Type == DomainPageType || child.Type == LensPageType || child.Type == WikiPageType
+	parentOk := parent.Type == DomainPageType || parent.Type == WikiPageType
+	childOk := child.Type == DomainPageType || child.Type == WikiPageType
 	return parentOk && childOk
 }
 

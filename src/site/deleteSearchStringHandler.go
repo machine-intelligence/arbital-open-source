@@ -10,6 +10,7 @@ import (
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
+	"zanaduu3/src/tasks"
 )
 
 // deleteSearchStringData contains data given to us in the request.
@@ -28,6 +29,7 @@ var deleteSearchStringHandler = siteHandler{
 // deleteSearchStringHandlerFunc handles requests to create/update a like.
 func deleteSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
+	c := params.C
 	db := params.DB
 
 	var data deleteSearchStringData
@@ -63,8 +65,24 @@ func deleteSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["type"] = core.SearchStringChangeChangeLog
 		hashmap["oldSettingsValue"] = searchString.Text
 		statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
-		if _, err = statement.Exec(); err != nil {
+		resp, err := statement.Exec()
+		if err != nil {
 			return sessions.NewError("Couldn't add to changeLogs", err)
+		}
+		changeLogId, err := resp.LastInsertId()
+		if err != nil {
+			return sessions.NewError("Couldn't get changeLog id", err)
+		}
+
+		// Insert updates
+		var task tasks.NewUpdateTask
+		task.UserId = u.Id
+		task.GoToPageId = searchString.PageId
+		task.SubscribedToId = searchString.PageId
+		task.UpdateType = core.ChangeLogUpdateType
+		task.ChangeLogId = changeLogId
+		if err := tasks.Enqueue(c, &task, nil); err != nil {
+			return sessions.NewError("Couldn't enqueue a task: %v", err)
 		}
 		return nil
 	})

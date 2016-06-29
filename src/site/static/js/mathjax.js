@@ -5,8 +5,8 @@ var InitMathjax = (function() {
 	var ready   = false;  // true after initial typeset is complete
 	var pending = false;  // true when MathJax has been requested
 	var preview = null;   // the preview container
-	var inlineDelim = '$$';  // the inline math delimiter
-	var blockDelim = '$$$';  // the block math delimeter
+	var inlineDelim = '$';  // the inline math delimiter
+	var blockDelim = '$$';  // the block math delimeter
 
 	var blocks, start, end, last, braces; // used in searching for math
 	var math;                             // stores math until markdone is done
@@ -113,7 +113,7 @@ var InitMathjax = (function() {
 	function RestartMJ() {
 		pending = false;
 		HUB.cancelTypeset = false;   // won't need to do this in the future
-		HUB.Queue(['Typeset',HUB,preview]);
+		//HUB.Queue(['Typeset',HUB,preview]);
 	}
 
 	//
@@ -135,19 +135,17 @@ var InitMathjax = (function() {
 	//  Create a preview refresh hook to handle starting MathJax.
 	//
 	function prepareWmdForMathJax(converterObject, editorObject, wmdId) {
-		converterObject.hooks.chain('preConversion',removeMath);
-		converterObject.hooks.chain('postConversion',replaceMath);
-		if (editorObject) {
+		if (!editorObject) {
+			//converterObject.hooks.chain('preConversion',removeMath);
+			//converterObject.hooks.chain('postConversion',replaceMath);
+		}
+		/*if (editorObject) {
 			editorObject.hooks.chain('onPreviewRefresh', UpdateMJ);
 			preview = document.getElementById('wmd-preview' + wmdId);
-		}
+		}*/
 		HUB.Config({
-			'HTML-CSS': {
-				EqnChunk: 10,
-				EqnChunkFactor: 1,
-				EqChunkDelay: 500,
-				linebreaks: {automatic: true},
-			}, // reduce chunk for more frequent updates
+			// reduce chunk for more frequent updates
+			'HTML-CSS': {EqnChunk: 10, EqnChunkFactor: 1, EqnChunkDelay: 50, linebreaks: {automatic: true}},
 			SVG: {EqnChunk: 10, EqnChunkFactor: 1, linebreaks: {automatic: true}},
 			tex2jax: {
 				inlineMath: [[inlineDelim, inlineDelim]],

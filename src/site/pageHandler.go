@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"appengine"
 	"appengine/taskqueue"
 
 	"zanaduu3/src/core"
@@ -147,6 +148,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 				"Title":       "Arbital",
 				"Url":         "https://" + r.Host + r.RequestURI,
 				"Description": "",
+				"VersionId":   appengine.VersionID(c),
 			}
 		}
 

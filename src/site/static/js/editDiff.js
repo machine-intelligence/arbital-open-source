@@ -1,62 +1,60 @@
 'use strict';
 
 // Directive for showing a diff for a newEdit changeLog.
-app.directive('arbEditDiff', function($compile, $location, $rootScope, pageService, userService, diffService) {
+app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 	return {
-		templateUrl: 'static/html/editDiff.html',
+		templateUrl: versionUrl('static/html/editDiff.html'),
 		scope: {
 			changeLog: '=',
-			numEdits: '=', // Optional number of edits to group together in this diff. Defaults to 1.
+			justDiff: '=', // whether to just show the diff
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
-
+			$scope.arb = arb;
 			$scope.showDiff = false;
+
+			// Fetch the necessary edits from server to do the diff
+			var computeDiffHtml = function() {
+				// Prepare to show the diff
+				var pageId = $scope.changeLog.pageId;
+
+				// Load thisEdit.
+				var thisEditNum = $scope.changeLog.edit;
+				arb.pageService.loadEdit({
+					pageAlias: pageId,
+					specificEdit: thisEditNum,
+					skipProcessDataStep: true,
+					convertPageIdsToAliases: true,
+					success: function(data) {
+						var thisEdit = data.edits[pageId];
+
+						// Load prevEdit.
+						arb.pageService.loadEdit({
+							pageAlias: pageId,
+							specificEdit: thisEdit.prevEdit,
+							skipProcessDataStep: true,
+							convertPageIdsToAliases: true,
+							success: function(data) {
+								var prevEdit = data.edits[pageId];
+
+								// Make the diff
+								$scope.diffHtml = arb.diffService.getDiffHtml(prevEdit, thisEdit);
+							},
+						});
+					},
+				});
+			};
 
 			$scope.toggleDiff = function(update) {
 				$scope.showDiff = !$scope.showDiff;
 
-				if (!$scope.showDiff || $scope.diffHtml) {
-					return;
+				if ($scope.showDiff && !$scope.diffHtml) {
+					computeDiffHtml();
 				}
-
-				var pageId = $scope.changeLog.pageId;
-				var thisEditNum = $scope.changeLog.edit;
-				var prevEditNum = thisEditNum - ($scope.numEdits || 1);
-
-				var thisEditText;
-				var prevEditText;
-
-				// Makes the diffHtml once both thisEditText and prevEditText have been loaded.
-				function makeDiffIfBothTextsLoaded() {
-					if (thisEditText && prevEditText) {
-						$scope.diffHtml = diffService.getDiffHtml(thisEditText, prevEditText);
-					}
-				}
-
-				// Load thisEditText.
-				pageService.loadEdit({
-					pageAlias: pageId,
-					specificEdit: thisEditNum,
-					skipProcessDataStep: true,
-					success: function(data) {
-						thisEditText = data[pageId].text;
-						makeDiffIfBothTextsLoaded();
-					},
-				});
-
-				// Load prevEditText.
-				pageService.loadEdit({
-					pageAlias: pageId,
-					specificEdit: prevEditNum,
-					skipProcessDataStep: true,
-					success: function(data) {
-						prevEditText = data[pageId].text;
-						makeDiffIfBothTextsLoaded();
-					},
-				});
 			};
+
+			if ($scope.justDiff) {
+				computeDiffHtml();
+			}
 		},
 	};
 });

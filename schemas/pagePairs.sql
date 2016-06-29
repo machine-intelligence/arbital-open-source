@@ -9,7 +9,7 @@ CREATE TABLE pagePairs (
 	/* Child page id. Part of the FK into pages. */
 	childId VARCHAR(32) NOT NULL,
 
-	/* Type of the relationship. 
+	/* Type of the relationship.
 		parent: parentId is a parent of childId
 		tag: parentId is a tag of childId
 		requirement: parentId is a requirement of childId
@@ -19,6 +19,12 @@ CREATE TABLE pagePairs (
 		on the relationship tab of the edit page, the page you're editing
 		is the child.*/
 	type VARCHAR(32) NOT NULL,
+
+	/* Id of the user who added this relationships. FK into pages. */
+	creatorId VARCHAR(32) NOT NULL,
+
+	/* When this relationship was created. */
+	createdAt DATETIME NOT NULL,
 
 	/* A pair is considered published the first time its parent and child
 		are both published and not deleted. (Once everPublisehd is set to

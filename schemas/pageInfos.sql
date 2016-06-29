@@ -37,6 +37,9 @@ CREATE TABLE pageInfos (
 	/* If set, this page has been merged into the mergedInto page id. FK into pageInfos. */
 	mergedInto VARCHAR(32) NOT NULL,
 
+	/* When this page has been added to the Featured section */
+	featuredAt DATETIME NOT NULL,
+
 	/* === Permission settings === */
 	/* see: who can see the page */
 	/* act: who can perform actions on the page (e.g. vote, comment) */
@@ -57,6 +60,8 @@ CREATE TABLE pageInfos (
 	lensIndex INT NOT NULL,
 	/* If true, this comment is meant for editors only. */
 	isEditorComment BOOL NOT NULL,
+	/* If true, this comment thread is resolved and should be hidden. */
+	isResolved BOOL NOT NULL,
 	/* The value of isEditorComment the user wanted. We might have disallowed it
 		because the creator lacked the right permissions. */
 	isEditorCommentIntention BOOL NOT NULL,

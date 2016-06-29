@@ -40,7 +40,6 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	escapedTitle := elastic.EscapeMatchTerm(data.Title)
 	escapedClickbait := elastic.EscapeMatchTerm(data.Clickbait)
 	escapedText := elastic.EscapeMatchTerm(data.Text)
-	escapedPageType := elastic.EscapeMatchTerm(strings.ToLower(data.PageType))
 
 	// Construct the search JSON
 	jsonStr := fmt.Sprintf(`{
@@ -59,9 +58,6 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 							},
 							{
 								"match": { "text": "%s" }
-							},
-							{
-								"match": { "type": "%s" }
 							}
 						]
 					}
@@ -78,6 +74,6 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 			}
 		},
 		"_source": []
-	}`, minSearchScore, searchSize, escapedTitle, escapedClickbait, escapedText, escapedPageType, strings.Join(groupIds, ","))
+	}`, minSearchScore, searchSize, escapedTitle, escapedClickbait, escapedText, strings.Join(groupIds, ","))
 	return searchJsonInternalHandler(params, jsonStr)
 }

@@ -1,16 +1,15 @@
 'use strict';
 
 // Directive for a checkbox
-app.directive('arbCheckbox', function($timeout, $http, $compile, pageService, userService) {
+app.directive('arbCheckbox', function($timeout, $http, $compile, arb) {
 	return {
-		templateUrl: 'static/html/checkbox.html',
+		templateUrl: versionUrl('static/html/checkbox.html'),
 		transclude: true,
 		scope: {
 			index: '@',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
 			$scope.choice = false;
 			$scope.knows = [];
 			$scope.wants = [];
@@ -18,7 +17,7 @@ app.directive('arbCheckbox', function($timeout, $http, $compile, pageService, us
 			// Called when a user toggles the choice
 			$scope.toggleChoice = function() {
 				$scope.choice = !$scope.choice;
-				pageService.setQuestionAnswer($scope.index, $scope.choice,
+				arb.masteryService.setQuestionAnswer($scope.index, $scope.choice,
 					$scope.choice ? $scope.knows : [], $scope.choice ? $scope.wants : []);
 			};
 		},

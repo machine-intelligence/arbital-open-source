@@ -1,0 +1,9 @@
+<div id="static-toolbar">
+	<div ng-include="arb.versionUrl('static/html/lensToolbar.html')"></div>
+</div>
+<div id="floater-toolbar">
+	<div ng-include="arb.versionUrl('static/html/lensToolbar.html')"
+			class="lens-menu-floating md-whiteframe-6dp"
+			ng-class="{'lens-menu-floater-hidden': hideFloater}"
+			ng-if="!noFloater"></div>
+</div>

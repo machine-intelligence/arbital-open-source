@@ -57,20 +57,29 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the published page.
-	oldPage, err := core.LoadFullEdit(db, data.PageId, u, nil)
+	editLoadOptions := &core.LoadEditOptions{
+		LoadNonliveEdit: true,
+		PreferLiveEdit:  true,
+	}
+	oldPage, err := core.LoadFullEdit(db, data.PageId, u, editLoadOptions)
 	if err != nil {
 		return pages.Fail("Couldn't load the old page", err)
 	} else if oldPage == nil {
-		// Likely the page hasn't been published yet, so let's load the unpublished version.
-		oldPage, err = core.LoadFullEdit(db, data.PageId, u, &core.LoadEditOptions{LoadNonliveEdit: true})
-		if err != nil || oldPage == nil {
-			return pages.Fail("Couldn't load the old page2", err)
-		}
+		return pages.Fail("Couldn't find the old page", err)
 	}
 
 	// Fix some data.
 	if data.Type == core.CommentPageType {
 		data.EditGroupId = u.Id
+	}
+	if oldPage.WasPublished {
+		if (data.Type == core.WikiPageType || data.Type == core.QuestionPageType) &&
+			(oldPage.Type == core.WikiPageType || oldPage.Type == core.QuestionPageType) {
+			// Allow type changing from wiki <-> question
+		} else {
+			// Don't allow type changing
+			data.Type = oldPage.Type
+		}
 	}
 
 	// Error checking.
@@ -98,14 +107,6 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if data.VoteType != "" && data.VoteType != core.ProbabilityVoteType && data.VoteType != core.ApprovalVoteType {
 		return pages.Fail("Invalid vote type value", nil).Status(http.StatusBadRequest)
 	}
-	if data.IsEditorCommentIntention && data.Type != core.CommentPageType {
-		return pages.Fail("Can't set editor-comment for non-comments", nil).Status(http.StatusBadRequest)
-	}
-
-	// Make sure the user has the right permissions to edit this page
-	if !oldPage.Permissions.Edit.Has {
-		return pages.Fail("Can't edit: "+oldPage.Permissions.Edit.Reason, nil).Status(http.StatusBadRequest)
-	}
 
 	// Data correction. Rewrite the data structure so that we can just use it
 	// in a straight-forward way to populate the database.
@@ -117,14 +118,15 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	} else {
 		hasVote = data.VoteType != ""
 	}
-	if oldPage.WasPublished {
-		data.Type = oldPage.Type
-	}
 	// Enforce SortChildrenBy
 	if data.Type == core.CommentPageType {
 		data.SortChildrenBy = core.RecentFirstChildSortingOption
 	} else if data.Type == core.QuestionPageType {
 		data.SortChildrenBy = core.LikesChildSortingOption
+	}
+	// Check IsEditorCommentIntention
+	if data.IsEditorCommentIntention && data.Type != core.CommentPageType {
+		data.IsEditorCommentIntention = false
 	}
 
 	// Make sure alias is valid
@@ -137,7 +139,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	} else if data.Alias != data.PageId {
 		// Check if the alias matches the strict regexp
 		if !core.StrictAliasRegexp.MatchString(data.Alias) {
-			return pages.Fail("Invalid alias. Can only contain letters and digits. It cannot be a number.", nil)
+			return pages.Fail("Invalid alias. Can only contain letters, digits, and underscores. It also cannot start with a digit.", nil)
 		}
 
 		// Prefix alias with the group alias, if appropriate
@@ -165,10 +167,39 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	// See if the user can affect isEditorComment's value
 	isEditorComment := oldPage.IsEditorComment
-	if oldPage.Permissions.DomainAccess.Has {
-		isEditorComment = data.IsEditorCommentIntention
+	if oldPage.Type == core.CommentPageType {
+		// See if the user can affect isEditorComment's value
+		if oldPage.Permissions.DomainAccess.Has {
+			isEditorComment = data.IsEditorCommentIntention
+		}
+	}
+
+	// Check if something is actually different from live edit
+	// NOTE: we do this as the last step before writing data, just so we can be sure
+	// exactly what date we'll be writing
+	if !oldPage.IsDeleted {
+		if data.Alias == oldPage.Alias &&
+			data.SortChildrenBy == oldPage.SortChildrenBy &&
+			data.HasVote == oldPage.HasVote &&
+			data.VoteType == oldPage.VoteType &&
+			data.Type == oldPage.Type &&
+			data.SeeGroupId == oldPage.SeeGroupId &&
+			data.EditGroupId == oldPage.EditGroupId &&
+			data.IsRequisite == oldPage.IsRequisite &&
+			data.IndirectTeacher == oldPage.IndirectTeacher &&
+			isEditorComment == oldPage.IsEditorComment &&
+			data.IsEditorCommentIntention == oldPage.IsEditorCommentIntention {
+			return pages.Success(nil)
+		}
+	}
+
+	// Make sure the user has the right permissions to edit this page
+	// NOTE: check permissions AFTER checking if any data will be changed, becase we
+	// don't want to flag the user for not having correct permissions, when they are
+	// not actually changing anything
+	if !oldPage.Permissions.Edit.Has {
+		return pages.Fail("Can't edit: "+oldPage.Permissions.Edit.Reason, nil).Status(http.StatusBadRequest)
 	}
 
 	var changeLogIds []int64
@@ -285,8 +316,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			task.UserId = u.Id
 			task.GoToPageId = data.PageId
 			task.SubscribedToId = data.PageId
-			task.UpdateType = core.PageInfoEditUpdateType
-			task.GroupByPageId = data.PageId
+			task.UpdateType = core.ChangeLogUpdateType
 			task.ChangeLogId = changeLogId
 			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)

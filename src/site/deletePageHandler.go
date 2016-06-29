@@ -26,7 +26,6 @@ var deletePageHandler = siteHandler{
 	HandlerFunc: deletePageHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
-		MinKarma:     200,
 	},
 }
 
@@ -106,25 +105,13 @@ func deletePageTx(tx *database.Tx, params *pages.HandlerParams, data *deletePage
 	hashmap["createdAt"] = database.Now()
 	hashmap["type"] = core.DeletePageChangeLog
 	statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
-	if _, err := statement.Exec(); err != nil {
+	result, err := statement.Exec()
+	if err != nil {
 		return sessions.NewError("Couldn't update change logs", err)
 	}
-
-	// Delete it from the elastic index
-	if page.WasPublished {
-		err := elastic.DeletePageFromIndex(c, data.PageId)
-		if err != nil {
-			return sessions.NewError("Failed to update index", err)
-		}
-	}
-
-	// NOTE: now that we've done an undoable action, we can no longer return failure
-
-	// Create a task to propagate the domain change to all children
-	var task tasks.PropagateDomainTask
-	task.PageId = data.PageId
-	if err := tasks.Enqueue(params.C, &task, nil); err != nil {
-		c.Errorf("Couldn't enqueue a task: %v", err)
+	changeLogId, err := result.LastInsertId()
+	if err != nil {
+		return sessions.NewError("Couldn't get changeLogId", err)
 	}
 
 	if data.GenerateUpdate && page.Type != core.CommentPageType {
@@ -133,12 +120,29 @@ func deletePageTx(tx *database.Tx, params *pages.HandlerParams, data *deletePage
 		updateTask.UserId = params.U.Id
 		updateTask.GoToPageId = data.PageId
 		updateTask.SubscribedToId = data.PageId
-		updateTask.GroupByPageId = data.PageId
-		updateTask.UpdateType = core.DeletePageUpdateType
+		updateTask.UpdateType = core.ChangeLogUpdateType
+		updateTask.ChangeLogId = changeLogId
 
 		if err := tasks.Enqueue(c, &updateTask, nil); err != nil {
-			c.Errorf("Couldn't enqueue a task: %v", err)
+			return sessions.NewError("Couldn't enqueue changeLog task", err)
 		}
+	}
+
+	// NOTE: now that we've done an undoable action, we can no longer return failure
+
+	// Delete it from the elastic index
+	if page.WasPublished {
+		err := elastic.DeletePageFromIndex(c, data.PageId)
+		if err != nil {
+			c.Errorf("Failed to update index: %v", err)
+		}
+	}
+
+	// Create a task to propagate the domain change to all children
+	var task tasks.PropagateDomainTask
+	task.PageId = data.PageId
+	if err := tasks.Enqueue(params.C, &task, nil); err != nil {
+		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 
 	return nil

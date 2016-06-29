@@ -1,4 +1,4 @@
-// Handles queries for hedons updates (like 'Alexei liked your page').
+// hedonsModeHandler.go serves the /achievements panel (which displays hedons updates, such as, 'Alexei liked your page').
 package site
 
 import (
@@ -54,18 +54,38 @@ func hedonsModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error loading requisites taught", err)
 	}
 
-	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, likesRows, changeLikesRows, reqsTaughtRows)
-
-	// Load and update lastAchievementsView for this user
-	returnData.ResultMap["lastView"], err = LoadAndUpdateLastView(db, u, LastAchievementsModeView)
+	updateRows, err := loadAchievementUpdateRows(db, u, returnData, data.NumPagesToLoad)
 	if err != nil {
-		return pages.Fail("Error updating last achievements view", err)
+		return pages.Fail("Error loading achievement updates", err)
 	}
 
 	// Load pages
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
+	}
+
+	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, likesRows, changeLikesRows, reqsTaughtRows, updateRows)
+
+	// Load and update lastAchievementsView for this user
+	returnData.ResultMap["lastView"], err = core.LoadAndUpdateLastView(db, u, core.LastAchievementsModeView)
+	if err != nil {
+		return pages.Fail("Error updating last achievements view", err)
+	}
+
+	// Set IsVisited on update rows (now that we've had a chance to load last visit times for pages)
+	for _, row := range updateRows {
+		setUpdateModeRowIsVisited(row.(*updateModeRow), returnData.PageMap)
+	}
+
+	// Mark updates as seen.
+	updateIds := make([]string, 0)
+	for _, row := range updateRows {
+		updateIds = append(updateIds, row.(*updateModeRow).Update.Id)
+	}
+	err = core.MarkUpdatesAsSeen(db, u.Id, core.GetAchievementUpdateTypes())
+	if err != nil {
+		return pages.Fail("Couldn't mark updates seen", err)
 	}
 
 	return pages.Success(returnData)

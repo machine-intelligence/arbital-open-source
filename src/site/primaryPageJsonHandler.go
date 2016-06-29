@@ -14,8 +14,12 @@ import (
 
 // primaryPageJsonData contains parameters passed in via the request.
 type primaryPageJsonData struct {
+	// Alias of the primary page to load
 	PageAlias string
-	MarkId    string
+	// Optional lens id that was specified in the url
+	LensId string
+	// Optional mark id that was specified in the url
+	MarkId string
 }
 
 var primaryPageHandler = siteHandler{
@@ -46,6 +50,20 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 	if !ok {
 		return pages.Fail("Couldn't find page", err)
+	}
+
+	// If lens id wasn't explicitly set, check to see if this page is a lens for some other page,
+	// and if so, load the primary page.
+	if data.LensId == "" {
+		page := core.AddPageIdToMap(pageId, returnData.PageMap)
+		err := core.LoadLensParentIds(db, returnData.PageMap, nil)
+		if err != nil {
+			return pages.Fail("Couldn't load lens parent id", err)
+		} else if page.LensParentId != "" {
+			c.Infof("Page %s redirected to its primary page %s", pageId, page.LensParentId)
+			data.LensId = pageId
+			pageId = page.LensParentId
+		}
 	}
 
 	// Check if page is a user page
@@ -136,9 +154,15 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load data
+	returnData.ResultMap["primaryPageId"] = pageId
+	core.AddPageIdToMap("14z", returnData.PageMap)
 	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryPageLoadOptions)
+	if data.LensId != "" {
+		returnData.ResultMap["lensId"] = data.LensId
+		core.AddPageToMap(data.LensId, returnData.PageMap, core.LensFullLoadOptions)
+	}
 	if data.MarkId != "" {
-		returnData.AddMark(data.MarkId)
+		core.AddMarkToMap(data.MarkId, returnData.MarkMap)
 	}
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {

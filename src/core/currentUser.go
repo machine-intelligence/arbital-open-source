@@ -46,25 +46,33 @@ var (
 // Note: this structure is also stored in a cookie.
 type CurrentUser struct {
 	// DB variables
-	Id             string `json:"id"`
-	FbUserId       string `json:"fbUserId"`
-	Email          string `json:"email"`
-	FirstName      string `json:"firstName"`
-	LastName       string `json:"lastName"`
-	IsAdmin        bool   `json:"isAdmin"`
-	IsTrusted      bool   `json:"isTrusted"`
-	EmailFrequency string `json:"emailFrequency"`
-	EmailThreshold int    `json:"emailThreshold"`
-	IgnoreMathjax  bool   `json:"ignoreMathjax"`
+	Id                     string `json:"id"`
+	FbUserId               string `json:"fbUserId"`
+	Email                  string `json:"email"`
+	FirstName              string `json:"firstName"`
+	LastName               string `json:"lastName"`
+	IsAdmin                bool   `json:"isAdmin"`
+	IsTrusted              bool   `json:"isTrusted"`
+	EmailFrequency         string `json:"emailFrequency"`
+	EmailThreshold         int    `json:"emailThreshold"`
+	IgnoreMathjax          bool   `json:"ignoreMathjax"`
+	ShowAdvancedEditorMode bool   `json:"showAdvancedEditorMode"`
 
 	// If the user isn't logged in, this is set to their unique session id
 	SessionId string `json:"-"`
 
 	// Computed variables
-	UpdateCount    int               `json:"updateCount"`
-	GroupIds       []string          `json:"groupIds"`
-	TrustMap       map[string]*Trust `json:"trustMap"`
-	InvitesClaimed []*Invite         `json:"invitesClaimed"`
+	// Set to true if the user is a member of at least one domain
+	IsDomainMember                bool              `json:"isDomainMember"`
+	HasReceivedMaintenanceUpdates bool              `json:"hasReceivedMaintenanceUpdates"`
+	HasReceivedNotifications      bool              `json:"hasReceivedNotifications"`
+	UpdateCount                   int               `json:"updateCount"`
+	NewNotificationCount          int               `json:"newNotificationCount"`
+	NewAchievementCount           int               `json:"newAchievementCount"`
+	MaintenanceUpdateCount        int               `json:"maintenanceUpdateCount"`
+	GroupIds                      []string          `json:"groupIds"`
+	TrustMap                      map[string]*Trust `json:"trustMap"`
+	InvitesClaimed                []*Invite         `json:"invitesClaimed"`
 	// If set, these are the lists the user is subscribed to via mailchimp
 	MailchimpInterests map[string]bool `json:"mailchimpInterests"`
 }
@@ -153,6 +161,27 @@ func SaveCookie(w http.ResponseWriter, r *http.Request, email string) (string, e
 	return sessionId, nil
 }
 
+// Load user by id. If u object is given, load data into it. Otherwise create a new user object.
+func LoadCurrentUserFromDb(db *database.DB, userId string, u *CurrentUser) (*CurrentUser, error) {
+	if u == nil {
+		u = NewCurrentUser()
+	}
+	row := db.NewStatement(`
+		SELECT id,fbUserId,email,firstName,lastName,isAdmin,isTrusted,
+			emailFrequency,emailThreshold,ignoreMathjax,showAdvancedEditorMode
+		FROM users
+		WHERE id=?`).QueryRow(userId)
+	exists, err := row.Scan(&u.Id, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
+		&u.IsAdmin, &u.IsTrusted, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
+		&u.ShowAdvancedEditorMode)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load user: %v", err)
+	} else if !exists {
+		return nil, fmt.Errorf("Couldn't find the user")
+	}
+	return u, nil
+}
+
 // loadUserFromDb tries to load the current user's info from the database. If
 // there is no data in the DB, but the user is logged in through AppEngine,
 // a new record is created.
@@ -177,17 +206,29 @@ func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*C
 		return u, err
 	}
 
+	var pretendToBeUserId string
 	row := db.NewStatement(`
-		SELECT id,fbUserId,email,firstName,lastName,isAdmin,isTrusted,
-			emailFrequency,emailThreshold,ignoreMathjax
+		SELECT id,pretendToBeUserId,fbUserId,email,firstName,lastName,isAdmin,isTrusted,
+			emailFrequency,emailThreshold,ignoreMathjax,showAdvancedEditorMode
 		FROM users
 		WHERE email=?`).QueryRow(cookie.Email)
-	exists, err := row.Scan(&u.Id, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
-		&u.IsAdmin, &u.IsTrusted, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax)
+	exists, err := row.Scan(&u.Id, &pretendToBeUserId, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
+		&u.IsAdmin, &u.IsTrusted, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
+		&u.ShowAdvancedEditorMode)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a user: %v", err)
 	} else if !exists {
 		return nil, fmt.Errorf("Couldn't find that email in DB")
+	}
+
+	// Admins can pretened to be certain users
+	if u.IsAdmin && pretendToBeUserId != "" {
+		u, err = LoadCurrentUserFromDb(db, pretendToBeUserId, u)
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't pretend to be a user: %v", err)
+		} else if u == nil {
+			return nil, fmt.Errorf("Couldn't find user we are pretending to be")
+		}
 	}
 
 	if err := LoadUserGroupIds(db, u); err != nil {
@@ -212,15 +253,15 @@ func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (u
 	return
 }
 
-// LoadUpdateCount returns the number of unseen updates the given user has.
+// LoadUpdateCount returns the number of not seen updates the given user has.
 func LoadUpdateCount(db *database.DB, userId string) (int, error) {
-	editTypes := []string{PageEditUpdateType, CommentEditUpdateType}
+	editTypes := []string{PageEditUpdateType}
 
 	var editUpdateCount int
 	row := database.NewQuery(`
 		SELECT COUNT(DISTINCT type, subscribedToId, byUserId)
 		FROM updates
-		WHERE unseen AND userId=?`, userId).Add(`
+		WHERE NOT seen AND userId=?`, userId).Add(`
 			AND type IN`).AddArgsGroupStr(editTypes).ToStatement(db).QueryRow()
 	_, err := row.Scan(&editUpdateCount)
 	if err != nil {
@@ -231,7 +272,7 @@ func LoadUpdateCount(db *database.DB, userId string) (int, error) {
 	row = database.NewQuery(`
 		SELECT COUNT(*)
 		FROM updates
-		WHERE unseen AND userId=?`, userId).Add(`
+		WHERE NOT seen AND userId=?`, userId).Add(`
 			AND type NOT IN`).AddArgsGroupStr(editTypes).ToStatement(db).QueryRow()
 	_, err = row.Scan(&nonEditUpdateCount)
 	if err != nil {
@@ -241,37 +282,153 @@ func LoadUpdateCount(db *database.DB, userId string) (int, error) {
 	return editUpdateCount + nonEditUpdateCount, err
 }
 
-// LoadUserTrust returns the trust that the user has in all domains.
-func LoadUserTrust(db *database.DB, u *CurrentUser) error {
-	domainIds, err := LoadAllDomainIds(db, nil)
+// Load the number of new achievements for this user
+func LoadNewAchievementCount(db *database.DB, user *CurrentUser) (int, error) {
+	lastAchievementsView, err := LoadLastView(db, user, LastAchievementsModeView)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
+	var newLikeCount int
+	row := database.NewQuery(`
+		SELECT COUNT(*)
+		FROM `).AddPart(PageInfosTable(user)).Add(` AS pi
+		JOIN likes AS l
+		ON pi.likeableId=l.likeableId
+		JOIN users AS u
+		ON l.userId=u.id
+		WHERE pi.createdBy=?`, user.Id).Add(`
+			AND l.userId!=?`, user.Id).Add(`
+			AND l.value=1
+			AND l.updatedAt>?`, lastAchievementsView).ToStatement(db).QueryRow()
+	_, err = row.Scan(&newLikeCount)
+	if err != nil {
+		return -1, err
+	}
+
+	var newChangeLogLikeCount int
+	row = database.NewQuery(`
+		SELECT COUNT(*)
+		FROM likes as l
+		JOIN changeLogs as cl
+		ON cl.likeableId=l.likeableId
+		WHERE cl.userId=?`, user.Id).Add(`
+			AND l.value=1 AND l.userId!=?`, user.Id).Add(`
+			AND cl.type=?`, NewEditChangeLog).Add(`
+			AND l.updatedAt>?`, lastAchievementsView).ToStatement(db).QueryRow()
+	_, err = row.Scan(&newChangeLogLikeCount)
+	if err != nil {
+		return -1, err
+	}
+
+	var newTaughtCount int
+	row = database.NewQuery(`
+		SELECT COUNT(*)
+		FROM userMasteryPairs AS ump
+		JOIN `).AddPart(PageInfosTable(user)).Add(` AS pi
+		ON ump.taughtBy=pi.pageId
+		JOIN users AS u
+		ON ump.userId=u.id
+		WHERE pi.createdBy=?`, user.Id).Add(`
+			AND ump.has=1 AND ump.userId!=?`, user.Id).Add(`
+			AND ump.updatedAt>?`, lastAchievementsView).ToStatement(db).QueryRow()
+	_, err = row.Scan(&newTaughtCount)
+	if err != nil {
+		return -1, err
+	}
+
+	newAchievementUpdateCount, err := LoadAchievementUpdateCount(db, user.Id, false)
+	if err != nil {
+		return -1, err
+	}
+
+	return newLikeCount + newTaughtCount + newChangeLogLikeCount + newAchievementUpdateCount, nil
+}
+
+func LoadNotificationCount(db *database.DB, userId string, includeOldAndDismissed bool) (int, error) {
+	return loadUpdateCountInternal(db, userId, GetNotificationUpdateTypes(), includeOldAndDismissed)
+}
+
+func LoadMaintenanceUpdateCount(db *database.DB, userId string, includeOldAndDismissed bool) (int, error) {
+	return loadUpdateCountInternal(db, userId, GetMaintenanceUpdateTypes(), includeOldAndDismissed)
+}
+
+func LoadAchievementUpdateCount(db *database.DB, userId string, includeOldAndDismissed bool) (int, error) {
+	return loadUpdateCountInternal(db, userId, GetAchievementUpdateTypes(), includeOldAndDismissed)
+}
+
+func loadUpdateCountInternal(db *database.DB, userId string, updateTypes []string, includeOldAndDismissed bool) (int, error) {
+	var filterCondition string
+	if includeOldAndDismissed {
+		filterCondition = "true"
+	} else {
+		filterCondition = "NOT seen AND NOT dismissed"
+	}
+
+	var updateCount int
+	row := database.NewQuery(`
+		SELECT COUNT(*)
+		FROM updates
+		WHERE userId=?`, userId).Add(`
+			AND type IN`).AddArgsGroupStr(updateTypes).Add(`
+			AND`).Add(filterCondition).ToStatement(db).QueryRow()
+	_, err := row.Scan(&updateCount)
+	if err != nil {
+		return -1, err
+	}
+
+	return updateCount, err
+}
+
+// LoadUserTrust returns the trust that the user has in all domains.
+func LoadUserTrust(db *database.DB, u *CurrentUser, domainIds []string) error {
 	for _, domainId := range domainIds {
 		u.TrustMap[domainId] = &Trust{}
 	}
 
-	// NOTE: this should come last in computing trust, so that the bonus trust from
-	// an invite slowly goes away as the user accumulates real trust.
-	// Compute trust from invites
-	wherePart := database.NewQuery(`WHERE toUserId=?`, u.Id)
-	invites, err := LoadInvitesWhere(db, wherePart)
-	if err != nil {
-		return fmt.Errorf("Couldn't process existing invites: %v", err)
-	}
-	for _, invite := range invites {
-		trust := u.TrustMap[invite.DomainId]
-		if trust.EditTrust < DefaultInviteKarma {
-			trust.EditTrust = DefaultInviteKarma
+	if u.Id != "" {
+		// TODO: load all sources of trust
+
+		// NOTE: this should come last in computing trust, so that the bonus trust from
+		// an invite slowly goes away as the user accumulates real trust.
+		// Compute trust from invites
+		wherePart := database.NewQuery(`WHERE toUserId=?`, u.Id)
+		invites, err := LoadInvitesWhere(db, wherePart)
+		if err != nil {
+			return fmt.Errorf("Couldn't process existing invites: %v", err)
 		}
-		trust.Permissions.DomainAccess.Has = true
+		for _, invite := range invites {
+			trust := u.TrustMap[invite.DomainId]
+			if trust.EditTrust < DefaultInviteKarma {
+				trust.EditTrust = DefaultInviteKarma
+			}
+			trust.Permissions.DomainAccess.Has = true
+			u.IsDomainMember = true
+		}
+
+		// Load whether the user has ever had any maintenance updates
+		hasReceivedMaintenanceUpdates, err := LoadHasReceivedMaintenanceUpdates(db, u)
+		if err != nil {
+			return fmt.Errorf("Couldn't process maintenance updates: %v", err)
+		}
+		u.HasReceivedMaintenanceUpdates = hasReceivedMaintenanceUpdates
+
+		// Load whether the user has ever had any notifications
+		hasReceivedNotifications, err := LoadHasReceivedNotifications(db, u)
+		if err != nil {
+			return fmt.Errorf("Couldn't process notifications: %v", err)
+		}
+		u.HasReceivedNotifications = hasReceivedNotifications
 	}
 
 	// Now compute permissions
 	for _, trust := range u.TrustMap {
 		if !trust.Permissions.DomainAccess.Has {
 			trust.Permissions.DomainAccess.Reason = "You don't have access to this domain"
+		}
+		trust.Permissions.DomainTrust.Has = u.IsTrusted
+		if !trust.Permissions.DomainTrust.Has {
+			trust.Permissions.DomainTrust.Reason = "You don't have full trust for this domain"
 		}
 		trust.Permissions.Edit.Has = trust.EditTrust >= EditPageKarmaReq
 		if !trust.Permissions.Edit.Has {
@@ -310,6 +467,24 @@ func LoadInvitesWhere(db *database.DB, wherePart *database.QueryPart) ([]*Invite
 		return nil, fmt.Errorf("Error while loading invites WHERE %v: %v", wherePart, err)
 	}
 	return invites, nil
+}
+
+func LoadHasReceivedMaintenanceUpdates(db *database.DB, u *CurrentUser) (bool, error) {
+	lifetimeMaintenanceUpdateCount, err := LoadMaintenanceUpdateCount(db, u.Id, true)
+	if err != nil {
+		return false, fmt.Errorf("Error while retrieving maintenance update count: %v", err)
+	}
+
+	return lifetimeMaintenanceUpdateCount > 0, nil
+}
+
+func LoadHasReceivedNotifications(db *database.DB, u *CurrentUser) (bool, error) {
+	lifetimeNotificationCount, err := LoadNotificationCount(db, u.Id, true)
+	if err != nil {
+		return false, fmt.Errorf("Error while retrieving notification count: %v", err)
+	}
+
+	return lifetimeNotificationCount > 0, nil
 }
 
 func init() {

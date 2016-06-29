@@ -49,8 +49,8 @@ func (task SendInviteTask) Execute(db *database.DB) (delay int, err error) {
 		return
 	}
 
-	c.Debugf("==== SEND INVITE START ====")
-	defer c.Debugf("==== SEND INVITE COMPLETED ====")
+	c.Infof("==== SEND INVITE START ====")
+	defer c.Infof("==== SEND INVITE COMPLETED ====")
 
 	senderUser, err := core.LoadUser(db, task.FromUserId, task.FromUserId)
 	if err != nil {
@@ -120,7 +120,7 @@ We're excited to have you with us!
 	}
 
 	c.Inc("invite_send_success")
-	c.Debugf("Invite sent!")
+	c.Infof("Invite sent!")
 
 	return
 }

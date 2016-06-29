@@ -42,6 +42,9 @@ CREATE TABLE pages (
 	/* Offset of the text into the context. */
 	anchorOffset INT NOT NULL,
 
+	/* A message saying what this edit is about. */
+	editSummary VARCHAR(512) NOT NULL,
+
 	/* == Following variables are set for some specific pages. == */
 	/* Text associated with the snapshot. */
 	snapshotText MEDIUMTEXT NOT NULL,

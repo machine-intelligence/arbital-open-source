@@ -32,8 +32,9 @@ type InsertMaps []InsertMap
 // DB is our structure for the database. For convenience it wraps around the
 // sessions context.
 type DB struct {
-	db *sql.DB
-	C  sessions.Context
+	db        *sql.DB
+	C         sessions.Context
+	PrintInfo bool
 }
 
 type Stmt struct {
@@ -118,6 +119,7 @@ func GetDB(c sessions.Context) (*DB, error) {
 		return nil, fmt.Errorf("Couldn't open DB: %v", err)
 	}
 	db.C = c
+	db.PrintInfo = sessions.Live
 	return &db, nil
 }
 
@@ -203,13 +205,21 @@ func (statement *Stmt) Exec(args ...interface{}) (sql.Result, error) {
 		}
 		args = statement.args
 	}
+
+	startTime := time.Now()
 	result, err := statement.stmt.Exec(args...)
 	statement.Close()
 	if err != nil {
 		statement.DB.C.Inc("sql_command_fail")
 		return nil, fmt.Errorf("Error while executing an sql statement:\n%v\n%v", statement, err)
 	}
-	statement.DB.C.Debugf("Executed SQL statement: %v\nwith args: %+v", statement, args)
+
+	duration := time.Since(startTime)
+	if statement.DB.PrintInfo {
+		statement.DB.C.Infof(`Executed SQL statement: %v
+		With args: %+v
+		Operation took %v`, statement, args, duration)
+	}
 	return result, nil
 }
 
@@ -223,11 +233,20 @@ func (statement *Stmt) Query(args ...interface{}) *Rows {
 		}
 		args = statement.args
 	}
+
+	startTime := time.Now()
 	rows, err := statement.stmt.Query(args...)
 	if err != nil {
 		statement.DB.C.Inc("sql_command_fail")
 		statement.DB.C.Errorf("Error while querying:\n%v\n%v", statement, err)
 		return nil
+	}
+
+	duration := time.Since(startTime)
+	if statement.DB.PrintInfo {
+		statement.DB.C.Infof(`Executed SQL statement: %v
+		With args: %+v
+		Operation took %v`, statement, args, duration)
 	}
 	return &Rows{rows: rows, stmt: statement, DB: statement.DB}
 }
@@ -270,9 +289,7 @@ func (rows *Rows) Process(f ProcessRowCallback) error {
 
 // Scan processes the row and outputs the results into the given variables.
 func (rows *Rows) Scan(dest ...interface{}) error {
-	result := rows.rows.Scan(dest...)
-	rows.stmt.Close()
-	return result
+	return rows.rows.Scan(dest...)
 }
 
 // QueryRowSql executes the given SQL statement that's expected to return only

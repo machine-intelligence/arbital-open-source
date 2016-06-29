@@ -23,7 +23,6 @@ var mergeQuestionsHandler = siteHandler{
 	HandlerFunc: mergeQuestionsHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
-		MinKarma:     200,
 	},
 }
 
@@ -99,14 +98,12 @@ func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	updateTask.UserId = u.Id
 	updateTask.GoToPageId = data.IntoQuestionId
 	updateTask.SubscribedToId = data.QuestionId
-	updateTask.GroupByPageId = data.QuestionId
 	updateTask.UpdateType = core.QuestionMergedUpdateType
 	if err := tasks.Enqueue(c, &updateTask, nil); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 	updateTask.GoToPageId = data.QuestionId
 	updateTask.SubscribedToId = data.IntoQuestionId
-	updateTask.GroupByPageId = data.IntoQuestionId
 	updateTask.UpdateType = core.QuestionMergedReverseUpdateType
 	if err := tasks.Enqueue(c, &updateTask, nil); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)

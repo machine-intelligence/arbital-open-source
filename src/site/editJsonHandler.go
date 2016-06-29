@@ -7,6 +7,7 @@ import (
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 )
 
 var editHandler = siteHandler{
@@ -23,6 +24,9 @@ type editJsonData struct {
 	SpecificEdit   int
 	EditLimit      int
 	CreatedAtLimit string
+
+	// Optional pages to load as well (e.g. for making a quick parent)
+	AdditionalPageIds []string
 }
 
 // editJsonHandler handles the request.
@@ -52,7 +56,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 		} else {
 			// We tried to load an edit by alias, it wasn't found, but we can create a
 			// new page with that alias.
-			return newPageJsonInternalHandler(params, &newPageJsonData{
+			return newPageInternalHandler(params, &newPageData{
 				Type:  core.WikiPageType,
 				Alias: data.PageAlias,
 			})
@@ -80,19 +84,30 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 			return pages.Fail("Trying to edit a public page. Go to arbital.com", err).Status(http.StatusBadRequest)
 		}
 	}
-	if !p.IsAutosave && !p.IsSnapshot {
-		p.PrevEdit = p.Edit
+
+	// If it's an autosave or a snapshot, we can't count on all links to be loaded,
+	// since they are not stored in the links table. So we manually extract them.
+	if p.IsAutosave || p.IsSnapshot {
+		linkAliases := core.ExtractPageLinks(p.Text, sessions.GetDomain())
+		aliasToIdMap, err := core.LoadAliasToPageIdMap(db, u, linkAliases)
+		if err != nil {
+			return pages.Fail("Couldn't load links", err)
+		}
+		for _, pageId := range aliasToIdMap {
+			core.AddPageIdToMap(pageId, returnData.PageMap)
+		}
 	}
 
-	// Load parents, tags, requirement, and lens pages (to display in Relationship tab)
-	core.AddPageToMap("3n", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("178", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("1ln", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("17b", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("35z", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("370", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("187", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("185", returnData.PageMap, core.TitlePlusLoadOptions)
+	// Load additional pages (for which we need to display a greenlink)
+	if data.AdditionalPageIds == nil {
+		data.AdditionalPageIds = make([]string, 0)
+	}
+	data.AdditionalPageIds = append(data.AdditionalPageIds, "3n", "178", "1ln",
+		"17b", "35z", "370", "187", "185", "3hs")
+	for _, pageId := range data.AdditionalPageIds {
+		core.AddPageIdToMap(pageId, returnData.PageMap)
+	}
+
 	// Load data
 	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryEditLoadOptions)
 	core.AddPageIdToMap(p.EditGroupId, returnData.PageMap)
@@ -103,13 +118,17 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 
 	// We need to copy some data from the loaded live version to the edit
 	// NOTE: AAAAARGH! This is such an ugly workaround
+	// NOTE: a reminder when fixing this is that it's quite possible that we don't have
+	// the page in pageMap if it hasn't been published yet, so the only "page" on the FE
+	// is the one from editMap
 	livePage := returnData.PageMap[pageId]
-	p.LensIds = livePage.LensIds
+	p.LensParentId = livePage.LensParentId
 	p.ChildIds = livePage.ChildIds
 	p.ParentIds = livePage.ParentIds
 	p.TaggedAsIds = livePage.TaggedAsIds
 	p.RequirementIds = livePage.RequirementIds
 	p.SubjectIds = livePage.SubjectIds
+	p.Lenses = livePage.Lenses
 	p.ChangeLogs = livePage.ChangeLogs
 	p.SearchStrings = livePage.SearchStrings
 	returnData.EditMap[pageId] = p

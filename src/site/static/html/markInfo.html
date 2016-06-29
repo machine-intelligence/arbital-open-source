@@ -13,10 +13,10 @@
 		</span>
 	<span>
 </div>
-	
+
 <!-- Meta info -->
 <div ng-if="::!mark.isCurrentUserOwned && isOnPage">
-	This mark was created 
+	This mark was created
 	<span ng-bind="::(mark.createdAt | relativeDateTime)"></span>.
 </div>
 
@@ -37,11 +37,15 @@
 <!-- Resolved -->
 <div ng-if="mark.resolvedBy">
 	This mark has been resolved by
-	<arb-user-name user-id="{{mark.resolvedBy}}"></arb-user-name>
+	<arb-user-name user-id="{{mark.resolvedBy}}" ng-if="!mark.isResolvedByOwner"></arb-user-name>
+	<span ng-if="mark.isResolvedByOwner">
+		<span ng-if="mark.isCurrentUserOwned">you</span>
+		<span ng-if="!mark.isCurrentUserOwned">the mark creator</span>
+	</span>
 </div>
 
 <!-- Link to the mark on the page itself -->
-<a ng-href="{{::pageService.getPageUrl(mark.pageId, {markId: markId})}}"
+<a ng-href="{{::arb.urlService.getPageUrl(mark.pageId, {markId: markId})}}"
 		page-id="{{::mark.pageId}}"
 		class="intrasite-link"
 		ng-if="::!isOnPage">
@@ -56,10 +60,12 @@
 </div>
 <div class="spaced-buttons"
 		layout="row"
+		layout-xs="column"
 		layout-align="start center"
+		layout-align-xs="start start"
 		ng-if="!mark.isCurrentUserOwned && !mark.resolvedPageId">
 	<md-button class="md-primary"
-			ng-href="{{::pageService.getEditPageUrl(mark.pageId, {markId: markId})}}">
+			ng-href="{{::arb.urlService.getEditPageUrl(mark.pageId, {markId: markId})}}">
 		<md-icon>edit</md-icon>
 		Edit page
 	</md-button>

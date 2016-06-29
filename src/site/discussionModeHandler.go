@@ -49,7 +49,7 @@ func discussionModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, commentRows, markRows)
 
 	// Load and update LastDiscussionView for this user
-	returnData.ResultMap["lastView"], err = LoadAndUpdateLastView(db, u, LastDiscussionModeView)
+	returnData.ResultMap["lastView"], err = core.LoadAndUpdateLastView(db, u, core.LastDiscussionModeView)
 	if err != nil {
 		return pages.Fail("Error updating last read mode view", err)
 	}

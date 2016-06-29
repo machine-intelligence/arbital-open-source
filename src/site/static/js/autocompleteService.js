@@ -1,7 +1,7 @@
 'use strict';
 
 // Autocomplete service provides data for autocompletion.
-app.service('autocompleteService', function($http, $compile, pageService) {
+app.service('autocompleteService', function($http, $compile, pageService, stateService) {
 	var that = this;
 
 	// Take data we get from BE search, and extract the data to forward it to
@@ -18,7 +18,7 @@ app.service('autocompleteService', function($http, $compile, pageService) {
 		for (var n = 0; n < hits.length; n++) {
 			var source = hits[n]._source;
 			resultList.push({
-				page: pageService.pageMap[source.pageId],
+				page: stateService.pageMap[source.pageId],
 				pageId: source.pageId,
 				alias: source.alias,
 				title: source.title,

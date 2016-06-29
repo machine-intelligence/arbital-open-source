@@ -6,7 +6,6 @@ package site
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
@@ -25,7 +24,6 @@ var revertPageHandler = siteHandler{
 	HandlerFunc: revertPageHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
-		MinKarma:     200,
 	},
 }
 
@@ -52,25 +50,19 @@ func revertPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Can't revert: "+page.Permissions.Edit.Reason, nil).Status(http.StatusBadRequest)
 	}
 
-	if page.Type == core.LensPageType {
-		// Need to get the actual lens title
-		parts := strings.Split(page.Title, ":")
-		page.Title = strings.TrimSpace(parts[len(parts)-1])
-	}
-
 	// Create the data to pass to the edit page handler
 	editData := &editPageData{
-		PageId:                   page.PageId,
-		PrevEdit:                 page.PrevEdit,
-		Title:                    page.Title,
-		Clickbait:                page.Clickbait,
-		Text:                     page.Text,
-		MetaText:                 page.MetaText,
-		AnchorContext:            page.AnchorContext,
-		AnchorText:               page.AnchorText,
-		AnchorOffset:             page.AnchorOffset,
-		IsEditorCommentIntention: page.IsEditorCommentIntention,
-		RevertToEdit:             data.EditNum,
+		PageId:        page.PageId,
+		PrevEdit:      page.PrevEdit,
+		Title:         page.Title,
+		Clickbait:     page.Clickbait,
+		Text:          page.Text,
+		MetaText:      page.MetaText,
+		EditSummary:   page.EditSummary,
+		AnchorContext: page.AnchorContext,
+		AnchorText:    page.AnchorText,
+		AnchorOffset:  page.AnchorOffset,
+		RevertToEdit:  data.EditNum,
 	}
 	return editPageInternalHandler(params, editData)
 }

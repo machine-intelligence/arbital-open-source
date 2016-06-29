@@ -27,6 +27,7 @@ type PageLoadOptions struct {
 	Lenses                  bool
 	Requirements            bool
 	Subjects                bool
+	SubmittedTo             bool
 	Answers                 bool
 	UserMarks               bool // marks owned by the logged in user
 	UnresolvedMarks         bool // all unresolved marks
@@ -41,6 +42,7 @@ type PageLoadOptions struct {
 	// Load options for loading a page for editing
 	ChangeLogs    bool
 	SearchStrings bool
+	LensParentId  bool
 
 	// Options for what data to load for the page itself
 	HasDraft        bool
@@ -56,6 +58,7 @@ type PageLoadOptions struct {
 	Mastery         bool
 	UsedAsMastery   bool
 	Creators        bool
+	EditHistory     bool
 
 	// Options for what fields to load from pages table
 	Text      bool
@@ -81,6 +84,7 @@ var (
 		Lenses:           true,
 		Requirements:     true,
 		Subjects:         true,
+		SubmittedTo:      true,
 		UserMarks:        true,
 		UnresolvedMarks:  true,
 		DomainMembership: true,
@@ -104,17 +108,21 @@ var (
 		DomainsAndPermissions: true,
 		ChangeLogs:            true,
 		SearchStrings:         true,
+		LensParentId:          true,
 		Links:                 true,
 		LinkedMarkCount:       true,
 		Text:                  true,
+		IsSubscribed:          true,
 	}).Add(EmptyLoadOptions)
 	// Options for loading a full lens
 	LensFullLoadOptions = (&PageLoadOptions{
 		Questions:       true,
+		Children:        true,
 		Tags:            true,
 		SubpageCounts:   true,
 		Requirements:    true,
 		Subjects:        true,
+		SubmittedTo:     true,
 		UserMarks:       true,
 		UnresolvedMarks: true,
 		ViewCount:       true,
@@ -145,9 +153,7 @@ var (
 		Summaries:     true,
 	}).Add(TitlePlusLoadOptions)
 	// Options for loading info about a lens
-	LensInfoLoadOptions = (&PageLoadOptions{
-		Requirements: true,
-	}).Add(TitlePlusLoadOptions)
+	LensInfoLoadOptions = (&PageLoadOptions{}).Add(TitlePlusLoadOptions)
 	// Options for loading an answer
 	AnswerLoadOptions = (&PageLoadOptions{
 		SubpageCounts: true,

@@ -31,8 +31,8 @@ func (task UpdateMetadataTask) Execute(db *database.DB) (delay int, err error) {
 		return 0, err
 	}
 
-	c.Debugf("==== UPDATE METADATA START ====")
-	defer c.Debugf("==== UPDATE METADATA COMPLETED ====")
+	c.Infof("==== UPDATE METADATA START ====")
+	defer c.Infof("==== UPDATE METADATA COMPLETED ====")
 
 	// Regenerate pages and links tables
 	rows := db.NewStatement(`
@@ -40,7 +40,7 @@ func (task UpdateMetadataTask) Execute(db *database.DB) (delay int, err error) {
 		FROM pages
 		WHERE isLiveEdit`).Query()
 	if err = rows.Process(updateMetadata); err != nil {
-		c.Debugf("ERROR, failed to update pages and pageLinks: %v", err)
+		c.Errorf("ERROR, failed to update pages and pageLinks: %v", err)
 		return 0, err
 	}
 
@@ -51,7 +51,7 @@ func (task UpdateMetadataTask) Execute(db *database.DB) (delay int, err error) {
 		WHERE 1
 		GROUP BY pageId`).Query()
 	if err = rows.Process(updatePageInfos); err != nil {
-		c.Debugf("ERROR, failed to update pageInfos: %v", err)
+		c.Errorf("ERROR, failed to update pageInfos: %v", err)
 		return 0, err
 	}
 	return 0, err

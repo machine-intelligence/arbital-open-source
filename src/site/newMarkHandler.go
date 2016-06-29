@@ -146,7 +146,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load mark to return it
-	returnData.AddMark(markIdStr)
+	core.AddMarkToMap(markIdStr, returnData.MarkMap)
 	core.AddPageToMap("370", returnData.PageMap, core.TitlePlusLoadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
@@ -164,9 +164,7 @@ func EnqueueNewMarkUpdateTask(params *pages.HandlerParams, markId string, pageId
 	updateTask.GoToPageId = pageId
 	updateTask.SubscribedToId = pageId
 	updateTask.UpdateType = core.NewMarkUpdateType
-	updateTask.GroupByPageId = pageId
 	updateTask.MarkId = markId
-	updateTask.EditorsOnly = true
 	options := &tasks.TaskOptions{Delay: delay}
 	if err := tasks.Enqueue(params.C, &updateTask, options); err != nil {
 		return fmt.Errorf("Couldn't enqueue an updateTask: %v", err)

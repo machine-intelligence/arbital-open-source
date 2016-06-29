@@ -35,8 +35,8 @@ func (task TickTask) Execute(db *database.DB) (delay int, err error) {
 		return
 	}
 
-	c.Debugf("==== TICK START ====")
-	defer c.Debugf("==== TICK COMPLETED ====")
+	c.Infof("==== TICK START ====")
+	defer c.Infof("==== TICK COMPLETED ====")
 	return
 }
 

@@ -23,36 +23,6 @@ const (
 	ReplaceRegexpStr        = "[^A-Za-z0-9_]" // used for replacing non-alias characters
 )
 
-// NewPage returns a pointer to a new page object created with the given page id
-func NewPage(pageId string) *Page {
-	p := &Page{corePageData: corePageData{PageId: pageId}}
-	p.Votes = make([]*Vote, 0)
-	p.Summaries = make(map[string]string)
-	p.CreatorIds = make([]string, 0)
-	p.CommentIds = make([]string, 0)
-	p.QuestionIds = make([]string, 0)
-	p.LensIds = make([]string, 0)
-	p.TaggedAsIds = make([]string, 0)
-	p.RelatedIds = make([]string, 0)
-	p.RequirementIds = make([]string, 0)
-	p.SubjectIds = make([]string, 0)
-	p.DomainIds = make([]string, 0)
-	p.ChangeLogs = make([]*ChangeLog, 0)
-	p.ChildIds = make([]string, 0)
-	p.ParentIds = make([]string, 0)
-	p.MarkIds = make([]string, 0)
-	p.DomainMembershipIds = make([]string, 0)
-	p.IndividualLikes = make([]string, 0)
-	p.Members = make(map[string]*Member)
-	p.Answers = make([]*Answer, 0)
-	p.SearchStrings = make(map[string]string)
-
-	// NOTE: we want permissions to be explicitly null so that if someone refers to them
-	// they get an error. The permissions are only set when they are also fully computed.
-	p.Permissions = nil
-	return p
-}
-
 // AddPageToMap adds a new page with the given page id to the map if it's not
 // in the map already.
 // Returns the new/existing page.
@@ -86,6 +56,16 @@ func AddUserToMap(userId string, userMap map[string]*User) *User {
 	u := &User{Id: userId}
 	userMap[userId] = u
 	return u
+}
+
+// Add a markId to the mark map if it's not there already.
+func AddMarkToMap(markId string, markMap map[string]*Mark) *Mark {
+	mark, ok := markMap[markId]
+	if !ok {
+		mark = &Mark{Id: markId}
+		markMap[markId] = mark
+	}
+	return mark
 }
 
 // PageIdsStringFromMap returns a comma separated string of all pageIds in the given map.
@@ -132,17 +112,21 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 	// brackets / parens.
 	// NOTE: each regexp should have two groups that captures stuff that comes before
 	// the alias, and then 0 or more groups that capture everything after
+	// NOTE: we have to be careful about capturing too much around the link, because
+	// if we do, the second link in `[alias] [alias]` won't get captured. For this reason
+	// we check for backtick only right at the end of the expression.
+	notInBackticks := "([^`]|$)"
 	regexps := []*regexp.Regexp{
 		// Find directly encoded urls
-		regexp.MustCompile("(/p(?:ages)?/)(" + AliasRegexpStr + ")"),
+		regexp.MustCompile("(/p/)(" + AliasRegexpStr + ")" + notInBackticks),
 		// Find ids and aliases using [alias optional text] syntax.
-		regexp.MustCompile("(\\[\\-?)(" + AliasRegexpStr + ")( [^\\]]*?)?(\\])([^(]|$)"),
+		regexp.MustCompile("(\\[[\\-\\+]?)(" + AliasRegexpStr + ")( [^\\]]*?)?(\\])([^(`]|$)"),
 		// Find ids and aliases using [text](alias) syntax.
-		regexp.MustCompile("(\\[[^\\]]+?\\]\\()(" + AliasRegexpStr + ")(\\))"),
+		regexp.MustCompile("(\\[[^\\]]+?\\]\\()(" + AliasRegexpStr + ")(\\))" + notInBackticks),
 		// Find ids and aliases using [vote: alias] syntax.
-		regexp.MustCompile("(\\[vote: ?)(" + AliasRegexpStr + ")(\\])"),
+		regexp.MustCompile("(\\[vote: ?)(" + AliasRegexpStr + ")(\\])" + notInBackticks),
 		// Find ids and aliases using [@alias] syntax.
-		regexp.MustCompile("(\\[@)(" + AliasRegexpStr + ")(\\])([^(]|$)"),
+		regexp.MustCompile("(\\[@)(" + AliasRegexpStr + ")(\\])([^(`]|$)"),
 	}
 	for _, exp := range regexps {
 		extractLinks(exp)
@@ -194,6 +178,36 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 	return text, nil
 }
 
+// Extract all links from the given page text.
+func ExtractPageLinks(text string, configAddress string) []string {
+	// NOTE: these regexps are waaaay too simplistic and don't account for the
+	// entire complexity of Markdown, like 4 spaces, backticks, and escaped
+	// brackets / parens.
+	linkMap := make(map[string]bool)
+	extractLinks := func(exp *regexp.Regexp) {
+		submatches := exp.FindAllStringSubmatch(text, -1)
+		for _, submatch := range submatches {
+			linkMap[submatch[1]] = true
+		}
+	}
+	// Find directly encoded urls
+	extractLinks(regexp.MustCompile(regexp.QuoteMeta(configAddress) + "/p(?:ages)?/(" + AliasRegexpStr + ")"))
+	// Find ids and aliases using [alias optional text] syntax.
+	extractLinks(regexp.MustCompile("\\[[\\-\\+]?(" + AliasRegexpStr + ")(?: [^\\]]*?)?\\](?:[^(]|$)"))
+	// Find ids and aliases using [text](alias) syntax.
+	extractLinks(regexp.MustCompile("\\[.+?\\]\\((" + AliasRegexpStr + ")\\)"))
+	// Find ids and aliases using [vote: alias] syntax.
+	extractLinks(regexp.MustCompile("\\[vote: ?(" + AliasRegexpStr + ")\\]"))
+	// Find ids and aliases using [@alias] syntax.
+	extractLinks(regexp.MustCompile("\\[@?(" + AliasRegexpStr + ")\\]"))
+
+	aliasesAndIds := make([]string, 0)
+	for alias, _ := range linkMap {
+		aliasesAndIds = append(aliasesAndIds, alias)
+	}
+	return aliasesAndIds
+}
+
 // UpdatePageLinks updates the links table for the given page by parsing the text.
 func UpdatePageLinks(tx *database.Tx, pageId string, text string, configAddress string) error {
 	// Delete old links.
@@ -203,26 +217,7 @@ func UpdatePageLinks(tx *database.Tx, pageId string, text string, configAddress 
 		return fmt.Errorf("Couldn't delete old links: %v", err)
 	}
 
-	// NOTE: these regexps are waaaay too simplistic and don't account for the
-	// entire complexity of Markdown, like 4 spaces, backticks, and escaped
-	// brackets / parens.
-	aliasesAndIds := make([]string, 0)
-	extractLinks := func(exp *regexp.Regexp) {
-		submatches := exp.FindAllStringSubmatch(text, -1)
-		for _, submatch := range submatches {
-			aliasesAndIds = append(aliasesAndIds, submatch[1])
-		}
-	}
-	// Find directly encoded urls
-	extractLinks(regexp.MustCompile(regexp.QuoteMeta(configAddress) + "/p(?:ages)?/(" + AliasRegexpStr + ")"))
-	// Find ids and aliases using [alias optional text] syntax.
-	extractLinks(regexp.MustCompile("\\[\\-?(" + AliasRegexpStr + ")(?: [^\\]]*?)?\\](?:[^(]|$)"))
-	// Find ids and aliases using [text](alias) syntax.
-	extractLinks(regexp.MustCompile("\\[.+?\\]\\((" + AliasRegexpStr + ")\\)"))
-	// Find ids and aliases using [vote: alias] syntax.
-	extractLinks(regexp.MustCompile("\\[vote: ?(" + AliasRegexpStr + ")\\]"))
-	// Find ids and aliases using [@alias] syntax.
-	extractLinks(regexp.MustCompile("\\[@?(" + AliasRegexpStr + ")\\]"))
+	aliasesAndIds := ExtractPageLinks(text, configAddress)
 	if len(aliasesAndIds) > 0 {
 		// Populate linkTuples
 		linkMap := make(map[string]bool) // track which aliases we already added to the list
@@ -345,7 +340,6 @@ func GetNewPageUrl(alias string) string {
 func CorrectPageType(pageType string) (string, error) {
 	pageType = strings.ToLower(pageType)
 	if pageType != WikiPageType &&
-		pageType != LensPageType &&
 		pageType != QuestionPageType &&
 		pageType != CommentPageType &&
 		pageType != GroupPageType &&
@@ -501,8 +495,6 @@ func LoadAllDomainIds(db *database.DB, pageMap map[string]*Page) ([]string, erro
 		}
 		return nil
 	})
-	// We also have a "" domain for pages with no domain.
-	domainIds = append(domainIds, "")
 	return domainIds, err
 }
 

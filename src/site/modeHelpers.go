@@ -12,12 +12,16 @@ import (
 const (
 	DefaultModeRowCount = 25
 
-	PageModeRowType       = "page"
-	CommentModeRowType    = "comment"
-	MarkModeRowType       = "mark"
-	QueryModeRowType      = "query"
-	LikesModeRowType      = "likes"
-	ReqsTaughtModeRowType = "reqsTaught"
+	PageModeRowType          = "page"
+	CommentModeRowType       = "comment"
+	MarkModeRowType          = "mark"
+	QueryModeRowType         = "query"
+	LikesModeRowType         = "likes"
+	ReqsTaughtModeRowType    = "reqsTaught"
+	DraftModeRowType         = "draft"
+	TaggedforEditModeRowType = "taggedForEdit"
+	MaintenanceUpdateRowType = "maintenanceUpdate"
+	NotificationRowType      = "notification"
 )
 
 type modeRowData struct {
@@ -65,6 +69,11 @@ type reqsTaughtModeRow struct {
 type pageModeRow struct {
 	modeRowData
 	PageId string `json:"pageId"`
+}
+
+type updateModeRow struct {
+	modeRowData
+	Update *core.UpdateEntry `json:"update"`
 }
 
 type ModeRows []modeRow
@@ -133,11 +142,11 @@ func loadCommentModeRows(db *database.DB, returnData *core.CommonHandlerData, li
 func loadMarkModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
 	modeRows := make(ModeRows, 0)
 	rows := database.NewQuery(`
-		SELECT id,type,IF(answeredAt="",resolvedAt,answeredAt)
+		SELECT id,type,IF(answered,answeredAt,resolvedAt)
 		FROM marks
 		WHERE creatorId=?`, returnData.User.Id).Add(`
 			AND resolvedAt!=""
-		ORDER BY 2 DESC
+		ORDER BY 3 DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var markId, markType, activityDate string
@@ -175,7 +184,7 @@ func loadLikesModeRows(db *database.DB, returnData *core.CommonHandlerData, limi
 		ON l.userId=u.id
 		WHERE pi.createdBy=?`, returnData.User.Id).Add(`
 			AND l.userId!=?`, returnData.User.Id).Add(`
-			AND l.value=1 
+			AND l.value=1
 		ORDER BY l.updatedAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -219,7 +228,7 @@ func loadLikesModeRows(db *database.DB, returnData *core.CommonHandlerData, limi
 }
 
 func loadChangeLikesModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
-	hedonsRowMap := make(map[int]*likesModeRow, 0)
+	hedonsRowMap := make(map[string]*likesModeRow, 0)
 
 	rows := database.NewQuery(`
 		SELECT l.userId,cl.pageId,l.updatedAt,cl.id,cl.pageId,cl.type,cl.oldSettingsValue,cl.newSettingsValue,cl.edit
@@ -326,18 +335,32 @@ func loadReqsTaughtModeRows(db *database.DB, returnData *core.CommonHandlerData,
 	return modeRows, nil
 }
 
-func loadHotPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+// Internal to this file
+func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int, pageInfoField string) (ModeRows, error) {
 	modeRows := make(ModeRows, 0)
 	pageLoadOptions := (&core.PageLoadOptions{
 		SubpageCounts: true,
 		AnswerCounts:  true,
 	}).Add(core.TitlePlusLoadOptions)
 
+	// For now, we want to only suggest pages in the math domain, or other domains you're explicitly
+	// subscribed to.
+	subscribedDomains := database.NewQuery(`
+		SELECT subs.toId
+		FROM subscriptions AS subs
+		JOIN pageInfos AS pi
+		ON subs.toId=pi.pageId
+		WHERE subs.userId=?`, returnData.User.Id).Add(`
+		AND pi.type=?`, core.DomainPageType)
+
 	rows := database.NewQuery(`
-		SELECT pageId,createdAt
+		SELECT DISTINCT pi.pageId, pi.`+pageInfoField+`
 		FROM`).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
-		WHERE pi.type IN (?,?,?,?)`, core.WikiPageType, core.LensPageType, core.DomainPageType, core.QuestionPageType).Add(`
-		ORDER BY createdAt DESC
+		JOIN pageDomainPairs AS pdp ON pi.pageId=pdp.pageId
+		WHERE pi.type IN (?,?,?)`, core.WikiPageType, core.DomainPageType, core.QuestionPageType).Add(`
+			AND pi.`+pageInfoField+`!=0
+			AND (pdp.domainId=?`, core.MathDomainId).Add(`OR pdp.domainId IN(`).AddPart(subscribedDomains).Add(`))
+		ORDER BY pi.`+pageInfoField+` DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId, activityDate string
@@ -358,4 +381,166 @@ func loadHotPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, l
 		return nil, err
 	}
 	return modeRows, nil
+}
+
+func loadFeaturedPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+	return loadReadPagesModeRows(db, returnData, limit, "featuredAt")
+}
+
+func loadNewPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+	return loadReadPagesModeRows(db, returnData, limit, "createdAt")
+}
+
+func loadDraftRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+	modeRows := make(ModeRows, 0)
+	pageLoadOptions := (&core.PageLoadOptions{
+		SubpageCounts: true,
+		AnswerCounts:  true,
+	}).Add(core.TitlePlusLoadOptions)
+
+	rows := database.NewQuery(`
+		SELECT p.pageId,p.title,p.createdAt,pi.currentEdit>0,pi.isDeleted
+		FROM pages AS p
+		JOIN`).AddPart(core.PageInfosTableAll(returnData.User)).Add(`AS pi
+		ON (p.pageId = pi.pageId)
+		WHERE p.creatorId=?`, returnData.User.Id).Add(`
+			AND pi.type!=?`, core.CommentPageType).Add(`
+			AND p.edit>pi.currentEdit AND (p.text!="" OR p.title!="")
+		GROUP BY p.pageId
+		ORDER BY p.createdAt DESC
+		LIMIT ?`, limit).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageId, title, createdAt string
+		var wasPublished, isDeleted bool
+		err := rows.Scan(&pageId, &title, &createdAt, &wasPublished, &isDeleted)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		row := &pageModeRow{
+			modeRowData: modeRowData{RowType: DraftModeRowType, ActivityDate: createdAt},
+			PageId:      pageId,
+		}
+		modeRows = append(modeRows, row)
+		core.AddPageToMap(pageId, returnData.PageMap, pageLoadOptions)
+
+		page := core.AddPageIdToMap(pageId, returnData.EditMap)
+		if title == "" {
+			title = "*Untitled*"
+		}
+		page.Title = title
+		page.EditCreatedAt = createdAt
+		page.WasPublished = wasPublished
+		page.IsDeleted = isDeleted
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return modeRows, nil
+}
+
+// Load pages that are tagged to be edited, such as with "Stub" or "Work in progress"
+func loadTaggedForEditRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+	modeRows := make(ModeRows, 0)
+	pageLoadOptions := (&core.PageLoadOptions{
+		SubpageCounts: true,
+		Tags:          true,
+		AnswerCounts:  true,
+	}).Add(core.TitlePlusLoadOptions)
+
+	// Tags that mean a page should be edited
+	tagsForEdit, err := core.LoadMetaTags(db, core.RequestForEditTagParentPageId)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load meta tags: %v", err)
+	}
+
+	rows := database.NewQuery(`
+		SELECT pi.pageId,p.createdAt
+		FROM pagePairs AS pp
+		JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
+		ON (pi.pageId=pp.childId)
+		JOIN pages AS p
+		ON (p.pageId = pi.pageId AND p.edit = pi.currentEdit)
+		WHERE pp.type=?`, core.TagPagePairType).Add(`
+			AND pp.parentId IN`).AddArgsGroupStr(tagsForEdit).Add(`
+			AND pi.createdBy=?`, returnData.User.Id).Add(`
+		GROUP BY pi.pageId
+		ORDER BY p.createdAt DESC
+		LIMIT ?`, limit).ToStatement(db).Query()
+	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageId, createdAt string
+		err := rows.Scan(&pageId, &createdAt)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		row := &pageModeRow{
+			modeRowData: modeRowData{RowType: TaggedforEditModeRowType, ActivityDate: createdAt},
+			PageId:      pageId,
+		}
+		modeRows = append(modeRows, row)
+		core.AddPageToMap(pageId, returnData.PageMap, pageLoadOptions)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return modeRows, nil
+}
+
+func loadMaintenanceUpdateRows(db *database.DB, u *core.CurrentUser, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+	return loadUpdateRows(db, u, returnData, limit, core.GetMaintenanceUpdateTypes())
+}
+
+func loadNotificationRows(db *database.DB, u *core.CurrentUser, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+	return loadUpdateRows(db, u, returnData, limit, core.GetNotificationUpdateTypes())
+}
+
+func loadAchievementUpdateRows(db *database.DB, u *core.CurrentUser, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+	return loadUpdateRows(db, u, returnData, limit, core.GetAchievementUpdateTypes())
+}
+
+func loadUpdateRows(db *database.DB, u *core.CurrentUser, returnData *core.CommonHandlerData, limit int, updateTypes []string) (ModeRows, error) {
+	modeRows := make(ModeRows, 0)
+
+	updateRows, err := core.LoadUpdateRows(db, u, returnData, false, updateTypes, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load updates: %v", err)
+	}
+
+	for _, ur := range updateRows {
+		modeRows = append(modeRows, getUpdateModeRowFromUpdateRow(ur))
+	}
+	return modeRows, nil
+}
+
+func getUpdateModeRowFromUpdateRow(updateRow *core.UpdateRow) *updateModeRow {
+	return &updateModeRow{
+		modeRowData: modeRowData{RowType: updateRow.Type, ActivityDate: updateRow.CreatedAt},
+		Update:      getUpdateEntryFromUpdateRow(updateRow),
+	}
+}
+
+func getUpdateEntryFromUpdateRow(row *core.UpdateRow) *core.UpdateEntry {
+	entry := &core.UpdateEntry{
+		Id:              row.Id,
+		UserId:          row.UserId,
+		ByUserId:        row.ByUserId,
+		Type:            row.Type,
+		SubscribedToId:  row.SubscribedToId,
+		GoToPageId:      row.GoToPageId,
+		IsGoToPageAlive: row.IsGoToPageAlive,
+		MarkId:          row.MarkId,
+		CreatedAt:       row.CreatedAt,
+		ChangeLog:       row.ChangeLog,
+		Seen:            row.Seen,
+	}
+	if entry.MarkId != "" {
+		entry.ByUserId = ""
+	}
+
+	return entry
+}
+
+func setUpdateModeRowIsVisited(modeRow *updateModeRow, pageMap map[string]*core.Page) {
+	modeRow.Update.IsVisited = pageMap != nil && modeRow.Update.CreatedAt < pageMap[modeRow.Update.GoToPageId].LastVisit
 }

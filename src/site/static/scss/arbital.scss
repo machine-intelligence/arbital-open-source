@@ -5,7 +5,7 @@
 
 body {
 	overflow-x: hidden;
-	background-color: whitesmoke;
+	background-color: $background-color;
 }
 
 // Fix we need to apply to the body for most pages (where content just scrolls down)
@@ -14,19 +14,42 @@ body {
 	height: auto;
 }
 
-.facebook-button {
-	background-color: #3b5998;
-	color: white;
+arb-signup {
+	md-input-container {
+		margin: 0;
+		width: 222px;
+	}
 
-	md-icon {
+	.centered-hr-text {
+		line-height: 0px;
+		text-align: center;
+		margin: 25px 10px;
+		color: #555;
+		font-weight: 500;
+		border-bottom: 1px solid #999;
+		padding: 0;
+		width: 270px;
+
+		span {
+			background: white;
+			padding: 0 10px;
+		}
+	}
+
+	.md-button.md-raised.facebook-button {
+		background-color: #3b5998;
 		color: white;
-	}
 
-	&:hover {
-		background-color: #8b9dc3 !important;
-	}
-	&:focus {
-		background-color: #8b9dc3 !important;
+		md-icon {
+			color: white;
+		}
+
+		&:hover {
+			background-color: #8b9dc3 !important;
+		}
+		&:focus {
+			background-color: #8b9dc3 !important;
+		}
 	}
 }
 
@@ -34,17 +57,44 @@ body {
 .beta-label {
 	position: relative;
 	font-size: 13px;
+	top: 16px;
 	left: -15px;
-	top: 20px;
-	color: #cccccc;
+	opacity: 0.6;
+}
+
+.math-background {
+	background-image: url("/static/images/math.png");
+	background-repeat: no-repeat;
+	background-size: 100%;
+}
+
+.short-button {
+	min-width: 0 !important;
+}
+
+.nice-blockquote {
+	border-left: lightgray 7px solid;
+	padding-left: 10px;
+	margin-left: 2px;
+	p {
+		padding: 10px 0;
+	}
+}
+
+// Applied to any item to center it with its container
+.centered-item {
+	// Center
+	position: relative;
+	left: 50%;
+	transform: translate(-50%, 0);
 }
 
 arb-markdown, [arb-markdown], .preview-area {
+	text-align: justify;
+
 	p {
 		margin-top: 0;
-		// Allow scrollbars when paragraphs (sometimes caused by long MathJax equations) don't fit on the screen
-		overflow-x: auto;
-		overflow-y: hidden;
+		overflow-wrap: break-word;
 
 		&:empty {
 			margin: 0;
@@ -52,6 +102,7 @@ arb-markdown, [arb-markdown], .preview-area {
 	}
 
 	img {
+		@extend .centered-item;
 		max-width: 100%;
 	}
 
@@ -65,12 +116,7 @@ arb-markdown, [arb-markdown], .preview-area {
 	}
 
 	blockquote {
-		border-left: lightgray 7px solid;
-		padding-left: 10px;
-		margin-left: 2px;
-		p {
-			padding: 10px 0;
-		}
+		@extend .nice-blockquote;
 	}
 
 	& > :last-child {
@@ -80,7 +126,7 @@ arb-markdown, [arb-markdown], .preview-area {
 
 // Where the preview for the editor goes
 .preview-area {
-	padding: 0 15px;
+	padding: 0 15px 40vh;
 	background-color: white;
 
 	.editor-block {
@@ -102,6 +148,8 @@ arb-markdown, [arb-markdown], .preview-area {
 
 // Cap the width of some pages, so they look nicer
 .capped-body-width {
+	padding-bottom: 100px;
+
 	&, & #footer {
 		display: block;
 		margin-left: auto;
@@ -123,9 +171,6 @@ arb-markdown, [arb-markdown], .preview-area {
 	}
 	arb-dashboard-page > & {
 		max-width: 1100px;
-	}
-	arb-signup > & {
-		max-width: 560px;
 	}
 	arb-login > & {
 		max-width: 560px;
@@ -151,12 +196,89 @@ arb-markdown, [arb-markdown], .preview-area {
 	arb-admin-dashboard-page > & {
 		max-width: 900px;
 	}
-	arb-read-mode-panel > & {
-		max-width: 900px;
-	}
 	arb-newsletter > & {
 		max-width: 900px;
 	}
+	arb-explore-page > & {
+		max-width: 1100px;
+	}
+}
+
+.toolbar-update-icon {
+	opacity: 0.5;
+
+	&.on {
+		opacity: 1.0;
+	}
+
+	&.selected {
+		opacity: 1.0;
+		color: rgba(255,255,255,1) !important;
+	}
+}
+
+.toolbar-update-count {
+	position: relative;
+	left: -14px;
+	top: -8px;
+	padding: 2px 3px;
+	background-color: $accent-hue-3;
+	color: rgba(255,255,255,1);
+	font-size: 12px;
+	border-radius: 2px;
+}
+
+.md-button.md-icon-button.remove-extra-space {
+	padding: 0 !important;
+	min-height: 0px;
+}
+
+.md-button.md-icon-button.s20 {
+	height: 20px;
+	width: 20px;
+
+	md-icon {
+		font-size: 20px;
+		height: 20px;
+		width: 20px;
+	}
+}
+
+.md-button.md-icon-button.s24 {
+	height: 24px;
+	width: 24px;
+
+	md-icon {
+		font-size: 24px;
+		height: 24px;
+		width: 24px;
+	}
+}
+
+arb-update-row,
+.dense-panel {
+	.md-button.expand-button {
+		margin-left: -8px;
+		margin-top: -4px;
+	}
+
+	.update-row-guts,
+	.expand-button-container {
+		min-height: 32px;
+	}
+
+	.md-button.dismiss-button {
+		margin-right: -4px;
+		margin-top: -4px;
+		margin-left: 8px;
+	}
+}
+
+.chip {
+	border: 1px solid #ccc;
+	border-radius: 20px;
+	color: #888 !important;
+	padding: 2px 6px;
 }
 
 .discussion-container {
@@ -188,6 +310,7 @@ arb-markdown, [arb-markdown], .preview-area {
 
 .next-prev-nav {
 	min-height: 50px;
+	padding: 0 10px;
 }
 
 // Hack to allow us to use 100% height inside dynamic-view
@@ -213,7 +336,7 @@ $toolbar-height: 64px;
 
 // Added to updates that the user hasn't seen yet
 .unseen-update {
-	border-left: $primary-hue-1 5px solid;
+	background: $primary-hue-1;
 }
 
 // MailChimp signup form
@@ -235,6 +358,23 @@ $toolbar-height: 64px;
 	height: auto;
 	white-space: normal;
 	line-height: 20px;
+}
+
+md-toolbar {
+	md-autocomplete {
+		::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+			color: rgba(255,255,255,0.5);
+		}
+		::-moz-placeholder { /* Firefox 19+ */
+			color: rgba(255,255,255,0.5);
+		}
+		:-ms-input-placeholder { /* IE 10+ */
+			color: rgba(255,255,255,0.5);
+		}
+		:-moz-placeholder { /* Firefox 18- */
+			color: rgba(255,255,255,0.5);
+		}
+	}
 }
 
 // Voting bar
@@ -375,11 +515,40 @@ a:not(.md-button) {
 				color: $warn-hue-3;
 			}
 		}
+	}
+}
 
-		// Helper for coloring [ red text] links.
-		&.red-todo-text {
-			background-color: #ffdddd;
-		};
+.support-visited-links {
+	a:not(.md-button) {
+		&[page-id], &[user-id] {
+			&:visited {
+				color: $primary-hue-3;
+			}
+		}
+	}
+}
+
+#index-header {
+	box-shadow: 0 1px 3px -3px rgba(0,0,0,.2),0 1px 1px 0 rgba(0,0,0,.14),0 2px 1px -1px rgba(0,0,0,.12);
+	position: relative;
+	top: 0px;
+
+	background: $primary-hue-3;
+	color: white !important;
+	padding: 5px 10px 10px;
+	z-index: 2;
+
+	span {
+		opacity: 0.7;
+	}
+
+	a {
+		color: white !important;
+		font-weight: bold;
+	}
+
+	.comma {
+		margin-left: -4px;
 	}
 }
 
@@ -387,6 +556,11 @@ a:not(.md-button) {
 	font-size: 12px;
 	opacity: 0.5;
 	margin-top: 12px;
+
+	a {
+		color: rgba(0,0,0,0.87);
+		text-decoration: underline;
+	}
 }
 
 .edit-page-dialog {
@@ -408,11 +582,12 @@ a:not(.md-button) {
 .feedback-textarea {
 	width: 40vw;
 	height: 50vh;
+	min-width: 300px;
 }
 
 arb-likes, .likes-in-autocomplete {
-	white-space: nowrap;
 	margin: 0 10px 0 0;
+	white-space: nowrap;
 
 	// The thumbs icon
 	.like-icon {
@@ -421,8 +596,14 @@ arb-likes, .likes-in-autocomplete {
 		margin-right: 2px !important;
 	}
 
-	// Number of likes
-	.like-count {
+	.short-button, .icon-likes {
+		// Number of likes
+		.like-count {
+			color: #666;
+			font-weight: normal;
+			// Make room for two digits
+			min-width: 16px;
+		}
 	}
 }
 
@@ -449,15 +630,39 @@ arb-requisite-button, [arb-requisite-button] {
 	}
 }
 
-// Menu for a lens (with like, subscribe, edit, etc. buttons)
 .lens-menu {
-	padding: 5px 0;
+	arb-likes {
+		margin: 0;
+	}
+}
+
+.lens-menu-floating {
+	position: fixed;
+	bottom: 0;
+	background: white;
+	width: inherit;
+	left: 50%;
+	transform: translateX(-50%);
+	-webkit-transition: .3s linear;
+	-moz-transition: .3s linear;
+	-o-transition: .3s linear;
+	transition: .3s linear;
+}
+
+.lens-menu-floater-hidden {
+		transform: translate(-50%, 100%);
+}
+
+md-toast {
+	md-icon {
+		color: white;
+	}
 }
 
 @media (max-width: 599px) {
 	$lens-padding: 5px;
 	.lens-text-container {
-		padding: 10px $lens-padding 20px;
+		padding: 20px $lens-padding 20px;
 		font-size: 16px;
 		line-height: 20px;
 	}
@@ -471,11 +676,17 @@ arb-requisite-button, [arb-requisite-button] {
 		padding-right: $lens-padding;
 		box-sizing: border-box;
 	}
+	.hidden-text {
+		margin-left: 0 - $lens-padding;
+		margin-right: 0 - $lens-padding;
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
+	}
 }
 @media (min-width: 600px) and (max-width: 959px) {
 	$lens-padding: 50px;
 	.lens-text-container {
-		padding: 10px $lens-padding 20px;
+		padding: 20px $lens-padding 20px;
 		font-size: 18px;
 		line-height: 22px;
 	}
@@ -489,11 +700,17 @@ arb-requisite-button, [arb-requisite-button] {
 		padding-right: $lens-padding;
 		box-sizing: border-box;
 	}
+	.hidden-text {
+		margin-left: 0 - $lens-padding;
+		margin-right: 0 - $lens-padding;
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
+	}
 }
 @media (min-width: 960px) and (max-width: 1099px) {
 	$lens-padding: 90px;
 	.lens-text-container {
-		padding: 30px $lens-padding 60px;
+		padding: 20px $lens-padding 60px;
 		font-size: 18px;
 		line-height: 26px;
 	}
@@ -507,11 +724,17 @@ arb-requisite-button, [arb-requisite-button] {
 		padding-right: $lens-padding;
 		box-sizing: border-box;
 	}
+	.hidden-text {
+		margin-left: 0 - $lens-padding;
+		margin-right: 0 - $lens-padding;
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
+	}
 }
 @media (min-width: 1100px) {
 	$lens-padding: 100px;
 	.lens-text-container {
-		padding: 40px $lens-padding 80px;
+		padding: 20px $lens-padding 80px;
 		font-size: 18px;
 		line-height: 30px;
 	}
@@ -524,6 +747,12 @@ arb-requisite-button, [arb-requisite-button] {
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
 		box-sizing: border-box;
+	}
+	.hidden-text {
+		margin-left: 0 - $lens-padding;
+		margin-right: 0 - $lens-padding;
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
 	}
 }
 
@@ -544,28 +773,58 @@ arb-requisite-button, [arb-requisite-button] {
 
 // Text inside a popover
 .popover-text-container {
-	font-size: 18px;
-	line-height: 24px;
+	font-size: 15px;
+	line-height: 22px;
 }
 
 // Intrasite popover
-arb-intrasite-popover {
+arb-intrasite-popover, arb-user-popover, arb-text-popover {
 	position: absolute;
+	background: white;
 	z-index: $popoverZ;
+
+	.intrasite-popover-title {
+		font-size: 18px;
+		padding-bottom: 10px;
+		padding-top: 12px;
+		font-weight: 500;
+	}
 }
 
-// User popover
-arb-user-popover {
-	position: absolute;
-	z-index: $popoverZ;
+arb-text-popover {
+	border: 2px solid $primary-hue-1;
+	border-radius: 5px;
+	box-shadow: 0 6px 6px -3px rgba(224,242,241,0.4),
+		0 10px 14px 1px rgba(224,242,241,0.4),
+		0 4px 18px 3px rgba(224,242,241,0.4);
+}
+
+arb-intrasite-popover {
+	border: 3px solid $primary-hue-2;
+
+	box-shadow: 0 6px 6px -3px rgba(0,96,88,0.25),
+		0 10px 14px 1px rgba(0,96,88,0.25),
+		0 4px 18px 3px rgba(0,96,88,0.25);
+
+	md-tabs-wrapper {
+		md-tabs-canvas,
+		md-pagination-wrapper {
+			height: 31px;
+		}
+
+		.md-tab {
+			line-height: 6px;
+		}
+	}
 }
 
 .popover-tab-body {
 	max-height: 32vh;
-}
 
-.popover-body {
-	background-color: whitesmoke;
+	&.toolbarless-version {
+		padding: 10px;
+		overflow-y: auto;
+	}
 }
 
 $triangle-size: 15px;
@@ -580,6 +839,10 @@ $triangle-size: 15px;
 		border-left: $triangle-size solid transparent;
 		border-right: $triangle-size solid transparent;
 		border-bottom: $triangle-size solid $primary-color;
+
+		&.toolbarless-version {
+			border-bottom: $triangle-size solid whitesmoke;
+		}
 	}
 }
 
@@ -594,6 +857,16 @@ $triangle-size: 15px;
 		border-left: $triangle-size solid transparent;
 		border-right: $triangle-size solid transparent;
 		border-top: $triangle-size solid whitesmoke;
+
+		&.toolbarless-version {
+			border-top: $triangle-size solid whitesmoke;
+		}
+	}
+}
+
+.vertical-layout-padding {
+	> * {
+		margin-top: 16px;
 	}
 }
 
@@ -609,7 +882,7 @@ $triangle-size: 15px;
 	position: fixed;
 	left: 0;
 	bottom: 0;
-	width: 0;
+	width: 100vw;
 	height: 0;
 	overflow: visible;
 	z-index: $fixedOverlayZ;
@@ -626,8 +899,8 @@ $triangle-size: 15px;
 // Compose fab that appears in the bottom right corner
 arb-compose-fab {
 	position: fixed;
-	right: 0;
-	bottom: 0;
+	right: -14px;
+	bottom: -18px;
 	z-index: $composeFabZ;
 }
 
@@ -671,31 +944,22 @@ ins {
 	background-color: white;
 }
 
-.page-tabs {
-	margin-top: 15px;
+.page-tabs,
+.tab-panel-header {
+	.md-button {
+		border-radius: 0;
 
-	& > .page-tabs-holder {
-		//background-color: white !important;
-		border-bottom: $primary-hue-2 2px solid;
-
-		& > .md-button {
-			padding: 5px 35px;
-			color: $primary-hue-2 !important;
-			md-icon {
-				color: $primary-hue-2 !important;
-			}
-
-			&.active-tab {
-				background-color: $primary-hue-1;
-				border: $primary-hue-2 2px solid;
-				border-bottom: none;
-				border-radius: 0;
-			}
+		&.active-tab {
+			background-color: $primary-color !important;
+			color: white !important;
+			border-bottom: none;
 		}
 	}
+}
 
-	& > .page-lens-body {
-		overflow: hidden;
+.page-tabs {
+	.md-button {
+		padding: 5px 35px;
 	}
 }
 
@@ -774,6 +1038,12 @@ textarea {
 	padding: 10px 20px 0px 20px;
 }
 
+.publishing-options-panel {
+	padding: 10px 20px 0px 20px;
+	background-color: white;
+	border-top: #00796B 5px solid;
+}
+
 // Highlight subpages when they are selected
 .selected-subpage > .comment-header {
 	background-color: $accent-hue-1;
@@ -810,6 +1080,11 @@ textarea {
 
 	.rhs-button {
 		margin: 5px 5px 0px 0px !important;
+	}
+
+	.rhs-dropdown-button {
+		width: 100%;
+		text-align: left;
 	}
 }
 
@@ -963,4 +1238,327 @@ arb-log-row, [arb-log-row] {
 	.md-button {
 		margin-right: 15px;
 	}
+}
+
+.explore-bullet {
+	position: relative;
+	left: 8px;
+	min-width: 40px;
+	color: lightgray;
+}
+
+.explore-page-div {
+	margin-top: 10px;
+}
+
+.explore-children-div {
+	border-left: lightgray 4px solid;
+	padding-left: 10px;
+	margin-left: 16px;
+}
+
+[arb-hidden-text] {
+	margin-bottom: 15px;
+
+	& button {
+		@extend .centered-item;
+	}
+}
+
+.hidden-text {
+	margin-top: 10px;
+	padding-top: 15px;
+	padding-bottom: 5px;
+}
+
+.hidden-text,
+.expand-tray {
+	background-color: whitesmoke;
+	box-shadow: inset 0 4px 3px -3px rgba(0,0,0,.2), inset 0 -4px 3px -3px rgba(0,0,0,.14);
+}
+
+.markdown-note {
+	display: inline-block;
+	position: relative;
+	top: -5px;
+	background-color: $primary-hue-1;
+	min-width: 20px;
+	text-align: center;
+	font-weight: 500;
+	color: #666;
+	box-shadow: 0 4px 6px -2px rgba(0,0,0,0.25);
+	border-radius: 15px;
+	cursor: pointer;
+	line-height: 20px;
+	font-size: 15px;
+}
+
+arb-list-sub-header,
+arb-explanation-request-row {
+	color: #444;
+
+	.explanation-text {
+		line-height: 38px;
+
+		.expanded-list {
+			line-height: normal;
+		}
+	}
+}
+
+.expand-icon {
+	transition: all 500ms ease;
+}
+
+.expand-icon-closed {
+	-webkit-transform: rotate(-90deg);
+}
+
+.md-button.icon-first,
+md-icon.icon-first {
+	margin-left: -12px;
+}
+
+.md-button.icon-last,
+.md-icon.icon-last {
+	margin-right: -12px;
+}
+
+.md-icon.s24 {
+	width: 24px;
+	height: 24px;
+}
+
+arb-likes.s20 {
+	margin-right: 0px;
+
+	md-icon {
+		width: 20px;
+		height: 20px;
+	}
+
+	.like-icon {
+		min-width: 20px;
+		font-size: 20px;
+		margin-right: 0px !important;
+	}
+}
+
+arb-likes.tiny {
+	line-height: 5px;
+	width: 14px;
+	height: 14px;
+
+	.md-button {
+		line-height: 5px;
+		min-height: 0px;
+		min-width: 0px;
+		font-size: 12px;
+	}
+
+	md-icon {
+		width: 14px;
+		height: 14px;
+		min-width: 0px;
+		margin-right: 0px !important;
+	}
+}
+
+.page-row {
+	& .page-row-caption {
+			min-width: 0px;
+			overflow: hidden;
+		text-overflow: ellipsis;
+			white-space: nowrap;
+	}
+
+	& .page-row-metadata {
+		div + div:before {
+				content: "|";
+			padding: 0 10px
+			}
+	}
+}
+
+.dense-panel {
+	font-size: 14px;
+	md-toolbar {
+		min-height: 0px;
+	}
+}
+
+.list-panel {
+	.expand-tray {
+		margin-left: -16px;
+		padding-left: 16px;
+		margin-right: -16px;
+		padding-right: 16px;
+		margin-bottom: -3px;
+		padding-bottom: 20px;
+	}
+}
+
+.dense-panel,
+.popover-panel {
+	arb-user-name,
+	arb-page-title {
+		a {
+			font-weight: 500;
+			color: black !important;
+		}
+	}
+	md-list-item {
+		padding-left: 16px !important;
+	}
+
+	.expand-tray {
+		margin-left: -16px;
+		padding-left: 16px;
+		margin-right: -16px;
+		padding-right: 16px;
+		margin-bottom: -3px;
+		padding-bottom: 20px;
+	}
+}
+
+.tiny-panel {
+	md-list-item {
+		padding-left: 6px !important;
+		padding-right: 6px !important;
+	}
+}
+
+.expand-tray {
+	padding-top: 10px;
+}
+
+
+
+.popover-panel {
+	margin-top: 12px;
+
+	md-list {
+		height: 400px;
+		overflow-y: scroll;
+	}
+	md-card {
+		margin: 0px;
+	}
+	width: 600px;
+}
+
+
+.popover-panel:before {
+	box-shadow: inherit;
+}
+
+// BEGIN STYLES FOR POPOVER TRIANGLES
+.popover-panel:before,
+.popover-panel:after {
+	content: '';
+	display: block;
+	position: absolute;
+	width: 15px;
+	height: 15px;
+	background: #fff;
+	-webkit-transform: rotate(45deg);
+	-moz-transform: rotate(45deg);
+	-ms-transform: rotate(45deg);
+	-o-transform: rotate(45deg);
+	transform: rotate(45deg);
+	z-index: -1;
+}
+
+.popover-panel.arrow-top:before,
+.popover-panel.arrow-top:after {
+	bottom: 100%;
+	right: 13px;
+	margin-bottom: -8px;
+	border-bottom: 0;
+	border-right: 0;
+}
+// END STYLES FOR POPOVER PANEL TRIANGLES
+
+.list-panel {
+	& md-list-item {
+		margin: 0px !important;
+		min-height: 42px !important;
+		padding-top: 3px !important;
+		padding-bottom: 3px !important;
+	}
+
+	.update-primary-row {
+		min-height: 39px;
+	}
+
+	& div {
+		min-width: 0px;
+	}
+
+	md-divider {
+		border-top-color: rgba(0,0,0,0.04);
+	}
+
+	max-width: 900px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.tab-panel-header {
+	border-bottom: $primary-color 3px solid;
+}
+
+.tab-panel-title {
+	font-size: 25px;
+	margin-left: 5px;
+}
+
+.tab-panel-tab {
+	box-shadow: none !important;
+	border-radius: 0 !important;
+
+	&:not(.md-primary) {
+		background-color: white !important;
+	}
+}
+
+.mathjax-div {
+	// Copied from .MathJax_Display
+	margin: 1em 0;
+}
+
+.query-info-button-div {
+	min-width: 200px !important;
+}
+
+arb-page-improvement, [arb-page-improvement] {
+
+	.improvement-header {
+		background-color: $accent-hue-1;
+		padding: 5px 20px;
+	}
+
+	.improvement-body {
+		padding: 10px 20px;
+		font-size: 16px;
+		line-height: 18px;
+	}
+
+	.improvement-column {
+		margin-bottom: 10px;
+	}
+
+	.improvement-column + .improvement-column {
+		margin-left: 40px;
+	}
+
+	ul {
+		margin: 0;
+		margin-top: 5px;
+		padding-left: 30px;
+	}
+}
+
+.edit-page-lens-row {
+	padding: 15px 10px;
 }

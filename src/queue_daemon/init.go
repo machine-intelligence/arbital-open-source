@@ -38,19 +38,23 @@ func processTask(c sessions.Context) error {
 	taskPrototypes := []tasks.QueueTask{
 		tasks.AtMentionUpdateTask{},
 		tasks.CheckAnsweredMarksTask{},
+		tasks.DomainWideNewUpdateTask{},
 		tasks.EmailUpdatesTask{},
 		tasks.FixTextTask{},
 		tasks.MemberUpdateTask{},
 		tasks.NewUpdateTask{},
 		tasks.PopulateElasticTask{},
 		tasks.PropagateDomainTask{},
+		tasks.PublishPagePairTask{},
 		tasks.ResetPasswordsTask{},
 		tasks.SendFeedbackEmailTask{},
 		tasks.SendInviteTask{},
 		tasks.SendOneEmailTask{},
 		tasks.TickTask{},
 		tasks.UpdateElasticPageTask{},
+		tasks.UpdateFeaturedPagesTask{},
 		tasks.UpdateMetadataTask{},
+		tasks.UpdatePagePairsTask{},
 	}
 	taskPrototypeMap := make(map[string]tasks.QueueTask)
 	for _, prototype := range taskPrototypes {
@@ -121,6 +125,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	err = tasks.Enqueue(c, &checkMarksTask, &tasks.TaskOptions{Name: checkMarksTask.Tag()})
 	if err != nil {
 		c.Debugf("CheckAnsweredMarksTask enqueue error: %v", err)
+	}
+	var updateFeaturedPagesTask tasks.UpdateFeaturedPagesTask
+	err = tasks.Enqueue(c, &updateFeaturedPagesTask, &tasks.TaskOptions{Name: updateFeaturedPagesTask.Tag()})
+	if err != nil {
+		c.Debugf("UpdateFeaturedPagesTask enqueue error: %v", err)
 	}
 
 	for true {

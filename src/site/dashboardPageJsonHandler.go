@@ -157,14 +157,13 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.CurrentUser) error {
 
-	// Load number of wiki pages, lens pages, and comments created by this user
+	// Load number of wiki pages and comments created by this user
 	rows := database.NewQuery(`
 		SELECT pi.type,COUNT(*)
 		FROM `).AddPart(core.PageInfosTable(u)).Add(` AS pi
 		WHERE pi.createdBy=?
 		GROUP BY pi.type`, u.Id).ToStatement(db).Query()
 	resultMap["numWikiPages"] = 0
-	resultMap["numLensPages"] = 0
 	resultMap["numComments"] = 0
 	resultMap["numQuestions"] = 0
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -177,8 +176,6 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 		switch pageType {
 		case core.WikiPageType:
 			resultMap["numWikiPages"] = count
-		case core.LensPageType:
-			resultMap["numLensPages"] = count
 		case core.CommentPageType:
 			resultMap["numComments"] = count
 		case core.QuestionPageType:
@@ -190,7 +187,7 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 		return err
 	}
 
-	// Load number of likes on wiki pages, lens pages, and comments created by this user
+	// Load number of likes on wiki pages and comments created by this user
 	rows = database.NewQuery(`
 		SELECT pi.type,COUNT(*)
 		FROM `).AddPart(core.PageInfosTable(u)).Add(` AS pi
@@ -208,8 +205,6 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 		switch pageType {
 		case core.WikiPageType:
 			resultMap["wikiLikes"] = count
-		case core.LensPageType:
-			resultMap["lensLikes"] = count
 		case core.CommentPageType:
 			resultMap["commentLikes"] = count
 		case core.QuestionPageType:

@@ -1,0 +1,42 @@
+<div layout="row" layout-align="start center">
+	<div layout="row" layout-align="start center" flex>
+		<div>
+			<!-- a user -->
+			<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
+
+			<!-- changed a setting -->
+			<span ng-switch="::update.changeLog.type">
+				<span ng-switch-when="newAlias">changed the alias for</span>
+				<span ng-switch-when="newSortChildrenBy">changed the sort order for children of</span>
+				<span ng-switch-when="setVoteType">changed the vote type for</span>
+				<span ng-switch-when="newEditGroup">changed the edit group for</span>
+				<span ng-switch-when="lensOrderChanged">changed the lens order for</span>
+				<span ng-switch-when="turnOnVote">turned on the vote bar for</span>
+				<span ng-switch-when="turnOffVote">turned off the vote bar for</span>
+				<span ng-switch-when="searchStringChange">
+					<span ng-if="::update.changeLog.newSettingsValue">added <i>{{::update.changeLog.newSettingsValue}}</i></span>
+					<span ng-if="::update.changeLog.oldSettingsValue">removed <i>{{::update.changeLog.oldSettingsValue}}</i></span>
+					as a search string for
+				</span>
+			</span>
+
+			<!-- on a page -->
+			<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
+
+			<!-- here's what changed -->
+			<span ng-switch="::update.changeLog.type">
+				<span ng-switch-when="turnOnVote" />
+				<span ng-switch-when="turnOffVote" />
+				<span ng-switch-default ng-if="::update.changeLog.oldSettingsValue || update.changeLog.newSettingsValue">
+					from <i>{{::update.changeLog.oldSettingsValue || "none"}}</i>
+					to <i>{{::update.changeLog.newSettingsValue || "none"}}</i>
+				</span>
+				<span ng-switch-when="searchStringChange" />
+			</span>
+			<arb-update-timestamp></arb-update-timestamp>
+		</div>
+	</div>
+
+	<arb-update-row-like-button></arb-update-row-like-button>
+	<arb-update-row-dismiss-button></arb-update-row-dismiss-button>
+</div>

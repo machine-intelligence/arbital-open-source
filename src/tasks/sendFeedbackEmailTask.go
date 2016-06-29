@@ -44,8 +44,8 @@ func (task SendFeedbackEmailTask) Execute(db *database.DB) (delay int, err error
 		return
 	}
 
-	c.Debugf("==== SEND FEEDBACK START ====")
-	defer c.Debugf("==== SEND FEEDBACK COMPLETED ====")
+	c.Infof("==== SEND FEEDBACK START ====")
+	defer c.Infof("==== SEND FEEDBACK COMPLETED ====")
 
 	if sessions.Live {
 		// Create mail message
@@ -68,7 +68,7 @@ func (task SendFeedbackEmailTask) Execute(db *database.DB) (delay int, err error
 	}
 
 	c.Inc("feedback_send_success")
-	c.Debugf("Feedback sent!")
+	c.Infof("Feedback sent!")
 
 	return
 }

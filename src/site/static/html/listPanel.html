@@ -1,25 +1,140 @@
-<md-card ng-class="{'capped-body-width': isFullPage}" ng-if="modeRows.length != 0">
+<div class='list-panel md-whiteframe-1dp white-background'
+		ng-class="{
+				'dense-panel': !isFullPage || (allowDense && arb.stateService.isSmallScreen),
+				'tiny-panel': allowDense && arb.stateService.isSmallScreen
+			}"
+		ng-if="modeRows && modeRows.length != 0">
 	<!-- Header -->
-	<md-toolbar class="md-hue-2" ng-if="::title">
+	<md-toolbar class="md-hue-2" ng-if="::title && isFullPage">
 		<div class="md-toolbar-tools">
-			<span ng-bind="::title" flex ng-if="::isFullPage"></span>
-			<a ng-bind="::title" ng-href="{{::moreLink}}" flex ng-if="::!isFullPage"></a>
+			<span ng-bind="::title"></span>
 		</div>
 	</md-toolbar>
 
 	<!-- List of mode rows -->
-	<md-list class="ng-scope">
-		<md-list-item ng-repeat="modeRow in modeRows | orderBy:'-activityDate' | limitTo:numToDisplay track by $index"
+	<md-list class="full-height prevent-scroll-leak">
+		<md-list-item ng-repeat="(index, modeRow) in modeRows | orderBy:'-activityDate' | limitTo:numToDisplay"
 				class="panel-list-item"
-				ng-class="{'unseen-update': modeRow.activityDate > lastView}">
+				ng-class="{'unseen-update': modeRow.activityDate > lastView || (modeRow.update && !modeRow.update.seen)}">
 
 			<div ng-switch="::modeRow.rowType" flex>
-				<arb-page-row page-id="{{::modeRow.pageId}}" ng-switch-when="page"></arb-page-row>
-				<arb-likes-mode-row mode-row="modeRow" ng-switch-when="likes"></arb-likes-mode-row>
-				<arb-reqs-taught-mode-row mode-row="modeRow" ng-switch-when="reqsTaught"></arb-reqs-taught-mode-row>
+				<arb-page-row page-id="{{::modeRow.pageId}}"
+						show-created-at="true"
+						ng-switch-when="page"></arb-page-row>
+
+				<!-- bell updates -->
+				<div ng-switch-when="topLevelComment"
+						arb-comment-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="reply"
+						arb-comment-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="pageToDomainSubmission"
+						arb-page-to-domain-submission-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="atMention"
+						arb-at-mention-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="newMark"
+						arb-mark-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="answeredMark"
+						arb-mark-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="resolvedMark"
+						arb-mark-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="resolvedThread"
+						arb-resolved-thread-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
+
+
+				<!-- achievements -->
+				<arb-likes-mode-row mode-row="::modeRow"
+						ng-switch-when="likes"></arb-likes-mode-row>
+				<arb-reqs-taught-mode-row mode-row="::modeRow"
+						ng-switch-when="reqsTaught"></arb-reqs-taught-mode-row>
+				<arb-added-to-group-mode-row mode-row="::modeRow"
+						ng-switch-when="addedToGroup"></arb-added-to-group-mode-row>
+				<arb-removed-from-group-mode-row mode-row="::modeRow"
+						ng-switch-when="removedFromGroup"></arb-removed-from-group-mode-row>
+				<arb-invite-received-mode-row mode-row="::modeRow"
+						ng-switch-when="inviteReceived"></arb-invite-received-mode-row>
+
+				<div ng-switch-when="pageToDomainAccepted"
+						arb-page-to-domain-accepted-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="editProposalAccepted"
+						arb-edit-proposal-accepted-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
+
+
+				<!-- maintenance updates -->
+				<div ng-switch-when="pageEdit"
+						arb-page-edit-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="pageEditProposal"
+						arb-page-edit-proposal-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="questionMerged"
+						arb-question-merged-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="questionMergedReverse"
+						arb-question-merged-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="changeLog" ng-switch="::getChangeLogCategory(modeRow.update.changeLog.type)">
+					<div ng-switch-when="relationship"
+							arb-relationship-update-row
+							update="::modeRow.update"
+							on-dismiss="dismissRow(modeRows, index)"></div>
+
+					<div ng-switch-when="settings"
+							arb-settings-update-row
+							update="::modeRow.update"
+							on-dismiss="dismissRow(modeRows, index)"></div>
+
+					<div ng-switch-when="deletedPage"
+							arb-deleted-page-update-row
+							update="::modeRow.update"
+							on-dismiss="dismissRow(modeRows, index)"></div>
+
+					<div ng-switch-default class="md-warn">
+						unknown activity type: {{::modeRow.update.changeLog.type}}
+					</div>
+				</div>
+
+
 				<div arb-mark-info mark-id="{{::modeRow.markId}}" ng-switch-when="mark"></div>
 				<div arb-query-info mark-id="{{::modeRow.markId}}" ng-switch-when="query"></div>
-				<arb-comment-mode-row mode-row="modeRow" ng-switch-when="comment"></arb-discussion-mode-row>
+				<arb-comment-mode-row mode-row="::modeRow" ng-switch-when="comment"></arb-comment-mode-row>
+				<arb-draft-row mode-row="::modeRow" ng-switch-when="draft"></arb-draft-row>
+				<arb-tagged-for-edit-row mode-row="::modeRow" ng-switch-when="taggedForEdit"></arb-tagged-for-edit-row>
 			</div>
 
 			<md-divider ng-if="::!$last"></md-divider>
@@ -27,16 +142,9 @@
 	</md-list>
 
 	<!-- Footer -->
-	<md-toolbar layout="row"
-			layout-align="end center"
-			class="layout-align-end-center layout-row list-panel-footer md-hue-1"
-			ng-if="moreLink && modeRows.length > numToDisplay">
-		<div class="md-toolbar-tools">
-			<div flex></div>
-			<md-button ng-href="{{::moreLink}}">
-				See more
-				<md-icon>arrow_forward</md-icon>
-			</md-button>
-		</div>
-	</md-toolbar>
-</md-card>
+	<div layout="column" ng-if="moreLink && !isFullPage">
+		<md-button class="md-primary md-raised md-hue-1" ng-href="{{::moreLink}}">
+			See all
+		</md-button>
+	</div>
+</div>

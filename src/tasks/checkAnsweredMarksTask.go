@@ -36,8 +36,8 @@ func (task CheckAnsweredMarksTask) Execute(db *database.DB) (delay int, err erro
 		return -1, err
 	}
 
-	c.Debugf("==== CHECK ANSWERED MARK START ====")
-	defer c.Debugf("==== CHECK ANSWERED MARK COMPLETED ====")
+	c.Infof("==== CHECK ANSWERED MARK START ====")
+	defer c.Infof("==== CHECK ANSWERED MARK COMPLETED ====")
 
 	markIds := make([]string, 0)
 	markMap := make(map[string]bool)
@@ -69,7 +69,6 @@ func (task CheckAnsweredMarksTask) Execute(db *database.DB) (delay int, err erro
 			hashmap["goToPageId"] = markPageId
 			hashmap["markId"] = markId
 			hashmap["createdAt"] = database.Now()
-			hashmap["unseen"] = true
 			hashmaps = append(hashmaps, hashmap)
 		}
 

@@ -1,0 +1,16 @@
+<div layout="column" layout-gt-sm="row" layout-align-gt-sm="start center" flex>
+	<div flex>
+		Thanks to
+		<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
+		you can now participate in
+		<arb-page-title page-id="{{::update.goToPageId}}"
+				is-link="true"
+				custom-page-title="the {{::arb.pageService.getDomainName(update.goToPageId)}} domain"
+				ng-if="::update.goToPageId"></arb-page-title>
+		<span ng-bind="the {{::arb.pageService.getDomainName(update.goToPageId)}} domain"
+				ng-if="::!update.goToPageId"></span>
+	</div>
+	<div class="md-caption" layout="row" layout-align="start center">
+		<span ng-bind="::(modeRow.activityDate | smartDateTime)"></span>
+	</div>
+</div>

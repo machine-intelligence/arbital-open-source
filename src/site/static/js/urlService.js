@@ -1,7 +1,7 @@
 'use strict';
 
-// urlService handles working with URLs
-app.service('urlService', function($http, $location, $rootScope) {
+// arb.urlService handles working with URLs
+app.service('urlService', function($http, $location, $rootScope, stateService) {
 	var that = this;
 
 	// This will be set to true before loading content for a second page
@@ -48,26 +48,33 @@ app.service('urlService', function($http, $location, $rootScope) {
 	};
 
 	// Return the top level domain.
-	this.getTopLevelDomain = function() {
+	this.getTopLevelDomain = function(withHttpPrefix) {
 		if (isLive()) {
-			return 'arbital.com';
-		} else {
-			return 'localhost:8012';
+			var domain = 'arbital.com';
+			if (withHttpPrefix) return 'https://' + domain;
+			return domain;
 		}
+		var domain = 'localhost:8012';
+		if (withHttpPrefix) return 'http://' + domain;
+		return domain;
 	};
 
 	// Get a domain url (with optional subdomain)
 	this.getDomainUrl = function(subdomain) {
-		if (subdomain) {
-			subdomain += '.';
-		} else {
-			subdomain = '';
+		if (subdomain === undefined) {
+			// Use current domain
+			return that.getCurrentDomainUrl(true);
 		}
+		if (subdomain !== '') subdomain += '.';
+		subdomain = subdomain.toLowerCase();
 		if (isLive()) {
 			return 'https://' + subdomain + this.getTopLevelDomain();
-		} else {
-			return 'http://' + subdomain + this.getTopLevelDomain();
 		}
+		return 'http://' + subdomain + this.getTopLevelDomain();
+	};
+
+	this.getCurrentDomainUrl = function() {
+		return window.location.origin;
 	};
 
 	// Make sure the URL path is in the given canonical form, otherwise silently change
@@ -86,7 +93,7 @@ app.service('urlService', function($http, $location, $rootScope) {
 	this.goToUrl = function(url, replace) {
 		var differentHost = false;
 		if (url.indexOf('http') === 0) {
-			var domainUrl = this.getDomainUrl();
+			var domainUrl = this.getCurrentDomainUrl();
 			if (url.indexOf(domainUrl) !== 0) {
 				differentHost = true;
 			} else {
@@ -99,5 +106,115 @@ app.service('urlService', function($http, $location, $rootScope) {
 			if (replace) $location.replace();
 			$location.url(url);
 		}
+	};
+
+	// Returns the url for the given page.
+	// options {
+	//	 permalink: if true, we'll include page's id, otherwise, we'll use alias
+	//	 useEditMap: if true, use edit map to retrieve info for this page
+	//	 noHost: if true, don't add the host part of the URL
+	//	 lensId: if set, select the given lens
+	//	 markId: if set, select the given mark on the page
+	//	 discussionHash: if true, jump to the discussion part of the page
+	//	 answersHash: if true, jump to the answers part of the page
+	// }
+	this.getPageUrl = function(pageId, options) {
+		var options = options || {};
+		var url = '/p/' + pageId + '/';
+		var page = stateService.getPageFromSomeMap(pageId, options.useEditMap);
+
+		if (page) {
+			var pageId = page.pageId;
+			var pageAlias = page.alias;
+			// Make sure the page's alias is scoped to its group
+			if (page.seeGroupId && page.pageId != page.alias) {
+				var groupAlias = stateService.pageMap[page.seeGroupId].alias;
+				if (pageAlias.indexOf('.') == -1) {
+					pageAlias = groupAlias + '.' + pageAlias;
+				}
+			}
+
+			url = that.getBaseUrl('p', options.permalink ? pageId : pageAlias, pageAlias);
+			if (options.permalink) {
+				url += '?l=' + pageId;
+			} else if (options.lensId) {
+				url += '?l=' + options.lensId;
+			}
+
+			// Check page's type to see if we need a special url
+			if (page.isComment()) {
+				var parent = page.getCommentParentPage();
+				if (parent) {
+					url = that.getPageUrl(parent.pageId, {
+						permalink: options.permalink,
+						noHost: true,
+					});
+					url += '#subpage-' + pageId;
+				}
+			}
+
+			// Add markId argument
+			if (options.markId) {
+				url += url.indexOf('?') < 0 ? '?' : '&';
+				url += 'markId=' + options.markId;
+			}
+		}
+		if (url.indexOf('#') < 0) {
+			if (options.discussionHash) {
+				url += '#discussion';
+			} else if (options.answersHash) {
+				url += '#answers';
+			}
+		}
+		var urlAlreadyHasDomain = url.length > 4 && url.substring(0,4) == 'http';
+		if (!urlAlreadyHasDomain && !options.noHost) {
+			if (page && page.seeGroupId !== '') {
+				url = that.getDomainUrl(stateService.pageMap[page.seeGroupId].alias) + url;
+			} else {
+				url = that.getDomainUrl() + url;
+			}
+		}
+		return url;
+	};
+
+	// Get url to edit the given page.
+	// options {
+	//	 markId: if set, resolve the given mark when publishing the page and show it
+	//	 parentId: if set, this will provide a quick option for adding the parent in editor
+	// }
+	this.getEditPageUrl = function(pageId, options) {
+		options = options || {};
+		var url = '';
+		var page = stateService.pageMap[pageId];
+		if (page) {
+			url = that.getBaseUrl('edit', pageId, page.alias);
+		} else {
+			url = '/edit/' + pageId + '/';
+		}
+		// Add markId argument
+		if (options.markId) {
+			url += url.indexOf('?') < 0 ? '?' : '&';
+			url += 'markId=' + options.markId;
+		}
+		if (options.parentId) {
+			url += url.indexOf('?') < 0 ? '?' : '&';
+			url += 'parentId=' + options.parentId;
+		}
+		url = that.getDomainUrl() + url;
+		return url;
+	};
+
+	// Get url to create a new page.
+	// options {
+	//	 parentId: if set, there will be a quick option to add this page as a parent
+	// }
+	this.getNewPageUrl = function(options) {
+		options = options || {};
+		var url = '/edit/';
+		if (options.parentId) {
+			url += '?parentId=' + options.parentId;
+		}
+		url = that.getDomainUrl() + url;
+		return url;
 	};
 });

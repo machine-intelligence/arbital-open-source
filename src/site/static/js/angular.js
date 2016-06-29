@@ -66,8 +66,9 @@ app.config(function($locationProvider, $mdIconProvider, $mdThemingProvider) {
 		.icon('comment_plus_outline', 'static/icons/comment-plus-outline.svg')
 		.icon('comment_question_outline', 'static/icons/comment-question-outline.svg')
 		.icon('facebook_box', 'static/icons/facebook-box.svg')
+		.icon('file_outline', 'static/icons/file-outline.svg')
 		.icon('format_header_pound', 'static/icons/format-header-pound.svg')
-		.icon('cursor-pointer', 'static/icons/cursor-pointer.svg')
+		.icon('cursor_pointer', 'static/icons/cursor-pointer.svg')
 		.icon('link_variant', 'static/icons/link-variant.svg')
 		.icon('thumb_up_outline', 'static/icons/thumb-up-outline.svg')
 		.icon('thumb_down_outline', 'static/icons/thumb-down-outline.svg');
@@ -75,238 +76,9 @@ app.config(function($locationProvider, $mdIconProvider, $mdThemingProvider) {
 	$locationProvider.html5Mode(true);
 });
 
-// ArbitalCtrl is used across all pages.
-// NOTE: we need to include popoverService, so that it can initialize itself
-app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, $interval, $http, $compile, $anchorScroll, $mdDialog, userService, pageService, popoverService, urlService) {
-	$scope.urlService = urlService;
-	$scope.pageService = pageService;
-	$scope.userService = userService;
-
-	// Refresh all the fields that need to be updated every so often.
-	var refreshAutoupdates = function() {
-		$('.autoupdate').each(function(index, element) {
-			$compile($(element))($scope);
-		});
-		$timeout(refreshAutoupdates, 30000);
-	};
-	refreshAutoupdates();
-
-	// Check to see if we should show the popup.
-	$scope.closePopup = function() {
-		pageService.hideNonpersistentPopup();
-	};
-
-	// Watch path changes and update Google Analytics
-	$scope.$watch(function() {
-		return $location.absUrl();
-	}, function() {
-		ga('send', 'pageview', $location.absUrl());
-	});
-
-	var $fixedOverlay = $('#fixed-overlay');
-	$scope.$watch(function() {
-		return $fixedOverlay.children().length;
-	}, function() {
-		// If we have md-scroll-mask on, we want the fixedOverlay to occupy entire screen
-		// so that the mdBottomSheet UI is displayed fully.
-		var hasScrollMask = $fixedOverlay.find('.md-scroll-mask').length > 0;
-		$fixedOverlay.css('width', hasScrollMask ? '100vw' : '0');
-		$fixedOverlay.css('height', hasScrollMask ? '100vh' : '0');
-	});
-
-	// Returns an object containing a compiled element and its scope
-	$scope.newElement = function(html, parentScope) {
-		if (!parentScope) parentScope = $scope;
-		var childScope = parentScope.$new();
-		var element = $compile(html)(childScope);
-		return {
-			scope: childScope,
-			element: element,
-		};
-	};
-	// The element and it scope inside ng-view for the current page
-	var currentView;
-
-	// Returns a function we can use as success handler for POST requests for dynamic data.
-	// callback - returns {
-	//   title: title to set for the window
-	//   element: optional jQuery element to add dynamically to the body
-	//   error: optional error message to print
-	// }
-	$scope.getSuccessFunc = function(callback) {
-		return function(data) {
-			// Sometimes we don't get data.
-			pageService.primaryPage = undefined;
-			if (data) {
-				console.log('Dynamic request data:'); console.log(data);
-				userService.processServerData(data);
-				pageService.processServerData(data);
-			}
-
-			// Because the subdomain could have any case, we need to find the alias
-			// in the loaded map so we can get the alias with correct case
-			if ($scope.subdomain) {
-				for (var pageAlias in pageService.pageMap) {
-					if ($scope.subdomain.toUpperCase() === pageAlias.toUpperCase()) {
-						$scope.subdomain = pageAlias;
-						pageService.privateGroupId = pageService.pageMap[pageAlias].pageId;
-						break;
-					}
-				}
-			}
-
-			if (currentView) {
-				currentView.scope.$destroy();
-				currentView.element.remove();
-				currentView = null;
-				urlService.hasLoadedFirstPage = true;
-			}
-
-			// Get the results from page-specific callback
-			$('.global-error').hide();
-			var result = callback(data);
-			if (result.error) {
-				$('.global-error').text(result.error).show();
-				document.title = 'Error - Arbital';
-			}
-			
-			if (result.content) {
-				// Only show the element after it and all the children have been fully compiled and linked
-				result.content.element.addClass('reveal-after-render-parent');
-				var $loadingBar = $('#loading-bar');
-				$loadingBar.show();
-				var startTime = (new Date()).getTime();
-
-				var showEverything = function() {
-					$interval.cancel(revealInterval);
-					$timeout.cancel(revealTimeout);
-					// Do short timeout to prevent some rendering bugs that occur on edit page
-					$timeout(function() {
-						result.content.element.removeClass('reveal-after-render-parent');
-						$loadingBar.hide();
-					}, 50);
-				};
-
-				var revealInterval = $interval(function() {
-					var timePassed = ((new Date()).getTime() - startTime) / 1000;
-					var hiddenChildren = result.content.element.find('.reveal-after-render');
-					if (hiddenChildren.length > 0) {
-						hiddenChildren.each(function() {
-							if ($(this).children().length > 0) {
-								$(this).removeClass('reveal-after-render');
-							}
-						});
-						return;
-					}
-					showEverything();
-				}, 50);
-				// Do a timeout as well, just in case we have a buggy element
-				var revealTimeout = $timeout(function() {
-					console.error('Forced reveal timeout');
-					showEverything();
-				}, 1000);
-
-				currentView = result.content;
-				$('[ng-view]').append(result.content.element);
-			}
-
-			$('body').toggleClass('body-fix', !result.removeBodyFix);
-
-			if (result.title) {
-				document.title = result.title + ' - Arbital';
-			}
-		};
-	};
-
-	// Returns a function we can use as error handler for POST requests for dynamic data.
-	$scope.getErrorFunc = function(urlPageType) {
-		return function(data, status) {
-			console.error('Error /json/' + urlPageType + '/:'); console.log(data); console.log(status);
-			pageService.showToast({text: 'Couldn\'t create a new page: ' + data, isError: true});
-			document.title = 'Error - Arbital';
-		};
-	};
-
-	// The URL rule match for the current page
-	var currentLocation = {};
-	function resolveUrl() {
-		// Get subdomain if any
-		$scope.subdomain = undefined;
-		var subdomainMatch = /^([A-Za-z0-9_]+)\.(localhost|arbital\.com)\/?$/.exec($location.host());
-		if (subdomainMatch) {
-			$scope.subdomain = subdomainMatch[1];
-		}
-		var path = $location.path();
-		var urlRules = urlService.urlRules;
-		for (var ruleIndex = 0; ruleIndex < urlRules.length; ruleIndex++) {
-			var rule = urlRules[ruleIndex];
-			var matches = rule.urlPattern.exec(path);
-			if (matches) {
-				var args = {};
-				var parameters = rule.parameters;
-				for (var parameterIndex = 0; parameterIndex < parameters.length; parameterIndex++) {
-					var parameter = parameters[parameterIndex];
-					args[parameter] = matches[parameterIndex + 1];
-				}
-				if (rule == currentLocation.rule && $scope.subdomain == currentLocation.subdomain) {
-					var currentMatches = true;
-					for (parameterIndex = 0; parameterIndex < parameters.length && currentMatches; parameterIndex++) {
-						var parameter = parameters[parameterIndex];
-						currentMatches = (args[parameter] == currentLocation.args[parameter]);
-					}
-					if (currentMatches) {
-						// The host and path have not changed, don't reload
-						return;
-					}
-				}
-				var handled = rule.handler(args, $scope);
-				if (!handled) {
-					$('[ng-view]').empty();
-					$scope.closePopup();
-				}
-				currentLocation = {subdomain: $scope.subdomain, rule: rule, args: args};
-				return;
-			}
-		}
-	};
-
-	$rootScope.$on('$locationChangeSuccess', function(event, url) {
-		resolveUrl();
-	});
-
-	// Resolve URL of initial page load
-	resolveUrl();
-});
-
-app.run(function($http, $location, urlService, pageService, userService) {
+app.run(function($http, $location, arb) {
 	// Set up mapping from URL path to specific controllers
-	urlService.addUrlHandler('/achievements/', {
-		name: 'AchievementsPage',
-		handler: function(args, $scope) {
-			$http({method: 'POST', url: '/json/default/'})
-			.success($scope.getSuccessFunc(function(data) {
-				return {
-					title: 'Achievements',
-					content: $scope.newElement('<arb-hedons-mode-page></arb-hedons-mode-page'),
-				};
-			}))
-			.error($scope.getErrorFunc('default'));
-		},
-	});
-	urlService.addUrlHandler('/discussion/', {
-		name: 'DiscussionPage',
-		handler: function(args, $scope) {
-			$http({method: 'POST', url: '/json/default/'})
-			.success($scope.getSuccessFunc(function(data) {
-				return {
-					title: 'Discussions',
-					content: $scope.newElement('<arb-discussion-mode-page></arb-discussion-mode-page'),
-				};
-			}))
-			.error($scope.getErrorFunc('default'));
-		},
-	});
-	urlService.addUrlHandler('/', {
+	arb.urlService.addUrlHandler('/', {
 		name: 'IndexPage',
 		handler: function(args, $scope) {
 			if ($scope.subdomain) {
@@ -315,7 +87,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				.success($scope.getSuccessFunc(function(data) {
 					$scope.indexPageIdsMap = data.result;
 					return {
-						title: pageService.pageMap[$scope.subdomain].title + ' - Private Domain',
+						title: arb.stateService.pageMap[$scope.subdomain].title + ' - Private Domain',
 						content: $scope.newElement('<arb-group-index group-id=\'' + data.result.domainId +
 							'\' ids-map=\'::indexPageIdsMap\'></arb-group-index>'),
 					};
@@ -334,7 +106,20 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			}
 		},
 	});
-	urlService.addUrlHandler('/adminDashboard/', {
+	arb.urlService.addUrlHandler('/achievements/', {
+		name: 'AchievementsPage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/default/'})
+			.success($scope.getSuccessFunc(function(data) {
+				return {
+					title: 'Achievements',
+					content: $scope.newElement('<arb-hedons-mode-page></arb-hedons-mode-page>'),
+				};
+			}))
+			.error($scope.getErrorFunc('default'));
+		},
+	});
+	arb.urlService.addUrlHandler('/adminDashboard/', {
 		name: 'AdminDashboardPage',
 		handler: function(args, $scope) {
 			var postData = {};
@@ -350,7 +135,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.error($scope.getErrorFunc('adminDashboardPage'));
 		},
 	});
-	urlService.addUrlHandler('/dashboard/', {
+	arb.urlService.addUrlHandler('/dashboard/', {
 		name: 'DashboardPage',
 		handler: function(args, $scope) {
 			var postData = {};
@@ -366,20 +151,33 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.error($scope.getErrorFunc('dashboardPage'));
 		},
 	});
-	urlService.addUrlHandler('/domains/:alias', {
+	arb.urlService.addUrlHandler('/discussion/', {
+		name: 'DiscussionPage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/default/'})
+			.success($scope.getSuccessFunc(function(data) {
+				return {
+					title: 'Discussions',
+					content: $scope.newElement('<arb-discussion-mode-page></arb-discussion-mode-page>'),
+				};
+			}))
+			.error($scope.getErrorFunc('default'));
+		},
+	});
+	arb.urlService.addUrlHandler('/domains/:alias', {
 		name: 'DomainPageController',
 		handler: function(args, $scope) {
-			pageService.domainAlias = args.alias;
+			arb.pageService.domainAlias = args.alias;
 			var postData = {
-				domainAlias: pageService.domainAlias,
+				domainAlias: arb.pageService.domainAlias,
 			};
 			// Get the domain index page data
 			$http({method: 'POST', url: '/json/domainPage/', data: JSON.stringify(postData)})
 			.success($scope.getSuccessFunc(function(data) {
 				$scope.indexPageIdsMap = data.result;
-				var groupId = pageService.pageMap[pageService.domainAlias].pageId;
+				var groupId = arb.stateService.pageMap[arb.pageService.domainAlias].pageId;
 				return {
-					title: pageService.pageMap[groupId].title,
+					title: arb.stateService.pageMap[groupId].title,
 					content: $scope.newElement('<arb-group-index group-id=\'' + groupId +
 						'\' ids-map=\'::indexPageIdsMap\'></arb-group-index>'),
 				};
@@ -387,28 +185,30 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.error($scope.getErrorFunc('domainPage'));
 		},
 	});
-	urlService.addUrlHandler('/edit/:alias?/:alias2?', {
+	arb.urlService.addUrlHandler('/edit/:alias?/:alias2?', {
 		name: 'EditPage',
 		handler: function(args, $scope) {
 			var pageAlias = args.alias;
 			// Check if we are already editing this page.
 			// TODO: this is kind of hacky. We need a better solution (I hope React will help us with this).
-			var primaryPage = pageService.primaryPage;
-			if (primaryPage && primaryPage.pageId in pageService.editMap &&
+			var primaryPage = arb.stateService.primaryPage;
+			if (primaryPage && primaryPage.pageId in arb.stateService.editMap &&
 					(primaryPage.pageId == pageAlias || primaryPage.alias == pageAlias)) {
 				return true;
 			}
 
 			// Load the last edit for the pageAlias.
 			var loadEdit = function() {
-				pageService.loadEdit({
+				var quickParentId = $location.search().parentId;
+				arb.pageService.loadEdit({
 					pageAlias: pageAlias,
+					additionalPageIds: quickParentId ? [quickParentId] : undefined,
 					success: $scope.getSuccessFunc(function() {
 						// Find the page in the editMap (have to search through it manually
 						// because we don't index pages by alias in editmap)
 						var page;
-						for (var pageId in pageService.editMap) {
-							page = pageService.editMap[pageId];
+						for (var pageId in arb.stateService.editMap) {
+							page = arb.stateService.editMap[pageId];
 							if (page.alias == pageAlias || page.pageId == pageAlias) {
 								break;
 							}
@@ -419,24 +219,53 @@ app.run(function($http, $location, urlService, pageService, userService) {
 							$location.replace().search('alias', undefined);
 						}
 
-						urlService.ensureCanonPath(pageService.getEditPageUrl(page.pageId));
-						pageService.primaryPage = page;
+						arb.urlService.ensureCanonPath(arb.urlService.getEditPageUrl(page.pageId));
+						arb.stateService.primaryPage = page;
 
 						// Called when the user is done editing the page.
 						$scope.doneFn = function(result) {
-							var page = pageService.editMap[result.pageId];
+							var page = arb.stateService.editMap[result.pageId];
 							// if the page is (now / still) live, go (to / back to) it
-							if (!result.discard) {
-								$location.url(pageService.getPageUrl(page.pageId, {
+							if ((page.wasPublished && !result.deletedPage) || !result.discard) {
+								arb.urlService.goToUrl(arb.urlService.getPageUrl(page.pageId, {
 									useEditMap: true,
 									markId: $location.search().markId,
 								}));
+
+								if (result.pageId in arb.stateService.pageMap &&
+										!arb.stateService.pageMap[result.pageId].isSubscribedAsMaintainer) {
+									arb.popupService.showToast({
+										text: 'Maintain this page?',
+										scope: $scope,
+										normalButton: {
+											text: 'Subscribe',
+											icon: 'build',
+											callbackText: 'subscribeAsMaintainer()',
+										},
+									});
+								}
 							} else {
 								// if the page is deleted or unpublished, go home
 								// TODO: ideally we should navigate to whatever page we came from before opening the editor
 								$location.path('/');
 							}
 						};
+
+						$scope.subscribeAsMaintainer = function() {
+							$http({method: 'POST', url: '/updateSubscription/', data: JSON.stringify({
+								toId: page.pageId,
+								isSubscribed: true,
+								asMaintainer: true,
+							})});
+							arb.stateService.pageMap[page.pageId].isSubscribed = true;
+							arb.stateService.pageMap[page.pageId].isSubscribedAsMaintainer = true;
+
+							arb.popupService.showToast({
+								text: 'Subscribed as maintainer',
+								scope: $scope,
+							});
+						};
+
 						return {
 							removeBodyFix: true,
 							title: 'Edit ' + (page.title ? page.title : 'New Page'),
@@ -452,14 +281,13 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			var getNewPage = function() {
 				var type = $location.search().type;
 				$location.replace().search('type', undefined);
-				var newParentIdString = $location.search().newParentId;
-				$location.replace().search('newParentId', undefined);
 				// Create a new page to edit
-				pageService.getNewPage({
+				arb.pageService.getNewPage({
 					type: type,
-					parentIds: newParentIdString ? newParentIdString.split(',') : [],
 					success: function(newPageId) {
-						$location.replace().path(pageService.getEditPageUrl(newPageId));
+						arb.urlService.goToUrl(arb.urlService.getEditPageUrl(newPageId, {
+							parentId: $location.search().parentId,
+						}), true);
 					},
 					error: $scope.getErrorFunc('newPage'),
 				});
@@ -469,6 +297,12 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			// TODO(alexei): have /newPage/ return /default/ data along with /edit/ data
 			$http({method: 'POST', url: '/json/default/'})
 			.success($scope.getSuccessFunc(function(data) {
+				// Redirect non-logged in users to sign up
+				if (!arb.userService.userIsLoggedIn()) {
+					arb.urlService.goToUrl('/signup?continueUrl=' + encodeURIComponent($location.url()), true);
+					return {};
+				}
+
 				if (pageAlias) {
 					loadEdit();
 				} else {
@@ -481,7 +315,22 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.error($scope.getErrorFunc('default'));
 		},
 	});
-	urlService.addUrlHandler('/groups/', {
+	arb.urlService.addUrlHandler('/explore/:pageAlias', {
+		name: 'ExplorePage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/explore/', data: JSON.stringify({pageAlias: args.pageAlias})})
+			.success($scope.getSuccessFunc(function(data) {
+				var page = arb.stateService.pageMap[data.result.pageId];
+				return {
+					title: 'Explore ' + page.title,
+					content: $scope.newElement('<arb-explore-page page-id=\'' + data.result.pageId +
+						'\'></arb-explore-page>'),
+				};
+			}))
+			.error($scope.getErrorFunc('explore'));
+		},
+	});
+	arb.urlService.addUrlHandler('/groups/', {
 		name: 'GroupsPage',
 		handler: function(args, $scope) {
 			$http({method: 'POST', url: '/json/groups/'})
@@ -494,7 +343,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.error($scope.getErrorFunc('groups'));
 		},
 	});
-	urlService.addUrlHandler('/learn/:pageAlias?', {
+	arb.urlService.addUrlHandler('/learn/:pageAlias?', {
 		name: 'LearnPage',
 		handler: function(args, $scope) {
 			// Get the primary page data
@@ -507,8 +356,8 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				postData.pageAliases.push(args.pageAlias);
 			} else if ($location.search().path) {
 				postData.pageAliases = postData.pageAliases.concat($location.search().path.split(','));
-			} else if (pageService.path) {
-				postData.pageAliases = pageService.path.pageIds;
+			} else if (arb.pathService.path) {
+				postData.pageAliases = arb.pathService.path.pageIds;
 				continueLearning = true;
 			}
 
@@ -516,8 +365,8 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.success($scope.getSuccessFunc(function(data) {
 				var primaryPage = undefined;
 				if (args.pageAlias) {
-					primaryPage = pageService.pageMap[args.pageAlias];
-					urlService.ensureCanonPath('/learn/' + primaryPage.alias);
+					primaryPage = arb.stateService.pageMap[args.pageAlias];
+					arb.urlService.ensureCanonPath('/learn/' + primaryPage.alias);
 				}
 
 				$scope.learnPageIds = data.result.pageIds;
@@ -536,13 +385,13 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.error($scope.getErrorFunc('learn'));
 		},
 	});
-	urlService.addUrlHandler('/login/', {
+	arb.urlService.addUrlHandler('/login/', {
 		name: 'LoginPage',
 		handler: function(args, $scope) {
 			$http({method: 'POST', url: '/json/default/'})
 			.success($scope.getSuccessFunc(function(data) {
-				if (userService.user.id) {
-					window.location.href = urlService.getDomainUrl();
+				if (arb.userService.user.id) {
+					window.location.href = arb.urlService.getDomainUrl();
 				}
 				return {
 					title: 'Log In',
@@ -552,7 +401,20 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.error($scope.getErrorFunc('default'));
 		},
 	});
-	urlService.addUrlHandler('/newsletter/', {
+	arb.urlService.addUrlHandler('/maintain/', {
+		name: 'MaintainPage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/default/'})
+			.success($scope.getSuccessFunc(function(data) {
+				return {
+					title: 'Maintain',
+					content: $scope.newElement('<arb-maintenance-mode-page></arb-maintenance-mode-page>'),
+				};
+			}))
+			.error($scope.getErrorFunc('default'));
+		},
+	});
+	arb.urlService.addUrlHandler('/newsletter/', {
 		name: 'NewsletterPage',
 		handler: function(args, $scope) {
 			$http({method: 'POST', url: '/json/newsletter/'})
@@ -565,38 +427,68 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.error($scope.getErrorFunc('newsletter'));
 		},
 	});
-	urlService.addUrlHandler('/p/:alias/:alias2?', {
+	arb.urlService.addUrlHandler('/notifications/', {
+		name: 'NotificationsPage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/default/'})
+			.success($scope.getSuccessFunc(function(data) {
+				return {
+					title: 'Notifications',
+					content: $scope.newElement('<arb-bell-updates-page></arb-bell-updates-page>'),
+				};
+			}))
+			.error($scope.getErrorFunc('default'));
+		},
+	});
+	arb.urlService.addUrlHandler('/p/:alias/:alias2?', {
 		name: 'PrimaryPage',
 		handler: function(args, $scope) {
+			// Check if we are just switching to the primary lens
+			// TODO: this is kind of hacky. We need a better solution (I hope React will help us with this).
+			var primaryPage = arb.stateService.primaryPage;
+			if (primaryPage && !(primaryPage.pageId in arb.stateService.editMap) &&
+					(primaryPage.pageId == args.alias || primaryPage.alias == args.alias)) {
+				return true;
+			}
+
 			// Get the primary page data
 			var postData = {
 				pageAlias: args.alias,
+				lensId: $location.search().l,
 				markId: $location.search().markId,
 			};
 			$http({method: 'POST', url: '/json/primaryPage/', data: JSON.stringify(postData)})
 			.success($scope.getSuccessFunc(function(data) {
-				var page = pageService.pageMap[postData.pageAlias];
+				var primaryPageId = data.result.primaryPageId;
+				var page = arb.stateService.pageMap[primaryPageId];
 				var pageTemplate = '<arb-primary-page></arb-primary-page>';
 
 				if (!page) {
-					page = pageService.deletedPagesMap[postData.pageAlias];
+					page = arb.stateService.deletedPagesMap[postData.pageAlias];
 					if (page) {
 						if (page.mergedInto) {
-							urlService.goToUrl(pageService.getPageUrl(page.mergedInto));
+							arb.urlService.goToUrl(arb.urlService.getPageUrl(page.mergedInto));
 						} else {
-							urlService.goToUrl(pageService.getEditPageUrl(postData.pageAlias));
+							arb.urlService.goToUrl(arb.urlService.getEditPageUrl(postData.pageAlias));
 						}
 						return {};
 					}
 					return {
 						title: 'Not Found',
-						error: 'Page doesn\'t exist, was deleted, or you don\'t have permission to view it.',
+						error: 'Page doesn\'t exist or you don\'t have permission to view it.',
 					};
+				}
+
+				// For comments, redirect to the primary page
+				if (page.isComment()) {
+					// TODO: allow BE to catch this case and send correct data, so we don't have to reload
+					arb.urlService.goToUrl(arb.urlService.getPageUrl(page.getCommentParentPage().pageId), true);
+					return {};
 				}
 
 				// If this page has been merged into another, go there
 				if (page.mergedInto) {
-					urlService.goToUrl(pageService.getPageUrl(page.mergedInto));
+					arb.urlService.goToUrl(arb.urlService.getPageUrl(page.mergedInto));
 					return {};
 				}
 
@@ -605,24 +497,14 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				// - Recently created by me comment ids.
 				// - Recently edited by me page ids.
 				// - Top pages by me
-				if (userService.userMap[page.pageId]) {
+				if (arb.userService.userMap[page.pageId]) {
 					$scope.userPageIdsMap = data.result;
 					pageTemplate = '<arb-user-page user-id=\'' + page.pageId +
 							'\' user_page_data=\'::userPageIdsMap\'></arb-user-page>';
 				}
 
-				if (page.isLens() || page.isComment()) {
-					// Redirect to the primary page, but preserve all search variables
-					var search = $location.search();
-					$location.replace().url(pageService.getPageUrl(page.pageId));
-					for (var k in search) {
-						$location.search(k, search[k]);
-					}
-					return {};
-				}
-
-				urlService.ensureCanonPath(pageService.getPageUrl(page.pageId));
-				pageService.primaryPage = page;
+				arb.stateService.primaryPage = page;
+				arb.urlService.ensureCanonPath(arb.urlService.getPageUrl(page.pageId, {lensId: data.result.lensId}));
 				return {
 					title: page.title,
 					content: $scope.newElement(pageTemplate),
@@ -631,35 +513,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.error($scope.getErrorFunc('primaryPage'));
 		},
 	});
-	urlService.addUrlHandler('/pages/:alias', {
-		name: 'RedirectToPrimaryPage',
-		handler: function(args, $scope) {
-			// Get the primary page data
-			var postData = {
-				pageAlias: args.alias,
-			};
-			$http({method: 'POST', url: '/json/redirectToPrimaryPage/', data: JSON.stringify(postData)})
-			.success($scope.getSuccessFunc(function(data) {
-				var pageId = data;
-				if (!pageId) {
-					return {
-						title: 'Not Found',
-						error: 'Page doesn\'t exist, was deleted, or you don\'t have permission to view it.',
-					};
-				}
-				// Redirect to the primary page, but preserve all search variables
-				var search = $location.search();
-				$location.replace().url(pageService.getPageUrl(pageId));
-				for (var k in search) {
-					$location.search(k, search[k]);
-				}
-				return {
-				};
-			}))
-			.error($scope.getErrorFunc('redirectToPrimaryPage'));
-		},
-	});
-	urlService.addUrlHandler('/read/', {
+	arb.urlService.addUrlHandler('/read/', {
 		name: 'ReadModePage',
 		handler: function(args, $scope) {
 			$http({method: 'POST', url: '/json/default/'})
@@ -672,7 +526,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.error($scope.getErrorFunc('default'));
 		},
 	});
-	urlService.addUrlHandler('/requisites/', {
+	arb.urlService.addUrlHandler('/requisites/', {
 		name: 'RequisitesPage',
 		handler: function(args, $scope) {
 			$http({method: 'POST', url: '/json/requisites/'})
@@ -685,7 +539,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.error($scope.getErrorFunc('requisites'));
 		},
 	});
-	urlService.addUrlHandler('/settings/', {
+	arb.urlService.addUrlHandler('/settings/', {
 		name: 'SettingsPage',
 		handler: function(args, $scope) {
 			$http({method: 'POST', url: '/json/settingsPage/'})
@@ -707,13 +561,13 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.error($scope.getErrorFunc('settingsPage'));
 		},
 	});
-	urlService.addUrlHandler('/signup/', {
+	arb.urlService.addUrlHandler('/signup/', {
 		name: 'SignupPage',
 		handler: function(args, $scope) {
 			$http({method: 'POST', url: '/json/default/'})
 			.success($scope.getSuccessFunc(function(data) {
-				if (userService.user.id) {
-					window.location.href = urlService.getDomainUrl();
+				if (arb.userService.user.id) {
+					window.location.href = arb.urlService.getDomainUrl();
 				}
 				return {
 					title: 'Sign Up',
@@ -721,22 +575,6 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				};
 			}))
 			.error($scope.getErrorFunc('default'));
-		},
-	});
-	urlService.addUrlHandler('/updates/', {
-		name: 'UpdatesPage',
-		handler: function(args, $scope) {
-			var postData = {};
-			// Get the explore data
-			$http({method: 'POST', url: '/json/updates/', data: JSON.stringify(postData)})
-			.success($scope.getSuccessFunc(function(data) {
-				$scope.updateGroups = data.result.updateGroups;
-				return {
-					title: 'Updates',
-					content: $scope.newElement('<arb-updates update-groups=\'::updateGroups\'></arb-updates>'),
-				};
-			}))
-			.error($scope.getErrorFunc('updates'));
 		},
 	});
 });
@@ -747,20 +585,23 @@ app.filter('simpleDateTime', function() {
 		return moment.utc(input).local().format('LT, l');
 	};
 });
-
-// relativeDateTime converts date&time into a relative string, e.g. "5 days ago"
-app.filter('relativeDateTime', function() {
+// smartDateTime converts date&time into a relative string or a date string
+// depending on how long the event was
+app.filter('smartDateTime', function() {
 	return function(input) {
 		if (moment.utc().diff(moment.utc(input), 'days') <= 7) {
 			return moment.utc(input).fromNow();
-		} else {
-			return moment.utc(input).local().format('MMM Do, YYYY [at] LT');
 		}
+		if (moment.utc().diff(moment.utc(input), 'months') <= 10) {
+			return moment.utc(input).local().format('MMM D');
+		}
+		return moment.utc(input).local().format('MMM D, YYYY');
 	};
 });
-app.filter('relativeDateTimeNoSuffix', function() {
+// relativeDateTime converts date&time into a relative string, e.g. "5 days ago"
+app.filter('relativeDateTime', function() {
 	return function(input) {
-		return moment.utc(input).fromNow(true);
+		return moment.utc(input).fromNow();
 	};
 });
 

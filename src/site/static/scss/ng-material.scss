@@ -118,7 +118,7 @@ span.md-warn {
 
 // Markdown header 2
 .md-display-1, .preview-area h2, arb-markdown h2 {
-	font-size: 1.5rem;
+	font-size: 1.8rem;
 	line-height: 1.7rem;
 	font-weight: 300;
 	margin-top: 2rem;
@@ -127,12 +127,12 @@ span.md-warn {
 
 // Markdown header 3
 .md-headline, .preview-area h3, arb-markdown h3 {
-	font-size: 1.3rem;
+	font-size: 1.5rem;
 	line-height: 1.5rem;
 	font-weight: 700;
 	margin-top: 1.5rem;
 	margin-bottom: 0.5rem;
-	color: #555555;
+	color: rgba(0,0,0,0.9);
 }
 
 .md-subhead {
@@ -142,7 +142,7 @@ span.md-warn {
 // Used for helpful, non-important info text
 .md-caption {
 	font-size: 12px;
-	color: darkgray;
+	opacity: 0.6;
 	line-height: normal;
 }
 
@@ -207,11 +207,14 @@ span.md-warn {
 	}
 }
 
-md-list-item, md-list-item.md-no-proxy, md-list-item.ng-scope, md-list-item.md-no-proxy.ng-scope {
-	min-height: 0;
-	margin-top: 10px;
-	margin-bottom: 10px;
-	padding: 5px 16px 10px 16px;
+md-list-item {
+	min-height: 0 !important;
+	margin-bottom: 10px !important;
+	padding: 5px 16px 10px 16px !important;
+}
+
+md-list-item + md-list-item {
+	margin-top: 10px !important;
 }
 
 .md-toolbar-tools {

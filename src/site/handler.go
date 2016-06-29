@@ -75,8 +75,15 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			return
 		}
 
+		// Load all domains
+		params.DomainIds, err = core.LoadAllDomainIds(db, nil)
+		if err != nil {
+			fail(http.StatusInternalServerError, "Couldn't load domainIds", err)
+			return
+		}
+
 		// Load the user's trust
-		err = core.LoadUserTrust(db, u)
+		err = core.LoadUserTrust(db, u, params.DomainIds)
 		if err != nil {
 			fail(http.StatusInternalServerError, "Couldn't retrieve user trust", err)
 			return
@@ -93,10 +100,6 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		}
 		if h.Options.AdminOnly && !u.IsAdmin {
 			fail(http.StatusInternalServerError, "Have to be an admin", nil)
-			return
-		}
-		if h.Options.MinKarma != 0 && u.TrustMap[""].EditTrust < h.Options.MinKarma {
-			fail(http.StatusInternalServerError, "Not enough karma", nil)
 			return
 		}
 
@@ -119,12 +122,26 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		}
 
 		if result.Data != nil {
-			if core.IsIdValid(u.Id) && result.Data.(*core.CommonHandlerData).ResetEverything {
-				// Load updates count. (Loading it afterwards since it could be affected by the page)
-				u.UpdateCount, err = core.LoadUpdateCount(db, u.Id)
+			handlerData := result.Data.(*core.CommonHandlerData)
+			if handlerData.ResetEverything {
+				// Fetch some more global data and pass it to the FE
+				handlerData.GlobalData = &params.GlobalHandlerData
+				handlerData.GlobalData.ImprovementTagIds, err = core.LoadMetaTags(db, core.RequestForEditTagParentPageId)
 				if err != nil {
-					fail(http.StatusInternalServerError, "Couldn't retrieve updates count", err)
+					fail(http.StatusInternalServerError, "Couldn't load improvement tags", err)
 					return
+				}
+
+				if core.IsIdValid(u.Id) {
+					// Load updates count. (Loading it afterwards since it could be affected by the page)
+					u.UpdateCount, err = core.LoadUpdateCount(db, u.Id)
+					u.NewNotificationCount, err = core.LoadNotificationCount(db, u.Id, false)
+					u.NewAchievementCount, err = core.LoadNewAchievementCount(db, u)
+					u.MaintenanceUpdateCount, err = core.LoadMaintenanceUpdateCount(db, u.Id, false)
+					if err != nil {
+						fail(http.StatusInternalServerError, "Couldn't retrieve updates count", err)
+						return
+					}
 				}
 			}
 

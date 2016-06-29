@@ -11,7 +11,7 @@
 	<h3>
 		Your permissions
 	</h3>
-	<div ng-repeat="(domainId,trust) in userService.user.trustMap"
+	<div ng-repeat="(domainId,trust) in arb.userService.user.trustMap"
 			ng-if="::trust.permissions.domainAccess.has">
 		<arb-page-title page-id="{{::domainId}}" is-link="true" ng-if="::domainId"></arb-page-title>
 		<span ng-if="::!domainId">General</span>
@@ -23,19 +23,19 @@
 	<br>
 
 	<!-- Stats bar -->
-	<div class="md-primary md-hue-1 stats-bar" ng-if="userService.userIsCool()">
+	<div class="md-primary md-hue-1 stats-bar" ng-if="arb.userService.userIsLoggedIn()">
 		<div layout="row">
 
 			<!-- Created pages -->
 			<div layout="column" layout-align="start center" flex="25">
 				<h4>
-					{{::data.numWikiPages + data.numLensPages}} pages
+					{{::data.numWikiPages}} pages
 				</h4>
 				<div class="md-caption">
 					{{::data.numUsersTaught}} readers learned {{::data.numReqsTaught}} requisites
 				</div>
 				<div class="md-caption">
-					{{::data.wikiLikes + data.lensLikes}} likes
+					{{::data.wikiLikes}} likes
 				</div>
 				<!--<div class="md-caption">
 					{{::data.numCommentThreads}} comment threads
@@ -88,7 +88,6 @@
 	<br>
 
 	<div arb-page-list panel-title="Recently created and edited pages"
-			show-created-at="true"
 			show-last-edit="true"
 			show-red-link-count="true"
 			show-text-length="true"

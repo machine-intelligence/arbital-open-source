@@ -16,22 +16,13 @@ var getParagraphNode = function(node) {
 };
 
 // Called when the user selects markdown text.
-// Return y position of where comment div should appear; null if it should
-// be hidden.
-var processSelectedParagraphText = function() {
+// Return true if it's a valid selection.
+var processSelectedParagraphText = function(containingElement) {
 	var selection = getStartEndSelection();
-	if (!selection) return null;
+	if (!selection) return false;
 
-	// Check that at least the start of the selection is within markdown-text.
-	if (!getParagraphNode(selection.startContainer)) {
-		return null;
-	}
-	var yOffset = $(selection.startContainer.parentNode).offset().top;
-	if (getParagraphNode(selection.endContainer)) {
-		// Middle between start and end.
-		yOffset = (yOffset + $(selection.endContainer.parentNode).offset().top) / 2;
-	}
-	return yOffset;
+	// Check that at least the start of the selection is within the containing element
+	return $.contains(containingElement.get(0), selection.startContainer.parentNode);
 };
 
 // Wrap the given range in a a higlight node. That node gets the optinal nodeClass.
@@ -157,9 +148,9 @@ var	recursivelyVisitChildren = function(node, callback) {
 	} else if (node.parentNode.id && node.parentNode.id.match(/^MathJax-Element-[0-9]+$/)) {
 		childLength = 0;
 		if (node.parentNode.type && node.parentNode.type.indexOf('mode=display') >= 0) {
-			text = '$$$' + text + '$$$';
-		} else {
 			text = '$$' + text + '$$';
+		} else {
+			text = '$' + text + '$';
 		}
 	} else if (childLength === 0) {
 		needsEscaping = true;

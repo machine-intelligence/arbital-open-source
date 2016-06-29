@@ -17,15 +17,11 @@ CREATE TABLE updates (
 	/* When this update was created. */
 	createdAt DATETIME NOT NULL,
 	/* Whether the user has seen this update. */
-	unseen BOOLEAN NOT NULL,
+	seen BOOLEAN NOT NULL,
 	/* Whether the user has dismissed this update. */
 	dismissed BOOLEAN NOT NULL,
 	/* True if this update has been emailed out. */
 	emailed BOOLEAN NOT NULL,
-	/* One of these has to be set. Updates will be grouped by this key and show up
-		in the same panel. */
-	groupByPageId VARCHAR(32) NOT NULL,
-	groupByUserId VARCHAR(32) NOT NULL,
 	/* User got this update because they are subscribed to "this thing". FK into
 		pages. */
 	subscribedToId VARCHAR(32) NOT NULL,

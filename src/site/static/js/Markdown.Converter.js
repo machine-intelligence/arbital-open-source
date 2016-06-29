@@ -335,7 +335,7 @@ else
 			                (?:\n+|$)
 			            /gm, function(){...});
 			            */
-			
+
 			text = text.replace(/^[ ]{0,3}\[([^\[\]]+)\]:[ \t]*\n?[ \t]*<?(\S+?)>?(?=\s|$)[ \t]*\n?[ \t]*((\n*)["(](.+?)[")][ \t]*)?(?:\n+)/gm,
                 function(wholeMatch, m1, m2, m3, m4, m5) {
 	m1 = m1.toLowerCase();
@@ -652,7 +652,7 @@ else
 			                )
 			            /g, writeAnchorTag);
 			            */
-			
+
 			text = text.replace(/(\[((?:\[[^\]]*\]|[^\[\]])*)\]\([ \t]*()<?((?:\([^)]*\)|[^()\s])*?)>?[ \t]*((['"])(.*?)\6[ \t]*)?\))/g, writeAnchorTag);
 
 			//
@@ -842,11 +842,11 @@ else
 			//  Header 2
 			//  --------
 			//
-			text = text.replace(/^(.+)[ \t]*\n=+[ \t]*\n+/gm,
+			text = text.replace(/^(.+)[ \t]*\n===+[ \t]*\n+/gm,
 			function(wholeMatch, m1) { return '<h1>' + _RunSpanGamut(m1) + '</h1>\n\n'; }
 			);
 
-			text = text.replace(/^(.+)[ \t]*\n-+[ \t]*\n+/gm,
+			text = text.replace(/^(.+)[ \t]*\n---+[ \t]*\n+/gm,
 			function(matchFound, m1) { return '<h2>' + _RunSpanGamut(m1) + '</h2>\n\n'; }
 			);
 
@@ -868,7 +868,7 @@ else
 			                \n+
 			            /gm, function() {...});
 			            */
-			
+
 			text = text.replace(/^(\#{1,6})[ \t]*(.+?)[ \t]*\#*\n+/gm,
                 function(wholeMatch, m1, m2) {
 	var h_level = m1.length;
@@ -1024,7 +1024,7 @@ else
 			                )
 			            /gm, function(){...});
 			            */
-			
+
 			var marker = _listItemMarkers[list_type];
 			var re = new RegExp('(^[ \\t]*)(' + marker + ')[ \\t]+([^\\r]+?(\\n+))(?=(~0|\\1(' + marker + ')[ \\t]+))', 'gm');
 			var last_item_had_a_double_newline = false;
@@ -1073,7 +1073,7 @@ else
 			                (\n*[ ]{0,3}[^ \t\n]|(?=~0))    // attacklab: g_tab_width
 			            /g ,function(){...});
 			            */
-			
+
 			// attacklab: sentinel workarounds for lack of \A and \Z, safari\khtml bug
 			text += '~0';
 
@@ -1138,7 +1138,7 @@ else
 			                (?!`)
 			            /gm, function(){...});
 			            */
-			
+
 			text = text.replace(/(^|[^\\`])(`+)(?!`)([^\r]*?[^`])\2(?!`)/gm,
                 function(wholeMatch, m1, m2, m3, m4) {
 	var c = m3;
@@ -1332,7 +1332,7 @@ else
 			                )
 			            /gm, function(){...});
 			            */
-			
+
 			text = text.replace(/((^[ \t]*>[ \t]?.+\n(.+\n)*\n*)+)/gm,
                 function(wholeMatch, m1) {
 	var bq = m1;
@@ -1449,6 +1449,8 @@ else
 
 			text = text.replace(/\\(\\)/g, escapeCharacters_callback);
 			text = text.replace(/\\([`*_{}\[\]()>#+-.!])/g, escapeCharacters_callback);
+			// NOTE: Alexei added this to have "\$" come out as "$"
+			text = text.replace(/\\~D/g, '~D');
 			return text;
 		}
 
@@ -1525,7 +1527,7 @@ else
 			                >
 			            /gi, _DoAutoLinks_callback());
 			            */
-			
+
 			/* disabling email autolinking, since we don't do that on the server, either
 			            text = text.replace(/<(?:mailto:)?([-.\w]+\@[-a-z0-9]+(\.[-a-z0-9]+)*\.[a-z]+)>/gi,
 			                function(wholeMatch,m1) {

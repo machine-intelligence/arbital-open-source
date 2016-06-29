@@ -1,16 +1,15 @@
 'use strict';
 
 // Directive for the Settings page.
-app.directive('arbSettingsInviteTab', function($http, $filter, pageService, userService) {
+app.directive('arbSettingsInviteTab', function($http, $filter, arb) {
 	return {
-		templateUrl: 'static/html/settingsInviteTab.html',
+		templateUrl: versionUrl('static/html/settingsInviteTab.html'),
 		scope: {
 			domains: '=',
 			invitesSent: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
 			$scope.alwaysTrue = true;
 
 			// Controls whether form to create invite is shown
@@ -77,9 +76,9 @@ app.directive('arbSettingsInviteTab', function($http, $filter, pageService, user
 			// Get text describing what the current status of the invite is.
 			$scope.getInviteStatus = function(invite) {
 				if (invite.claimedAt.length > 0 && invite.claimedAt[0] !== '0') {
-					return 'claimed ' + $filter('relativeDateTime')(invite.claimedAt);
+					return 'claimed ' + $filter('smartDateTime')(invite.claimedAt);
 				} else if (invite.emailSentAt.length > 0 && invite.emailSentAt[0] !== '0') {
-					return 'invite sent ' + $filter('relativeDateTime')(invite.emailSentAt);
+					return 'invite sent ' + $filter('smartDateTime')(invite.emailSentAt);
 				}
 				return 'not claimed yet';
 			};

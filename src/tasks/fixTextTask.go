@@ -32,8 +32,8 @@ func (task FixTextTask) Execute(db *database.DB) (delay int, err error) {
 		return 0, err
 	}
 
-	c.Debugf("==== FIX TEXT START ====")
-	defer c.Debugf("==== FIX TEXT COMPLETED ====")
+	c.Infof("==== FIX TEXT START ====")
+	defer c.Infof("==== FIX TEXT COMPLETED ====")
 
 	rows := db.NewStatement(`
 			SELECT pageId,edit,text
@@ -42,7 +42,7 @@ func (task FixTextTask) Execute(db *database.DB) (delay int, err error) {
 	//if err = rows.Process(fixText1); err != nil {
 	//if err = rows.Process(fixText2); err != nil {
 	if err = rows.Process(fixText3); err != nil {
-		c.Debugf("ERROR, failed to fix text: %v", err)
+		c.Infof("ERROR, failed to fix text: %v", err)
 		return 0, err
 	}
 
@@ -64,8 +64,8 @@ func fixText1(db *database.DB, rows *database.Rows) error {
 		return strings.Join(parts, " ")
 	})
 	if newText != text {
-		db.C.Debugf("========================== %s", text)
-		db.C.Debugf("========================== %s", newText)
+		db.C.Infof("========================== %s", text)
+		db.C.Infof("========================== %s", newText)
 		hashmap := make(map[string]interface{})
 		hashmap["pageId"] = pageId
 		hashmap["edit"] = edit
@@ -96,8 +96,8 @@ func fixText2(db *database.DB, rows *database.Rows) error {
 		//result = strings.Replace(result, "http://arbital.com/edit/", "", -1)
 		//result = strings.Replace(result, "http://arbital.com/pages/", "", -1)
 		//result = strings.Replace(result, "http://arbital.com/p/", "", -1)
-		db.C.Debugf("submatch: %v", submatch)
-		db.C.Debugf("result  : %v", result)
+		db.C.Infof("submatch: %v", submatch)
+		db.C.Infof("result  : %v", result)
 		return result
 	})
 
@@ -107,8 +107,8 @@ func fixText2(db *database.DB, rows *database.Rows) error {
 	newText = exp.ReplaceAllString(newText, "[$2 $1]")
 
 	if newText != text {
-		db.C.Debugf("========================== %s", text)
-		db.C.Debugf("========================== %s", newText)
+		db.C.Infof("========================== %s", text)
+		db.C.Infof("========================== %s", newText)
 		hashmap := make(map[string]interface{})
 		hashmap["pageId"] = pageId
 		hashmap["edit"] = edit
@@ -139,9 +139,9 @@ func fixText3(db *database.DB, rows *database.Rows) error {
 	base10Id := "0"
 	base36Id := "0"
 	for _, submatch := range submatches {
-		db.C.Debugf("submatch: %v", submatch)
-		db.C.Debugf("submatch[0]: %v", submatch[0])
-		db.C.Debugf("submatch[1]: %v", submatch[1])
+		db.C.Infof("submatch: %v", submatch)
+		db.C.Infof("submatch[0]: %v", submatch[0])
+		db.C.Infof("submatch[1]: %v", submatch[1])
 		//base10Id = submatch[1]
 
 		rows = database.NewQuery(`
@@ -154,8 +154,8 @@ func fixText3(db *database.DB, rows *database.Rows) error {
 			if err != nil {
 				return fmt.Errorf("failed to scan: %v", err)
 			}
-			db.C.Debugf("base10Id: %v", base10Id)
-			db.C.Debugf("base36Id: %v", base36Id)
+			db.C.Infof("base10Id: %v", base10Id)
+			db.C.Infof("base36Id: %v", base36Id)
 			return nil
 		})
 		if err != nil {
@@ -168,17 +168,17 @@ func fixText3(db *database.DB, rows *database.Rows) error {
 
 		result := submatch
 		result = strings.Replace(result, base10Id, base36Id, -1)
-		db.C.Debugf("submatch: %v", submatch)
-		db.C.Debugf("result  : %v", result)
+		db.C.Infof("submatch: %v", submatch)
+		db.C.Infof("result  : %v", result)
 
 		return result
 	})
 
-	//db.C.Debugf("newText: %v", newText)
+	//db.C.Infof("newText: %v", newText)
 
 	if newText != text {
-		db.C.Debugf("========================== %s", text)
-		db.C.Debugf("========================== %s", newText)
+		db.C.Infof("========================== %s", text)
+		db.C.Infof("========================== %s", newText)
 		hashmap := make(map[string]interface{})
 		hashmap["pageId"] = pageId
 		hashmap["edit"] = edit
@@ -194,7 +194,7 @@ func fixText3(db *database.DB, rows *database.Rows) error {
 	submatches = exp.FindAllStringSubmatch(newText, -1)
 
 	for _, submatch := range submatches {
-		db.C.Debugf("correct submatch: %v", submatch)
+		db.C.Infof("correct submatch: %v", submatch)
 	}
 
 	return nil

@@ -1,9 +1,9 @@
 'use strict';
 
 // Directive for showing a window for creating/editing a mark
-app.directive('arbMarkInfo', function($interval, pageService, userService, autocompleteService) {
+app.directive('arbMarkInfo', function($interval, arb) {
 	return {
-		templateUrl: 'static/html/markInfo.html',
+		templateUrl: versionUrl('static/html/markInfo.html'),
 		scope: {
 			// Id of the query mark that was created.
 			markId: '@',
@@ -11,30 +11,29 @@ app.directive('arbMarkInfo', function($interval, pageService, userService, autoc
 			isNew: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
-			$scope.mark = pageService.markMap[$scope.markId];
-			$scope.isOnPage = $scope.mark.pageId == pageService.getCurrentPageId();
+			$scope.arb = arb;
+			$scope.mark = arb.markService.markMap[$scope.markId];
+			$scope.isOnPage = $scope.mark.pageId == arb.pageService.getCurrentPageId();
 
 			// Call to resolve the mark with the given page.
 			$scope.resolveWith = function(pageId) {
-				pageService.resolveMark({
+				arb.markService.resolveMark({
 					markId: $scope.markId,
 					resolvedPageId: $scope.mark.pageId,
 				});
 				$scope.mark.resolvedPageId = pageId;
-				$scope.mark.resolvedBy = userService.user.id;
+				$scope.mark.resolvedBy = arb.userService.user.id;
 				$scope.hidePopup({dismiss: true});
 			};
 
 			// Called when an author wants to resolve the mark.
 			$scope.dismissMark = function() {
-				pageService.resolveMark({
+				arb.markService.resolveMark({
 					markId: $scope.markId,
 					resolvedPageId: '',
 				});
 				$scope.mark.resolvedPageId = '';
-				$scope.mark.resolvedBy = userService.user.id;
+				$scope.mark.resolvedBy = arb.userService.user.id;
 				$scope.hidePopup({dismiss: true});
 			};
 		},
@@ -42,7 +41,7 @@ app.directive('arbMarkInfo', function($interval, pageService, userService, autoc
 			// Hide current event window, if it makes sense.
 			scope.hidePopup = function(result) {
 				if (scope.isOnPage) {
-					pageService.hidePopup(result);
+					arb.popupService.hidePopup(result);
 				}
 			};
 		},

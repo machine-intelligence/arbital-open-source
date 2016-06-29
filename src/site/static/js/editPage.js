@@ -2,10 +2,9 @@
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 
 // Directive for the actual DOM elements which allows the user to edit a page.
-app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $http, $mdDialog, $mdMedia,
-	pageService, userService, autocompleteService, markdownService, diffService) {
+app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $http, $mdDialog, $mdMedia, arb) {
 	return {
-		templateUrl: 'static/html/editPage.html',
+		templateUrl: versionUrl('static/html/editPage.html'),
 		scope: {
 			pageId: '@',
 			// Whether or not this edit page is embedded in some column, and should be
@@ -17,9 +16,8 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			doneFn: '&',
 		},
 		controller: function($scope) {
-			$scope.userService = userService;
-			$scope.pageService = pageService;
-			$scope.page = pageService.editMap[$scope.pageId];
+			$scope.arb = arb;
+			$scope.page = arb.stateService.editMap[$scope.pageId];
 			$scope.fullView = !$scope.isEmbedded && $mdMedia('gt-md');
 			$scope.gtXSmallScreen = $mdMedia('gt-xs');
 			$scope.gtSmallScreen = $mdMedia('gt-sm');
@@ -32,6 +30,49 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// we notice that a new edit has been published.)
 			$scope.freezeEdit = false;
 			$scope.maxQuestionTextLength = 1000;
+
+			// Extract parentId from URL
+			$scope.quickParentId = $location.search().parentId;
+			$location.replace().search('parentId', undefined);
+
+			// Modify the page
+			$scope.page.text = arb.pageService.convertPageIdsToAliases($scope.page.text);
+
+			$scope.getPublishText = function() {
+				if ($scope.page.isDeleted) return 'Republish';
+				if ($scope.page.permissions.edit.has) return 'Publish';
+				if ($scope.page.permissions.proposeEdit.has) return 'Propose';
+				return '';
+			};
+			$scope.getPublishTooltipText = function() {
+				if ($scope.page.isDeleted) return 'Republish this page';
+				if ($scope.page.permissions.edit.has) return 'Make this version live';
+				if ($scope.page.permissions.proposeEdit.has) return 'Propose an edit to this page';
+				return '';
+			};
+
+			// Whether the editor should be in advanced mode.
+			$scope.showAdvancedMode = function() {
+				return arb.userService.user.isDomainMember || arb.userService.user.showAdvancedEditorMode;
+			};
+
+			// Called when the advanced mode view is toggled
+			$scope.advancedModeToggled = function() {
+				arb.userService.updateSettings();
+				if ($scope.showAdvancedMode()) {
+					// Keep the user on the settings tab
+					$scope.selectedTab = 3;
+				}
+			};
+
+			$scope.getRelationshipTabIndex = function() {
+				return $scope.showAdvancedMode() ? 2 : -1;
+			};
+
+			// Return true if we should show the publish button.
+			$scope.isPublishButtonVisible = function() {
+				return ($scope.selectedTab != $scope.getRelationshipTabIndex() || !$scope.page.wasPublished) && !$scope.freezeEdit;
+			};
 
 			// If the alias contains a subdomain, then remove it
 			var periodIndex = $scope.page.alias.indexOf('.');
@@ -48,15 +89,16 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				$scope.selectedTab = 1;
 			}
 
+			// If this is a new page, and it had custom alias set, we can now set the title,
+			// since this won't affect tab selection.
+			if (!$scope.page.wasPublished && $scope.page.alias !== $scope.page.pageId) {
+				$scope.page.title = $scope.page.alias.substring(0, 1).toUpperCase() + $scope.page.alias.substring(1);
+				$scope.page.title = $scope.page.title.replace(/_/g, ' ');
+			}
+
 			// Set up markdown
 			$timeout(function() {
-				var $wmdPreview = $('#wmd-preview' + $scope.page.pageId);
-				// Initialize pagedown
-				markdownService.createEditConverter($scope.page.pageId, function(refreshFunc) {
-					$timeout(function() {
-						markdownService.processLinks($scope, $wmdPreview, refreshFunc);
-					});
-				});
+				arb.markdownService.createEditConverter($scope, $scope.page.pageId);
 			});
 
 			// Called when user selects a page from insert link input
@@ -70,25 +112,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				});
 			};
 
-			// Lens sort listeners (using ng-sortable library)
-			$scope.page.lensIds.sort(function(a, b) {
-				return pageService.pageMap[a].lensIndex - pageService.pageMap[b].lensIndex;
-			});
-			$scope.lensSortListeners = {
-				orderChanged: function(event) {
-					var data = {pageId: $scope.page.pageId, orderMap: {}};
-					for (var n = 0; n < $scope.page.lensIds.length; n++) {
-						var pageId = $scope.page.lensIds[n];
-						pageService.pageMap[pageId].lensIndex = n + 1;
-						data.orderMap[pageId] = n + 1;
-					}
-					$http({method: 'POST', url: '/updateLensOrder/', data: JSON.stringify(data)})
-					.error(function(data) {
-						$scope.addMessage('lensOrder', 'Error updating lens order: ' + data, 'error');
-					});
-				},
-			};
-
 			// Toggle in and out of preview when not in fullView
 			$scope.inPreview = false;
 			$scope.togglePreview = function(show) {
@@ -96,32 +119,26 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 
 			// Setup all the settings
-			$scope.isWiki = $scope.page.isWiki();
-			$scope.isQuestion = $scope.page.isQuestion();
-			$scope.isComment = $scope.page.isComment();
-			$scope.isLens = $scope.page.isLens();
-			$scope.isGroup = $scope.page.isGroup() || $scope.page.isDomain();
-			$scope.forceExpandSimilarPagesCount = 10;
 			$scope.isNormalEdit = !($scope.page.isSnapshot || $scope.page.isAutosave);
 
+			// if this is a work in progress, load the saved edit summary, otherwise edit summary should be blank
+			// (that is, do *not* load the edit summary for the previous edit that we're working off of)
+			$scope.page.newEditSummary = $scope.isNormalEdit ? '' : $scope.page.editSummary;
+
 			// Set up page types.
-			if ($scope.isQuestion) {
-				$scope.pageTypes = {question: 'Question'};
-			} else if ($scope.isComment) {
+			if ($scope.page.isComment()) {
 				$scope.pageTypes = {comment: 'Comment'};
-			} else if ($scope.isWiki) {
-				$scope.pageTypes = {wiki: 'Wiki page'};
-			} else if ($scope.isLens) {
-				$scope.pageTypes = {lens: 'Lens page'};
+			} else if ($scope.page.isWiki() || $scope.page.isQuestion()) {
+				$scope.pageTypes = {wiki: 'Wiki', question: 'Question'};
 			}
 
 			// Set up group names.
-			var groupIds = userService.user.groupIds;
+			var groupIds = arb.userService.user.groupIds;
 			$scope.groupOptions = {'': '-'};
 			if (groupIds) {
 				for (var i in groupIds) {
 					var groupId = groupIds[i];
-					var groupName = pageService.pageMap[groupId].title;
+					var groupName = arb.stateService.pageMap[groupId].title;
 					$scope.groupOptions[groupId] = groupName;
 				}
 			}
@@ -142,54 +159,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 
 			$scope.lockExists = $scope.page.lockedBy != '' && moment.utc($scope.page.lockedUntil).isAfter(moment.utc());
-			$scope.lockedByAnother = $scope.lockExists && $scope.page.lockedBy !== userService.user.id;
-
-			$scope.convertPageIdsToAliases = function(textToConvert) {
-				// Convert all links with pageIds to alias links.
-				return textToConvert.replace(complexLinkRegexp, function(whole, prefix, text, alias) {
-					var page = pageService.pageMap[alias];
-					if (page) {
-						return prefix + '[' + text + '](' + page.alias + ')';
-					}
-					return whole;
-					/*}).replace(voteEmbedRegexp, function (whole, prefix, alias) {
-						var page = pageService.pageMap[alias];
-						if (page) {
-						return prefix + '[vote: ' + page.alias + ']';
-						}
-						return whole;*/
-				}).replace(forwardLinkRegexp, function(whole, prefix, alias, text) {
-					var page = pageService.pageMap[alias];
-					if (page) {
-						return prefix + '[' + page.alias + ' ' + text + ']';
-					}
-					return whole;
-				}).replace(simpleLinkRegexp, function(whole, prefix, alias) {
-					if (alias.substring(0, 1) == '-') {
-						var page = pageService.pageMap[alias.substring(1)];
-						if (page) {
-							return prefix + '[-' + page.alias + ']';
-						}
-					} else {
-						var page = pageService.pageMap[alias];
-						if (page) {
-							return prefix + '[' + page.alias + ']';
-						}
-					}
-					return whole;
-				}).replace(atAliasRegexp, function(whole, prefix, alias) {
-					var page = pageService.pageMap[alias];
-					if (page) {
-						return prefix + '[@' + page.alias + ']';
-					}
-					return whole;
-				});
-			};
-
-			$scope.page.text = $scope.convertPageIdsToAliases($scope.page.text);
-			if ($scope.isLens) {
-				$scope.page.title = $scope.page.lensTitle();
-			}
+			$scope.lockedByAnother = $scope.lockExists && $scope.page.lockedBy !== arb.userService.user.id;
 
 			// User reverts to an edit
 			$scope.revertToEdit = function(editNum) {
@@ -199,7 +169,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				};
 				$http({method: 'POST', url: '/revertPage/', data: JSON.stringify(data)})
 				.success(function(data) {
-					$location.url(pageService.getPageUrl($scope.page.pageId));
+					arb.urlService.goToUrl(arb.urlService.getPageUrl($scope.page.pageId));
 				})
 				.error(function(data) {
 					$scope.addMessage('revert', 'Error reverting: ' + data, 'error');
@@ -210,7 +180,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.mergeCandidate = undefined;
 			$scope.selectedMergeQuestion = function(result) {
 				if (result.pageId == $scope.page.pageId) return;
-				$scope.mergeCandidate = pageService.pageMap[result.pageId];
+				$scope.mergeCandidate = arb.stateService.pageMap[result.pageId];
 			};
 
 			// Called when the user wants to merge this question.
@@ -221,7 +191,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				};
 				$http({method: 'POST', url: '/mergeQuestions/', data: JSON.stringify(data)})
 				.success(function(data) {
-					$location.url(pageService.getPageUrl($scope.mergeCandidate.pageId));
+					arb.urlService.goToUrl(arb.urlService.getPageUrl($scope.mergeCandidate.pageId));
 				})
 				.error(function(data) {
 					$scope.addMessage('merge', 'Error merging: ' + data, 'error');
@@ -230,16 +200,14 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			$scope.moreRelationshipIds = undefined;
 			$scope.loadMoreRelationships = function() {
-				var data = {pageId: $scope.page.pageId};
-				$http({method: 'POST', url: '/json/moreRelationships/', data: JSON.stringify(data)})
-				.success(function(data) {
-					userService.processServerData(data);
-					pageService.processServerData(data);
-					$scope.moreRelationshipIds = data.result.moreRelationshipIds;
-				})
-				.error(function(data) {
-					$scope.addMessage('moreRelationships', 'Error loading more relationships: ' + data, 'error');
-				});
+				var data = {pageAlias: $scope.page.pageId};
+				arb.stateService.postData('/json/moreRelationships/', data,
+					function success(data) {
+						$scope.moreRelationshipIds = data.result.moreRelationshipIds;
+					}, function error(data) {
+						$scope.addMessage('moreRelationships', 'Error loading more relationships: ' + data, 'error');
+					}
+				);
 			};
 
 			// =========== Error, warning, and info management system ==============
@@ -256,13 +224,10 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 
 			// Check if the user can edit this page
-			if ($scope.page.wasPublished && !$scope.page.permissions.edit.has) {
-				$scope.addMessage('editLevel', $scope.page.permissions.edit.reason, 'error', true);
-			}
-			// Check group permissions
-			if ($scope.page.editGroupId !== '' && !($scope.page.editGroupId in $scope.groupOptions)) {
-				$scope.addMessage('editGroup', 'You need to be part of ' +
-					pageService.pageMap[$scope.page.editGroupId].title + ' group to edit this page', 'error', true);
+			if (!$scope.page.permissions.proposeEdit.has && !$scope.page.permissions.edit.has) {
+				$scope.addMessage('editLevel', $scope.page.permissions.proposeEdit.reason, 'error', true);
+			} else if (!$scope.page.permissions.edit.has) {
+				$scope.addMessage('editLevel', $scope.page.permissions.edit.reason, 'warning');
 			}
 			// Check if you've loaded an edit that's not currently live
 			if ($scope.page.edit !== $scope.page.currentEdit && $scope.isNormalEdit) {
@@ -270,11 +235,11 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			}
 			if ($scope.page.wasPublished && $scope.page.isAutosave) {
 				$scope.addMessage('nonLiveEdit', 'Loaded an autosave which was last updated ' +
-					$filter('relativeDateTime')(pageService.primaryPage.editCreatedAt), 'warning');
+					$filter('smartDateTime')(arb.stateService.primaryPage.editCreatedAt), 'warning');
 			}
 			if ($scope.page.wasPublished && $scope.page.isSnapshot) {
 				$scope.addMessage('nonLiveEdit', 'Loaded a snapshot which was last updated ' +
-					$filter('relativeDateTime')(pageService.primaryPage.editCreatedAt), 'warning');
+					$filter('smartDateTime')(arb.stateService.primaryPage.editCreatedAt), 'warning');
 			}
 			// Check if we loaded a live edit, but the user has a draft
 			if ($scope.page.wasPublished && $scope.page.hasDraft && $scope.isNormalEdit) {
@@ -293,11 +258,14 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$timeout(function() {
 				// If we loaded an edit that's not based off of the current edit, freeze!
 				// Note: do this before we compute prevEditPageData, to make sure autosave goes through.
-				if ($scope.page.wasPublished && $scope.page.prevEdit != $scope.page.currentEdit) {
-					$scope.freezeEdit = true;
-					$scope.savePage(false, true);
-					var message = 'A new version was published. To prevent edit conflicts, please refresh the page to see it. (A snapshot of your current state has been saved.)';
-					$scope.addMessage('obsoleteEdit', message, 'error');
+				if ($scope.page.wasPublished) {
+					var isThisEditLive = $scope.page.edit == $scope.page.currentEdit;
+					if (!isThisEditLive && $scope.page.prevEdit != $scope.page.currentEdit) {
+						$scope.freezeEdit = true;
+						$scope.savePage(false, true);
+						var message = 'A new version was published. To prevent edit conflicts, please refresh the page to see it. (A snapshot of your current state has been saved.)';
+						$scope.addMessage('obsoleteEdit', message, 'error');
+					}
 				}
 				// Compute prevEditPageData, so we don't fire off autosave when there were
 				// no changes made.
@@ -311,13 +279,15 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				$scope.page.text = $('#wmd-input' + $scope.pageId)[0].value;
 				var data = {
 					pageId: $scope.pageId,
-					prevEdit: $scope.page.prevEdit,
+					prevEdit: $scope.page.currentEdit,
 					currentEdit: $scope.page.currentEdit,
 					title: $scope.page.title,
 					clickbait: $scope.page.clickbait,
 					text: $scope.page.text,
+					snapshotText: $scope.page.snapshotText,
+					editSummary: $scope.page.newEditSummary,
 				};
-				if ($scope.isQuestion) {
+				if ($scope.page.isQuestion()) {
 					data.text = data.text.length > $scope.maxQuestionTextLength ? data.text.slice(-$scope.maxQuestionTextLength) : data.text;
 				}
 				if ($scope.page.anchorContext) {
@@ -331,15 +301,11 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// callback is called with the error (or undefined on success)
 			$scope.savePage = function(isAutosave, isSnapshot, callback, autosaveNotPerformedCallback) {
 				var data = computeAutosaveData();
-				if (isSnapshot) {
-					data.snapshotText = $scope.page.snapshotText;
-				}
 				if (!isAutosave || JSON.stringify(data) !== JSON.stringify(prevEditPageData)) {
-					shouldFindSimilar = true;
 					prevEditPageData = $.extend({}, data);
 					data.isAutosave = isAutosave;
 					data.isSnapshot = isSnapshot;
-					data.isEditorCommentIntention = $scope.page.isEditorCommentIntention;
+					data.isProposal = !$scope.page.permissions.edit.has;
 					// Send the data to the server.
 					// TODO: if the call takes too long, we should show a warning.
 					$http({method: 'POST', url: '/editPage/', data: JSON.stringify(data)})
@@ -356,6 +322,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 							$scope.page.lockedUntil = moment.utc().add(30, 'm').format('YYYY-MM-DD HH:mm:ss');
 						}
 						$scope.isPageDirty = isAutosave;
+
 						if (callback) callback();
 					})
 					.error(function(data) {
@@ -368,6 +335,9 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			// Call the doneFn callback after the page has been fully published.
 			var publishPageDone = function() {
+				if (!$scope.page.permissions.edit.has) {
+					arb.popupService.showToast({text: 'Your proposal has been submitted.'});
+				}
 				$scope.doneFn({result: {
 					pageId: $scope.page.pageId,
 					alias: $scope.page.alias
@@ -380,27 +350,27 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					if (error) {
 						$scope.publishing = false;
 						$scope.addMessage('publish', 'Publishing failed: ' + error, 'error');
-					} else {
-						$scope.savePage(false, false, function(error) {
-							$scope.publishing = false;
-							if (error) {
-								$scope.addMessage('publish', 'Publishing failed: ' + error, 'error');
-							} else if ($location.search().markId) {
-								// Update the mark as resolved
-								pageService.resolveMark({
-									markId: $location.search().markId,
-									resolvedPageId: $scope.pageId,
-								}, function success() {
-									pageService.showToast({text: 'You resolved the query mark.'});
-									publishPageDone();
-								}, function error() {
-									publishPageDone();
-								});
-							} else {
-								publishPageDone();
-							}
-						});
+						return;
 					}
+					$scope.savePage(false, false, function(error) {
+						$scope.publishing = false;
+						if (error) {
+							$scope.addMessage('publish', 'Publishing failed: ' + error, 'error');
+						} else if ($location.search().markId) {
+							// Update the mark as resolved
+							arb.markService.resolveMark({
+								markId: $location.search().markId,
+								resolvedPageId: $scope.pageId,
+							}, function success() {
+								arb.popupService.showToast({text: 'You resolved the query mark.'});
+								publishPageDone();
+							}, function error() {
+								publishPageDone();
+							});
+						} else {
+							publishPageDone();
+						}
+					});
 				});
 			};
 
@@ -429,12 +399,12 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 						discard: true,
 					}});
 				};
-				pageService.discardPage($scope.page.pageId, cont, cont);
+				arb.pageService.discardPage($scope.page.pageId, cont, cont);
 			};
 
 			// Process Delete button click.
 			$scope.deletePage = function() {
-				pageService.deletePage($scope.page.pageId, function() {
+				arb.pageService.deletePage($scope.page.pageId, function() {
 					if ($scope.doneFn) {
 						$scope.doneFn({result: {
 							pageId: $scope.page.pageId,
@@ -468,23 +438,29 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 
 			// =========== Find similar pages ==============
-			var shouldFindSimilar = false;
+			var searchingForSimilarPages = false;
+			var prevSimilarData = {};
 			$scope.similarPages = [];
 			var findSimilarFunc = function() {
-				if ($scope.page.wasPublished) return;
-				if (!shouldFindSimilar || $scope.isComment) return;
-				// Don't search, if we don't have the first tab selected
+				if (searchingForSimilarPages) return;
 				if ($scope.selectedTab != 0) return;
-				shouldFindSimilar = false;
+				if ($scope.page.wasPublished) return;
+				if ($scope.page.isComment()) return;
+
 				var data = {
 					title: $scope.page.title,
 					// Cutting off text at the last 4k characters, so Elastic doesn't choke
 					text: $scope.page.text.length > 4000 ? $scope.page.text.slice(-4000) : $scope.page.text,
 					clickbait: $scope.page.clickbait,
-					// TODO: probably shouldn't worry about page type here
-					pageType: $scope.page.type,
 				};
-				autocompleteService.findSimilarPages(data, function(data) {
+				if (JSON.stringify(data) == JSON.stringify(prevSimilarData)) {
+					return;
+				}
+
+				searchingForSimilarPages = true;
+				prevSimilarData = data;
+				arb.autocompleteService.findSimilarPages(data, function(data) {
+					searchingForSimilarPages = false;
 					$scope.similarPages.length = 0;
 					for (var n = 0; n < data.length; n++) {
 						var pageId = data[n].pageId;
@@ -493,7 +469,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					}
 				});
 			};
-			var similarInterval = $interval(findSimilarFunc, 3000);
+			var similarInterval = $interval(findSimilarFunc, 500);
 			$scope.$on('$destroy', function() {
 				$interval.cancel(similarInterval);
 			});
@@ -505,7 +481,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.diffExpanded = false;
 			// Refresh the diff edit text.
 			$scope.refreshDiff = function() {
-				$scope.diffHtml = diffService.getDiffHtml($scope.otherDiff.text, $scope.page.text, $scope.diffExpanded);
+				$scope.diffHtml = arb.diffService.getDiffHtml($scope.otherDiff, $scope.page, $scope.diffExpanded);
 			};
 			$scope.toggleExpandDiff = function() {
 				$scope.diffExpanded = !$scope.diffExpanded;
@@ -514,13 +490,13 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// Process click event for diffing edits
 			$scope.showDiff = function(editNum) {
 				// Load the edit from the server
-				pageService.loadEdit({
+				arb.pageService.loadEdit({
 					pageAlias: $scope.page.pageId,
 					specificEdit: editNum,
 					skipProcessDataStep: true,
+					convertPageIdsToAliases: true,
 					success: function(data, status) {
-						$scope.otherDiff = data[$scope.page.pageId];
-						$scope.otherDiff.text = $scope.convertPageIdsToAliases($scope.otherDiff.text);
+						$scope.otherDiff = data.edits[$scope.page.pageId];
 						$scope.refreshDiff();
 						$scope.selectedTab = 1;
 					},
@@ -537,13 +513,13 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// Process click event for showing a side edit
 			$scope.loadSideEdit = function(editNum) {
 				// Load the edit from the server
-				pageService.loadEdit({
+				arb.pageService.loadEdit({
 					pageAlias: $scope.page.pageId,
 					specificEdit: editNum,
 					skipProcessDataStep: true,
+					convertPageIdsToAliases: true,
 					success: function(data, status) {
-						$scope.sideEdit = data[$scope.page.pageId];
-						$scope.sideEdit.text = $scope.convertPageIdsToAliases($scope.sideEdit.text);
+						$scope.sideEdit = data.edits[$scope.page.pageId];
 						$scope.selectedTab = 1;
 					},
 				});
@@ -583,7 +559,25 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// Save the page info.
 			// callback is called with a potential error message when the server replies
 			$scope.savePageInfo = function(callback) {
-				pageService.savePageInfo($scope.page, callback);
+				// NOTE: for now, all comments will be editor-only.
+				$scope.page.isEditorCommentIntention = true;
+				arb.pageService.savePageInfo($scope.page, callback);
+			};
+
+			// Return true iff any of the pageInfo values changed.
+			$scope.pageInfoChanged = function() {
+				if (!$scope.page.wasPublished) return false;
+				// TODO: the page won't be in the pageMap if it's deleted. Ideally we have a better
+				// workaround for this.
+				if (!($scope.pageId in arb.stateService.pageMap)) return true;
+				var originalPageInfo = arb.stateService.pageMap[$scope.pageId].getPageInfo();
+				var newPageInfo = $scope.page.getPageInfo();
+				return !angular.equals(originalPageInfo, newPageInfo);
+			};
+
+			$scope.showPublishingOptionsPanel = false;
+			$scope.togglePublishingOptionsPanel = function() {
+				$scope.showPublishingOptionsPanel = !$scope.showPublishingOptionsPanel;
 			};
 		},
 		link: function(scope, element, attrs) {
@@ -623,7 +617,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					$divs.on('scroll', syncScroll);
 				}
 
-				if (scope.isComment) {
+				if (scope.page.isComment()) {
 					// Scroll to show the entire edit page element and focus on the input.
 					var editorTop = element.offset().top + element.height() - $(window).height() + 80;
 					$('html, body').animate({
@@ -655,7 +649,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 						parentIds = scope.page.parentIds;
 					}
 					$mdDialog.show({
-						templateUrl: 'static/html/editPageDialog.html',
+						templateUrl: versionUrl('static/html/editPageDialog.html'),
 						controller: 'EditPageDialogController',
 						autoWrap: false,
 						targetEvent: event,

@@ -1,17 +1,16 @@
 'use strict';
 
 // arbNewsletter directive displays a way for the user to edit their newsletter preferences
-app.directive('arbNewsletter', function($http, pageService, userService) {
+app.directive('arbNewsletter', function($http, arb) {
 	return {
-		templateUrl: 'static/html/newsletterPage.html',
+		templateUrl: versionUrl('static/html/newsletterPage.html'),
 		scope: {
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
 			$scope.alreadySubscribed = true;
 
-			var interestMap = userService.user.mailchimpInterests;
+			var interestMap = arb.userService.user.mailchimpInterests;
 			if (Object.keys(interestMap).length <= 0) {
 				interestMap = {
 					'7ec5d431b0': true,
@@ -21,7 +20,7 @@ app.directive('arbNewsletter', function($http, pageService, userService) {
 			}
 
 			$scope.subscribeData = {
-				email: userService.user.email,
+				email: arb.userService.user.email,
 				interests: interestMap,
 			};
 			$scope.subscribed = false;

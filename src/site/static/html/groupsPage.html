@@ -3,7 +3,7 @@
 			layout="column"
 			style="margin: 15px 0"
 			ng-repeat="(groupId,group) in ::groupMap"
-			ng-init="userCanAddMembers = group.members[userService.user.id].canAddMembers; userCanAdmin = group.members[userService.user.id].canAdmin">
+			ng-init="userCanAddMembers = group.members[arb.userService.user.id].canAddMembers; userCanAdmin = group.members[arb.userService.user.id].canAdmin">
 		<md-toolbar class="md-hue-2">
 			<div class="md-toolbar-tools">
 				<arb-page-title page-id="{{::groupId}}" is-link="true"><arb-page-title>
@@ -59,7 +59,7 @@
 	</div>
 
 	<!-- Create new group -->
-	<div class="md-whiteframe-1dp" layout-margin ng-if="::userService.user.isAdmin">
+	<div class="md-whiteframe-1dp" layout-margin ng-if="::arb.userService.user.isAdmin">
 		<md-toolbar class="md-hue-1" layout-fill>
 			<div class="md-toolbar-tools">
 				New group

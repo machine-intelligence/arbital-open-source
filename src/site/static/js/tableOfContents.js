@@ -1,16 +1,15 @@
 'use strict';
 
 // Directive for table of contents
-app.directive('arbTableOfContents', function($timeout, $http, $compile, pageService, userService) {
+app.directive('arbTableOfContents', function($timeout, $http, $compile, arb) {
 	return {
-		templateUrl: 'static/html/tableOfContents.html',
+		templateUrl: versionUrl('static/html/tableOfContents.html'),
 		transclude: true,
 		scope: {
 			pageId: '@',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
 			$scope.showToc = true;
 			$scope.toc = [];
 		},

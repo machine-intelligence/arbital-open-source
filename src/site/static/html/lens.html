@@ -1,5 +1,4 @@
 <div layout="column">
-	<div ng-include="'static/html/lensToolbar.html'"></div>
 
 	<!-- Requirements -->
 	<div class="requirements-container"
@@ -20,37 +19,38 @@
 			</md-button>
 		</div>
 
-		<!-- Learn / simpler lens suggestion -->
+		<!-- Learn suggestion -->
 		<div class="lens-suggestion" ng-show="!meetsAllRequirements()">
 			<a ng-href="/learn/{{::page.alias}}">
 				Learn the requisites
 			</a>
-			<span ng-if="::simplerLens">
-				or try a simpler lens:
-				<a ng-href="{{::pageService.getPageUrl(simplerLens.pageId)}}"
-						ng-bind="::('&quot;' + simplerLens.lensTitle() + '&quot;')"></a>.
-			</span>
 		</div>
 	</div>
 
 	<!-- Page's text. Populated by markdown. -->
 	<div class="lens-text-container">
+		<!-- Page title -->
+		<h1>
+			<md-icon class="page-title-icon" ng-if="::isUser">person</md-icon>
+			<md-icon class="page-title-icon" ng-if="::page.isQuestion()">help</md-icon>
+			<span class="md-display-3"
+					ng-class="::{'center-text': isTinyScreen, 'dynamic-hor-padding simple-embed-page-title': isSimpleEmbed}"
+					ng-bind="page.title"></span>
+		</h1>
+
 		<!-- Owner -->
 		<div class="author-list md-caption page-list-span" ng-if="::(page.editGroupId !== '' && !isSimpleEmbed)">
 			Owner:
 			<arb-page-title page-id="{{::page.editGroupId}}"
 					is-link="true"
-					ng-if="::!userService.userMap[page.editGroupId]"></arb-page-title>
+					ng-if="::!arb.userService.userMap[page.editGroupId]"></arb-page-title>
 			<arb-user-name user-id="{{::page.editGroupId}}"
-					ng-if="::userService.userMap[page.editGroupId]"></arb-user-name>
+					ng-if="::arb.userService.userMap[page.editGroupId]"></arb-user-name>
 		</div>
 
+		<!-- Body text -->
 		<arb-markdown class="lens-text"
-				page-id="{{::page.pageId}}"
-				ng-show="!showingDiff"></arb-markdown>
-		<div ng-if="showingDiff">
-			<div class="diff-section" ng-bind-html="diffHtml"></div>
-		</div>
+				page-id="{{::page.pageId}}"></arb-markdown>
 
 		<!-- Contributors -->
 		<div class="author-list md-caption page-list-span"
@@ -66,11 +66,9 @@
 			</span>
 		</div>
 
-		<hr ng-if="(!isSimpleEmbed && subjectIds.length > 0) ||
-				(pageService.pageMap[lensParentId].nextPageId !== '' || pageService.pageMap[lensParentId].prevPageId !== '')">
 		<div layout-gt-xs="row" layout-align="start end">
 			<!-- Subjects taught -->
-			<div flex ng-if="::(!isSimpleEmbed && subjectIds.length > 0)">
+			<div flex ng-if="(!isSimpleEmbed && subjectIds.length > 0 && showLearnedPanel)">
 				<span class="md-subhead">
 					<md-icon>assignment</md-icon>
 					Did you learn
@@ -81,7 +79,7 @@
 						ids-source="::subjectIds"
 						show-clickbait="::true"
 						unlocked-fn="pagesUnlocked(result)"></div>
-	
+
 				<!-- Mark as done button -->
 				<md-button class="special md-raised"
 						ng-click="toggleSubjects(false)"
@@ -99,8 +97,6 @@
 				</md-button>
 			</div>
 
-			<div flex ng-if="::!(!isSimpleEmbed && subjectIds.length > 0)"></div>
-
 			<arb-next-prev page-id="{{::lensParentId}}"
 					extra-info="!showQuickContinue()"></arb-next-prev>
 		</div>
@@ -114,9 +110,6 @@
 			</span>
 		</div>
 	</div>
-
-	<!-- Show the lens toolbar at the bottom too if the page is long enough. -->
-	<div ng-include="'static/html/lensToolbar.html'" ng-if="::(page.textLength > 1000)"></div>
 
 	<!-- Inline comments container -->
 	<div class="inline-comments-div" ng-show="::!isSimpleEmbed">
@@ -134,26 +127,27 @@
 					ng-mouseenter="toggleEditorFeedbackFab(true)"
 					ng-mouseleave="toggleEditorFeedbackFab(false)">
 				<md-fab-trigger>
-					<md-button class="rhs-button md-fab md-mini"
+					<md-button class="rhs-button md-fab md-mini md-primary md-hue-1"
 							arb-user-check="cool"
 							aria-label="Menu">
 						<md-icon>add</md-icon>
 					</md-button>
 				</md-fab-trigger>
 				<md-fab-actions ng-class="{'md-whiteframe-4dp white-background': isEditorFeedbackFabOpen}">
-					<md-button ng-click="newEditorMark('typo')"
+					<md-button class="rhs-dropdown-button"
+							ng-click="newEditorMark('typo')"
 							aria-label="Spelling/grammar">
 						<md-icon>rate_review</md-icon>
 						Spelling/grammar
 					</md-button>
-					<md-button ng-click="newQueryMark()"
-							arb-user-check="cool"
+					<md-button class="rhs-dropdown-button"
+							ng-click="newQueryMark()"
 							aria-label="Question/objection">
-						<md-icon md-svg-icon="cursor-pointer"></md-icon>
+						<md-icon md-svg-icon="cursor_pointer"></md-icon>
 						Question/objection
 					</md-button>
-					<md-button ng-click="newInlineComment()"
-							arb-user-check="cool"
+					<md-button class="rhs-dropdown-button"
+							ng-click="newInlineComment()"
 							aria-label="Comment">
 						<md-icon>comment</md-icon>
 						Comment
@@ -186,11 +180,11 @@
 					ng-class="{'md-primary': isInlineMarkIconSelected(markId)}"
 					ng-click="toggleInlineMark(markId)"
 					aria-label="Question/objection">
-				<md-icon md-svg-icon="cursor-pointer"
-						ng-class="{'resolved-mark': pageService.markMap[markId].resolvedBy!=''}"
-						ng-if="::pageService.markMap[markId].type === 'query'"></md-icon>
-				<md-icon ng-class="{'resolved-mark': pageService.markMap[markId].resolvedBy!=''}"
-						ng-if="::pageService.markMap[markId].type !== 'query'">rate_review</md-icon>
+				<md-icon md-svg-icon="cursor_pointer"
+						ng-class="{'resolved-mark': arb.markService.markMap[markId].resolvedBy!=''}"
+						ng-if="::arb.markService.markMap[markId].type === 'query'"></md-icon>
+				<md-icon ng-class="{'resolved-mark': arb.markService.markMap[markId].resolvedBy!=''}"
+						ng-if="::arb.markService.markMap[markId].type !== 'query'">rate_review</md-icon>
 			</md-button>
 		</div>
 	</div>

@@ -9,7 +9,7 @@ import (
 	"zanaduu3/src/pages"
 )
 
-// commentThreadData contains parameters passed in to create a page.
+// commentThreadData contains parameters passed in to load a comment thread.
 type commentThreadData struct {
 	CommentId string `json:"pageAlias"`
 }
@@ -19,7 +19,7 @@ var commentThreadHandler = siteHandler{
 	HandlerFunc: commentThreadHandlerFunc,
 }
 
-// commentThreadHandlerFunc handles requests to create a new page.
+// commentThreadHandlerFunc handles requests to load a comment thread.
 func commentThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	returnData := core.NewHandlerData(params.U)
@@ -34,11 +34,19 @@ func commentThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Need a valid commentId", nil).Status(http.StatusBadRequest)
 	}
 
+	_, commentPrimaryPageId, err := core.GetCommentParents(db, data.CommentId)
+	if err != nil {
+		return pages.Fail("Couldn't load comment's parents", err)
+	}
+
 	// Load the comments.
 	loadOptions := (&core.PageLoadOptions{
 		Parents: true,
 	}).Add(core.SubpageLoadOptions)
 	core.AddPageToMap(data.CommentId, returnData.PageMap, loadOptions)
+	core.AddPageToMap(commentPrimaryPageId, returnData.PageMap, (&core.PageLoadOptions{
+		DomainsAndPermissions: true,
+	}).Add(core.TitlePlusLoadOptions))
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)

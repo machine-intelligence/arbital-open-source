@@ -6,7 +6,6 @@ import (
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
-	"zanaduu3/src/sessions"
 )
 
 // NewUpdateTask is the object that's put into the daemon queue.
@@ -15,22 +14,17 @@ type NewUpdateTask struct {
 	UserId     string
 	UpdateType string
 
-	// Grouping key. One of these has to set. We'll group all updates by this key
-	// to show in one panel.
-	GroupByPageId string
-	GroupByUserId string
-
 	// We'll notify the users who are subscribed to this page id (also could be a
 	// user id, group id, domain id)
 	SubscribedToId string
-
-	// If it is an editors only comment, only notify editors
-	EditorsOnly bool
 
 	// Go to destination. One of these has to be set. This is where we'll direct
 	// the user if they want to see more info about this update, e.g. to see the
 	// comment someone made.
 	GoToPageId string
+
+	// If set the update will shown only to maintainers.
+	ForceMaintainersOnly bool
 
 	// Optional. FK into changeLogs table.
 	ChangeLogId int64
@@ -53,19 +47,12 @@ func (task NewUpdateTask) IsValid() error {
 		return fmt.Errorf("SubscibedTo id has to be set")
 	}
 
-	groupByCount := 0
-	if core.IsIdValid(task.GroupByPageId) {
-		groupByCount++
-	}
-	if core.IsIdValid(task.GroupByUserId) {
-		groupByCount++
-	}
-	if groupByCount != 1 {
-		return fmt.Errorf("Exactly one GroupBy... has to be set")
-	}
-
 	if !core.IsIdValid(task.GoToPageId) {
 		return fmt.Errorf("GoToPageId has to be set")
+	}
+
+	if task.UpdateType == core.ChangeLogUpdateType && task.ChangeLogId <= 0 {
+		return fmt.Errorf("No changeLogId set for a ChangeLogUpdateType")
 	}
 
 	return nil
@@ -87,7 +74,7 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	rows = database.NewQuery(`
 		SELECT DISTINCT seeGroupId
 		FROM`).AddPart(core.PageInfosTableWithOptions(nil, &core.PageInfosOptions{Deleted: true})).Add(`AS pi
-		WHERE seeGroupId != '' AND pageId IN (?,?)`, task.GroupByPageId, task.GoToPageId).ToStatement(db).Query()
+		WHERE seeGroupId != '' AND pageId IN (?)`, task.GoToPageId).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var groupId string
 		err := rows.Scan(&groupId)
@@ -105,18 +92,22 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	var query *database.QueryPart
 	// Iterate through all users who are subscribed to this page/comment.
 	// If it is an editors only comment, only select editor ids.
-	if task.EditorsOnly {
-		query = database.NewQuery(`
+	query = database.NewQuery(`
 			SELECT DISTINCT s.userId
 			FROM subscriptions AS s
 			JOIN pages as p
 			ON s.userId = p.creatorId
 			WHERE s.toId=? AND p.pageId=?`, task.SubscribedToId, task.SubscribedToId)
+	if !task.ForceMaintainersOnly &&
+		(task.UpdateType == core.TopLevelCommentUpdateType || task.UpdateType == core.ReplyUpdateType ||
+			task.UpdateType == core.NewPageByUserUpdateType || task.UpdateType == core.AtMentionUpdateType ||
+			task.UpdateType == core.AddedToGroupUpdateType || task.UpdateType == core.RemovedFromGroupUpdateType ||
+			task.UpdateType == core.InviteReceivedUpdateType || task.UpdateType == core.ResolvedMarkUpdateType ||
+			task.UpdateType == core.AnsweredMarkUpdateType) {
+		// This update can be shown to all users who are subscribed
 	} else {
-		query = database.NewQuery(`
-			SELECT s.userId
-			FROM subscriptions AS s
-			WHERE s.toId=?`, task.SubscribedToId)
+		// This update is only for authors who explicitly opted into maintaining the page
+		query = query.Add(`AND s.asMaintainer`)
 	}
 	if len(requiredGroupMemberships) > 0 {
 		query = query.Add(`AND
@@ -142,14 +133,11 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		hashmap["userId"] = userId
 		hashmap["byUserId"] = task.UserId
 		hashmap["type"] = task.UpdateType
-		hashmap["groupByPageId"] = task.GroupByPageId
-		hashmap["groupByUserId"] = task.GroupByUserId
 		hashmap["subscribedToId"] = task.SubscribedToId
 		hashmap["goToPageId"] = task.GoToPageId
 		hashmap["changeLogId"] = task.ChangeLogId
 		hashmap["markId"] = task.MarkId
 		hashmap["createdAt"] = database.Now()
-		hashmap["unseen"] = true
 		statement := db.NewInsertStatement("updates", hashmap)
 		if _, err = statement.Exec(); err != nil {
 			return fmt.Errorf("Couldn't create new update: %v", err)
@@ -161,44 +149,4 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		return -1, fmt.Errorf("Couldn't process subscriptions: %v", err)
 	}
 	return 0, nil
-}
-
-func EnqueueNewRelationshipUpdates(c sessions.Context, userId string, pairType string, childPageType string,
-	parentId string, childId string, newParentChangeLogId int64, newChildChangeLogId int64) {
-	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, false, false, newChildChangeLogId)
-	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, true, false, newParentChangeLogId)
-}
-
-func EnqueueDeleteRelationshipUpdates(c sessions.Context, userId string, pairType string, childPageType string,
-	parentId string, childId string, removedParentChangeLogId int64, removedChildChangeLogId int64) {
-	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, false, true, removedChildChangeLogId)
-	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, true, true, removedParentChangeLogId)
-}
-
-func enqueueRelationshipUpdatesInternal(c sessions.Context, userId string, pairType string, childPageType string,
-	parentId string, childId string, updateIsForChild bool, relationshipIsDeleted bool, changeLogId int64) {
-
-	var task NewUpdateTask
-	task.UserId = userId
-	if changeLogId != 0 {
-		task.ChangeLogId = changeLogId
-	}
-	updateType, err := core.GetUpdateTypeForPagePair(pairType, childPageType, updateIsForChild, relationshipIsDeleted)
-	if err != nil {
-		c.Errorf("Couldn't get the update type for a page pair type: %v", err)
-	}
-
-	task.UpdateType = updateType
-	if updateIsForChild {
-		task.GroupByPageId = childId
-		task.SubscribedToId = childId
-		task.GoToPageId = parentId
-	} else {
-		task.GroupByPageId = parentId
-		task.SubscribedToId = parentId
-		task.GoToPageId = childId
-	}
-	if err := Enqueue(c, &task, nil); err != nil {
-		c.Errorf("Couldn't enqueue a task: %v", err)
-	}
 }

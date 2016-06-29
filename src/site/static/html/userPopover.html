@@ -21,7 +21,7 @@
 			<md-tab ng-repeat="summary in ::summaries" label="{{::summary.name}}">
 				<md-tab-body>
 					<div layout="column">
-						<md-content class="popover-tab-body" layout="column" layout-padding>
+						<md-content class="prevent-scroll-leak popover-tab-body" layout="column" layout-padding>
 							<arb-markdown class="popover-text-container"
 									page-id="{{::userId}}"
 									summary-name="{{::summary.name}}"></arb-markdown>
@@ -33,12 +33,12 @@
 
 		<!-- Footer -->
 		<div class="comment-footer" layout="row" layout-align="start center" ng-if="::isLoaded">
-			<arb-likes likeable-type="page" likeable-id="{{::userId}}" is-button="true" is-stretched="true"></arb-likes>
-			<arb-subscribe page-id="{{::userId}}" is-user="true"></arb-subscribe>
+			<arb-likes object-id="{{::userId}}" is-button="true" is-stretched="true"></arb-likes>
+			<arb-subscribe page-id="{{::userId}}"></arb-subscribe>
 			<div flex></div>
 			<div layout="row" layout-align="start center">
 				<span class="separator"></span>
-				<md-button ng-href="{{::pageService.getPageUrl(page.pageId, {permalink:true, discussionHash: true})}}">
+				<md-button ng-href="{{::arb.urlService.getPageUrl(page.pageId, {permalink:true, discussionHash: true})}}">
 					<md-icon>comment</md-icon>
 					<span ng-bind="::page.commentCount"></span>
 					<md-tooltip>Comment count</md-tooltip>
@@ -55,7 +55,7 @@
 			</div>
 			<span class="md-caption">
 				<span class="separator"></span>
-				Last Online: <span ng-bind="::(user.lastWebsiteVisit | relativeDateTime)"></span>
+				Last online: <span ng-bind="::(user.lastWebsiteVisit | smartDateTime)"></span>
 			</span>
 		</div>
 

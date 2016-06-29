@@ -3,11 +3,13 @@ package site
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
 )
 
@@ -15,16 +17,15 @@ import (
 type updateLensOrderData struct {
 	// Id of the page the lenses are for
 	PageId string
-	// Lens id -> order index map
-	OrderMap map[string]int
+	// Map of ids -> lens index
+	LensOrder map[string]int
 }
 
 var updateLensOrderHandler = siteHandler{
-	URI:         "/updateLensOrder/",
+	URI:         "/json/updateLensOrder/",
 	HandlerFunc: updateLensOrderHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
-		MinKarma:     200,
 	},
 }
 
@@ -42,48 +43,88 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if !core.IsIdValid(data.PageId) {
 		return pages.Fail("Page id isn't specified", err).Status(http.StatusBadRequest)
 	}
-	if len(data.OrderMap) <= 0 {
-		return pages.Success(nil)
+
+	// Load all the lenses
+	pageMap := make(map[string]*core.Page)
+	ids := make([]string, 0)
+	for lensId, _ := range data.LensOrder {
+		ids = append(ids, lensId)
+	}
+	lenses := make([]*core.Lens, 0)
+	queryPart := database.NewQuery(`
+		WHERE l.id IN`).AddArgsGroupStr(ids)
+	err = core.LoadLenses(db, queryPart, nil, func(db *database.DB, lens *core.Lens) error {
+		lenses = append(lenses, lens)
+		core.AddPageIdToMap(lens.PageId, pageMap)
+		return nil
+	})
+	if err != nil {
+		return pages.Fail("Couldn't load the lens: %v", err)
+	} else if len(lenses) <= 0 {
+		return pages.Fail("No lenses found for this page", nil).Status(http.StatusBadRequest)
+	} else if len(pageMap) > 1 {
+		return pages.Fail("Changing lenses that belong to different pages", nil).Status(http.StatusBadRequest)
 	}
 
 	// Check permissions
-	pageIds := []string{data.PageId}
-	for pageId, _ := range data.OrderMap {
-		pageIds = append(pageIds, pageId)
-	}
-	permissionError, err := core.VerifyEditPermissionsForList(db, pageIds, u)
+	permissionError, err := core.VerifyEditPermissionsForMap(db, pageMap, u)
 	if err != nil {
 		return pages.Fail("Error verifying permissions", err).Status(http.StatusForbidden)
 	} else if permissionError != "" {
 		return pages.Fail(permissionError, nil).Status(http.StatusForbidden)
 	}
 
-	// Computed which pages count as visited.
-	lensIndexValues := make([]interface{}, 0)
-	for pageId, index := range data.OrderMap {
-		lensIndexValues = append(lensIndexValues, pageId, index)
+	// Set up the lens indices
+	hashmaps := make(database.InsertMaps, 0)
+	for _, lens := range lenses {
+		hashmap := make(database.InsertMap)
+		hashmap["id"] = lens.Id
+		hashmap["lensIndex"] = data.LensOrder[fmt.Sprintf("%d", lens.Id)]
+		hashmap["updatedBy"] = u.Id
+		hashmap["updatedAt"] = database.Now()
+		hashmaps = append(hashmaps, hashmap)
 	}
 
-	// Update the lens index.
-	if len(lensIndexValues) > 0 {
-		statement := db.NewStatement(`
-			INSERT INTO pageInfos (pageId, lensIndex)
-			VALUES ` + database.ArgsPlaceholder(len(lensIndexValues), 2) + `
-			ON DUPLICATE KEY UPDATE lensIndex=VALUES(lensIndex)`)
-		if _, err = statement.Exec(lensIndexValues...); err != nil {
-			return pages.Fail("Couldn't update a lens index", err)
+	// Begin the transaction.
+	var changeLogId int64
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
+		// Update the lenses
+		statement := db.NewMultipleInsertStatement("lenses", hashmaps, "lensIndex", "updatedBy", "updatedAt").WithTx(tx)
+		if _, err = statement.Exec(); err != nil {
+			return sessions.NewError("Couldn't update lenses", err)
 		}
-	}
 
-	// Generate updates for users who are subscribed to the primary page
-	var task tasks.NewUpdateTask
-	task.UpdateType = core.PageInfoEditUpdateType
-	task.UserId = u.Id
-	task.GroupByPageId = data.PageId
-	task.SubscribedToId = data.PageId
-	task.GoToPageId = data.PageId
-	if err := tasks.Enqueue(c, &task, nil); err != nil {
-		c.Errorf("Couldn't enqueue a task: %v", err)
+		// Create changelogs entry
+		hashmap := make(database.InsertMap)
+		hashmap["pageId"] = data.PageId
+		hashmap["userId"] = u.Id
+		hashmap["createdAt"] = database.Now()
+		hashmap["type"] = core.LensOrderChangedChangeLog
+		statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
+		result, err := statement.Exec()
+		if err != nil {
+			return sessions.NewError("Couldn't insert changeLog", err)
+		}
+		changeLogId, err = result.LastInsertId()
+		if err != nil {
+			return sessions.NewError("Couldn't get new changeLog id", err)
+		}
+
+		// Generate updates for users who are subscribed to the primary page
+		var task tasks.NewUpdateTask
+		task.UpdateType = core.ChangeLogUpdateType
+		task.UserId = u.Id
+		task.ChangeLogId = changeLogId
+		task.SubscribedToId = data.PageId
+		task.GoToPageId = data.PageId
+		if err := tasks.Enqueue(c, &task, nil); err != nil {
+			return sessions.NewError("Couldn't enqueue a task", err)
+		}
+
+		return nil
+	})
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 
 	return pages.Success(nil)

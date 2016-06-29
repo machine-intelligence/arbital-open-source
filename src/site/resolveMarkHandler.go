@@ -79,11 +79,9 @@ func resolveMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap := make(database.InsertMap)
 		hashmap["userId"] = mark.CreatorId
 		hashmap["type"] = core.ResolvedMarkUpdateType
-		hashmap["groupByPageId"] = data.ResolvedPageId
 		hashmap["goToPageId"] = data.ResolvedPageId
 		hashmap["markId"] = data.MarkId
 		hashmap["createdAt"] = database.Now()
-		hashmap["unseen"] = true
 		statement := db.NewInsertStatement("updates", hashmap)
 		_, err = statement.Exec()
 		if err != nil {

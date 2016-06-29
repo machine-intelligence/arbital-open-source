@@ -11,15 +11,14 @@ import (
 )
 
 type moreRelationshipsJsonData struct {
-	PageId string
+	PageAlias            string
+	RestrictToMathDomain bool
 }
 
 var moreRelationshipsHandler = siteHandler{
 	URI:         "/json/moreRelationships/",
 	HandlerFunc: moreRelationshipsJsonHandler,
-	Options: pages.PageOptions{
-		RequireLogin: true,
-	},
+	Options:     pages.PageOptions{},
 }
 
 // moreRelationshipsJsonHandler handles the request.
@@ -35,21 +34,27 @@ func moreRelationshipsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageId) {
-		return pages.Fail("Invalid page id", nil).Status(http.StatusBadRequest)
+	if !core.IsAliasValid(data.PageAlias) {
+		return pages.Fail("Invalid page id or alias", nil).Status(http.StatusBadRequest)
 	}
 
-	// Load additional info for all pages
-	pageOptions := (&core.PageLoadOptions{}).Add(core.TitlePlusLoadOptions)
-
-	// Load recently created page ids.
-	rows := database.NewQuery(`
+	// Load pages that link to this page.
+	query := database.NewQuery(`
 		SELECT l.parentId
 		FROM links AS l
-		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
-		ON (pi.pageId=l.childAlias OR pi.alias=l.childAlias)
-		WHERE pi.pageId=?`, data.PageId).ToStatement(db).Query()
-	returnData.ResultMap["moreRelationshipIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
+		JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
+		ON (l.parentId=pi.pageId OR l.parentId=pi.alias)`)
+
+	if data.RestrictToMathDomain {
+		query.Add(`
+			JOIN pageDomainPairs as pdp
+			ON pdp.pageId=l.parentId AND pdp.domainId=?`, core.MathDomainId)
+	}
+
+	query.Add(`WHERE l.childAlias=?`, data.PageAlias)
+
+	rows := query.ToStatement(db).Query()
+	returnData.ResultMap["moreRelationshipIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
 		return pages.Fail("error while loading links", err)
 	}

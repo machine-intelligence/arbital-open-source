@@ -1,28 +1,16 @@
 <div id="subpage-{{::page.pageId}}" layout="{{::(isSingleColumn ? 'column' : 'row')}}">
+	<!-- Hash anchor -->
+	<a id="page-{{::page.pageId}}"></a>
+
 	<!-- Primary column -->
-	<div layout="column"
-			flex-order="1"
-			flex>
-		<!-- Hash anchor -->
-		<a id="page-{{::page.pageId}}"></a>
+	<div layout="column" class="vertical-layout-padding" flex>
 
-		<div layout-gt-sm="row" layout-align-gt-sm="space-between end">
-			<!-- Page title -->
-			<h1>
-				<md-icon class="page-title-icon" ng-if="::isUser">person</md-icon>
-				<md-icon class="page-title-icon" ng-if="::page.isQuestion()">help</md-icon>
-				<span class="md-display-3"
-						ng-class="::{'center-text': isTinyScreen, 'dynamic-hor-padding simple-embed-page-title': isSimpleEmbed}"
-						ng-bind="selectedLens.title"></span>
-			</h1>
-
+		<div layout-gt-sm="row" layout-align-gt-sm="space-between end" ng-if="arb.pathService.path">
 			<div arb-next-prev page-id="{{::page.pageId}}" whiteframe="::true"></div>
 		</div>
 
 		<!-- For user page, display what domains this user has access to -->
-		<div class="page-list-span"
-				flex-order="{{::(isTinyScreen ? 1 : 0)}}"
-				ng-if="::(page.isUser() && page.domainMembershipIds.length > 0 && !isSimpleEmbed)">
+		<div ng-if="::(page.isUser() && page.domainMembershipIds.length > 0 && !isSimpleEmbed)">
 			<span>Domains this user has access to:</span>
 			<span ng-repeat="(index, domainId) in ::page.domainMembershipIds">
 				<span class="comma" ng-if="index > 0">,</span>
@@ -31,69 +19,114 @@
 			</span>
 		</div>
 
-		<!-- Parents -->
-		<div class="page-list-span"
-				flex-order="{{::(isTinyScreen ? 1 : 0)}}"
-				ng-if="::(page.parentIds.length > 0 && !isSimpleEmbed)">
-			<span>Parents:</span>
-			<span ng-repeat="(index, parentId) in ::page.parentIds">
-				<span class="comma" ng-if="index > 0">,</span>
-				<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
-			</span>
-		</div>
-
-		<!-- Tags -->
-		<div class="page-list-span"
-				flex-order="{{::(isTinyScreen ? 1 : 0)}}"
-				ng-if="selectedLens.taggedAsIds.length > 0 && !isSimpleEmbed">
-			<span>Tagged as:</span>
-			<span ng-repeat="(index, tagId) in selectedLens.taggedAsIds">
-				<span class="comma" ng-if="::(index > 0)">,</span>
-				<arb-page-title page-id="{{::tagId}}" is-link="true"></arb-page-title>
-			</span>
+		<!-- Unlisted page -->
+		<div class="md-whiteframe-1dp md-accent md-hue-1"
+				layout-padding
+				layout="row"
+				layout-align="start center"
+				ng-if="page.domainIds.length <= 0 && !page.isUser() && !page.isGroup() && !isSimpleEmbed">
+			<!-- Hasn't been submitted -->
+			<div ng-if="page.domainSubmissionsCount() <= 0">
+				This page is
+				<arb-page-title page-id="14z" is-link="true" custom-page-title="unlisted."></arb-page-title>
+				<md-button class="md-primary md-raised"
+						ng-click="submitToDomain()"
+						ng-if="page.permissions.edit.has">
+					Submit to math domain
+				</md-button>
+			</div>
+			<!-- Has been submitted -->
+			<div ng-if="page.domainSubmissionsCount() > 0">
+				<span ng-if="page.domainSubmissions['1lw'].approverId == ''">
+					This page has been submitted to Math domain and is pending approval.
+				</span>
+				<md-button class='md-primary md-raised'
+						ng-click="arb.pageService.approvePageToDomain(page.pageId, '1lw')"
+						ng-if="page.domainSubmissions['1lw'].approverId == '' && arb.userService.user.trustMap['1lw'].permissions.domainTrust.has">
+					Approve
+				</md-button>
+				<span ng-if="page.domainSubmissions['1lw'].approverId != ''">
+					<arb-user-name user-id="{{::page.domainSubmissions['1lw'].approverId}}"></arb-user-name>
+					added this page to the math domain, but the page is now orphaned.
+				</span>
+			</div>
 		</div>
 
 		<!-- Voting container -->
 		<arb-vote-bar class="md-whiteframe-1dp" page-id="{{::page.pageId}}" ng-if="::page.hasVote"></arb-vote-bar>
 
-		<!-- Lens tabs -->
-		<div class="page-tabs md-whiteframe-1dp">
+		<!-- Lenses -->
+		<div class="md-whiteframe-1dp">
 			<!-- Tab labels -->
-			<div class="page-tabs-holder" layout="row" layout-xs="column" ng-if="::page.lensIds.length > 1">
-				<md-button ng-repeat="lensId in ::page.lensIds"
-						ng-click="tabsClicked($event,lensId)"
-						ng-class="{'active-tab': lensId == selectedLens.pageId}"
+			<div class="page-tabs"
+					layout="row"
+					layout-xs="column"
+					ng-if="::lenses.length > 1">
+				<md-button ng-repeat="lens in ::lenses"
+						ng-click="tabsClicked($event, lens.lensId)"
+						ng-class="{'active-tab': lens.lensId == selectedLens.pageId}"
 						aria-label="Switch tab">
-					<arb-page-title page-id="{{::lensId}}"
-							custom-page-title="{{::(lensId === page.pageId ? 'Main' : pageService.pageMap[lensId].lensTitle())}}"></arb-page-title>
-					<md-icon class="md-primary" ng-if="!hasAllReqs(lensId)">
-						<md-tooltip>You don't have all the requisites for this lens</md-tooltip>
-						warning
-					</md-icon>
+					<span ng-bind="::lens.lensName"></span>
 				</md-button>
 			</div>
 
-			<!-- Lens body -->
-			<div class="page-lens-body">
-				<div ng-repeat="lensId in ::page.lensIds" ng-if="lensId === selectedLens.pageId">
-					<div ng-style="{'min-height': 500}"
-							layout="column"
-							layout-align="center center"
-							ng-if="!isLoaded(lensId)">
-						<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+			<!-- How to make this page better box -->
+			<div arb-page-improvement page="selectedLens" class="md-whiteframe-1dp" ng-if="selectedLens"></div>
+
+			<!-- For each lens -->
+			<div ng-repeat="lens in ::lenses" ng-if="lens.lensId === selectedLens.pageId">
+				<!-- Lens body -->
+				<div class="md-whiteframe-1dp">
+					<div class="md-whiteframe-1dp page-lens-body">
+						<div ng-style="{'min-height': 500}"
+								layout="column"
+								layout-align="center center"
+								ng-if="!isLoaded(lens.lensId)">
+							<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+						</div>
+						<arb-lens class="reveal-after-render"
+								page-id="{{::lens.lensId}}"
+								lens-parent-id="{{::page.pageId}}"
+								is-simple-embed="::isSimpleEmbed"
+								ng-if="isLoaded(lens.lensId)"></arb-lens>
 					</div>
-					<arb-lens class="reveal-after-render"
-							page-id="{{::lensId}}"
-							lens-parent-id="{{::page.pageId}}"
-							is-simple-embed="::isSimpleEmbed"
-							ng-if="isLoaded(lensId)"></arb-lens>
+
+					<!-- Parents and tags -->
+					<div layout="column"
+							layout-gt-sm="row"
+							layout-align="start start"
+							layout-padding
+							ng-if="selectedLens.parentIds.length > 0 || (selectedLens.nonMetaTagIds.length > 0 && !isSimpleEmbed)">
+						<!-- Parents -->
+						<div layout-align="start center"
+								ng-if="selectedLens.parentIds.length > 0" flex>
+							<span>Parents:</span>
+							<span ng-repeat="(index, parentId) in selectedLens.parentIds">
+								<span class="comma" ng-if="index > 0">,</span>
+								<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
+							</span>
+						</div>
+
+						<!-- Tags -->
+						<div layout-align="start center"
+				 				ng-if="selectedLens.nonMetaTagIds.length > 0 && !isSimpleEmbed">
+				 			<span>Tags:</span>
+				 			<span ng-repeat="(index, tagId) in selectedLens.nonMetaTagIds">
+				 				<span class="comma" ng-if="::(index > 0)">,</span>
+				 				<arb-page-title page-id="{{::tagId}}" is-link="true"></arb-page-title>
+				 			</span>
+				 		</div>
+					</div>
 				</div>
+
+				<!-- Action bar -->
+				<arb-lens-toolbar ng-if="selectedLens"></arb-lens-toolbar>
 			</div>
 		</div>
 
 		<!-- Answers section -->
 		<a id="answers"></a>
-		<div class="discussion-container" flex-order="2" ng-if="::!isSimpleEmbed && page.isQuestion()">
+		<div class="discussion-container" ng-if="::!isSimpleEmbed && page.isQuestion()">
 			<div class="user-page-panel md-whiteframe-1dp" layout="column">
 				<md-toolbar class="md-hue-2">
 					<div class="md-toolbar-tools">
@@ -119,19 +152,19 @@
 		</div>
 
 		<!-- Marks section -->
-		<div class="discussion-container" flex-order="3" ng-if="::!isSimpleEmbed">
-			<arb-marks ng-repeat="lensId in ::page.lensIds"
+		<div class="discussion-container" ng-if="::!isSimpleEmbed">
+			<arb-marks ng-repeat="lens in ::lenses"
 					class="reveal-after-render"
-					page-id="{{::lensId}}"
-					ng-if="isLoaded(lensId) && lensId === selectedLens.pageId"></arb-marks>
+					page-id="{{::lens.lensId}}"
+					ng-if="isLoaded(lens.lensId) && lens.lensId === selectedLens.pageId"></arb-marks>
 		</div>
 
 		<!-- Discussion section -->
-		<div class="discussion-container" flex-order="4" ng-if="::!isSimpleEmbed">
-			<arb-page-discussion ng-repeat="lensId in ::page.lensIds"
+		<div class="discussion-container" ng-if="::!isSimpleEmbed">
+			<arb-page-discussion ng-repeat="lens in ::lenses"
 					class="reveal-after-render"
-					page-id="{{::lensId}}"
-					ng-if="isLoaded(lensId) && lensId === selectedLens.pageId"></arb-page-discussion>
+					page-id="{{::lens.lensId}}"
+					ng-if="isLoaded(lens.lensId) && lens.lensId === selectedLens.pageId"></arb-page-discussion>
 		</div>
 	</div>
 </div>

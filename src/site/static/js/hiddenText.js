@@ -1,20 +1,26 @@
 'use strict';
 
 // Directive for hidden text (usually for homework problems)
-app.directive('arbHiddenText', function(pageService, userService) {
+app.directive('arbHiddenText', function($compile, $timeout, arb) {
 	return {
-		templateUrl: 'static/html/hiddenText.html',
-		transclude: true,
 		scope: {
 			buttonText: '@',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
-			$scope.revealed = false;
+			$scope.arb = arb;
+		},
+		link: function(scope, element, attrs) {
+			if (!scope.buttonText) return;
 
-			$scope.reveal = function() {
-				$scope.revealed = true;
+			$timeout(function() {
+				$(element).prepend($compile('<md-button class="md-primary md-hue-1 md-raised"' +
+					'ng-bind="buttonText"' +
+					'ng-click="toggle()"' +
+					'aria-label="{{buttonText}}">' +
+					'</md-button>')(scope));
+			});
+			scope.toggle = function() {
+				$(element).find('.hidden-text').toggleClass('display-none');
 			};
 		},
 	};

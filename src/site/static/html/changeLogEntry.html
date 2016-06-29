@@ -1,22 +1,16 @@
 <div layout="column" flex>
 
-	<arb-log-row
-		change-log="changeLog"
-		page-id="{{::pageId}}"
-		by-user-id="{{::changeLog.userId}}"
-		type="{{::changeLog.type}}"
-		go-to-page-id="{{::changeLog.auxPageId}}"
-		created-at="{{::changeLog.createdAt}}"
-		show-user-link="true"
-	></arb-log-row>
+	<arb-change-log-row change-log="changeLog" page-id="{{::pageId}}"></arb-change-log-row>
 
 	<!-- Extra functionality for new edits -->
 
-	<div ng-if="::((changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && page.edit !== changeLog.edit)"
-			layout="row" layout-align="start center">
+	<div ng-if="(changeLog.type === 'newEdit' || changeLog.type === 'newEditProposal' || changeLog.type === 'newSnapshot')
+					&& page.edit !== changeLog.edit"
+			layout="row"
+			layout-align="start center">
 		<md-button class="md-warn"
 				ng-click="revertToEdit(changeLog.edit)"
-				ng-if="::(changeLog.type === 'newEdit' && changeLog.edit !== page.currentEdit)">
+				ng-if="changeLog.type === 'newEdit' && changeLog.edit !== page.currentEdit">
 			<md-tooltip md-delay="500">Revert to this edit</md-tooltip>
 			Revert
 		</md-button>
@@ -28,13 +22,17 @@
 			<md-tooltip md-delay="500">Diff with this edit</md-tooltip>
 			Diff
 		</md-button>
+		<md-button ng-click="arb.pageService.approveEditProposal(changeLog)" ng-if="changeLog.type === 'newEditProposal'">
+			<md-tooltip md-delay="500">Approve this edit</md-tooltip>
+			Approve
+		</md-button>
 	</div>
 
-	<div ng-if="::((changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && changeLog.edit === page.edit)">
+	<div ng-if="(changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && changeLog.edit === page.edit">
 		Currently loaded
 	</div>
 
-	<div ng-if="::((changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && changeLog.edit === page.currentEdit)">
+	<div ng-if="(changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && changeLog.edit === page.currentEdit">
 		Currently live
 	</div>
 

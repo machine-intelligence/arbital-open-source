@@ -1,0 +1,34 @@
+<div layout="column">
+	<div layout="row" layout-align="start center">
+		<arb-update-row-expand-button></arb-update-row-expand-button>
+
+		<!-- New discussion thread -->
+		<div ng-if="::topLevelComment === comment" flex>
+			<arb-user-name user-id="{{::comment.pageCreatorId}}"></arb-user-name>
+			commented on
+			<arb-page-title page-id="{{::comment.getCommentParentPage().pageId}}" is-link="true"></arb-page-title>
+			<arb-update-timestamp></arb-update-timestamp>
+		</div>
+
+		<!-- New reply -->
+		<div ng-if="::topLevelComment !== comment" flex>
+			<arb-user-name user-id="{{::comment.pageCreatorId}}"></arb-user-name>
+			replied to
+			<span ng-bind="::topLevelComment.pageCreatorId == arb.userService.user.id ? 'your' : 'a'"></span>
+			comment on
+			<arb-page-title page-id="{{::comment.getCommentParentPage().pageId}}" is-link="true"></arb-page-title>
+			<arb-update-timestamp></arb-update-timestamp>
+		</div>
+
+		<arb-update-row-dismiss-button></arb-update-row-dismiss-button>
+	</div>
+
+	<div class="expand-tray" ng-if="expanded">
+		<md-progress-circular md-mode="indeterminate" ng-if="!threadLoaded"></md-progress-circular>
+		<div arb-subpage class="reveal-after-render"
+				lens-id="{{::topLevelComment.getCommentParentPage().pageId}}"
+				page-id="{{::topLevelComment.pageId}}"
+				show-even-if-resolved="true"
+				ng-if="threadLoaded"></div>
+	</div>
+</div>

@@ -1,21 +1,20 @@
 'use strict';
 
 // Directive for the Groups page.
-app.directive('arbGroupsPage', function(pageService, userService, autocompleteService, $timeout, $http) {
+app.directive('arbGroupsPage', function($timeout, $http, arb) {
 	return {
-		templateUrl: 'static/html/groupsPage.html',
+		templateUrl: versionUrl('static/html/groupsPage.html'),
 		scope: {
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
 			$scope.newGroupForm = {};
 
 			// Populate the groupMap with the groups the user belongs to
 			$scope.groupMap = {};
-			for (var n = 0; n < $scope.userService.user.groupIds.length; n++) {
-				var groupId = $scope.userService.user.groupIds[n];
-				$scope.groupMap[groupId] = pageService.pageMap[groupId];
+			for (var n = 0; n < $scope.arb.userService.user.groupIds.length; n++) {
+				var groupId = $scope.arb.userService.user.groupIds[n];
+				$scope.groupMap[groupId] = arb.stateService.pageMap[groupId];
 			}
 
 			// Process removing user from a group.

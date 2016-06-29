@@ -1,0 +1,12 @@
+<div layout="column" layout-gt-sm="row" layout-align-gt-sm="start center" flex>
+	<div flex>
+			<!-- Names of people -->
+			{{::userNames}}
+			learned <!-- uncomment if we decide to show which requisites were learned {{::getReqs(modeRow)}} --> from
+			<arb-page-title page-id="{{::modeRow.pageId}}" is-link="true"></arb-page-title>
+		</span>
+	</div>
+	<div class="md-caption" layout="row" layout-align="start center">
+		<span ng-bind="::(modeRow.activityDate | smartDateTime)"></span>
+	</div>
+</div>

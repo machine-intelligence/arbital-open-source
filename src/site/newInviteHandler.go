@@ -48,9 +48,6 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("No invite email given", nil).Status(http.StatusBadRequest)
 	}
 
-	// Always send an invite to the general domain
-	data.DomainIds = append(data.DomainIds, "")
-
 	// Check to see if the invitee is already a user in our DB
 	var inviteeUserId string
 	row := db.NewStatement(`
@@ -121,11 +118,9 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				hashmap["userId"] = invite.ToUserId
 				hashmap["type"] = core.InviteReceivedUpdateType
 				hashmap["createdAt"] = database.Now()
-				hashmap["groupByUserId"] = u.Id
 				hashmap["subscribedToId"] = u.Id
 				hashmap["goToPageId"] = domainId
 				hashmap["byUserId"] = u.Id
-				hashmap["unseen"] = true
 				statement := db.NewInsertStatement("updates", hashmap).WithTx(tx)
 				if _, err = statement.Exec(); err != nil {
 					return sessions.NewError("Couldn't add a new update for the invitee", err)

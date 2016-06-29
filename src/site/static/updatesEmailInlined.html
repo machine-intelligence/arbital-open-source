@@ -96,99 +96,61 @@
         <tr>
           <td class="innerpadding borderbottom" style="padding: 20px 30px 20px 30px;border-bottom: 1px solid #f2eeed;">
             <div width="100%">
-							{{range .UpdateGroups}}
-								<table class="group-table" align="middle" border="0" cellpadding="0" cellspacing="0" style="width: 100%;max-width: 425px;margin: 15px 0px;">
-									<!-- Group header -->
-                  <tr>
-                    <td class="h1" style="padding: 0 0 0 3px;color: #153643;font-family: sans-serif;font-size: 33px;line-height: 38px;font-weight: bold;">
-											{{if ne .Key.GroupByPageId ""}}
-												<a href="{{GetPageUrl .Key.GroupByPageId}}" style="text-decoration: none;">{{GetPageTitle .Key.GroupByPageId}}</a>
-											{{else}}
-												<a href="{{GetUserUrl .Key.GroupByUserId}}" style="text-decoration: none;">{{GetUserName .Key.GroupByUserId}}</a>
-											{{end}}
-										</td>
-									</tr><tr>
-									<!-- Group body -->
-                  </tr><tr>
-										<td>
-											{{range .Updates}}
-												<div class="update-entry" style="margin: 5px 0px 5px 15px;">
-													{{if eq .Type "topLevelComment"}}
-														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> wrote a
-														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">new comment</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "reply"}}
-														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> wrote a
-														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">new comment reply</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "pageEdit"}}
-														This page has been edited
-														{{if eq .Repeated 1}}by <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a>{{end}}
-														{{if gt .Repeated 1}}{{.Repeated}} times{{end}}
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "pageInfoEdit"}}
-														Page's settings were edited.
-													{{else if eq .Type "newPageByUser"}}
-														Created a new page: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "newParent"}}
-														New parent page: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "newChild"}}
-														New child page: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "newRequirement"}}
-														New requirement: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "newRequiredBy"}}
-														This page is now a requirement for: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "newTag"}}
-														New tag: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "newUsedAsTag"}}
-														This page now tags: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "newSubject"}}
-														New "teaches requisite": <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "deleteSubject"}}
-														Deleted "teaches requisite": <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "newTeacher"}}
-														New "taught by": <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "deleteTeacher"}}
-														Deleted "taught by": <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "commentEdit"}}
-														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> edited a
-														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">comment</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "atMention"}}
-														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> mentioned you in a
-														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">comment</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "addedToGroup"}}
-														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> added you to
-														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">the {{GetPageTitle .GoToPageId}} group</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "removedFromGroup"}}
-														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> removed you from
-														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">the {{GetPageTitle .GoToPageId}} group</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "newMark"}}
-														A confusion mark has been created.
-													{{else if eq .Type "answeredMark"}}
-														Your confusion mark has been answered.
-													{{else}}
-														Something else ({{.Type}}) happened.
-													{{end}}
-												</div>
-											{{end}}
-										</td>
-									</tr>
-								</table>
+							{{range .UpdateRows}}
+								<div class="update-entry" style="margin: 5px 0px 5px 15px;">
+									{{if eq .Type "topLevelComment"}}
+										<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> wrote a
+										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">new comment</a>
+										({{RelativeDateTime .CreatedAt}})
+									{{else if eq .Type "reply"}}
+										<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> wrote a
+										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">new comment reply</a>
+										({{RelativeDateTime .CreatedAt}})
+									{{else if eq .Type "resolvedThread"}}
+										<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a>
+										marked a
+										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">comment thread</a>
+										as resolved
+										({{RelativeDateTime .CreatedAt}})
+									{{else if eq .Type "pageEdit"}}
+										This page's text was edited by
+										<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a>
+										({{RelativeDateTime .CreatedAt}})
+									{{else if eq .Type "changeLog"}}
+										Page was edited by
+										<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a>
+										({{RelativeDateTime .CreatedAt}})
+									{{else if eq .Type "newPageByUser"}}
+										Created a new page: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
+										({{RelativeDateTime .CreatedAt}})
+									{{else if eq .Type "atMention"}}
+										<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> mentioned you in a
+										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">comment</a>
+										({{RelativeDateTime .CreatedAt}})
+									{{else if eq .Type "addedToGroup"}}
+										<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> added you to
+										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">the {{GetPageTitle .GoToPageId}} group</a>
+										({{RelativeDateTime .CreatedAt}})
+									{{else if eq .Type "removedFromGroup"}}
+										<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> removed you from
+										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">the {{GetPageTitle .GoToPageId}} group</a>
+										({{RelativeDateTime .CreatedAt}})
+									{{else if eq .Type "newMark"}}
+										A confusion mark has been created.
+									{{else if eq .Type "answeredMark"}}
+										Your confusion mark has been answered.
+									{{else if eq .Type "inviteReceived"}}
+										You can now participate in one of the domains.
+									{{else if eq .Type "pageToDomainAccepted"}}
+										Congrats,
+										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
+										is now part of the
+										<a href="{{GetPageUrl .SubscribedToId}}" style="text-decoration: none;">{{GetPageTitle .SubscribedToId}}</a>
+										domain.
+									{{else}}
+										{{.Type}} event happened.
+									{{end}}
+								</div>
 							{{end}}
             </div>
           </td>
@@ -214,7 +176,7 @@
                     <tr>
                       <td class="bodycopy" style="color: #153643;font-family: sans-serif;font-size: 16px;line-height: 22px;">
 												<!--BODYCOPY 2-->
-												<a href="http://arbital.com/updates" style="text-decoration: none;">See all updates.</a>
+												<a href="http://arbital.com" style="text-decoration: none;">See all updates.</a>
                       </td>
                     </tr>
                     <tr>

@@ -889,7 +889,7 @@
 
 		var setPanelScrollTops = function() {
 			if (panels.preview) {
-				//panels.preview.scrollTop = (panels.preview.scrollHeight - panels.preview.clientHeight) * getScaleFactor(panels.preview);
+				panels.preview.scrollTop = (panels.preview.scrollHeight - panels.preview.clientHeight) * getScaleFactor(panels.preview);
 			}
 		};
 
@@ -1028,6 +1028,9 @@
 					if (keyCode == 186 || keyCode == 59) { // ;
 						doClick(buttons.intralink);
 						return;
+					} else if (keyCode == 222) { // '
+						doClick(buttons.link);
+						return;
 					}
 					switch (keyCodeStr) {
 					case 'b':
@@ -1035,9 +1038,6 @@
 						break;
 					case 'i':
 						doClick(buttons.italic);
-						break;
-					case 'l':
-						doClick(buttons.link);
 						break;
 					case 'p':
 						doClick(buttons.newPage);
@@ -1253,6 +1253,12 @@
 			}));
 			buttons.hiddenText = makeButton('wmd-hidden-text-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
 				return this.doWrap(chunk, postProcessing, 'hiddenText');
+			}));
+			buttons.noteText = makeButton('wmd-note-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
+				return this.doWrap(chunk, postProcessing, 'note');
+			}));
+			buttons.tableOfContents = makeButton('wmd-table-of-contents-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
+				return this.doWrap(chunk, postProcessing, 'tableOfContents');
 			}));
 			buttons.olist = makeButton('wmd-olist-button', getString('olist'), '-140px', bindCommand(function(chunk, postProcessing) {
 				this.doList(chunk, postProcessing, true);
@@ -1566,6 +1572,10 @@
 				linkEnteredCallback('[summary: ', 'summary text *with* markdown', ']\n\n');
 			} else if (wrapType == 'hiddenText') {
 				linkEnteredCallback('%%hidden(Show solution):\n', 'Solution *markdown* text', '\n%%\n\n');
+			} else if (wrapType == 'note') {
+				linkEnteredCallback('%%note:', 'Fun *markdown* text', '%%');
+			} else if (wrapType == 'tableOfContents') {
+				linkEnteredCallback('[toc:', '', ']\n\n');
 			} else if (wrapType == 'multipleChoice') {
 				var suffix = [
 					'a: Answer 1 ("knows" will set the requisites when the user picks that answer)',

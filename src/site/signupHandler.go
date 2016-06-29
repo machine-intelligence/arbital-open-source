@@ -200,7 +200,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Signup for the user's own page
-		err2 = addSubscription(tx, userId, userId)
+		err2 = addSubscription(tx, userId, userId, true)
 		if err2 != nil {
 			return err2
 		}
@@ -208,8 +208,8 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Add an update for each invite that will be claimed
 		statement = database.NewQuery(`
 			INSERT INTO updates
-			(userId,type,createdAt,groupByUserId,subscribedToId,goToPageId,byUserId,unseen)
-			SELECT ?,?,now(),fromUserId,fromUserId,domainId,fromUserId,true`, u.Id, core.InviteReceivedUpdateType).Add(`
+			(userId,type,createdAt,subscribedToId,goToPageId,byUserId)
+			SELECT ?,?,now(),fromUserId,domainId,fromUserId`, u.Id, core.InviteReceivedUpdateType).Add(`
 			FROM invites
 			WHERE toEmail=?`, u.Email).ToTxStatement(tx)
 		if _, err := statement.Exec(); err != nil {
@@ -231,5 +231,9 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.FailWith(err2)
 	}
 
-	return pages.Success(nil)
+	loginData := loginHandlerData{
+		Email:    data.Email,
+		Password: data.Password,
+	}
+	return loginHandlerInternalFunc(params, &loginData)
 }

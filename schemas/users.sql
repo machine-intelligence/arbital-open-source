@@ -20,6 +20,9 @@ CREATE TABLE users (
 	isTrusted BOOLEAN NOT NULL,
 	/* Date of the last updates email. */
 	updateEmailSentAt DATETIME NOT NULL,
+	/* Can only be set manually by an admin via DB console. Used for debugging.
+		The system will load the information for the given user, instead of this user. */
+	pretendToBeUserId VARCHAR(32) NOT NULL,
 
 	/* ============================= Settings ====================================
 	/* How frequently to send update emails. */
@@ -28,6 +31,9 @@ CREATE TABLE users (
 	emailThreshold INT(11) NOT NULL,
 	/* If true, don't do a live preview of MathJax. */
 	ignoreMathjax BOOL NOT NULL,
+	/* If true, show the advanced editor mode for new users. */
+	showAdvancedEditorMode BOOL NOT NULL,
+
 	UNIQUE (email),
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
