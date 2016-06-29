@@ -12,16 +12,19 @@ import (
 const (
 	DefaultModeRowCount = 25
 
-	PageModeRowType          = "page"
-	CommentModeRowType       = "comment"
-	MarkModeRowType          = "mark"
-	QueryModeRowType         = "query"
-	LikesModeRowType         = "likes"
-	ReqsTaughtModeRowType    = "reqsTaught"
-	DraftModeRowType         = "draft"
-	TaggedforEditModeRowType = "taggedForEdit"
-	MaintenanceUpdateRowType = "maintenanceUpdate"
-	NotificationRowType      = "notification"
+	PageModeRowType               = "page"
+	CommentModeRowType            = "comment"
+	MarkModeRowType               = "mark"
+	QueryModeRowType              = "query"
+	LikesModeRowType              = "likes"
+	ReqsTaughtModeRowType         = "reqsTaught"
+	DraftModeRowType              = "draft"
+	TaggedforEditModeRowType      = "taggedForEdit"
+	MaintenanceUpdateRowType      = "maintenanceUpdate"
+	NotificationRowType           = "notification"
+	PageToDomainSubmissionRowType = "pageToDomainSubmission"
+	EditProposalRowType           = "editProposal"
+	EditRowType                   = "edit"
 )
 
 type modeRowData struct {
@@ -74,6 +77,16 @@ type pageModeRow struct {
 type updateModeRow struct {
 	modeRowData
 	Update *core.UpdateEntry `json:"update"`
+}
+
+type pageToDomainSubmissionModeRow struct {
+	modeRowData
+	PageToDomainSubmission *core.PageToDomainSubmission `json:"pageToDomainSubmission"`
+}
+
+type changeLogModeRow struct {
+	modeRowData
+	ChangeLog *core.ChangeLog `json:"changeLog"`
 }
 
 type ModeRows []modeRow
@@ -543,4 +556,52 @@ func getUpdateEntryFromUpdateRow(row *core.UpdateRow) *core.UpdateEntry {
 
 func setUpdateModeRowIsVisited(modeRow *updateModeRow, pageMap map[string]*core.Page) {
 	modeRow.Update.IsVisited = pageMap != nil && modeRow.Update.CreatedAt < pageMap[modeRow.Update.GoToPageId].LastVisit
+}
+
+// Load pages that have been submitted to a domain, but haven't been approved yet
+func loadPageToDomainSubmissionModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+	submissions, err := loadPageToDomainSubmissionRows(db, returnData, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	modeRows := make(ModeRows, 0)
+	for _, submission := range submissions {
+		row := &pageToDomainSubmissionModeRow{
+			modeRowData:            modeRowData{RowType: PageToDomainSubmissionRowType, ActivityDate: submission.CreatedAt},
+			PageToDomainSubmission: submission,
+		}
+		modeRows = append(modeRows, row)
+	}
+
+	return modeRows, err
+}
+
+// Load edits that have been made to the math domain
+func loadChangeLogModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int, changeLogTypes ...string) (ModeRows, error) {
+	changeLogs := make([]*core.ChangeLog, 0)
+	pageLoadOptions := (&core.PageLoadOptions{
+		DomainsAndPermissions: true,
+		EditHistory:           true,
+	}).Add(core.EmptyLoadOptions)
+	queryPart := database.NewQuery(`
+		WHERE type IN `).AddArgsGroupStr(changeLogTypes).Add(`
+		ORDER BY createdAt DESC
+		LIMIT ?`, limit)
+	err := core.LoadChangeLogs(db, queryPart, returnData, func(db *database.DB, changeLog *core.ChangeLog) error {
+		core.AddPageToMap(changeLog.PageId, returnData.PageMap, pageLoadOptions)
+		changeLogs = append(changeLogs, changeLog)
+		return nil
+	})
+
+	modeRows := make(ModeRows, 0)
+	for _, changeLog := range changeLogs {
+		row := &changeLogModeRow{
+			modeRowData: modeRowData{RowType: EditRowType, ActivityDate: changeLog.CreatedAt},
+			ChangeLog:   changeLog,
+		}
+		modeRows = append(modeRows, row)
+	}
+
+	return modeRows, err
 }

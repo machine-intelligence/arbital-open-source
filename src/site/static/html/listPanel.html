@@ -16,6 +16,7 @@
 		<md-list-item ng-repeat="(index, modeRow) in modeRows | orderBy:'-activityDate' | limitTo:numToDisplay"
 				class="panel-list-item"
 				ng-class="{'unseen-update': modeRow.activityDate > lastView || (modeRow.update && !modeRow.update.seen)}">
+				{{modeRow.rowType}}
 
 			<div ng-switch="::modeRow.rowType" flex>
 				<arb-page-row page-id="{{::modeRow.pageId}}"

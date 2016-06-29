@@ -12,6 +12,7 @@ const (
 	LastDiscussionModeView   = "lastDiscussionModeView"
 	LastMaintenanceModeView  = "lastMaintenanceModeView"
 	LastReadModeView         = "lastReadModeView"
+	LastRecentChangesView    = "lastRecentChangesView"
 )
 
 // Just load the last time the user loaded the given view.
