@@ -112,7 +112,7 @@ func newPageInternalHandler(params *pages.HandlerParams, data *newPageData) *pag
 			ChildId:  pageId,
 			Type:     core.ParentPagePairType,
 		}
-		result := newPagePairHandlerInternal(params, &handlerData)
+		result := newPagePairHandlerInternal(params.DB, params.U, &handlerData)
 		if result.Err != nil {
 			return result
 		}

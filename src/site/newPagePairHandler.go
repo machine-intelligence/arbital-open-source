@@ -37,13 +37,11 @@ func newPagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 
-	return newPagePairHandlerInternal(params, &data)
+	return newPagePairHandlerInternal(params.DB, params.U, &data)
 }
 
-func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairData) *pages.Result {
-	c := params.C
-	db := params.DB
-	u := params.U
+func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newPagePairData) *pages.Result {
+	c := db.C
 	var err error
 
 	// Error checking
@@ -95,7 +93,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	}
 
 	// Check edit permissions
-	permissionError, err := core.CanAffectRelationship(c, parent, child, data.Type)
+	permissionError, err := core.CanAffectRelationship(db.C, parent, child, data.Type)
 	if err != nil {
 		return pages.Fail("Error verifying permissions", err)
 	} else if permissionError != "" {
@@ -124,9 +122,25 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		// Go ahead and update the domains for the child page
 		// (we'll handle its descendants in the PublishPagePairTask)
 		if data.Type == core.ParentPagePairType {
-			err = core.PropagateDomainsWithTx(tx, []string{data.ChildId})
+			addedDomainsMap, _, err := core.PropagateDomainsWithTx(tx, []string{data.ChildId})
 			if err != nil {
 				return sessions.NewError("Couldn't update domains for the child page", err)
+			}
+			if addedDomainsSet, ok := addedDomainsMap[data.ChildId]; ok {
+				// Check to see if the child page had been submitted for approval to any of the domains it was just added to.
+				for domainId := range addedDomainsSet {
+					submission, err := core.LoadPageToDomainSubmission(tx.DB, data.ChildId, domainId)
+					if err != nil {
+						return sessions.NewError("Couldn't load submission", err)
+					}
+					// The child had been submitted to this domain, so we mark the request as approved.
+					if submission != nil {
+						serr := approvePageToDomainTx(tx, u, submission, child.PageCreatorId)
+						if serr != nil {
+							return serr
+						}
+					}
+				}
 			}
 		}
 
