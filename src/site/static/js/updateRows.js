@@ -10,9 +10,9 @@ app.directive('arbUpdateRowExpandButton', function(arb) {
 });
 
 // directive for an update like button
-app.directive('arbUpdateRowLikeButton', function(arb) {
+app.directive('arbChangeLogRowLikeButton', function(arb) {
 	return {
-		templateUrl: versionUrl('static/html/rows/updates/updateRowLikeButton.html'),
+		templateUrl: versionUrl('static/html/rows/updates/changeLogRowLikeButton.html'),
 		scope: false,
 		require: '^updateRow'
 	};
