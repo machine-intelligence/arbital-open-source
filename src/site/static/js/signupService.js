@@ -1,14 +1,22 @@
 // The code for the signup flow
 'use strict';
 
-app.service('signupService', function($mdDialog, analyticsService) {
+app.service('signupService', function($mdDialog, analyticsService, userService) {
 	var that = this;
 
-	// Open the signup dialog
-	that.openSignupDialog = function(opt_attemptedAction) {
-		that.attemptedAction = opt_attemptedAction;
+	that.afterSignupFn;
+	that.attemptedAction;
 
-		// Show a signup dialog over the page
+	that.wrapInSignupFlow = function(attemptedAction, afterSignupFn) {
+		if (userSerivce.userIsLoggedIn()) afterSignupFn();
+
+		that.afterSignupFn = afterSignupFn;
+		that.attemptedAction = attemptedAction;
+		that.openSignupDialog();
+	};
+
+	// Open the signup dialog
+	that.openSignupDialog = function() {
 		$mdDialog.show({
 			template: '<arb-signup></arb-signup>',
 			clickOutsideToClose: true,
@@ -19,5 +27,6 @@ app.service('signupService', function($mdDialog, analyticsService) {
 	// Close the signup dialog
 	that.closeSignupDialog = function() {
 		$mdDialog.hide();
+		if (that.afterSignupFn) afterSignupFn();
 	};
 });
