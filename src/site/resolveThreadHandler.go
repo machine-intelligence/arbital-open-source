@@ -96,7 +96,6 @@ func resolveThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		updateTask.UserId = u.Id
 		updateTask.GoToPageId = data.PageId
 		updateTask.SubscribedToId = data.PageId
-		updateTask.GroupByPageId = commentPrimaryPageId
 		updateTask.ForceMaintainersOnly = true
 		if err := tasks.Enqueue(c, &updateTask, nil); err != nil {
 			return sessions.NewError("Couldn't enqueue task", err)

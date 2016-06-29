@@ -164,7 +164,6 @@ func EnqueueNewMarkUpdateTask(params *pages.HandlerParams, markId string, pageId
 	updateTask.GoToPageId = pageId
 	updateTask.SubscribedToId = pageId
 	updateTask.UpdateType = core.NewMarkUpdateType
-	updateTask.GroupByPageId = pageId
 	updateTask.MarkId = markId
 	options := &tasks.TaskOptions{Delay: delay}
 	if err := tasks.Enqueue(params.C, &updateTask, options); err != nil {

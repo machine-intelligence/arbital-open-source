@@ -99,7 +99,6 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		task.GoToPageId = data.AnswerPageId
 		task.SubscribedToId = data.QuestionId
 		task.UpdateType = core.ChangeLogUpdateType
-		task.GroupByPageId = data.QuestionId
 		task.ChangeLogId = changeLogId
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			return sessions.NewError("Couldn't enqueue a task: %v", err)

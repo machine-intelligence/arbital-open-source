@@ -115,7 +115,6 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		task.UpdateType = core.ChangeLogUpdateType
 		task.UserId = u.Id
 		task.ChangeLogId = changeLogId
-		task.GroupByPageId = data.PageId
 		task.SubscribedToId = data.PageId
 		task.GoToPageId = data.PageId
 		if err := tasks.Enqueue(c, &task, nil); err != nil {

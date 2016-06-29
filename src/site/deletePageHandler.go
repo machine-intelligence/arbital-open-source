@@ -120,7 +120,6 @@ func deletePageTx(tx *database.Tx, params *pages.HandlerParams, data *deletePage
 		updateTask.UserId = params.U.Id
 		updateTask.GoToPageId = data.PageId
 		updateTask.SubscribedToId = data.PageId
-		updateTask.GroupByPageId = data.PageId
 		updateTask.UpdateType = core.ChangeLogUpdateType
 		updateTask.ChangeLogId = changeLogId
 

@@ -199,11 +199,9 @@ func EnqueuePagePairUpdate(c sessions.Context, pagePair *core.PagePair, changeLo
 	task.ChangeLogId = changeLogId
 	task.UpdateType = core.ChangeLogUpdateType
 	if !forChild {
-		task.GroupByPageId = pagePair.ParentId
 		task.SubscribedToId = pagePair.ParentId
 		task.GoToPageId = pagePair.ChildId
 	} else {
-		task.GroupByPageId = pagePair.ChildId
 		task.SubscribedToId = pagePair.ChildId
 		task.GoToPageId = pagePair.ParentId
 	}

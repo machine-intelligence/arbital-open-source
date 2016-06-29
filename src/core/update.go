@@ -40,28 +40,17 @@ const (
 
 // UpdateRow is a row from updates table
 type UpdateRow struct {
-	Id                   string
-	UserId               string
-	ByUserId             string
-	CreatedAt            string
-	Type                 string
-	GroupByPageId        string
-	GroupByUserId        string
-	Seen                 bool
-	SubscribedToId       string
-	GoToPageId           string
-	MarkId               string
-	IsGroupByObjectAlive bool
-	IsGoToPageAlive      bool
-	ChangeLog            *ChangeLog
-}
-
-// UpdateGroupKey is what we group updateEntries by
-type UpdateGroupKey struct {
-	GroupByPageId        string `json:"groupByPageId"`
-	GroupByUserId        string `json:"groupByUserId"`
-	Seen                 bool   `json:"seen"`
-	IsGroupByObjectAlive bool   `json:"isGroupByObjectAlive"`
+	Id              string
+	UserId          string
+	ByUserId        string
+	CreatedAt       string
+	Type            string
+	Seen            bool
+	SubscribedToId  string
+	GoToPageId      string
+	MarkId          string
+	IsGoToPageAlive bool
+	ChangeLog       *ChangeLog
 }
 
 // UpdateEntry corresponds to one update entry we'll display.
@@ -82,19 +71,10 @@ type UpdateEntry struct {
 	Seen      bool   `json:"seen"`
 }
 
-// UpdateGroup is a collection of updates groupped by the context page.
-type UpdateGroup struct {
-	Key *UpdateGroupKey `json:"key"`
-	// The date of the most recent update
-	MostRecentDate string         `json:"mostRecentDate"`
-	Updates        []*UpdateEntry `json:"updates"`
-}
-
 // UpdateData is all the data collected by LoadUpdateEmail()
 type UpdateData struct {
 	UpdateCount        int
 	UpdateRows         []*UpdateRow
-	UpdateGroups       []*UpdateGroup
 	UpdateEmailAddress string
 	UpdateEmailText    string
 }
@@ -128,13 +108,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 
 	rows := database.NewQuery(`
 		SELECT updates.id,updates.userId,updates.byUserId,updates.createdAt,updates.type,updates.seen,
-			updates.groupByPageId,updates.groupByUserId,updates.subscribedToId,updates.goToPageId,updates.markId,
-			updates.changeLogId,
-			COALESCE((
-				SELECT !isDeleted
-				FROM`).AddPart(PageInfosTableWithOptions(u, &PageInfosOptions{Deleted: true})).Add(`AS pi
-				WHERE pageId IN (updates.groupByPageId, updates.groupByUserId)
-			), false) AS isGroupByObjectAlive,
+			updates.subscribedToId,updates.goToPageId,updates.markId,updates.changeLogId,
 			COALESCE((
 				SELECT !isDeleted
 				FROM`).AddPart(PageInfosTableWithOptions(u, &PageInfosOptions{Deleted: true})).Add(`AS pi
@@ -150,14 +124,12 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		var row UpdateRow
 		var changeLogId string
 		err := rows.Scan(&row.Id, &row.UserId, &row.ByUserId, &row.CreatedAt, &row.Type,
-			&row.Seen, &row.GroupByPageId, &row.GroupByUserId, &row.SubscribedToId,
-			&row.GoToPageId, &row.MarkId, &changeLogId, &row.IsGroupByObjectAlive, &row.IsGoToPageAlive)
+			&row.Seen, &row.SubscribedToId, &row.GoToPageId, &row.MarkId, &changeLogId, &row.IsGoToPageAlive)
 		if err != nil {
 			return fmt.Errorf("failed to scan an update: %v", err)
 		}
 
 		AddPageToMap(row.GoToPageId, resultData.PageMap, goToPageLoadOptions)
-		AddPageToMap(row.GroupByPageId, resultData.PageMap, groupLoadOptions)
 		AddPageToMap(row.SubscribedToId, resultData.PageMap, groupLoadOptions)
 		if row.Type == PageToDomainSubmissionUpdateType {
 			AddPageToMap(row.GoToPageId, resultData.PageMap, &PageLoadOptions{SubmittedTo: true})
@@ -166,9 +138,6 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		resultData.UserMap[row.UserId] = &User{Id: row.UserId}
 		if IsIdValid(row.ByUserId) {
 			resultData.UserMap[row.ByUserId] = &User{Id: row.ByUserId}
-		}
-		if IsIdValid(row.GroupByUserId) {
-			resultData.UserMap[row.GroupByUserId] = &User{Id: row.GroupByUserId}
 		}
 		if row.MarkId == "0" {
 			row.MarkId = ""
@@ -215,62 +184,6 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 	return updateRows, nil
 }
 
-// ConvertUpdateRowsToGroups converts a list of Rows into a list of Groups
-func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[string]*Page) []*UpdateGroup {
-	// Now that we have load last visit time for all pages,
-	// go through all the update rows and group them.
-	groups := make([]*UpdateGroup, 0)
-	groupMap := make(map[UpdateGroupKey]*UpdateGroup)
-	for _, row := range rows {
-		key := UpdateGroupKey{
-			GroupByPageId:        row.GroupByPageId,
-			GroupByUserId:        row.GroupByUserId,
-			Seen:                 row.Seen,
-			IsGroupByObjectAlive: row.IsGroupByObjectAlive,
-		}
-
-		// Create/update the group.
-		group, ok := groupMap[key]
-		if !ok {
-			group = &UpdateGroup{
-				Key:            &key,
-				MostRecentDate: row.CreatedAt,
-				Updates:        make([]*UpdateEntry, 0),
-			}
-			groupMap[key] = group
-			groups = append(groups, group)
-		} else if group.MostRecentDate < row.CreatedAt {
-			group.MostRecentDate = row.CreatedAt
-		}
-
-		createNewEntry := true
-		if _, ok := pageMap[row.GoToPageId]; !ok {
-			createNewEntry = false
-		}
-		if createNewEntry {
-			// Add new entry to the group
-			entry := &UpdateEntry{
-				Id:              row.Id,
-				UserId:          row.UserId,
-				ByUserId:        row.ByUserId,
-				Type:            row.Type,
-				SubscribedToId:  row.SubscribedToId,
-				GoToPageId:      row.GoToPageId,
-				IsGoToPageAlive: row.IsGoToPageAlive,
-				MarkId:          row.MarkId,
-				CreatedAt:       row.CreatedAt,
-				IsVisited:       pageMap != nil && row.CreatedAt < pageMap[row.GoToPageId].LastVisit,
-				ChangeLog:       row.ChangeLog,
-			}
-			if entry.MarkId != "" {
-				entry.ByUserId = ""
-			}
-			group.Updates = append(group.Updates, entry)
-		}
-	}
-	return groups
-}
-
 // LoadUpdateEmail loads the text and other data for the update email
 func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, retErr error) {
 	c := db.C
@@ -314,7 +227,6 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 		db.C.Debugf("Not enough updates to send the email: %d < %d", resultData.UpdateCount, u.EmailThreshold)
 		return nil, nil
 	}
-	resultData.UpdateGroups = ConvertUpdateRowsToGroups(resultData.UpdateRows, handlerData.PageMap)
 
 	// Load pages.
 	err = ExecuteLoadPipeline(db, handlerData)

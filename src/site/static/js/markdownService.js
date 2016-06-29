@@ -55,7 +55,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		var converter = Markdown.getSanitizingConverter();
 		var editor = isEditor ? new Markdown.Editor(converter, pageId) : undefined;
 		var markdownPage = undefined;
-		if (!isEditor) {
+		if (!isEditor && (pageId in stateService.pageMap)) {
 			markdownPage = stateService.pageMap[pageId];
 			markdownPage.todos = [];
 			markdownPage.redAliases = {};

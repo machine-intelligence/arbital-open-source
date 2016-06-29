@@ -14,11 +14,6 @@ type NewUpdateTask struct {
 	UserId     string
 	UpdateType string
 
-	// Grouping key. One of these has to set. We'll group all updates by this key
-	// to show in one panel.
-	GroupByPageId string
-	GroupByUserId string
-
 	// We'll notify the users who are subscribed to this page id (also could be a
 	// user id, group id, domain id)
 	SubscribedToId string
@@ -52,17 +47,6 @@ func (task NewUpdateTask) IsValid() error {
 		return fmt.Errorf("SubscibedTo id has to be set")
 	}
 
-	groupByCount := 0
-	if core.IsIdValid(task.GroupByPageId) {
-		groupByCount++
-	}
-	if core.IsIdValid(task.GroupByUserId) {
-		groupByCount++
-	}
-	if groupByCount != 1 {
-		return fmt.Errorf("Exactly one GroupBy... has to be set")
-	}
-
 	if !core.IsIdValid(task.GoToPageId) {
 		return fmt.Errorf("GoToPageId has to be set")
 	}
@@ -90,7 +74,7 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	rows = database.NewQuery(`
 		SELECT DISTINCT seeGroupId
 		FROM`).AddPart(core.PageInfosTableWithOptions(nil, &core.PageInfosOptions{Deleted: true})).Add(`AS pi
-		WHERE seeGroupId != '' AND pageId IN (?,?)`, task.GroupByPageId, task.GoToPageId).ToStatement(db).Query()
+		WHERE seeGroupId != '' AND pageId IN (?)`, task.GoToPageId).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var groupId string
 		err := rows.Scan(&groupId)
@@ -149,8 +133,6 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		hashmap["userId"] = userId
 		hashmap["byUserId"] = task.UserId
 		hashmap["type"] = task.UpdateType
-		hashmap["groupByPageId"] = task.GroupByPageId
-		hashmap["groupByUserId"] = task.GroupByUserId
 		hashmap["subscribedToId"] = task.SubscribedToId
 		hashmap["goToPageId"] = task.GoToPageId
 		hashmap["changeLogId"] = task.ChangeLogId

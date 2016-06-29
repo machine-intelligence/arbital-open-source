@@ -374,7 +374,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			task.GoToPageId = data.PageId
 			task.SubscribedToId = data.PageId
 			task.ChangeLogId = editChangeLogId
-			task.GroupByPageId = data.PageId
 			if oldPage.IsDeleted {
 				task.UpdateType = core.ChangeLogUpdateType
 			} else {
@@ -399,7 +398,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
 			task.UpdateType = core.NewPageByUserUpdateType
-			task.GroupByUserId = u.Id
 			task.SubscribedToId = u.Id
 			task.GoToPageId = data.PageId
 			if createEditChangeLog {
@@ -416,7 +414,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			if !data.IsMinorEdit {
 				var task tasks.NewUpdateTask
 				task.UserId = u.Id
-				task.GroupByPageId = commentPrimaryPageId
 				task.GoToPageId = data.PageId
 				task.ForceMaintainersOnly = oldPage.IsEditorComment
 				if createEditChangeLog {
@@ -444,7 +441,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				var task tasks.AtMentionUpdateTask
 				task.UserId = u.Id
 				task.MentionedUserId = submatch[1]
-				task.GroupByPageId = commentPrimaryPageId
 				task.GoToPageId = data.PageId
 				if err := tasks.Enqueue(c, &task, nil); err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
