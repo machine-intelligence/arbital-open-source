@@ -1083,8 +1083,9 @@ type ProcessChangeLogCallback func(db *database.DB, changeLog *ChangeLog) error
 // LoadChangeLogs loads the change logs matching the given condition.
 func LoadChangeLogs(db *database.DB, queryPart *database.QueryPart, resultData *CommonHandlerData, callback ProcessChangeLogCallback) error {
 	rows := database.NewQuery(`
-			SELECT id,pageId,userId,edit,type,createdAt,auxPageId,likeableId,oldSettingsValue,newSettingsValue
-			FROM changeLogs`).AddPart(queryPart).ToStatement(db).Query()
+			SELECT cl.id,cl.pageId,cl.userId,cl.edit,cl.type,cl.createdAt,cl.auxPageId,cl.likeableId,
+				cl.oldSettingsValue,cl.newSettingsValue
+			FROM changeLogs as cl`).AddPart(queryPart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		l := NewChangeLog()
 		err := rows.Scan(&l.Id, &l.PageId, &l.UserId, &l.Edit, &l.Type, &l.CreatedAt,
