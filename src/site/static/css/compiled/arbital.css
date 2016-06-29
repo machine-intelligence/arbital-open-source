@@ -448,6 +448,11 @@ arb-signup .md-button.md-raised.facebook-button {
   .nice-blockquote p, arb-markdown blockquote p, [arb-markdown] blockquote p, .preview-area blockquote p {
     padding: 10px 0; }
 
+.centered-item, arb-markdown img, [arb-markdown] img, .preview-area img, [arb-hidden-text] button {
+  position: relative;
+  left: 50%;
+  transform: translate(-50%, 0); }
+
 arb-markdown, [arb-markdown], .preview-area {
   text-align: justify; }
   arb-markdown p, [arb-markdown] p, .preview-area p {
