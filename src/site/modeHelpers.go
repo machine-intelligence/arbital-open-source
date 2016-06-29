@@ -23,8 +23,6 @@ const (
 	MaintenanceUpdateRowType      = "maintenanceUpdate"
 	NotificationRowType           = "notification"
 	PageToDomainSubmissionRowType = "pageToDomainSubmission"
-	EditProposalRowType           = "editProposal"
-	EditRowType                   = "edit"
 )
 
 type modeRowData struct {
@@ -527,8 +525,12 @@ func loadUpdateRows(db *database.DB, u *core.CurrentUser, returnData *core.Commo
 }
 
 func getUpdateModeRowFromUpdateRow(updateRow *core.UpdateRow) *updateModeRow {
+	modeRowType := updateRow.Type
+	// if updateRow.ChangeLog != nil &&  {
+	// 	modeRowType = updateRow.ChangeLog.Type
+	// }
 	return &updateModeRow{
-		modeRowData: modeRowData{RowType: updateRow.Type, ActivityDate: updateRow.CreatedAt},
+		modeRowData: modeRowData{RowType: modeRowType, ActivityDate: updateRow.CreatedAt},
 		Update:      getUpdateEntryFromUpdateRow(updateRow),
 	}
 }
@@ -577,7 +579,7 @@ func loadPageToDomainSubmissionModeRows(db *database.DB, returnData *core.Common
 	return modeRows, err
 }
 
-// Load edits that have been made to the math domain
+// Load changes that have been made to the math domain
 func loadChangeLogModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int, changeLogTypes ...string) (ModeRows, error) {
 	changeLogs := make([]*core.ChangeLog, 0)
 	pageLoadOptions := (&core.PageLoadOptions{
@@ -585,8 +587,11 @@ func loadChangeLogModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 		EditHistory:           true,
 	}).Add(core.EmptyLoadOptions)
 	queryPart := database.NewQuery(`
-		WHERE type IN `).AddArgsGroupStr(changeLogTypes).Add(`
-		ORDER BY createdAt DESC
+		JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
+		ON pi.pageId = cl.pageId
+		WHERE cl.type IN `).AddArgsGroupStr(changeLogTypes).Add(`
+			AND pi.type!=?`, core.CommentPageType).Add(`
+		ORDER BY cl.createdAt DESC
 		LIMIT ?`, limit)
 	err := core.LoadChangeLogs(db, queryPart, returnData, func(db *database.DB, changeLog *core.ChangeLog) error {
 		core.AddPageToMap(changeLog.PageId, returnData.PageMap, pageLoadOptions)
@@ -597,7 +602,7 @@ func loadChangeLogModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 	modeRows := make(ModeRows, 0)
 	for _, changeLog := range changeLogs {
 		row := &changeLogModeRow{
-			modeRowData: modeRowData{RowType: EditRowType, ActivityDate: changeLog.CreatedAt},
+			modeRowData: modeRowData{RowType: changeLog.Type, ActivityDate: changeLog.CreatedAt},
 			ChangeLog:   changeLog,
 		}
 		modeRows = append(modeRows, row)

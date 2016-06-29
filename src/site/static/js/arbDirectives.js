@@ -699,7 +699,6 @@ app.directive('arbChangeLogRow', function(arb) {
 		templateUrl: versionUrl('static/html/rows/changeLogRow.html'),
 		scope: {
 			changeLog: '=',
-			pageId: '@',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;

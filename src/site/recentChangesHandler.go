@@ -41,19 +41,16 @@ func recentChangesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load edits, edit proposals, and deleted pages
+	// TODO: add newPage as a changeLog event, and then include it here.
 	changeLogRows, err := loadChangeLogModeRows(db, returnData, data.NumToLoad,
-		core.NewEditProposalChangeLog, core.NewEditChangeLog, core.DeletePageChangeLog)
+		core.NewEditProposalChangeLog,
+		core.NewEditChangeLog,
+		core.DeletePageChangeLog)
 	if err != nil {
-		return pages.Fail("Error loading editProposalRows", err)
+		return pages.Fail("Error loading changeLogRows", err)
 	}
 
-	// Load new pages
-	newPageRows, err := loadNewPagesModeRows(db, returnData, data.NumToLoad)
-	if err != nil {
-		return pages.Fail("Error loading editProposalRows", err)
-	}
-
-	returnData.ResultMap["modeRows"] = combineModeRows(data.NumToLoad, pageToDomainSubmissionRows, changeLogRows, newPageRows)
+	returnData.ResultMap["modeRows"] = combineModeRows(data.NumToLoad, pageToDomainSubmissionRows, changeLogRows)
 
 	// Load and update LastReadModeView for this user
 	returnData.ResultMap["lastView"], err = core.LoadAndUpdateLastView(db, u, core.LastRecentChangesView)

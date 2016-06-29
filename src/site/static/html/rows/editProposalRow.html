@@ -3,22 +3,15 @@
 		<arb-update-row-expand-button></arb-update-row-expand-button>
 		<div flex>
 			<arb-user-name user-id="{{::changeLog.userId}}"></arb-user-name>
-			submitted an edit proposal to
+			proposed an edit to
 			<arb-page-title page-id="{{::changeLog.pageId}}" is-link="true"></arb-page-title>
-			{{::changeLog.createdAt | relativeDateTime}}
 			<span ng-if="isObsolete">
 				<br>
 				A new version of the page has been published since then, so this change can only
 				be applied manually.
 			</span>
 		</div>
-		<div>
-			<md-button ng-click="arb.pageService.approveEditProposal(changeLog)"
-				ng-if="showApprove()">Approve</md-button>
-			<span ng-if="changeLog.type != 'newEditProposal'">
-				Edit approved!
-			</span>
-		</div>
+		<span class="md-caption">{{::changeLog.createdAt | relativeDateTime}}</span>
 	</div>
 
 	<div class="expand-tray" ng-if="expanded">

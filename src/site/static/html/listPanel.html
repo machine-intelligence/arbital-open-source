@@ -11,12 +11,13 @@
 		</div>
 	</md-toolbar>
 
+	<md-progress-circular md-mode="indeterminate" ng-cloak ng-if="!modeRows"></md-progress-circular>
+
 	<!-- List of mode rows -->
 	<md-list class="full-height prevent-scroll-leak">
 		<md-list-item ng-repeat="(index, modeRow) in modeRows | orderBy:'-activityDate' | limitTo:numToDisplay"
 				class="panel-list-item"
 				ng-class="{'unseen-update': modeRow.activityDate > lastView || (modeRow.update && !modeRow.update.seen)}">
-				{{modeRow.rowType}}
 
 			<div ng-switch="::modeRow.rowType" flex>
 				<arb-page-row page-id="{{::modeRow.pageId}}"
@@ -36,6 +37,7 @@
 
 				<div ng-switch-when="pageToDomainSubmission"
 						arb-page-to-domain-submission-update-row
+						submission="::modeRow.pageToDomainSubmission"
 						update="::modeRow.update"
 						on-dismiss="dismissRow(modeRows, index)"></div>
 
@@ -91,6 +93,7 @@
 				<!-- maintenance updates -->
 				<div ng-switch-when="pageEdit"
 						arb-page-edit-update-row
+						change-log="::modeRow.update.changeLog"
 						update="::modeRow.update"
 						on-dismiss="dismissRow(modeRows, index)"></div>
 
@@ -136,6 +139,17 @@
 				<arb-comment-mode-row mode-row="::modeRow" ng-switch-when="comment"></arb-comment-mode-row>
 				<arb-draft-row mode-row="::modeRow" ng-switch-when="draft"></arb-draft-row>
 				<arb-tagged-for-edit-row mode-row="::modeRow" ng-switch-when="taggedForEdit"></arb-tagged-for-edit-row>
+				<div arb-edit-proposal-row
+						change-log="::modeRow.changeLog"
+						ng-switch-when="newEditProposal"></div>
+				<div ng-switch-when="deletePage"
+						arb-deleted-page-update-row
+						change-log="::modeRow.changeLog"></div>
+				<div ng-switch-when="newEdit"
+						arb-page-edit-update-row
+						change-log="::modeRow.changeLog"></div>
+
+				<div ng-switch-default class="md-warn">unhandled row type: {{modeRow.rowType}}</div>
 			</div>
 
 			<md-divider ng-if="::!$last"></md-divider>
