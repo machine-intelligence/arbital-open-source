@@ -131,6 +131,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		}
 
 		var task tasks.PublishPagePairTask
+		task.UserId = u.Id
 		task.PagePairId = fmt.Sprintf("%d", pagePairId)
 		err = tasks.Enqueue(c, &task, nil)
 		if err != nil {

@@ -43,6 +43,7 @@ func (task UpdatePagePairsTask) Execute(db *database.DB) (delay int, err error) 
 			AND NOT everPublished`)
 	err = core.LoadPagePairs(db, queryPart, func(db *database.DB, pagePair *core.PagePair) error {
 		var task PublishPagePairTask
+		task.UserId = pagePair.CreatorId
 		task.PagePairId = pagePair.Id
 		return Enqueue(c, &task, nil)
 	})

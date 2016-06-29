@@ -12,6 +12,7 @@ import (
 
 // PublishPagePairTask is the object that's put into the daemon queue.
 type PublishPagePairTask struct {
+	UserId     string
 	PagePairId string
 }
 
@@ -23,6 +24,9 @@ func (task PublishPagePairTask) Tag() string {
 func (task PublishPagePairTask) IsValid() error {
 	if task.PagePairId == "" {
 		return fmt.Errorf("PagePairId needs to be set")
+	}
+	if task.UserId == "" {
+		return fmt.Errorf("UserId needs to be set")
 	}
 	return nil
 }
@@ -90,12 +94,12 @@ func (task PublishPagePairTask) Execute(db *database.DB) (delay int, err error) 
 		}
 
 		// Update people subscribed to the parent
-		err = EnqueuePagePairUpdate(tx.DB.C, pagePair, parentChangeLogId, false)
+		err = EnqueuePagePairUpdate(tx.DB.C, pagePair, task.UserId, parentChangeLogId, false)
 		if err != nil {
 			tx.DB.C.Errorf("Couldn't enqueue a task: %v", err)
 		}
 		// Update people subscribed to the child
-		err = EnqueuePagePairUpdate(tx.DB.C, pagePair, childChangeLogId, true)
+		err = EnqueuePagePairUpdate(tx.DB.C, pagePair, task.UserId, childChangeLogId, true)
 		if err != nil {
 			tx.DB.C.Errorf("Couldn't enqueue a task: %v", err)
 		}
@@ -185,7 +189,7 @@ func addNewRelationshipToParentChangeLog(tx *database.Tx, pagePair *core.PagePai
 
 // Add an update to the queue about the pagePair being added to the parent's changeLog.
 // If forChild is set, the update is about child's changeLog.
-func EnqueuePagePairUpdate(c sessions.Context, pagePair *core.PagePair, changeLogId int64, forChild bool) error {
+func EnqueuePagePairUpdate(c sessions.Context, pagePair *core.PagePair, userId string, changeLogId int64, forChild bool) error {
 	if changeLogId == 0 {
 		return nil
 	}
@@ -195,7 +199,7 @@ func EnqueuePagePairUpdate(c sessions.Context, pagePair *core.PagePair, changeLo
 	}
 
 	var task NewUpdateTask
-	task.UserId = pagePair.CreatorId
+	task.UserId = userId
 	task.ChangeLogId = changeLogId
 	task.UpdateType = core.ChangeLogUpdateType
 	if !forChild {
