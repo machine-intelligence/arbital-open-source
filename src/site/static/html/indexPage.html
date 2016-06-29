@@ -44,12 +44,11 @@
 				type="new"
 				is-full-page="true"
 				ng-if="readTab==1"></div>
-		<div ng-if="readTab==2">
-			<div arb-recent-changes
-					class="support-visited-links"
-					is-full-page="::true"
-					num-to-display="50"></div>
-		</div>
+		<div arb-recent-changes
+				class="support-visited-links"
+				is-full-page="::true"
+				num-to-display="50"
+				ng-if="readTab==2"></div>
 	</div>
 
 	<!-- Right half -->

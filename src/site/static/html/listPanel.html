@@ -11,8 +11,6 @@
 		</div>
 	</md-toolbar>
 
-	<md-progress-circular md-mode="indeterminate" ng-cloak ng-if="!modeRows"></md-progress-circular>
-
 	<!-- List of mode rows -->
 	<md-list class="full-height prevent-scroll-leak">
 		<md-list-item ng-repeat="(index, modeRow) in modeRows | orderBy:'-activityDate' | limitTo:numToDisplay"
@@ -139,9 +137,9 @@
 				<arb-comment-mode-row mode-row="::modeRow" ng-switch-when="comment"></arb-comment-mode-row>
 				<arb-draft-row mode-row="::modeRow" ng-switch-when="draft"></arb-draft-row>
 				<arb-tagged-for-edit-row mode-row="::modeRow" ng-switch-when="taggedForEdit"></arb-tagged-for-edit-row>
-				<div arb-edit-proposal-row
-						change-log="::modeRow.changeLog"
-						ng-switch-when="newEditProposal"></div>
+				<div ng-switch-when="newEditProposal"
+						arb-edit-proposal-row
+						change-log="::modeRow.changeLog"></div>
 				<div ng-switch-when="deletePage"
 						arb-deleted-page-update-row
 						change-log="::modeRow.changeLog"></div>

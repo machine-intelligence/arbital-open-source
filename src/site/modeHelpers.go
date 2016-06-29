@@ -525,12 +525,8 @@ func loadUpdateRows(db *database.DB, u *core.CurrentUser, returnData *core.Commo
 }
 
 func getUpdateModeRowFromUpdateRow(updateRow *core.UpdateRow) *updateModeRow {
-	modeRowType := updateRow.Type
-	// if updateRow.ChangeLog != nil &&  {
-	// 	modeRowType = updateRow.ChangeLog.Type
-	// }
 	return &updateModeRow{
-		modeRowData: modeRowData{RowType: modeRowType, ActivityDate: updateRow.CreatedAt},
+		modeRowData: modeRowData{RowType: updateRow.Type, ActivityDate: updateRow.CreatedAt},
 		Update:      getUpdateEntryFromUpdateRow(updateRow),
 	}
 }
