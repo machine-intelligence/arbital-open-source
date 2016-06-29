@@ -81,6 +81,14 @@ arb-signup {
 	}
 }
 
+// Applied to any item to center it with its container
+.centered-item {
+	// Center
+	position: relative;
+	left: 50%;
+	transform: translate(-50%, 0);
+}
+
 arb-markdown, [arb-markdown], .preview-area {
 	text-align: justify;
 
@@ -94,6 +102,7 @@ arb-markdown, [arb-markdown], .preview-area {
 	}
 
 	img {
+		@extend .centered-item;
 		max-width: 100%;
 	}
 
@@ -354,16 +363,16 @@ $toolbar-height: 64px;
 md-toolbar {
 	md-autocomplete {
 		::-webkit-input-placeholder { /* Chrome/Opera/Safari */
-		  color: rgba(255,255,255,0.5);
+			color: rgba(255,255,255,0.5);
 		}
 		::-moz-placeholder { /* Firefox 19+ */
-		  color: rgba(255,255,255,0.5);
+			color: rgba(255,255,255,0.5);
 		}
 		:-ms-input-placeholder { /* IE 10+ */
-		  color: rgba(255,255,255,0.5);
+			color: rgba(255,255,255,0.5);
 		}
 		:-moz-placeholder { /* Firefox 18- */
-		  color: rgba(255,255,255,0.5);
+			color: rgba(255,255,255,0.5);
 		}
 	}
 }
@@ -641,7 +650,7 @@ arb-requisite-button, [arb-requisite-button] {
 }
 
 .lens-menu-floater-hidden {
-    transform: translate(-50%, 100%);
+		transform: translate(-50%, 100%);
 }
 
 md-toast {
@@ -1250,6 +1259,10 @@ arb-log-row, [arb-log-row] {
 
 [arb-hidden-text] {
 	margin-bottom: 15px;
+
+	& button {
+		@extend .centered-item;
+	}
 }
 
 .hidden-text {
@@ -1272,12 +1285,12 @@ arb-log-row, [arb-log-row] {
 	min-width: 20px;
 	text-align: center;
 	font-weight: 500;
-    color: #666;
+	color: #666;
 	box-shadow: 0 4px 6px -2px rgba(0,0,0,0.25);
 	border-radius: 15px;
 	cursor: pointer;
 	line-height: 20px;
-    font-size: 15px;
+	font-size: 15px;
 }
 
 arb-list-sub-header,
@@ -1312,8 +1325,8 @@ md-icon.icon-first {
 }
 
 .md-icon.s24 {
-  width: 24px;
-  height: 24px;
+	width: 24px;
+	height: 24px;
 }
 
 arb-likes.s20 {
@@ -1353,17 +1366,17 @@ arb-likes.tiny {
 
 .page-row {
 	& .page-row-caption {
-	    min-width: 0px;
-	    overflow: hidden;
+			min-width: 0px;
+			overflow: hidden;
 		text-overflow: ellipsis;
-	    white-space: nowrap;
+			white-space: nowrap;
 	}
 
 	& .page-row-metadata {
 		div + div:before {
-	    	content: "|";
+				content: "|";
 			padding: 0 10px
-	    }
+			}
 	}
 }
 
