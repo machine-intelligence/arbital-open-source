@@ -101,6 +101,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 	goToPageLoadOptions := (&PageLoadOptions{
 		Parents: true, // to show comment threads properly
 	}).Add(TitlePlusIncludeDeletedLoadOptions)
+	domainSubmissionLoadOptions := &PageLoadOptions{SubmittedTo: true, DomainsAndPermissions: true}
 
 	updateRows := make([]*UpdateRow, 0)
 	changeLogIds := make([]string, 0)
@@ -133,7 +134,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		AddPageToMap(row.SubscribedToId, resultData.PageMap, groupLoadOptions)
 		if row.Type == PageToDomainSubmissionUpdateType {
 			// Load domains and permissions, so that if I'm on the page when I see the update, I don't get the orphan page message.
-			AddPageToMap(row.GoToPageId, resultData.PageMap, &PageLoadOptions{SubmittedTo: true, DomainsAndPermissions: true})
+			AddPageToMap(row.GoToPageId, resultData.PageMap, domainSubmissionLoadOptions)
 		}
 
 		resultData.UserMap[row.UserId] = &User{Id: row.UserId}
