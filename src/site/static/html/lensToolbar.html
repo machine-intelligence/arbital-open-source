@@ -10,10 +10,6 @@
 			is-stretched="!isTinyScreen"
 			is-button="true"></arb-likes>
 
-	<!-- Subscribe -->
-	<!-- <arb-subscribe page-id="{{selectedLens.pageId}}"
-			is-stretched="::!isTinyScreen"></arb-subscribe> -->
-
 	<!-- Edit -->
 	<div layout="column" layout-align="start center">
 		<md-button ng-href="{{arb.urlService.getEditPageUrl(selectedLens.pageId)}}"
@@ -34,6 +30,11 @@
 			Unpublished draft
 		</span>
 	</div>
+
+	<!-- Subscribe -->
+	<arb-subscribe page-id="{{selectedLens.pageId}}"
+			is-stretched="::!isTinyScreen"
+			ng-if="selectedLens.isSubscribedAsMaintainer"></arb-subscribe>
 
 	<!-- Link -->
 	<div>
