@@ -10,8 +10,10 @@ import (
 
 // Recalculate and update the domains for the given pages
 func PropagateDomains(db *database.DB, pagesToUpdate []string) error {
+
 	serr := db.Transaction(func(tx *database.Tx) sessions.Error {
-		return sessions.PassThrough(PropagateDomainsWithTx(tx, pagesToUpdate))
+		_, _, err := PropagateDomainsWithTx(tx, pagesToUpdate)
+		return sessions.PassThrough(err)
 	})
 	if serr != nil {
 		return fmt.Errorf("Failed to propagate domains: %v", serr)
@@ -20,11 +22,13 @@ func PropagateDomains(db *database.DB, pagesToUpdate []string) error {
 }
 
 // Recalculate and update the domains for the given pages
-func PropagateDomainsWithTx(tx *database.Tx, pagesToUpdate []string) error {
+func PropagateDomainsWithTx(tx *database.Tx, pagesToUpdate []string) (map[string]map[string]bool,
+	map[string]map[string]bool, error) {
+
 	// Map from each page-to-be-updated to its parents
 	parentMap, err := _getParentMap(tx, pagesToUpdate)
 	if err != nil {
-		return fmt.Errorf("Failed to load parents: %v", err)
+		return nil, nil, fmt.Errorf("Failed to load parents: %v", err)
 	}
 
 	// The set of all the parents
@@ -51,7 +55,7 @@ func PropagateDomainsWithTx(tx *database.Tx, pagesToUpdate []string) error {
 	// Set of pages in our subgraph that are themselves domain pages
 	domainPagesSet, err := _getDomainPages(tx, allPagesArray)
 	if err != nil {
-		return fmt.Errorf("Faled to load domain pages: %v", err)
+		return nil, nil, fmt.Errorf("Faled to load domain pages: %v", err)
 	}
 
 	// Set of pages we're assuming already have the right domains
@@ -73,7 +77,7 @@ func PropagateDomainsWithTx(tx *database.Tx, pagesToUpdate []string) error {
 	// so that we can diff with our computed domains for the to-be-updated pages)
 	originalDomainsMap, err := _getOriginalDomains(tx, allPagesArray)
 	if err != nil {
-		return fmt.Errorf("Faled to load original domains: %v", err)
+		return nil, nil, fmt.Errorf("Faled to load original domains: %v", err)
 	}
 
 	// Figure out what the new domains should be
@@ -85,10 +89,10 @@ func PropagateDomainsWithTx(tx *database.Tx, pagesToUpdate []string) error {
 	// Update the domains in the db
 	err = _updateDomains(tx, domainsToAddMap, domainsToRemoveMap)
 	if err != nil {
-		return fmt.Errorf("Faled to update domains: %v", err)
+		return nil, nil, fmt.Errorf("Faled to update domains: %v", err)
 	}
 
-	return nil
+	return domainsToAddMap, domainsToRemoveMap, nil
 }
 
 // Gets a map from a set of pages to sets of their parents
