@@ -10,9 +10,9 @@ app.directive('arbUpdateRowExpandButton', function(arb) {
 });
 
 // directive for an update like button
-app.directive('arbUpdateRowLikeButton', function(arb) {
+app.directive('arbChangeLogRowLikeButton', function(arb) {
 	return {
-		templateUrl: versionUrl('static/html/rows/updates/updateRowLikeButton.html'),
+		templateUrl: versionUrl('static/html/rows/updates/changeLogRowLikeButton.html'),
 		scope: false,
 		require: '^updateRow'
 	};
@@ -30,7 +30,7 @@ app.directive('arbUpdateRowDismissButton', function(arb) {
 // directive for an update timestamp
 app.directive('arbUpdateTimestamp', function(arb) {
 	return {
-		template: '<span class="md-caption nowrap" ng-bind="::(update.createdAt | smartDateTime)"></span>',
+		template: '<span class="md-caption nowrap" ng-bind="::(createdAt | smartDateTime)"></span>',
 		scope: false,
 		require: '^updateRow'
 	};
@@ -41,12 +41,26 @@ var getUpdateRowDirectiveFunc = function(templateUrl, controllerInternal) {
 		return {
 			templateUrl: templateUrl,
 			scope: {
+				// One of the following three things must be provided
+				changeLog: '=',
+				submission: '=',
 				update: '=',
+				// Optional, only shown if update is provided
 				onDismiss: '&',
 			},
 			controller: function($scope) {
 				$scope.arb = arb;
-				$scope.goToPage = arb.stateService.pageMap[$scope.update.goToPageId];
+
+				// Fill these in to make the following code easier.
+				$scope.changeLog = $scope.changeLog || {};
+				$scope.submission = $scope.submission || {};
+
+				$scope.goToPageId = $scope.changeLog.pageId || $scope.submission.pageId || $scope.update.goToPageId;
+				$scope.byUserId = $scope.changeLog.userId || $scope.submission.submitterId || $scope.update.byUserId;
+				$scope.createdAt = $scope.changeLog.createdAt || $scope.submission.createdAt || $scope.update.createdAt;
+				$scope.domainId = $scope.update ? $scope.update.subscribedToId : $scope.submission.domainId;
+				$scope.goToPage = arb.stateService.pageMap[$scope.goToPageId];
+
 				if (controllerInternal) controllerInternal($scope);
 			},
 		};

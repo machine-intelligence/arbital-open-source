@@ -26,12 +26,17 @@
 					ng-click="selectReadTab(1)">
 				New
 			</md-button>
+			<md-button class="tab-panel-tab"
+					ng-class="{'active-tab': readTab==2}"
+					ng-click="selectReadTab(2)">
+				Recent changes
+			</md-button>
 		</div>
 		<div arb-read-mode-panel
 				class="support-visited-links"
 				hide-title="::true"
 				type="featured"
-				is-full-page="true"
+				is-full-page="::true"
 				ng-if="readTab==0"></div>
 		<div arb-read-mode-panel
 				class="support-visited-links"
@@ -39,6 +44,11 @@
 				type="new"
 				is-full-page="true"
 				ng-if="readTab==1"></div>
+		<div arb-recent-changes
+				class="support-visited-links"
+				is-full-page="::true"
+				num-to-display="50"
+				ng-if="readTab==2"></div>
 	</div>
 
 	<!-- Right half -->
