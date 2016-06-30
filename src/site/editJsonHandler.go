@@ -103,7 +103,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 		data.AdditionalPageIds = make([]string, 0)
 	}
 	data.AdditionalPageIds = append(data.AdditionalPageIds, "3n", "178", "1ln",
-		"17b", "35z", "370", "187", "185", "3hs")
+		"17b", "35z", "370", "187", "185", "3hs", "1rt")
 	for _, pageId := range data.AdditionalPageIds {
 		core.AddPageIdToMap(pageId, returnData.PageMap)
 	}
@@ -129,6 +129,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	p.RequirementIds = livePage.RequirementIds
 	p.SubjectIds = livePage.SubjectIds
 	p.Lenses = livePage.Lenses
+	p.PathPages = livePage.PathPages
 	p.ChangeLogs = livePage.ChangeLogs
 	p.SearchStrings = livePage.SearchStrings
 	returnData.EditMap[pageId] = p

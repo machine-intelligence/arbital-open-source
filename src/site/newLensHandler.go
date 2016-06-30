@@ -1,4 +1,4 @@
-// newLensHandler.go updates the name of a lens
+// newLensHandler.go adds a new lens relationship
 package site
 
 import (
@@ -105,8 +105,6 @@ func newLensHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	returnData.ResultMap["lens"], err = core.LoadLens(db, fmt.Sprintf("%d", id))
 	if err != nil {
 		return pages.Fail("Couldn't load the lens: %v", err)
-	} else if _, ok := returnData.ResultMap["lens"]; !ok {
-		return pages.Fail("Couldn't find the lens", nil).Status(http.StatusBadRequest)
 	}
 	return pages.Success(returnData)
 }
