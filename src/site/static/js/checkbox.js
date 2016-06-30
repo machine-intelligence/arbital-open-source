@@ -6,23 +6,36 @@ app.directive('arbCheckbox', function($timeout, $http, $compile, arb) {
 		templateUrl: versionUrl('static/html/checkbox.html'),
 		transclude: true,
 		scope: {
+			pageId: '@',
 			index: '@',
+			objectAlias: '@',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.choice = false;
-			$scope.knows = [];
-			$scope.wants = [];
+			$scope.letterChoice = 'n';
+			$scope.knows = {};
+			$scope.wants = {};
+			$scope.delKnows = {};
+			$scope.delWants = {};
 
 			// Called when a user toggles the choice
 			$scope.toggleChoice = function() {
 				$scope.choice = !$scope.choice;
-				arb.masteryService.setQuestionAnswer($scope.index, $scope.choice,
-					$scope.choice ? $scope.knows : [], $scope.choice ? $scope.wants : []);
+				$scope.letterChoice = $scope.choice ? 'y' : 'n';
+				arb.masteryService.setQuestionAnswer($scope.index,
+						$scope.knows[$scope.letterChoice], $scope.wants[$scope.letterChoice],
+						$scope.delKnows[$scope.letterChoice], $scope.delWants[$scope.letterChoice],
+						{
+							pageId: $scope.pageId,
+							edit: arb.stateService.pageMap[$scope.pageId].edit,
+							object: $scope.objectAlias,
+							value: $scope.letterChoice,
+						});
 			};
 		},
 		link: function(scope, element, attrs) {
-			var buttonHtml = '<md-button class=\'md-icon-button\' ng-click=\'toggleChoice()\'>' +
+			var buttonHtml = '<md-button class=\'md-icon-button\' ng-click=\'toggleChoice()\' aria-label=\'Toggle\'>' +
 			'	<md-icon ng-if=\'choice\'>' +
 			'		check_box' +
 			'	</md-icon>' +
@@ -31,21 +44,43 @@ app.directive('arbCheckbox', function($timeout, $http, $compile, arb) {
 			'	</md-icon>' +
 			'</md-button>';
 			element.find('ng-transclude > p').prepend($compile(buttonHtml)(scope));
+			var answerValue = 'y';
 
-			// Extract "knows" and "wants"
-			element.find('ng-transclude > ul > li > p').each(function() {
-				var text = $(this).text();
-				if (text.indexOf('knows:') == 0) {
-					$(this).children('a').each(function() {
-						scope.knows.push($(this).attr('page-id'));
-					});
-				} else if (text.indexOf('wants:') == 0) {
-					$(this).children('a').each(function() {
-						scope.wants.push($(this).attr('page-id'));
-					});
-				}
+			// Go through all answers
+			element.find('ng-transclude > ul > li').each(function() {
+				// For each answer, extract "knows" and "wants"
+				scope.knows[answerValue] = [];
+				scope.wants[answerValue] = [];
+				scope.delKnows[answerValue] = [];
+				scope.delWants[answerValue] = [];
+				$(this).find('ul > li').each(function() {
+					var text = $(this).text();
+					if (text.indexOf('knows:') == 0) {
+						$(this).children('a').each(function() {
+							scope.knows[answerValue].push($(this).attr('page-id'));
+						});
+					} else if (text.indexOf('wants:') == 0) {
+						$(this).children('a').each(function() {
+							scope.wants[answerValue].push($(this).attr('page-id'));
+						});
+					} else if (text.indexOf('-knows:') == 0) {
+						$(this).children('a').each(function() {
+							scope.delKnows[answerValue].push($(this).attr('page-id'));
+						});
+					} else if (text.indexOf('-wants:') == 0) {
+						$(this).children('a').each(function() {
+							scope.delWants[answerValue].push($(this).attr('page-id'));
+						});
+					}
+				});
+				answerValue = 'n';
 			});
 			element.find('ng-transclude > ul').remove();
+
+			$timeout(function() {
+				// Process all math.
+				arb.markdownService.compileChildren(scope, element, true);
+			});
 		},
 	};
 });
