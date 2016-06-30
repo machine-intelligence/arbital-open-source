@@ -17,6 +17,12 @@ app.service('userService', function($http, $location, $rootScope, analyticsServi
 			that.user = data.user;
 			analyticsService.setUserId(that.user.id);
 		}
+
+		if (!that.userIsLoggedIn()) {
+			that.user = data.user;
+			analyticsService.setUserId(that.user.id);
+		}
+
 		$.extend(that.userMap, data.users);
 	};
 	stateService.addPostDataCallback('userService', postDataCallback);

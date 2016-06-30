@@ -36,10 +36,10 @@ func loginHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	return loginHandlerInternalFunc(params, &data)
+	return loginHandlerInternalFunc(params, &data, nil)
 }
 
-func loginHandlerInternalFunc(params *pages.HandlerParams, data *loginHandlerData) *pages.Result {
+func loginHandlerInternalFunc(params *pages.HandlerParams, data *loginHandlerData, returnData *core.CommonHandlerData) *pages.Result {
 	if len(data.Email) <= 0 || len(data.Password) <= 0 {
 		return pages.Fail("Email and password have to be specified", nil).Status(http.StatusBadRequest)
 	}
@@ -55,7 +55,7 @@ func loginHandlerInternalFunc(params *pages.HandlerParams, data *loginHandlerDat
 		return pages.Fail("Couldn't save a cookie", err)
 	}
 
-	return pages.Success(nil)
+	return pages.Success(returnData)
 }
 
 func logoutHandlerFunc(params *pages.HandlerParams) *pages.Result {

@@ -11,21 +11,23 @@ app.directive('arbSignup', function($location, $http, arb) {
 
 			var onSignupSuccess = function() {
 				arb.signupService.closeSignupDialog();
+				if ($location.search().continueUrl) {
+					arb.urlService.goToUrl($location.search().continueUrl);
+				}
 			};
 
 			$scope.formSubmit = function(event) {
 				arb.analyticsService.reportSignupAction('submit signup with email', arb.signupService.attemptedAction);
-				submitForm($(event.currentTarget), '/signup/', $scope.formData, function(r) {
-					arb.analyticsService.reportSignupAction('success signup with email', arb.signupService.attemptedAction);
-					onSignupSuccess();
-					$scope.$apply(function() {
-						arb.urlService.goToUrl($location.search().continueUrl || '/');
+				arb.stateService.postData('/signup/', $scope.formData,
+					function(r) {
+						arb.analyticsService.reportSignupAction('success signup with email', arb.signupService.attemptedAction);
+						onSignupSuccess();
+					},
+					function() {
+						$scope.$apply(function() {
+							$scope.normalError = '(Check if your password meets the requirements.)';
+						});
 					});
-				}, function() {
-					$scope.$apply(function() {
-						$scope.normalError = '(Check if your password meets the requirements.)';
-					});
-				});
 			};
 
 			$scope.signupWithFb = function() {
@@ -36,13 +38,12 @@ app.directive('arbSignup', function($location, $http, arb) {
 							fbAccessToken: response.authResponse.accessToken,
 							fbUserId: response.authResponse.userID,
 						};
-						$http({method: 'POST', url: '/signup/', data: JSON.stringify(data)})
-							.success(function(data, status) {
-								arb.urlService.goToUrl($location.search().continueUrl || '/');
+						arb.stateService.postData('/signup/', JSON.stringify(data),
+							function(data, status) {
 								arb.analyticsService.reportSignupAction('success signup with fb', arb.signupService.attemptedAction);
 								onSignupSuccess();
-							})
-							.error(function(data, status) {
+							},
+							function(data, status) {
 								console.error('Error FB signup:'); console.log(data); console.log(status);
 							});
 					} else {

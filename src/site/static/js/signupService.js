@@ -8,7 +8,10 @@ app.service('signupService', function($mdDialog, analyticsService, userService) 
 	that.attemptedAction;
 
 	that.wrapInSignupFlow = function(attemptedAction, afterSignupFn) {
-		if (userSerivce.userIsLoggedIn()) afterSignupFn();
+		if (userService.userIsLoggedIn()) {
+			afterSignupFn();
+			return;
+		}
 
 		that.afterSignupFn = afterSignupFn;
 		that.attemptedAction = attemptedAction;
@@ -27,6 +30,7 @@ app.service('signupService', function($mdDialog, analyticsService, userService) 
 	// Close the signup dialog
 	that.closeSignupDialog = function() {
 		$mdDialog.hide();
-		if (that.afterSignupFn) afterSignupFn();
+
+		if (that.afterSignupFn) that.afterSignupFn();
 	};
 });

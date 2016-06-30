@@ -42,6 +42,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	c := params.C
 	u := params.U
 	db := params.DB
+	returnData := core.NewHandlerData(u)
 
 	decoder := json.NewDecoder(params.R.Body)
 	var data signupHandlerData
@@ -235,5 +236,5 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		Email:    data.Email,
 		Password: data.Password,
 	}
-	return loginHandlerInternalFunc(params, &loginData)
+	return loginHandlerInternalFunc(params, &loginData, returnData)
 }
