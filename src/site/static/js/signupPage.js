@@ -18,8 +18,10 @@ app.directive('arbSignup', function($location, $http, arb) {
 
 			$scope.formSubmit = function(event) {
 				arb.analyticsService.reportSignupAction('submit signup with email', arb.signupService.attemptedAction);
-				arb.stateService.postData('/signup/', $scope.formData,
-					function(r) {
+				arb.stateService.postData(
+					'/signup/',
+					$scope.formData,
+					function(data) {
 						arb.analyticsService.reportSignupAction('success signup with email', arb.signupService.attemptedAction);
 						onSignupSuccess();
 					},
@@ -36,13 +38,12 @@ app.directive('arbSignup', function($location, $http, arb) {
 							fbAccessToken: response.authResponse.accessToken,
 							fbUserId: response.authResponse.userID,
 						};
-						arb.stateService.postData('/signup/', JSON.stringify(data),
+						arb.stateService.postData(
+							'/signup/',
+							JSON.stringify(data),
 							function(data, status) {
 								arb.analyticsService.reportSignupAction('success signup with fb', arb.signupService.attemptedAction);
 								onSignupSuccess();
-							},
-							function(data, status) {
-								console.error('Error FB signup:'); console.log(data); console.log(status);
 							});
 					} else {
 						$scope.socialError = 'Error: ' + response.status;

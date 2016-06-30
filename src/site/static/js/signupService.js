@@ -4,9 +4,14 @@
 app.service('signupService', function($mdDialog, analyticsService, userService) {
 	var that = this;
 
-	that.afterSignupFn;
-	that.attemptedAction;
+	// The function that we call when the signup is finished.
+	that.afterSignupFn = undefined;
+	// The string name of the action that was attempted that triggered the signup.
+	that.attemptedAction = undefined;
 
+	// Trigger the signup flow
+	// - attemptedAction: the string name of the action that triggered the signup flow
+	// - afterSignupFn: the function to call if signup succeeds
 	that.wrapInSignupFlow = function(attemptedAction, afterSignupFn) {
 		if (userService.userIsLoggedIn()) {
 			afterSignupFn();
