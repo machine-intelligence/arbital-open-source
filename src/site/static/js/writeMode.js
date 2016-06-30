@@ -163,7 +163,7 @@ app.directive('arbExplanationRequestRow', function(arb) {
 			};
 
 			$scope.stopSuggesting = function() {
-				arb.stateService.processLikeClick($scope.row, $scope.row.alias, -1);
+				arb.signupService.processLikeClick($scope.row, $scope.row.alias, -1);
 			};
 		},
 	};
