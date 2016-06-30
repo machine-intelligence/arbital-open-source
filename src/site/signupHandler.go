@@ -235,5 +235,5 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		Email:    data.Email,
 		Password: data.Password,
 	}
-	return loginHandlerInternalFunc(params, &loginData, returnData)
+	return loginHandlerInternalFunc(params, &loginData)
 }

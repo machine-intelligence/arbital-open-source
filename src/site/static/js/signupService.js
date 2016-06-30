@@ -1,7 +1,7 @@
 // The code for the signup flow
 'use strict';
 
-app.service('signupService', function($mdDialog, analyticsService, userService) {
+app.service('signupService', function($mdDialog, analyticsService, userService, stateService) {
 	var that = this;
 
 	// The function that we call when the signup is finished.
@@ -37,5 +37,24 @@ app.service('signupService', function($mdDialog, analyticsService, userService) 
 		$mdDialog.hide();
 
 		if (that.afterSignupFn) that.afterSignupFn();
+	};
+
+	// Report a like click
+	that.processLikeClick = function(likeable, objectId, value) {
+		that.wrapInSignupFlow('like', function() {
+			if (!likeable) return;
+			if (value) {
+				likeable.myLikeValue = value;
+			} else {
+				likeable.myLikeValue = Math.min(1, 1 - likeable.myLikeValue);
+			}
+			var data = {
+				likeableId: likeable.likeableId,
+				objectId: objectId,
+				likeableType: likeable.likeableType,
+				value: likeable.myLikeValue,
+			};
+			stateService.postDataWithoutProcessing('/newLike/', data);
+		});
 	};
 });

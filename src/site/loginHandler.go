@@ -55,7 +55,7 @@ func loginHandlerInternalFunc(params *pages.HandlerParams, data *loginHandlerDat
 		return pages.Fail("Couldn't save a cookie", err)
 	}
 
-	return pages.Success(returnData := core.NewHandlerData(params.U))
+	return pages.Success(core.NewHandlerData(params.U))
 }
 
 func logoutHandlerFunc(params *pages.HandlerParams) *pages.Result {
