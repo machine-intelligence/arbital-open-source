@@ -1817,48 +1817,50 @@ func LoadMarkIds(db *database.DB, u *CurrentUser, pageMap map[string]*Page, mark
 
 // LoadMarkData loads all the relevant data for each mark
 func LoadMarkData(db *database.DB, pageMap map[string]*Page, userMap map[string]*User, markMap map[string]*Mark, u *CurrentUser) error {
-	if len(markMap) <= 0 {
-		return nil
-	}
-	markIds := make([]interface{}, 0)
-	for markId, _ := range markMap {
-		markIds = append(markIds, markId)
-	}
+	return nil
+	// TODO: bring this back once we're ready to handle query marks again
+	// if len(markMap) <= 0 {
+	// 	return nil
+	// }
+	// markIds := make([]interface{}, 0)
+	// for markId, _ := range markMap {
+	// 	markIds = append(markIds, markId)
+	// }
 
-	rows := db.NewStatement(`
-		SELECT id,type,pageId,creatorId,createdAt,anchorContext,anchorText,anchorOffset,
-			text,requisiteSnapshotId,resolvedPageId,resolvedBy,answered,isSubmitted
-		FROM marks
-		WHERE id IN` + database.InArgsPlaceholder(len(markIds))).Query(markIds...)
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var creatorId string
-		mark := &Mark{}
-		err := rows.Scan(&mark.Id, &mark.Type, &mark.PageId, &mark.CreatorId, &mark.CreatedAt,
-			&mark.AnchorContext, &mark.AnchorText, &mark.AnchorOffset, &mark.Text,
-			&mark.RequisiteSnapshotId, &mark.ResolvedPageId, &mark.ResolvedBy, &mark.Answered,
-			&mark.IsSubmitted)
-		if err != nil {
-			return fmt.Errorf("failed to scan: %v", err)
-		}
-		mark.IsCurrentUserOwned = mark.CreatorId == u.Id
-		if mark.CreatorId == mark.ResolvedBy {
-			mark.ResolvedBy = "0"
-			mark.IsResolvedByOwner = true
-		}
-		*markMap[mark.Id] = *mark
+	// rows := db.NewStatement(`
+	// 		SELECT id,type,pageId,creatorId,createdAt,anchorContext,anchorText,anchorOffset,
+	// 			text,requisiteSnapshotId,resolvedPageId,resolvedBy,answered,isSubmitted
+	// 		FROM marks
+	// 		WHERE id IN` + database.InArgsPlaceholder(len(markIds))).Query(markIds...)
+	// err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+	// 	var creatorId string
+	// 	mark := &Mark{}
+	// 	err := rows.Scan(&mark.Id, &mark.Type, &mark.PageId, &mark.CreatorId, &mark.CreatedAt,
+	// 		&mark.AnchorContext, &mark.AnchorText, &mark.AnchorOffset, &mark.Text,
+	// 		&mark.RequisiteSnapshotId, &mark.ResolvedPageId, &mark.ResolvedBy, &mark.Answered,
+	// 		&mark.IsSubmitted)
+	// 	if err != nil {
+	// 		return fmt.Errorf("failed to scan: %v", err)
+	// 	}
+	// 	mark.IsCurrentUserOwned = mark.CreatorId == u.Id
+	// 	if mark.CreatorId == mark.ResolvedBy {
+	// 		mark.ResolvedBy = "0"
+	// 		mark.IsResolvedByOwner = true
+	// 	}
+	// 	*markMap[mark.Id] = *mark
 
-		if page, ok := pageMap[mark.PageId]; ok {
-			page.MarkIds = append(page.MarkIds, mark.Id)
-		}
-		AddPageToMap(mark.PageId, pageMap, TitlePlusLoadOptions)
-		if mark.ResolvedPageId != "" {
-			AddPageToMap(mark.ResolvedPageId, pageMap, TitlePlusLoadOptions)
-			userMap[mark.ResolvedBy] = &User{Id: mark.ResolvedBy}
-		}
-		userMap[creatorId] = &User{Id: creatorId}
-		return nil
-	})
-	return err
+	// 	if page, ok := pageMap[mark.PageId]; ok {
+	// 		page.MarkIds = append(page.MarkIds, mark.Id)
+	// 	}
+	// 	AddPageToMap(mark.PageId, pageMap, TitlePlusLoadOptions)
+	// 	if mark.ResolvedPageId != "" {
+	// 		AddPageToMap(mark.ResolvedPageId, pageMap, TitlePlusLoadOptions)
+	// 		userMap[mark.ResolvedBy] = &User{Id: mark.ResolvedBy}
+	// 	}
+	// 	userMap[creatorId] = &User{Id: creatorId}
+	// 	return nil
+	// })
+	// return err
 }
 
 // Given a parent page that collects meta tags, load all its children.
