@@ -44,8 +44,8 @@
 </style>
 </head>
 
-<body yahoo bgcolor="#f6f8f1" style="padding: 0px;min-width: 100%!important;">
-<table width="100%" bgcolor="#f6f8f1" border="0" cellpadding="0" cellspacing="0">
+<body yahoo bgcolor="#fff" style="padding: 0px;min-width: 100%!important;">
+<table width="100%" bgcolor="#fff" border="0" cellpadding="0" cellspacing="0">
   <tr>
     <td>
       <!--[if (gte mso 9)|(IE)]>
@@ -53,9 +53,9 @@
         <tr>
           <td>
     <![endif]-->
-      <table bgcolor="#ffffff" class="content" align="center" cellpadding="0" cellspacing="0" border="0" style="width: 100%;max-width: 600px;">
+      <table bgcolor="#ffffff" class="content" align="center" cellpadding="0" cellspacing="0" border="0" style="width: 100%;max-width: 600px;border:4px solid #004D40;">
         <tr>
-          <td bgcolor="#00bfa5" class="header" style="padding: 0px 10px 10px 10px;">
+          <td bgcolor="#004D40" class="header" style="padding: 0px 10px 10px 10px;">
             <table width="120" align="left" border="0" cellpadding="0" cellspacing="0">
               <tr>
                 <td height="120">
@@ -73,12 +73,12 @@
                 <td height="70">
                   <table width="100%" border="0" cellspacing="0" cellpadding="0">
                     <tr>
-                      <td class="h1" style="padding: 30px 0 0 3px;color: #153643;font-family: sans-serif;font-size: 33px;line-height: 38px;font-weight: bold;">
-                        ARBITAL
+                      <td class="h1" style="padding: 30px 0 0 3px;color: #fff;font-family: sans-serif;font-size: 33px;line-height: 38px;font-weight: bold;">
+                        Arbital
                       </td>
                     </tr>
                     <tr>
-                      <td class="subhead" style="padding: 5px 0 0 0;font-size: 15px;color: #333333;font-family: sans-serif;">
+                      <td class="subhead" style="padding: 5px 0 0 0;font-size: 15px;color: #fff;opacity:.7;font-family: sans-serif;">
 												<i>&nbsp;{{.UpdateCount}} new updates</i>
                       </td>
                     </tr>
@@ -94,47 +94,49 @@
           </td>
         </tr>
         <tr>
-          <td class="innerpadding borderbottom" style="padding: 20px 30px 20px 30px;border-bottom: 1px solid #f2eeed;">
-            <div width="100%">
+          <td class="innerpadding borderbottom" style="padding: 20px 30px 20px 20px;border-bottom: 1px solid #f2eeed;">
+            <div width="100%" style="font-family: sans-serif;font-size: 16px;line-height: 22px;">
 							{{range .UpdateRows}}
-								<div class="update-entry" style="margin: 5px 0px 5px 15px;">
+								<div class="update-entry" style="margin: 5px 0px 5px 5px;">
 									{{if eq .Type "topLevelComment"}}
-										<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> wrote a
-										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">new comment</a>
-										({{RelativeDateTime .CreatedAt}})
+                    <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserId}}</a>
+										wrote a new
+										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">comment</a>
 									{{else if eq .Type "reply"}}
-										<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> wrote a
-										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">new comment reply</a>
-										({{RelativeDateTime .CreatedAt}})
+                    <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserId}}</a>
+										wrote a new
+										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">comment reply</a>
 									{{else if eq .Type "resolvedThread"}}
-										<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a>
+                    <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserId}}</a>
 										marked a
-										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">comment thread</a>
-										as resolved
-										({{RelativeDateTime .CreatedAt}})
+										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">comment thread</a>
+										as resolved.
 									{{else if eq .Type "pageEdit"}}
-										This page's text was edited by
-										<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a>
-										({{RelativeDateTime .CreatedAt}})
+                    <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserId}}</a>
+										edited
+                    <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .GoToPageId}}</a>
 									{{else if eq .Type "changeLog"}}
-										Page was edited by
-										<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a>
-										({{RelativeDateTime .CreatedAt}})
+                    <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserId}}</a>
+										edited
+                    <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .GoToPageId}}</a>
 									{{else if eq .Type "newPageByUser"}}
-										Created a new page: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-										({{RelativeDateTime .CreatedAt}})
+                    <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserId}}</a>
+										created a new page:
+                    <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .GoToPageId}}</a>
 									{{else if eq .Type "atMention"}}
-										<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> mentioned you in a
-										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">comment</a>
-										({{RelativeDateTime .CreatedAt}})
+                    <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserId}}</a>
+										mentioned you in a
+										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">comment</a>
 									{{else if eq .Type "addedToGroup"}}
-										<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> added you to
-										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">the {{GetPageTitle .GoToPageId}} group</a>
-										({{RelativeDateTime .CreatedAt}})
+                    <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserId}}</a>
+										added you to the
+										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .GoToPageId}}</a>
+                    group
 									{{else if eq .Type "removedFromGroup"}}
-										<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> removed you from
-										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">the {{GetPageTitle .GoToPageId}} group</a>
-										({{RelativeDateTime .CreatedAt}})
+                    <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserId}}</a>
+										removed you from the
+										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .GoToPageId}}</a>
+                    group
 									{{else if eq .Type "newMark"}}
 										A confusion mark has been created.
 									{{else if eq .Type "answeredMark"}}
@@ -143,13 +145,17 @@
 										You can now participate in one of the domains.
 									{{else if eq .Type "pageToDomainAccepted"}}
 										Congrats,
-										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
+										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .GoToPageId}}</a>
 										is now part of the
-										<a href="{{GetPageUrl .SubscribedToId}}" style="text-decoration: none;">{{GetPageTitle .SubscribedToId}}</a>
+										<a href="{{GetPageUrl .SubscribedToId}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .SubscribedToId}}</a>
 										domain.
 									{{else}}
-										{{.Type}} event happened.
+										A {{.Type}} event happened.
 									{{end}}
+
+                  <span style="font-size: 12px;color:#999;">
+                    ({{RelativeDateTime .CreatedAt}})
+                  </span>
 								</div>
 							{{end}}
             </div>
@@ -176,25 +182,25 @@
                     <tr>
                       <td class="bodycopy" style="color: #153643;font-family: sans-serif;font-size: 16px;line-height: 22px;">
 												<!--BODYCOPY 2-->
-												<a href="http://arbital.com" style="text-decoration: none;">See all updates.</a>
+												<a href="http://arbital.com" style="text-decoration: none;">See all updates</a>
                       </td>
                     </tr>
-                    <tr>
+                    <!-- <tr>
                       <td style="padding: 10px 0 30px 0;">
-                        <!--<table class="buttonwrapper" bgcolor="#e05443" border="0" cellspacing="0" cellpadding="0">
+                        <table class="buttonwrapper" bgcolor="#e05443" border="0" cellspacing="0" cellpadding="0">
                           <tr>
                             <td class="button" height="45">
                               <a href="http://rewards.xelaie.com/">Log in to Win</a>
                             </td>
                           </tr>
-												</table>-->
+												</table>
                       </td>
-                    </tr>
-                    <tr>
+                    </tr> -->
+                    <!-- <tr>
                       <td class="bodycopy" style="color: #153643;font-family: sans-serif;font-size: 16px;line-height: 22px;">
-												<!--BODYCOPY 3-->
+												BODYCOPY 3
                       </td>
-                    </tr>
+                    </tr> -->
                   </table>
                 </td>
               </tr>
@@ -206,45 +212,45 @@
           <![endif]-->
           </td>
         </tr>
-        <tr>
+        <!-- <tr>
           <td class="innerpadding borderbottom" style="padding: 20px 30px 20px 30px;border-bottom: 1px solid #f2eeed;">
-						<!--<img class="fix" src="http://rewards.xelaie.com/static/images/island_email_template.png" width="100%" border="0" alt="" />-->
+						<img class="fix" src="http://rewards.xelaie.com/static/images/island_email_template.png" width="100%" border="0" alt="" />
           </td>
-        </tr>
-        <!--<tr>
+        </tr> -->
+        <!-- <tr>
           <td class="innerpadding bodycopy">
             Can write something here too.
           </td>
-        </tr>-->
+        </tr> -->
         <tr>
-          <td class="footer" bgcolor="#666699" style="padding: 20px 30px 15px 30px;">
+          <td class="footer" bgcolor="#004D40" style="padding: 20px 30px 15px 30px;">
             <table width="100%" border="0" cellspacing="0" cellpadding="0">
               <tr>
-                <td align="center" class="footercopy" style="font-family: sans-serif;font-size: 14px;color: #ffffff;">
+                <td align="center" class="footercopy" style="font-family: sans-serif;font-size: 14px;color: #ffffff;opacity:.8;">
 									<a href="http://arbital.com" style="text-decoration: underline;color: #ffffff;">Arbital</a> | <a href="http://arbital.com/settings" style="text-decoration: underline;color: #ffffff;">Email settings</a><br>
 									We would love to hear from you: <a href="mailto:alexei@arbital.com" style="text-decoration: underline;color: #ffffff;"><u>email us</u></a>.
                   <!--<a href="#" class="unsubscribe"><font color="#ffffff">Unsubscribe</font></a>
                   <span class="hide">from this newsletter instantly</span>-->
                 </td>
               </tr>
-              <tr>
+              <!--<tr>
                 <td align="center" style="padding: 20px 0 0 0;">
                   <table border="0" cellspacing="0" cellpadding="0">
                     <tr>
-                    <!--<td width="37" style="text-align: center; padding: 0 10px 0 10px;">
+                    <td width="37" style="text-align: center; padding: 0 10px 0 10px;">
                       <a href="http://www.facebook.com/">
                         <img src="images/facebook.png" width="37" height="37" alt="Facebook" border="0" />
                       </a>
-                    </td>-->
-                      <!--<td width="37" style="text-align: center; padding: 0 10px 0 10px;">
-                        <a href="http://www.twitter.com/Xelaie">
-                          <img src="http://rewards.xelaie.com/static/images/twitter_64.png" width="37" height="37" alt="Twitter" border="0" />
-                        </a>
-											</td>-->
+                    </td>
+                    <td width="37" style="text-align: center; padding: 0 10px 0 10px;">
+                      <a href="http://www.twitter.com/Xelaie">
+                        <img src="http://rewards.xelaie.com/static/images/twitter_64.png" width="37" height="37" alt="Twitter" border="0" />
+                      </a>
+										</td>
                     </tr>
                   </table>
                 </td>
-              </tr>
+              </tr>-->
             </table>
           </td>
         </tr>
