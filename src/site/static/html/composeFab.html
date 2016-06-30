@@ -10,7 +10,10 @@
 			<md-icon class="fab-icon" ng-if="!data.isOpen && !showInlineVersion()">add</md-icon>
 
 			<!-- When closed and in the special inline response mode for mobile. -->
-			<md-icon class="fab-icon" ng-if="showInlineVersion()">add_box</md-icon>
+			<md-icon class="fab-icon" ng-if="showInlineVersion()">comment</md-icon>
+			<!-- TODO: back to add_box icon when we bring back query marks -->
+			<!-- <md-icon class="fab-icon" ng-if="showInlineVersion()">add_box</md-icon> -->
+
 			<md-tooltip md-direction="left" md-visible="showTooltips" ng-if="data.isOpen">New inline response</md-tooltip>
 
 			<!-- When open. -->

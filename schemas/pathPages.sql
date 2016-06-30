@@ -1,7 +1,3 @@
-/* This file contains the recent changes to schemas, sorted from oldest to newest. */
-alter table updates drop column groupByPageId;
-alter table updates drop column groupByUserId;
-
 /* This table contains what pages belong to which paths. */
 CREATE TABLE pathPages (
 	/* Id of this entry. */

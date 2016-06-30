@@ -189,11 +189,10 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 // LoadUpdateEmail loads the text and other data for the update email
 func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, retErr error) {
 	c := db.C
-
 	resultData = &UpdateData{}
 
 	// TODO: replace this with a helper function (like loadUserFromDb)
-	u := &CurrentUser{}
+	u := NewCurrentUser()
 	row := db.NewStatement(`
 		SELECT id,email,emailFrequency,emailThreshold
 		FROM users
@@ -206,6 +205,18 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 	// Load the groups the user belongs to.
 	if err = LoadUserGroupIds(db, u); err != nil {
 		return nil, fmt.Errorf("Couldn't load user groups: %v", err)
+	}
+
+	// Load all domains
+	domainIds, err := LoadAllDomainIds(db, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load domainIds", err)
+	}
+
+	// Load the user's trust
+	err = LoadUserTrust(db, u, domainIds)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't retrieve user trust", err)
 	}
 
 	handlerData := NewHandlerData(u)

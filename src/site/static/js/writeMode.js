@@ -39,6 +39,12 @@ app.directive('arbWriteNewModePanel', function($http, arb) {
 				},
 				function(data) {
 					$scope.redLinkRows = data.result.redLinks;
+
+					// calculate this ahead of time so that rows don't jump around when the user updates their like value
+					for (var i = 0; i < $scope.redLinkRows.length; ++i) {
+						var row = $scope.redLinkRows[i];
+						row.originalTotalLikeCount = row.likeCount + row.myLikeValue;
+					}
 				});
 		},
 	};
@@ -157,7 +163,7 @@ app.directive('arbExplanationRequestRow', function(arb) {
 			};
 
 			$scope.stopSuggesting = function() {
-				arb.stateService.processLikeClick($scope.row, $scope.row.alias, -1);
+				arb.signupService.processLikeClick($scope.row, $scope.row.alias, -1);
 			};
 		},
 	};

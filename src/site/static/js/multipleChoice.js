@@ -32,8 +32,10 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 			};
 		},
 		link: function(scope, element, attrs) {
-			element.find('ng-transclude > p').prepend($compile('<md-icon class=\'question-icon\'>help_outline</md-icon>')(scope));
+			var iconHtml = '<md-icon class=\'question-icon\'>help_outline</md-icon>';
+			element.find('ng-transclude > p').prepend($compile(iconHtml)(scope));
 			var answerValue = 'a';
+
 			// Go through all answers
 			element.find('ng-transclude > ul > li').each(function() {
 				// For each answer, extract "knows" and "wants"
@@ -74,7 +76,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 			$compile($ul)(scope);
 
 			// If the user has answered this question before, let's restore the answer.
-			var pageObject = arb.masteryService.getPageObject(scope.pageId, scope.objectAlias);
+			/*var pageObject = arb.masteryService.getPageObject(scope.pageId, scope.objectAlias);
 			if (pageObject) {
 
 				// Since user's requisites might have changed since they answered this question,
@@ -143,7 +145,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 					scope.choice = pageObject.value;
 					console.log('Restored saved choice for ' + scope.objectAlias + ':' + scope.choice);
 				}
-			}
+			}*/
 
 			$timeout(function() {
 				// Process all math.

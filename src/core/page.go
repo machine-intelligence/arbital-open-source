@@ -60,6 +60,7 @@ const (
 	SearchStringChangeChangeLog = "searchStringChange"
 	AnswerChangeChangeLog       = "answerChange"
 	LensOrderChangedChangeLog   = "lensOrderChanged"
+	PathOrderChangedChangeLog   = "pathOrderChanged"
 
 	// Mark types
 	QueryMarkType     = "query"
@@ -196,6 +197,9 @@ type Page struct {
 	Lenses       LensList `json:"lenses"`
 	LensParentId string   `json:"lensParentId"`
 
+	// Path stuff
+	PathPages Path `json:"pathPages"`
+
 	// TODO: eventually move this to the user object (once we have load
 	// options + pipeline for users)
 	// For user pages, this is the domains user has access to
@@ -260,6 +264,7 @@ func NewPage(pageId string) *Page {
 	p.MarkIds = make([]string, 0)
 	p.DomainMembershipIds = make([]string, 0)
 	p.Lenses = make(LensList, 0)
+	p.PathPages = make(Path, 0)
 	p.DomainSubmissions = make(map[string]*PageToDomainSubmission)
 	p.Answers = make([]*Answer, 0)
 	p.SearchStrings = make(map[string]string)
@@ -294,6 +299,24 @@ type LensList []*Lens
 func (a LensList) Len() int           { return len(a) }
 func (a LensList) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a LensList) Less(i, j int) bool { return a[i].LensIndex < a[j].LensIndex }
+
+// PathPage connection
+type PathPage struct {
+	Id         int64  `json:"id,string"`
+	GuideId    string `json:"guideId"`
+	PathPageId string `json:"pathPageId"`
+	PathIndex  int    `json:"pathIndex"`
+	CreatedBy  string `json:"createdBy"`
+	CreatedAt  string `json:"createdAt"`
+	UpdatedBy  string `json:"updatedBy"`
+	UpdatedAt  string `json:"updatedAt"`
+}
+
+type Path []*PathPage
+
+func (a Path) Len() int           { return len(a) }
+func (a Path) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a Path) Less(i, j int) bool { return a[i].PathIndex < a[j].PathIndex }
 
 type Vote struct {
 	Value     int    `json:"value"`
@@ -556,7 +579,16 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		ForPages: filteredPageMap,
 	})
 	if err != nil {
-		return fmt.Errorf("LoadChildIds for lenses failed: %v", err)
+		return fmt.Errorf("LoadLensesForPages failed: %v", err)
+	}
+
+	// Load path pages
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Path })
+	err = LoadPathForPages(db, data, &LoadDataOptions{
+		ForPages: filteredPageMap,
+	})
+	if err != nil {
+		return fmt.Errorf("LoadPathForPages failed: %v", err)
 	}
 
 	// Load requirements
@@ -1311,8 +1343,9 @@ func LoadLikes(db *database.DB, u *CurrentUser, likeablesMap map[int64]*Likeable
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
+		// TODO: just record the scores and then do a calculation in one line at the end (outside of Process).
 		likeable := likeablesMap[likeableId]
-		// We count the current user's like value towards the sum here in the FE.
+		// We count the current user's like value towards the sum in the FE rather than here.
 		if userId == u.Id {
 			likeable.MyLikeValue = value
 		} else if value > 0 {
@@ -1817,48 +1850,50 @@ func LoadMarkIds(db *database.DB, u *CurrentUser, pageMap map[string]*Page, mark
 
 // LoadMarkData loads all the relevant data for each mark
 func LoadMarkData(db *database.DB, pageMap map[string]*Page, userMap map[string]*User, markMap map[string]*Mark, u *CurrentUser) error {
-	if len(markMap) <= 0 {
-		return nil
-	}
-	markIds := make([]interface{}, 0)
-	for markId, _ := range markMap {
-		markIds = append(markIds, markId)
-	}
+	return nil
+	// TODO: bring this back once we're ready to handle query marks again
+	// if len(markMap) <= 0 {
+	// 	return nil
+	// }
+	// markIds := make([]interface{}, 0)
+	// for markId, _ := range markMap {
+	// 	markIds = append(markIds, markId)
+	// }
 
-	rows := db.NewStatement(`
-		SELECT id,type,pageId,creatorId,createdAt,anchorContext,anchorText,anchorOffset,
-			text,requisiteSnapshotId,resolvedPageId,resolvedBy,answered,isSubmitted
-		FROM marks
-		WHERE id IN` + database.InArgsPlaceholder(len(markIds))).Query(markIds...)
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var creatorId string
-		mark := &Mark{}
-		err := rows.Scan(&mark.Id, &mark.Type, &mark.PageId, &mark.CreatorId, &mark.CreatedAt,
-			&mark.AnchorContext, &mark.AnchorText, &mark.AnchorOffset, &mark.Text,
-			&mark.RequisiteSnapshotId, &mark.ResolvedPageId, &mark.ResolvedBy, &mark.Answered,
-			&mark.IsSubmitted)
-		if err != nil {
-			return fmt.Errorf("failed to scan: %v", err)
-		}
-		mark.IsCurrentUserOwned = mark.CreatorId == u.Id
-		if mark.CreatorId == mark.ResolvedBy {
-			mark.ResolvedBy = "0"
-			mark.IsResolvedByOwner = true
-		}
-		*markMap[mark.Id] = *mark
+	// rows := db.NewStatement(`
+	// 		SELECT id,type,pageId,creatorId,createdAt,anchorContext,anchorText,anchorOffset,
+	// 			text,requisiteSnapshotId,resolvedPageId,resolvedBy,answered,isSubmitted
+	// 		FROM marks
+	// 		WHERE id IN` + database.InArgsPlaceholder(len(markIds))).Query(markIds...)
+	// err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+	// 	var creatorId string
+	// 	mark := &Mark{}
+	// 	err := rows.Scan(&mark.Id, &mark.Type, &mark.PageId, &mark.CreatorId, &mark.CreatedAt,
+	// 		&mark.AnchorContext, &mark.AnchorText, &mark.AnchorOffset, &mark.Text,
+	// 		&mark.RequisiteSnapshotId, &mark.ResolvedPageId, &mark.ResolvedBy, &mark.Answered,
+	// 		&mark.IsSubmitted)
+	// 	if err != nil {
+	// 		return fmt.Errorf("failed to scan: %v", err)
+	// 	}
+	// 	mark.IsCurrentUserOwned = mark.CreatorId == u.Id
+	// 	if mark.CreatorId == mark.ResolvedBy {
+	// 		mark.ResolvedBy = "0"
+	// 		mark.IsResolvedByOwner = true
+	// 	}
+	// 	*markMap[mark.Id] = *mark
 
-		if page, ok := pageMap[mark.PageId]; ok {
-			page.MarkIds = append(page.MarkIds, mark.Id)
-		}
-		AddPageToMap(mark.PageId, pageMap, TitlePlusLoadOptions)
-		if mark.ResolvedPageId != "" {
-			AddPageToMap(mark.ResolvedPageId, pageMap, TitlePlusLoadOptions)
-			userMap[mark.ResolvedBy] = &User{Id: mark.ResolvedBy}
-		}
-		userMap[creatorId] = &User{Id: creatorId}
-		return nil
-	})
-	return err
+	// 	if page, ok := pageMap[mark.PageId]; ok {
+	// 		page.MarkIds = append(page.MarkIds, mark.Id)
+	// 	}
+	// 	AddPageToMap(mark.PageId, pageMap, TitlePlusLoadOptions)
+	// 	if mark.ResolvedPageId != "" {
+	// 		AddPageToMap(mark.ResolvedPageId, pageMap, TitlePlusLoadOptions)
+	// 		userMap[mark.ResolvedBy] = &User{Id: mark.ResolvedBy}
+	// 	}
+	// 	userMap[creatorId] = &User{Id: creatorId}
+	// 	return nil
+	// })
+	// return err
 }
 
 // Given a parent page that collects meta tags, load all its children.
@@ -2492,4 +2527,66 @@ func LoadLensParentIds(db *database.DB, pageMap map[string]*Page, options *LoadD
 		return fmt.Errorf("Couldn't load lens parent ids: %v", err)
 	}
 	return nil
+}
+
+type ProcessPathPageCallback func(db *database.DB, pathPage *PathPage) error
+
+// Load all path pages matching the given query
+func LoadPathPages(db *database.DB, queryPart *database.QueryPart, resultData *CommonHandlerData, callback ProcessPathPageCallback) error {
+	rows := database.NewQuery(`
+		SELECT pathp.id,pathp.guideId,pathp.pathPageId,pathp.pathIndex,
+			pathp.createdBy,pathp.createdAt,pathp.updatedBy,pathp.updatedAt
+		FROM pathPages AS pathp`).AddPart(queryPart).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pathPage PathPage
+		err := rows.Scan(&pathPage.Id, &pathPage.GuideId, &pathPage.PathPageId, &pathPage.PathIndex,
+			&pathPage.CreatedBy, &pathPage.CreatedAt, &pathPage.UpdatedBy, &pathPage.UpdatedAt)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		return callback(db, &pathPage)
+	})
+	if err != nil {
+		return fmt.Errorf("Couldn't load path pages: %v", err)
+	}
+	return nil
+}
+
+// Load all path pages for the given pages
+func LoadPathForPages(db *database.DB, resultData *CommonHandlerData, options *LoadDataOptions) error {
+	sourcePageMap := options.ForPages
+	if len(sourcePageMap) <= 0 {
+		return nil
+	}
+
+	pageIds := PageIdsListFromMap(sourcePageMap)
+	queryPart := database.NewQuery(`
+		WHERE pathp.guideId IN`).AddArgsGroup(pageIds)
+	err := LoadPathPages(db, queryPart, resultData, func(db *database.DB, pathPage *PathPage) error {
+		sourcePageMap[pathPage.GuideId].PathPages = append(sourcePageMap[pathPage.GuideId].PathPages, pathPage)
+		AddPageIdToMap(pathPage.PathPageId, resultData.PageMap)
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("Couldn't load lenses: %v", err)
+	}
+
+	for _, p := range sourcePageMap {
+		sort.Sort(p.PathPages)
+	}
+	return nil
+}
+
+// Load all path pages with the given id
+func LoadPathPage(db *database.DB, id string) (*PathPage, error) {
+	var pathPage *PathPage
+	queryPart := database.NewQuery(`WHERE pathp.id=?`, id)
+	err := LoadPathPages(db, queryPart, nil, func(db *database.DB, pp *PathPage) error {
+		pathPage = pp
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load the path page: %v", err)
+	}
+	return pathPage, nil
 }

@@ -171,6 +171,12 @@
 										</md-button>
 									</md-menu-item>
 									<md-menu-item>
+										<md-button class="wmd-checkbox-button{{::page.pageId}}">
+											<md-icon>check_box</md-icon>
+											[checkbox: text]
+										</md-button>
+									</md-menu-item>
+									<md-menu-item>
 										<md-button class="wmd-condition-button{{::page.pageId}}">
 											<md-icon>assignment_ind</md-icon>
 											%conditional text%
@@ -326,6 +332,12 @@
 									type="child"
 									force-edit-mode="true"
 									readonly="::!(page.isWiki())"></div>
+
+							<!-- Path -->
+							<div arb-path-editor
+									page-id="{{::page.pageId}}"
+									class="edit-relationship-div"
+									ng-if="::page.isWiki()"></div>
 
 							<!-- List of strings (for questions) -->
 							<div ng-if="::page.isQuestion()">

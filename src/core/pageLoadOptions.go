@@ -25,6 +25,7 @@ type PageLoadOptions struct {
 	Tags                    bool
 	Related                 bool
 	Lenses                  bool
+	Path                    bool
 	Requirements            bool
 	Subjects                bool
 	SubmittedTo             bool
@@ -82,6 +83,7 @@ var (
 		Tags:             true,
 		Related:          true,
 		Lenses:           true,
+		Path:             true,
 		Requirements:     true,
 		Subjects:         true,
 		SubmittedTo:      true,
@@ -102,6 +104,7 @@ var (
 		Parents:               true,
 		Tags:                  true,
 		Lenses:                true,
+		Path:                  true,
 		Requirements:          true,
 		Subjects:              true,
 		Answers:               true,
