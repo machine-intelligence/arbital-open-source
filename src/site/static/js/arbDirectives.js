@@ -624,22 +624,6 @@ app.directive('arbUserCheck', function($compile, $mdToast, arb) {
 	};
 });
 
-// Directive for wrapping a click in the signup flow
-app.directive('arbWrapClickInSignupFlow', function(arb) {
-	return {
-		restrict: 'A',
-		compile: function compile(element, attrs) {
-			var signupFlowClick = function() {
-				arb.signupService.wrapInSignupFlow($scope.$eval($scope.originalNgClick));
-			}
-			if (!arb.userService.userIsLoggedIn()) {
-				scope.originalNgClick = attrs.ngClick;
-				attrs.ngClick = 'signupFlowClick()';
-			}
-		},
-	};
-});
-
 // Directive for a button to toggle requisite state
 app.directive('arbRequisiteButton', function(arb) {
 	return {

@@ -94,23 +94,6 @@ app.service('stateService', function($http, $mdMedia, popupService) {
 		}
 	};
 
-	// Report a like click
-	this.processLikeClick = function(likeable, objectId, value) {
-		if (!likeable) return;
-		if (value) {
-			likeable.myLikeValue = value;
-		} else {
-			likeable.myLikeValue = Math.min(1, 1 - likeable.myLikeValue);
-		}
-		var data = {
-			likeableId: likeable.likeableId,
-			objectId: objectId,
-			likeableType: likeable.likeableType,
-			value: likeable.myLikeValue,
-		};
-		this.postDataWithoutProcessing('/newLike/', data);
-	};
-
 	// ================== Standard POSTing to server =====================
 	// Functions to call when we get data from the server.
 	var postDataCallbacks = {};
