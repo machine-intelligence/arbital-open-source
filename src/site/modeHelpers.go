@@ -347,7 +347,7 @@ func loadReqsTaughtModeRows(db *database.DB, returnData *core.CommonHandlerData,
 }
 
 // Internal to this file
-func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int, pageInfoField string) (ModeRows, error) {
+func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int, pageInfoActivityDateField string) (ModeRows, error) {
 	modeRows := make(ModeRows, 0)
 	pageLoadOptions := (&core.PageLoadOptions{
 		SubpageCounts: true,
@@ -365,13 +365,13 @@ func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 		AND pi.type=?`, core.DomainPageType)
 
 	rows := database.NewQuery(`
-		SELECT DISTINCT pi.pageId, pi.`+pageInfoField+`
+		SELECT DISTINCT pi.pageId, pi.`+pageInfoActivityDateField+`
 		FROM`).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
 		JOIN pageDomainPairs AS pdp ON pi.pageId=pdp.pageId
 		WHERE pi.type IN (?,?,?)`, core.WikiPageType, core.DomainPageType, core.QuestionPageType).Add(`
-			AND pi.`+pageInfoField+`!=0
+			AND pi.`+pageInfoActivityDateField+`!=0
 			AND (pdp.domainId=?`, core.MathDomainId).Add(`OR pdp.domainId IN(`).AddPart(subscribedDomains).Add(`))
-		ORDER BY pi.`+pageInfoField+` DESC
+		ORDER BY pi.`+pageInfoActivityDateField+` DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId, activityDate string
