@@ -24,9 +24,7 @@ app.directive('arbSignup', function($location, $http, arb) {
 						onSignupSuccess();
 					},
 					function() {
-						$scope.$apply(function() {
-							$scope.normalError = '(Check if your password meets the requirements.)';
-						});
+						$scope.normalError = '(Check if your password meets the requirements.)';
 					});
 			};
 

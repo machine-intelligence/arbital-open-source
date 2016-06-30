@@ -30,7 +30,6 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 			};
 
 			$scope.showSignupButton = function() {
-				console.log('blehrgh');
 				return !arb.userService.userIsLoggedIn() && $location.path().indexOf('/signup/') != 0;
 			};
 
