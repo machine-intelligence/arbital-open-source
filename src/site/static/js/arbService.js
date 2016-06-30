@@ -7,13 +7,12 @@ var isTouchDevice = 'ontouchstart' in window || // works in most browsers
 // Contains all the services.
 app.service('arb', function(analyticsService, autocompleteService, diffService, markService, markdownService,
 	masteryService, pageService, pathService, popoverService, popupService, stateService, userService, urlService,
-	signupService, likeService) {
+	signupService) {
 	var that = this;
 
 	that.analyticsService = analyticsService;
 	that.autocompleteService = autocompleteService;
 	that.diffService = diffService;
-	that.likeService = likeService;
 	that.markService = markService;
 	that.markdownService = markdownService;
 	that.masteryService = masteryService;
