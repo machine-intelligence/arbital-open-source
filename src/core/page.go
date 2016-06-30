@@ -1311,8 +1311,9 @@ func LoadLikes(db *database.DB, u *CurrentUser, likeablesMap map[int64]*Likeable
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
+		// TODO: just record the scores and then do a calculation in one line at the end (outside of Process).
 		likeable := likeablesMap[likeableId]
-		// We count the current user's like value towards the sum here in the FE.
+		// We count the current user's like value towards the sum in the FE rather than here.
 		if userId == u.Id {
 			likeable.MyLikeValue = value
 		} else if value > 0 {
