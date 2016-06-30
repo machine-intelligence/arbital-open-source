@@ -1,6 +1,5 @@
-<md-button arb-user-check
-		ng-class="::{'short-button': !isStretched, 'plus-one-button': isPlusOne}"
-		ng-click="arb.stateService.processLikeClick(likeable, objectId)"
+<md-button ng-class="::{'short-button': !isStretched, 'plus-one-button': isPlusOne}"
+		ng-click="arb.signupService.processLikeClick(likeable, objectId)"
 		aria-label="Like"
 		ng-if="::isButton">
 	<md-icon class="like-icon on"

@@ -20,10 +20,10 @@ app.service('arb', function(analyticsService, autocompleteService, diffService, 
 	that.pathService = pathService;
 	that.popoverService = popoverService;
 	that.popupService = popupService;
+	that.signupService = signupService;
 	that.stateService = stateService;
 	that.userService = userService;
 	that.urlService = urlService;
-	that.signupService = signupService;
 
 	this.isTouchDevice = isTouchDevice;
 	this.versionUrl = versionUrl;
