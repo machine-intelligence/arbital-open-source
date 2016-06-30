@@ -127,6 +127,16 @@
 					ng-mouseenter="toggleEditorFeedbackFab(true)"
 					ng-mouseleave="toggleEditorFeedbackFab(false)">
 				<md-fab-trigger>
+					<md-button ng-click="newInlineComment()"
+							class="rhs-button md-fab md-mini md-primary md-hue-1"
+							arb-user-check="cool"
+							aria-label="Comment">
+						<md-icon>comment</md-icon>
+						<md-tooltip md-delay="500">Comment</md-tooltip>
+					</md-button>
+				</md-fab-trigger>
+				<!-- TODO: uncomment the following once we decide to bring back query marks -->
+<!-- 				<md-fab-trigger>
 					<md-button class="rhs-button md-fab md-mini md-primary md-hue-1"
 							arb-user-check="cool"
 							aria-label="Menu">
@@ -152,7 +162,7 @@
 						<md-icon>comment</md-icon>
 						Comment
 					</md-button>
-				</md-fab-actions>
+				</md-fab-actions> -->
 			</md-fab-speed-dial>
 		</div>
 

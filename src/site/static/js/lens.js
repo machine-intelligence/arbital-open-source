@@ -455,14 +455,16 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 
 					// Called when the fab is clicked when text is selected.
 					scope.$on('fabClicked', function() {
-						$mdBottomSheet.show({
-							templateUrl: versionUrl('static/html/rhsButtons.html'),
-							controller: 'RhsButtonsController',
-							parent: '#fixed-overlay',
-						}).then(function(result) {
-							scope[result.func].apply(null, result.params);
-							arb.stateService.lensTextSelected = false;
-						});
+						scope.newInlineComment()
+						// TODO: bring back the following when we bring back query marks
+						// $mdBottomSheet.show({
+						// 	templateUrl: versionUrl('static/html/rhsButtons.html'),
+						// 	controller: 'RhsButtonsController',
+						// 	parent: '#fixed-overlay',
+						// }).then(function(result) {
+						// 	scope[result.func].apply(null, result.params);
+						// 	arb.stateService.lensTextSelected = false;
+						// });
 					});
 				} else {
 					var mouseUpFn = function(event) {
