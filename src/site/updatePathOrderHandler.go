@@ -1,4 +1,4 @@
-// updateLensOrderHandler.go handles reordering of lenses
+// updatePathOrderHandler.go handles reordering of pages in a path
 package site
 
 import (
@@ -13,68 +13,65 @@ import (
 	"zanaduu3/src/tasks"
 )
 
-// updateLensOrderData contains the data we get in the request
-type updateLensOrderData struct {
+// updatePathOrderData contains the data we get in the request
+type updatePathOrderData struct {
 	// Id of the page the lenses are for
-	PageId string
-	// Map of ids -> lens index
-	LensOrder map[string]int
+	GuideId string
+	// Map of ids -> path index
+	PageOrder map[string]int
 }
 
-var updateLensOrderHandler = siteHandler{
-	URI:         "/json/updateLensOrder/",
-	HandlerFunc: updateLensOrderHandlerFunc,
+var updatePathOrderHandler = siteHandler{
+	URI:         "/json/updatePathOrder/",
+	HandlerFunc: updatePathOrderHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
 	},
 }
 
-func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
+func updatePathOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	c := params.C
 	db := params.DB
 	u := params.U
 
 	decoder := json.NewDecoder(params.R.Body)
-	var data updateLensOrderData
+	var data updatePathOrderData
 	err := decoder.Decode(&data)
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageId) {
-		return pages.Fail("PageId isn't valid", nil).Status(http.StatusBadRequest)
+	if !core.IsIdValid(data.GuideId) {
+		return pages.Fail("Guide id isn't valid", nil).Status(http.StatusBadRequest)
 	}
 
-	// Load all the lenses
-	pageMap := make(map[string]*core.Page)
-	lenses := make([]*core.Lens, 0)
-	queryPart := database.NewQuery(`WHERE l.pageId=?`, data.PageId)
-	err = core.LoadLenses(db, queryPart, nil, func(db *database.DB, lens *core.Lens) error {
-		lenses = append(lenses, lens)
-		core.AddPageIdToMap(lens.PageId, pageMap)
+	// Load all the path pages
+	pathPages := make([]*core.PathPage, 0)
+	queryPart := database.NewQuery(`WHERE pathp.guideId=?`, data.GuideId)
+	err = core.LoadPathPages(db, queryPart, nil, func(db *database.DB, pathPage *core.PathPage) error {
+		pathPages = append(pathPages, pathPage)
 		return nil
 	})
 	if err != nil {
 		return pages.Fail("Couldn't load the lens: %v", err)
-	} else if len(lenses) <= 0 {
-		return pages.Fail("No lenses found for this page", nil).Status(http.StatusBadRequest)
-	} else if len(pageMap) > 1 {
-		return pages.Fail("Changing lenses that belong to different pages", nil).Status(http.StatusBadRequest)
+	} else if len(pathPages) <= 0 {
+		return pages.Fail("No path pages found for this guide", nil).Status(http.StatusBadRequest)
 	}
 
 	// Check permissions
-	permissionError, err := core.VerifyEditPermissionsForMap(db, pageMap, u)
+	pageIds := []string{data.GuideId}
+	permissionError, err := core.VerifyEditPermissionsForList(db, pageIds, u)
 	if err != nil {
-		return pages.Fail("Error verifying permissions", err).Status(http.StatusForbidden)
+		return pages.Fail("Error verifying permissions", err)
 	} else if permissionError != "" {
 		return pages.Fail(permissionError, nil).Status(http.StatusForbidden)
 	}
 
 	// Set up the lens indices
 	hashmaps := make(database.InsertMaps, 0)
-	for _, lens := range lenses {
+	for _, pathPage := range pathPages {
 		hashmap := make(database.InsertMap)
-		hashmap["id"] = lens.Id
-		hashmap["lensIndex"] = data.LensOrder[fmt.Sprintf("%d", lens.Id)]
+		hashmap["id"] = pathPage.Id
+		hashmap["pathIndex"] = data.PageOrder[fmt.Sprintf("%d", pathPage.Id)]
 		hashmap["updatedBy"] = u.Id
 		hashmap["updatedAt"] = database.Now()
 		hashmaps = append(hashmaps, hashmap)
@@ -84,17 +81,17 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var changeLogId int64
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Update the lenses
-		statement := db.NewMultipleInsertStatement("lenses", hashmaps, "lensIndex", "updatedBy", "updatedAt").WithTx(tx)
+		statement := db.NewMultipleInsertStatement("pathPages", hashmaps, "pathIndex", "updatedBy", "updatedAt").WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
-			return sessions.NewError("Couldn't update lenses", err)
+			return sessions.NewError("Couldn't update pathPages", err)
 		}
 
 		// Create changelogs entry
 		hashmap := make(database.InsertMap)
-		hashmap["pageId"] = data.PageId
+		hashmap["pageId"] = data.GuideId
 		hashmap["userId"] = u.Id
 		hashmap["createdAt"] = database.Now()
-		hashmap["type"] = core.LensOrderChangedChangeLog
+		hashmap["type"] = core.PathOrderChangedChangeLog
 		statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
 		result, err := statement.Exec()
 		if err != nil {
@@ -110,8 +107,8 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		task.UpdateType = core.ChangeLogUpdateType
 		task.UserId = u.Id
 		task.ChangeLogId = changeLogId
-		task.SubscribedToId = data.PageId
-		task.GoToPageId = data.PageId
+		task.SubscribedToId = data.GuideId
+		task.GoToPageId = data.GuideId
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			return sessions.NewError("Couldn't enqueue a task", err)
 		}

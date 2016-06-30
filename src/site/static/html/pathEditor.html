@@ -1,0 +1,36 @@
+<div layout="column">
+	<!-- Title -->
+	<div class="md-subhead">
+		<arb-page-title page-id="1rt"
+				is-link="true"
+				custom-page-title="Path editor"></arb-page-title>
+	</div>
+
+	<!-- List of lenses -->
+	<div>
+		<div data-as-sortable="::sortListeners" data-ng-model="page.pathPages" ng-if="page.pathPages.length > 0">
+			<div data-ng-repeat="pathPage in page.pathPages" data-as-sortable-item>
+				<div data-as-sortable-item-handle
+						class="edit-page-lens-row md-primary md-hue-1 md-whiteframe-1dp"
+						layout="row"
+						layout-align="start center">
+					<div flex>
+						<md-icon>reorder</md-icon>
+						<span>#{{pathPage.pathIndex}}&nbsp;</span>
+						<arb-page-title page-id="{{::pathPage.pathPageId}}" is-link="true"></arb-page-title>
+					</div>
+
+					<!-- Remove path page -->
+					<md-button class="md-icon-button" ng-click="removePathPage(pathPage)">
+						<md-icon>clear</md-icon>
+						<md-tooltip md-delay="500">Remove this page from the path</md-tooltip>
+					</md-button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Add a path page -->
+	<arb-autocomplete placeholder="Add a path page"
+			on-select="searchResultSelected(result)"></arb-autocomplete>
+</div>
