@@ -115,6 +115,7 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 	//	 noHost: if true, don't add the host part of the URL
 	//	 lensId: if set, select the given lens
 	//	 markId: if set, select the given mark on the page
+	//	 pathInstanceId: if set, the user is on the given path
 	//	 discussionHash: if true, jump to the discussion part of the page
 	//	 answersHash: if true, jump to the answers part of the page
 	// }
@@ -152,13 +153,19 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 					url += '#subpage-' + pageId;
 				}
 			}
-
-			// Add markId argument
-			if (options.markId) {
-				url += url.indexOf('?') < 0 ? '?' : '&';
-				url += 'markId=' + options.markId;
-			}
 		}
+
+		// Add markId argument
+		if (options.markId) {
+			url += url.indexOf('?') < 0 ? '?' : '&';
+			url += 'markId=' + options.markId;
+		}
+
+		if (options.pathInstanceId) {
+			url += url.indexOf('?') < 0 ? '?' : '&';
+			url += 'pathId=' + options.pathInstanceId;
+		}
+
 		if (url.indexOf('#') < 0) {
 			if (options.discussionHash) {
 				url += '#discussion';

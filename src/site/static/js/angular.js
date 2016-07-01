@@ -456,12 +456,25 @@ app.run(function($http, $location, arb) {
 				pageAlias: args.alias,
 				lensId: $location.search().l,
 				markId: $location.search().markId,
+				// Load the path if it's not loaded already
+				pathInstanceId: arb.stateService.path ? undefined : $location.search().pathId,
 			};
 			$http({method: 'POST', url: '/json/primaryPage/', data: JSON.stringify(postData)})
 			.success($scope.getSuccessFunc(function(data) {
 				var primaryPageId = data.result.primaryPageId;
 				var page = arb.stateService.pageMap[primaryPageId];
 				var pageTemplate = '<arb-primary-page></arb-primary-page>';
+
+				if (data.result.path) {
+					arb.stateService.path = data.result.path;
+				} else if (arb.stateService.path && !$location.search().pathId) {
+					// We are off the path. Forget the path if it was finished.
+					var isFinished = arb.stateService.path.isFinished ||
+						arb.stateService.path.progress >= arb.stateService.path.pageIds.length-1;
+					if (isFinished) {
+						arb.stateService.path = undefined;
+					}
+				}
 
 				if (!page) {
 					page = arb.stateService.deletedPagesMap[postData.pageAlias];

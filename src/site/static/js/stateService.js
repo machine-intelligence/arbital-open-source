@@ -30,6 +30,9 @@ app.service('stateService', function($http, $mdMedia, popupService) {
 	// show the current user's.
 	this.showAllMarks = false;
 
+	// The current path the user is on
+	this.path = undefined;
+
 	// Should we show editor comments for the currently selected lens.
 	var showEditorComments = false;
 	this.getShowEditorComments = function() {

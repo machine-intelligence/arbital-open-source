@@ -20,6 +20,8 @@ type primaryPageJsonData struct {
 	LensId string
 	// Optional mark id that was specified in the url
 	MarkId string
+	// Optional path instance id that was specified in the url
+	PathInstanceId string
 }
 
 var primaryPageHandler = siteHandler{
@@ -167,6 +169,17 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
+	}
+
+	if data.PathInstanceId != "" {
+		// Load the path instance
+		instance, err := core.LoadPathInstance(db, data.PathInstanceId, u)
+		if err != nil {
+			return pages.Fail("Couldn't load the path instance: %v", err)
+		} else if instance == nil {
+			return pages.Fail("Couldn't find the path instance", nil).Status(http.StatusBadRequest)
+		}
+		returnData.ResultMap["path"] = instance
 	}
 
 	return pages.Success(returnData)
