@@ -51,7 +51,7 @@ func writeNewModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load redlinks in math
-	returnData.ResultMap["redLinks"], err = loadRedLinkRows(db, returnData, data.NumPagesToLoad)
+	returnData.ResultMap["redLinks"], err = loadRedLinkRows(db, returnData.User, data.NumPagesToLoad)
 	if err != nil {
 		return pages.Fail("Error loading drafts", err)
 	}
@@ -66,31 +66,42 @@ func writeNewModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 }
 
 // Load pages that are linked to but don't exist
-func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit int) ([]*RedLinkRow, error) {
+func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLinkRow, error) {
 	redLinks := make([]*RedLinkRow, 0)
-	pageInfosTable := core.PageInfosTableWithOptions(returnData.User, &core.PageInfosOptions{Unpublished: true})
+
+	publishedPageIds := core.PageInfosTableWithOptions(u, &core.PageInfosOptions{
+		Fields: []string{"pageId"},
+	})
 	// NOTE: keep in mind that multiple pages can have the same alias, as long as only one page is published
+	publishedAndRecentAliases := core.PageInfosTableWithOptions(u, &core.PageInfosOptions{
+		Unpublished: true,
+		Fields:      []string{"alias"},
+		WhereFilter: database.NewQuery(`currentEdit>0 OR DATEDIFF(NOW(),createdAt) <= ?`, hideRedLinkIfDraftExistsDays),
+	})
 	rows := database.NewQuery(`
-		SELECT l.childAlias,rl.likeableId,SUM(ISNULL(linkedPi.pageId)) AS count
-		FROM `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS mathPi
-		JOIN pageDomainPairs AS pdp
-		ON pdp.pageId=mathPi.pageId
-			AND pdp.domainId=?`, core.MathDomainId).Add(`
-		JOIN links AS l
-		ON l.parentId=mathPi.pageId
-		LEFT JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS linkedPi
-		ON (l.childAlias=linkedPi.pageId OR l.childAlias=linkedPi.alias)
-		LEFT JOIN redLinks AS rl
-		ON (l.childAlias=rl.alias)
-		WHERE IFNULL((
-			/* Make sure there is no recent draft with this alias, since that means
-				it's likely someone is alread working on this page. */
-			SELECT MIN(DATEDIFF(NOW(),unpublishedPi.createdAt))
-			FROM `).AddPart(pageInfosTable).Add(` AS unpublishedPi
-			WHERE unpublishedPi.alias=l.childAlias
-		),?) > ?`, hideRedLinkIfDraftExistsDays+1, hideRedLinkIfDraftExistsDays).Add(`
-		GROUP BY 1,2
-		ORDER BY count DESC
+		SELECT childAlias,groupedRedLinks.likeableId,refCount
+		FROM (
+			SELECT l.childAlias,rl.likeableId,COUNT(*) AS refCount
+			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS mathPi
+			JOIN pageDomainPairs AS pdp
+			ON pdp.pageId=mathPi.pageId
+				AND pdp.domainId=?`, core.MathDomainId).Add(`
+			JOIN links AS l
+			ON l.parentId=mathPi.pageId
+				AND l.childAlias NOT IN`).AddPart(publishedPageIds).Add(`
+				AND l.childAlias NOT IN`).AddPart(publishedAndRecentAliases).Add(`
+			LEFT JOIN redLinks AS rl
+			ON l.childAlias=rl.alias
+			GROUP BY 1,2
+		) AS groupedRedLinks
+		LEFT JOIN (
+			SELECT likeableId, SUM(value) AS likeCount, SUM(value < 0) AS hasAnyDownvotes
+			FROM likes
+			GROUP BY likeableId
+		) as likeCounts
+		ON groupedRedLinks.likeableId=likeCounts.likeableId
+		WHERE !COALESCE(hasAnyDownvotes,0)
+		ORDER BY refCount + COALESCE(likeCount,0) DESC, groupedRedLinks.likeableId
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var alias, refCount string
@@ -125,16 +136,10 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 			likeablesMap[redLink.LikeableId] = &redLink.Likeable
 		}
 	}
-	err = core.LoadLikes(db, returnData.User, likeablesMap, nil, nil)
+	err = core.LoadLikes(db, u, likeablesMap, nil, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load red link like count: %v", err)
 	}
-	// Remove red links that are downvoted
-	trimmedRedLinks := make([]*RedLinkRow, 0)
-	for _, redLink := range redLinks {
-		if redLink.DislikeCount >= 0 && redLink.MyLikeValue >= 0 {
-			trimmedRedLinks = append(trimmedRedLinks, redLink)
-		}
-	}
-	return trimmedRedLinks, nil
+
+	return redLinks, nil
 }

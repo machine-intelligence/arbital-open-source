@@ -7,7 +7,9 @@
 	</arb-list-sub-header>
 
 	<md-progress-circular md-mode="indeterminate" ng-cloak ng-if="!redLinkRows"></md-progress-circular>
-	<arb-explanation-request-row ng-repeat="row in redLinkRows | orderBy:['-originalTotalLikeCount','alias']" row="::row"></arb-explanation-request-row>
+	<arb-explanation-request-row ng-repeat="row in redLinkRows | orderBy:['-originalTotalLikeCount','-refCount','alias']"
+		row="::row">
+	</arb-explanation-request-row>
 
 	<!-- Explanation requests -->
 	<arb-list-sub-header>
