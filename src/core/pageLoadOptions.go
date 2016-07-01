@@ -122,6 +122,7 @@ var (
 		Questions:       true,
 		Children:        true,
 		Tags:            true,
+		Path:            true,
 		SubpageCounts:   true,
 		Requirements:    true,
 		Subjects:        true,
