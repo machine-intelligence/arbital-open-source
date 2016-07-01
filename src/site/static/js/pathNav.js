@@ -11,10 +11,6 @@ app.directive('arbPathNav', function($location, arb) {
 			$scope.arb = arb;
 			$scope.path = arb.stateService.path;
 			$scope.page = arb.stateService.pageMap[$scope.pageId];
-
-			$scope.stopLearning = function() {
-				arb.pathService.abandonPath();
-			};
 		},
 	};
 });

@@ -34,7 +34,7 @@ func startPathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 	if !core.IsIdValid(data.GuideId) {
-		return pages.Fail("Invalid guideID", nil).Status(http.StatusBadRequest)
+		return pages.Fail("Invalid guideId", nil).Status(http.StatusBadRequest)
 	}
 
 	// Load path pages
