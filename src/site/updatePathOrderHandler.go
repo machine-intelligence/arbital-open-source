@@ -15,7 +15,7 @@ import (
 
 // updatePathOrderData contains the data we get in the request
 type updatePathOrderData struct {
-	// Id of the page the lenses are for
+	// Id of the page the path pages are for
 	GuideId string
 	// Map of ids -> path index
 	PageOrder map[string]int
@@ -52,7 +52,7 @@ func updatePathOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return nil
 	})
 	if err != nil {
-		return pages.Fail("Couldn't load the lens: %v", err)
+		return pages.Fail("Couldn't load the path pages: %v", err)
 	} else if len(pathPages) <= 0 {
 		return pages.Fail("No path pages found for this guide", nil).Status(http.StatusBadRequest)
 	}
@@ -66,7 +66,7 @@ func updatePathOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail(permissionError, nil).Status(http.StatusForbidden)
 	}
 
-	// Set up the lens indices
+	// Set up the path indices
 	hashmaps := make(database.InsertMaps, 0)
 	for _, pathPage := range pathPages {
 		hashmap := make(database.InsertMap)
@@ -80,7 +80,7 @@ func updatePathOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Begin the transaction.
 	var changeLogId int64
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		// Update the lenses
+		// Update the pathPages
 		statement := db.NewMultipleInsertStatement("pathPages", hashmaps, "pathIndex", "updatedBy", "updatedAt").WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't update pathPages", err)

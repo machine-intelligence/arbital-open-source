@@ -1,0 +1,96 @@
+<div layout="row"
+		layout-align="start center"
+		layout-align-xs="center center"
+		class="next-prev-nav">
+
+	<!-- Show this when the user has veered off the current path -->
+	<div ng-if="path && !arb.pathService.isOnPath()">
+		<md-button ng-click="arb.pathService.goToPathPage()"
+				class="md-primary md-raised">
+			Return to path
+			<md-icon>chevron_right</md-icon>
+		</md-button>
+	</div>
+
+	<!-- Show this when the user is not on a path, but can start one -->
+	<div ng-if="!path && page.pathPages.length > 0 && !arb.pathService.isOnPath()">
+		<md-button ng-click="arb.pathService.startPath(pageId)"
+				class="md-primary md-raised">
+			Start path
+			<md-icon>chevron_right</md-icon>
+		</md-button>
+	</div>
+
+	<!-- If on the path, show "<Back" and "Next>" buttons -->
+	<div ng-if="arb.pathService.isOnPath()">
+		<md-button ng-click="arb.pathService.updateProgress(path.progress-1)">
+			<md-icon>chevron_left</md-icon>
+			<span>Back</span>
+		</md-button>
+		<span ng-if="path.progress < path.pageIds.length-1">
+			{{path.progress+1}}/{{path.pageIds.length}}
+		</span>
+		<md-button class="md-primary md-raised"
+				ng-click="arb.pathService.updateProgress(path.progress+1)"
+				ng-if="path.progress < path.pageIds.length-1">
+			<span>Next</span>
+			<md-icon>chevron_right</md-icon>
+		</md-button>
+		<span ng-if="path.progress >= path.pageIds.length-1">
+			Path finished!
+		</span>
+	</div>
+
+	<!-- Show this when the user is on path. -->
+	<!--<div layout="row"
+			layout-align="start center"
+			ng-if="arb.pathService.path.onPath">
+		<md-button ng-href="{{arb.urlService.getPageUrl(arb.pathService.path.prevPageId)}}"
+				class="special"
+				ng-class="{'intrasite-link': arb.pathService.path.prevPageId}"
+				page-id="{{arb.pathService.path.prevPageId}}"
+				ng-disabled="!arb.pathService.path.prevPageId">
+			<md-tooltip md-delay="500" ng-if="!arb.pathService.path.prevPageId">No previous page</md-tooltip>
+			<md-icon>chevron_left</md-icon>
+			<span>Prev</span>
+		</md-button>
+		<md-button href="/learn/" class="special md-icon-button">
+			<md-tooltip md-delay="500">See the current path</md-tooltip>
+			<md-icon>book</md-icon>
+		</md-button>
+		<md-button ng-href="{{arb.urlService.getPageUrl(arb.pathService.path.nextPageId)}}"
+				class="intrasite-link special"
+				ng-class="{'md-raised': extraInfo}"
+				page-id="{{arb.pathService.path.nextPageId}}"
+				ng-disabled="!arb.pathService.path.nextPageId"
+				ng-if="arb.pathService.path.nextPageId">
+			<md-tooltip md-delay="500" ng-show="!arb.pathService.path.nextPageId">No next page</md-tooltip>
+			<span ng-bind="extraInfo ? 'Continue reading' : 'Next'"></span>
+			<md-icon>chevron_right</md-icon>
+		</md-button>
+		<md-button class="special"
+				ng-class="{'md-raised': extraInfo}"
+				ng-click="stopLearning()"
+				ng-if="!arb.pathService.path.nextPageId">
+			Done
+		</md-button>
+	</div>-->
+
+	<!-- Show this when the user is no longer on path. -->
+	<!--<div layout="row" layout-align="start center" ng-if="!arb.pathService.path.onPath">
+		<md-button ng-href="{{arb.urlService.getPageUrl(arb.pathService.path.currentPageId)}}"
+				class="special"
+				ng-class="{'md-raised': extraInfo}">
+			<md-icon>chevron_left</md-icon>
+			Back to learning
+		</md-button>
+		<md-button href="/learn/" class="special md-icon-button">
+			<md-tooltip md-delay="500">See the current path</md-tooltip>
+			<md-icon>book</md-icon>
+		</md-button>
+		<md-button class="md-icon-button" ng-click="stopLearning()">
+			<md-tooltip md-delay="500">Dismiss learning navigation</md-tooltip>
+			<md-icon>close</md-icon>
+		</md-button>
+	</div>-->
+</div>
