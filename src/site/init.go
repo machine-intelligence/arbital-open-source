@@ -109,6 +109,7 @@ func init() {
 	s.HandleFunc(editPageInfoHandler.URI, handlerWrapper(editPageInfoHandler)).Methods("POST")
 	s.HandleFunc(exploreHandler.URI, handlerWrapper(exploreHandler)).Methods("POST")
 	s.HandleFunc(feedbackHandler.URI, handlerWrapper(feedbackHandler)).Methods("POST")
+	s.HandleFunc(forgotPasswordHandler.URI, handlerWrapper(forgotPasswordHandler)).Methods("POST")
 	s.HandleFunc(groupsHandler.URI, handlerWrapper(groupsHandler)).Methods("POST")
 	s.HandleFunc(hedonsModeHandler.URI, handlerWrapper(hedonsModeHandler)).Methods("POST")
 	s.HandleFunc(indexHandler.URI, handlerWrapper(indexHandler)).Methods("POST")

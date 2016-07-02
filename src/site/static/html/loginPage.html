@@ -33,4 +33,11 @@
 		<div class="submit-form-error md-warn" hidden></div>
 		<md-button class="md-primary md-raised" type="submit" toggle-on-submit>Log In</md-button>
 	</div>
+	<div layout="row" layout-align="end start">
+		<div>
+			<md-button ng-click="forgotPassword()" ng-if="!forgotPasswordSuccess">Forgot password</md-button>
+			<span ng-if="forgotPasswordSuccess">An email to reset your password has been sent to {{::formData.email}}</span>
+			&nbsp;
+		</div>
+	</div>
 </form>
