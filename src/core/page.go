@@ -332,6 +332,11 @@ type PathInstance struct {
 
 	// True if the path was created by current user
 	IsByCurrentUser bool `json:"isByCurrentUser"`
+
+	// FE data
+	// Insert these page ids when continuing the path
+	// question index -> list of page ids
+	PageIdsToInsert map[string][]string `json:"-"`
 }
 
 type Vote struct {

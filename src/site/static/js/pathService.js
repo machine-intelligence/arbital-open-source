@@ -51,16 +51,37 @@ app.service('pathService', function($http, $compile, $location, $mdToast, $rootS
 		});
 	};
 
+	// Add/remove the given pageIds to the path at the current point
+	this.extendPath = function(index, pageIds, add) {
+		if (!that.isOnPath()) return;
+		if (add) {
+			if (!stateService.path.pageIdsToInsert) {
+				stateService.path.pageIdsToInsert = {};
+			}
+			stateService.path.pageIdsToInsert[index] = pageIds;
+		} else {
+			delete stateService.path.pageIdsToInsert[index];
+		}
+	};
+
 	// Change the progress of the current path
 	this.updateProgress = function(progress) {
 		var params = {
 			id: stateService.path.id,
 			progress: progress,
+			pageIdsToInsert: stateService.path.pageIdsToInsert,
+			isFinished: stateService.path.isFinished,
 		};
 		stateService.postData('/json/updatePath/', params, function(data) {
-			stateService.path.progress = progress;
+			stateService.path = data.result.path;
 			that.goToPathPage();
 		});
+	};
+
+	// Mark the current path as finished
+	this.finishPath = function() {
+		stateService.path.isFinished = true;
+		that.updateProgress(stateService.path.progress);
 	};
 
 	// Go to the page that the path's progress says we should be on
@@ -80,5 +101,22 @@ app.service('pathService', function($http, $compile, $location, $mdToast, $rootS
 		var path = stateService.path;
 		if (!path) return false;
 		return path.pageIds[path.progress] == pageService.getCurrentPageId();
+	};
+
+	// Return true iff the user is at the end of the path and there are no more pages left.
+	this.showFinish = function() {
+		return that.isOnPath() && that.pageExtensionLength() <= 0 &&
+			stateService.path.progress >= stateService.path.pageIds.length - 1;
+	};
+
+	// Return the number of pages that will be added to the path.
+	this.pageExtensionLength = function() {
+		if (!that.isOnPath()) return 0;
+		if (!stateService.path.pageIdsToInsert) return 0;
+		var count = 0;
+		for (var index in stateService.path.pageIdsToInsert) {
+			count += stateService.path.pageIdsToInsert[index].length;
+		}
+		return count;
 	};
 });
