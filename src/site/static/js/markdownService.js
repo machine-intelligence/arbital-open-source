@@ -198,26 +198,31 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				'(wants: ?[^\n]+?\n)?' +
 				'(-knows: ?[^\n]+?\n)?' +
 				'(-wants: ?[^\n]+?\n)?' +
+				'(path: ?[^\n]+?\n)?' +
 				'(b: ?[^\n]+?\n)' + // choice, e.g. "b: Carrots"
 				'(knows: ?[^\n]+?\n)?' +
 				'(wants: ?[^\n]+?\n)?' +
 				'(-knows: ?[^\n]+?\n)?' +
 				'(-wants: ?[^\n]+?\n)?' +
+				'(path: ?[^\n]+?\n)?' +
 				'(c: ?[^\n]+?\n)?' + // choice, e.g. "c: Carrots"
 				'(knows: ?[^\n]+?\n)?' +
 				'(wants: ?[^\n]+?\n)?' +
 				'(-knows: ?[^\n]+?\n)?' +
 				'(-wants: ?[^\n]+?\n)?' +
+				'(path: ?[^\n]+?\n)?' +
 				'(d: ?[^\n]+?\n)?' + // choice, e.g. "d: Carrots"
 				'(knows: ?[^\n]+?\n)?' +
 				'(wants: ?[^\n]+?\n)?' +
 				'(-knows: ?[^\n]+?\n)?' +
 				'(-wants: ?[^\n]+?\n)?' +
+				'(path: ?[^\n]+?\n)?' +
 				'(e: ?[^\n]+?\n)?' + // choice, e.g. "e: Carrots"
 				'(knows: ?[^\n]+?\n)?' +
 				'(wants: ?[^\n]+?\n)?' +
 				'(-knows: ?[^\n]+?\n)?' +
 				'(-wants: ?[^\n]+?\n)?' +
+				'(path: ?[^\n]+?\n)?' +
 				'\\] *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(mcBlockRegexp, function() {
@@ -255,11 +260,13 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				'(wants: ?[^\n]+?\n)?' +
 				'(-knows: ?[^\n]+?\n)?' +
 				'(-wants: ?[^\n]+?\n)?' +
+				'(path: ?[^\n]+?\n)?' +
 				'(n:\n)' +
 				'(knows: ?[^\n]+?\n)?' +
 				'(wants: ?[^\n]+?\n)?' +
 				'(-knows: ?[^\n]+?\n)?' +
 				'(-wants: ?[^\n]+?\n)?' +
+				'(path: ?[^\n]+?\n)?' +
 				'\\] *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(checkboxBlockRegexp, function() {

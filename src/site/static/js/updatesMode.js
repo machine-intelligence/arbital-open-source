@@ -63,6 +63,7 @@ app.directive('arbUpdatesPanel', function($http, arb) {
 					case 'setVoteType':
 					case 'newEditGroup':
 					case 'lensOrderChanged':
+					case 'pathOrderChanged':
 					case 'turnOnVote':
 					case 'turnOffVote':
 					case 'searchStringChange':

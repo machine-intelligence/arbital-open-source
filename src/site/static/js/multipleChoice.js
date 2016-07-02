@@ -17,6 +17,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 			$scope.wants = {};
 			$scope.delKnows = {};
 			$scope.delWants = {};
+			$scope.path = {};
 
 			// Called when a user makes a choice
 			$scope.choiceChanged = function() {
@@ -29,6 +30,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 							object: $scope.objectAlias,
 							value: $scope.choice,
 						});
+				arb.pathService.extendPath($scope.index, $scope.path[$scope.choice]);
 			};
 		},
 		link: function(scope, element, attrs) {
@@ -43,6 +45,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 				scope.wants[answerValue] = [];
 				scope.delKnows[answerValue] = [];
 				scope.delWants[answerValue] = [];
+				scope.path[answerValue] = [];
 				$(this).find('ul > li').each(function() {
 					var text = $(this).text();
 					if (text.indexOf('knows:') == 0) {
@@ -60,6 +63,10 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 					} else if (text.indexOf('-wants:') == 0) {
 						$(this).children('a').each(function() {
 							scope.delWants[answerValue].push($(this).attr('page-id'));
+						});
+					} else if (text.indexOf('path:') == 0) {
+						$(this).children('a').each(function() {
+							scope.path[answerValue].push($(this).attr('page-id'));
 						});
 					}
 				});
