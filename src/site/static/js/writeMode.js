@@ -22,7 +22,7 @@ app.directive('arbContinueWritingModePanel', function($http, arb) {
 	};
 });
 
-// arb-write-mode-panel displays a list of things that prompt a user
+// arb-write-new-mode-panel displays a list of things that prompt a user
 // to contribute new content, like redlinks and requests
 app.directive('arbWriteNewModePanel', function($http, arb) {
 	return {
@@ -142,26 +142,29 @@ app.directive('arbExplanationRequestRow', function(arb) {
 			$scope.prettyName = aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
 			$scope.editUrl = arb.urlService.getEditPageUrl($scope.alias);
 
+			arb.stateService.postData('/json/moreRelationships/',
+				{
+					pageAlias: $scope.alias,
+					restrictToMathDomain: true,
+				},
+				function success(data) {
+					$scope.linkedByPageIds = data.result.moreRelationshipIds;
+
+					var totalViewCount = 0;
+					for (var i = 0; i < $scope.linkedByPageIds.length; ++i) {
+						totalViewCount += arb.stateService.pageMap[$scope.linkedByPageIds[i]].viewCount;
+					}
+					$scope.totalViewCount = totalViewCount;
+				}
+			);
+
 			$scope.editLinkClicked = function(event) {
 				arb.analyticsService.reportEditLinkClick(event);
 			};
 
 			$scope.toggleExpand = function() {
 				$scope.expanded = !$scope.expanded;
-
-				if ($scope.linkedByPageIds) return;
-
-				arb.stateService.postData('/json/moreRelationships/',
-					{
-						pageAlias: $scope.alias,
-						restrictToMathDomain: true,
-					},
-					function success(data) {
-						$scope.linkedByPageIds = data.result.moreRelationshipIds;
-					}
-				);
 			};
-
 			$scope.stopSuggesting = function() {
 				arb.signupService.processLikeClick($scope.row, $scope.row.alias, -1);
 			};
