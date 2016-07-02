@@ -52,24 +52,26 @@ app.service('pathService', function($http, $compile, $location, $mdToast, $rootS
 	};
 
 	// Add/remove the given pageIds to the path at the current point
-	this.extendPath = function(index, pageIds, add) {
+	this.extendPath = function(index, pageIds) {
 		if (!that.isOnPath()) return;
-		if (add) {
-			if (!stateService.path.pageIdsToInsert) {
-				stateService.path.pageIdsToInsert = {};
-			}
-			stateService.path.pageIdsToInsert[index] = pageIds;
-		} else {
-			delete stateService.path.pageIdsToInsert[index];
+		if (!stateService.path.pageIdsToInsert) {
+			stateService.path.pageIdsToInsert = {};
 		}
+		stateService.path.pageIdsToInsert[index] = pageIds;
 	};
 
 	// Change the progress of the current path
 	this.updateProgress = function(progress) {
+		var pageIdsToInsert = [];
+		if (stateService.path.pageIdsToInsert) {
+			for (var index in stateService.path.pageIdsToInsert) {
+				pageIdsToInsert = pageIdsToInsert.concat(stateService.path.pageIdsToInsert[index]);
+			}
+		}
 		var params = {
 			id: stateService.path.id,
 			progress: progress,
-			pageIdsToInsert: stateService.path.pageIdsToInsert,
+			pageIdsToInsert: pageIdsToInsert,
 			isFinished: stateService.path.isFinished,
 		};
 		stateService.postData('/json/updatePath/', params, function(data) {

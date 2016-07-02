@@ -335,7 +335,7 @@ type PathInstance struct {
 
 	// FE data
 	// Insert these page ids when continuing the path
-	// question index -> list of page ids
+	// question alias -> list of page ids
 	PageIdsToInsert map[string][]string `json:"-"`
 }
 

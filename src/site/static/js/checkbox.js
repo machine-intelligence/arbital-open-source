@@ -33,7 +33,7 @@ app.directive('arbCheckbox', function($timeout, $http, $compile, arb) {
 							object: $scope.objectAlias,
 							value: $scope.letterChoice,
 						});
-				arb.pathService.extendPath($scope.index, $scope.path[$scope.letterChoice], true);
+				arb.pathService.extendPath($scope.index, $scope.path[$scope.letterChoice]);
 			};
 		},
 		link: function(scope, element, attrs) {

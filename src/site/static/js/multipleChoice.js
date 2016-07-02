@@ -30,7 +30,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 							object: $scope.objectAlias,
 							value: $scope.choice,
 						});
-				arb.pathService.extendPath($scope.index, $scope.path[$scope.choice], true);
+				arb.pathService.extendPath($scope.index, $scope.path[$scope.choice]);
 			};
 		},
 		link: function(scope, element, attrs) {
