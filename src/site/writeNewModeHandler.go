@@ -56,12 +56,6 @@ func writeNewModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error loading drafts", err)
 	}
 
-	// Load pages
-	err = core.ExecuteLoadPipeline(db, returnData)
-	if err != nil {
-		return pages.Fail("Pipeline error", err)
-	}
-
 	return pages.Success(returnData)
 }
 

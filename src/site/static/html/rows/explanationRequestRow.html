@@ -1,46 +1,54 @@
-<md-list-item layout="row" layout-align="start start" ng-if="!row || row.myLikeValue >= 0">
-	<div layout="row" layout-align="start start" flex>
+<md-list-item layout="column" layout-align="center" ng-if="!row || row.myLikeValue >= 0">
+	<div layout="row" layout-align="start center">
+		<div layout="row" layout-align="start center" flex>
 
-		<div ng-if="::row.refCount">
-			<arb-likes class="no-right-margin"
-					object-id="{{::row.alias}}"
-					likeable="row"
-					is-button="true"
-					is-plus-one="true"></arb-likes>
+			<arb-likes
+				object-id="{{::row.alias}}"
+				likeable="row"
+				is-button="true"
+				is-plus-one="true"
+				ng-if="::row.refCount"
+				></arb-likes>
+
+			<div class="explanation-text" layout="column" flex>
+				<div layout="row" layout-align="start center">
+					{{::prettyName}} &nbsp;
+					<span ng-if="::row.refCount" class="md-caption">
+						referenced on {{::row.refCount}} pages with {{totalViewCount}} total views
+					</span>
+				</div>
+			</div>
 		</div>
 
-		<div class="explanation-text" layout="column" flex>
-			<div layout="row" layout-align="start start">
-				<div>
-					<span ng-if="::row.refCount">"</span>{{::prettyName}}<span ng-if="::row.refCount">"</span>
-					<span ng-if="::row.refCount">referenced in {{::row.refCount}} pages</span>
-				</div>
+		<div layout="row" layout-align="center center">
+			<md-button ng-href="{{editUrl}}"
+					class="md-icon-button icon-first"
+					ng-click="editLinkClicked($event)"
+					aria-label="Create page">
+				<md-icon>create</md-icon>
+			</md-button>
+			<div class="expand-button-container">
 				<md-button ng-click="toggleExpand()"
-						class="md-icon-button icon-last"
+						class="md-icon-button icon-last remove-extra-space s24 expand-button"
 						aria-label="Expand"
 						ng-if="::row.refCount">
 					<arb-expand-icon expanded="expanded"></arb-expand-icon>
 				</md-button>
 			</div>
-			<div class="expanded-list" ng-if="expanded">
-				<md-progress-circular md-mode="indeterminate" ng-if="!linkedByPageIds"></md-progress-circular>
-				<div ng-repeat="pageId in linkedByPageIds">
-					<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
-				</div>
-				<md-button ng-click="stopSuggesting()"
-						ng-if="::arb.userService.user.trustMap['1lw'].permissions.domainTrust.has">
-					Don't suggest this alias to public
-				</md-button>
-			</div>
 		</div>
 	</div>
 
-	<div>
-		<md-button ng-href="{{editUrl}}"
-				class="md-icon-button icon-first"
-				ng-click="editLinkClicked($event)"
-				aria-label="Create page">
-			<md-icon>create</md-icon>
+	<div class="expand-tray expanded-list" layout="column" ng-if="expanded">
+		<md-progress-circular md-mode="indeterminate" ng-if="!linkedByPageIds"></md-progress-circular>
+		<div ng-repeat="pageId in linkedByPageIds">
+			<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
+			<span class="md-caption">
+				{{arb.stateService.pageMap[pageId].viewCount}} views
+			</span>
+		</div>
+		<md-button ng-click="stopSuggesting()"
+				ng-if="::arb.userService.user.trustMap['1lw'].permissions.domainTrust.has">
+			Don't suggest this alias
 		</md-button>
 	</div>
 </md-list-item>
