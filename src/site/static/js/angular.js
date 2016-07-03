@@ -70,6 +70,7 @@ app.config(function($locationProvider, $mdIconProvider, $mdThemingProvider) {
 		.icon('format_header_pound', 'static/icons/format-header-pound.svg')
 		.icon('cursor_pointer', 'static/icons/cursor-pointer.svg')
 		.icon('link_variant', 'static/icons/link-variant.svg')
+		.icon('slack', 'static/icons/slack.svg')
 		.icon('thumb_up_outline', 'static/icons/thumb-up-outline.svg')
 		.icon('thumb_down_outline', 'static/icons/thumb-down-outline.svg');
 

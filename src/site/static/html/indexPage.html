@@ -1,5 +1,6 @@
-<div id="index-header" layout="row" layout-align="center center" class="md-whiteframe-1dp" flex>
-	<span>
+<!-- Welcome / daily message -->
+<div id="index-header" layout="row" layout-align="center center">
+	<div class="shadow-primary-hue-1">
 		<a ng-href="{{::arb.urlService.getPageUrl('3d')}}"
 				class="intrasite-link"
 				page-id="3d">Arbital</a>
@@ -7,7 +8,25 @@
 		<a ng-href="{{::arb.urlService.getPageUrl('4d6')}}"
 				class="intrasite-link"
 				page-id="4d6">explanations</a>.
-	</span>
+		<div layout="row" layout-align="center center" ng-if="::!arb.userService.user.isSlackMember">
+			<md-button class="light" ng-click="joinSlack()" ng-if="!showJoinSlack">
+				<md-icon md-svg-icon="slack"></md-icon>
+				Join Arbital Slack channel
+			</md-button>
+			<div layout="column" ng-if="showJoinSlack && !arb.userService.user.isSlackMember" flex>
+				<md-input-container class="full-width">
+					<label>Email</label>
+					<input type="email" ng-model="slackInvite.email" required>
+				</md-input-container>
+				<md-button class="md-primary md-raised" ng-click="joinSlackSubmit()">
+					Submit
+				</md-button>
+			</div>
+			<div ng-if="showJoinSlack && arb.userService.user.isSlackMember">
+				Invite email has been sent!
+			</div>
+		</div>
+	</div>
 </div>
 
 <div layout="column" layout-padding layout-gt-sm="row">

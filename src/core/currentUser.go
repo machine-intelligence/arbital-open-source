@@ -57,6 +57,7 @@ type CurrentUser struct {
 	EmailThreshold         int    `json:"emailThreshold"`
 	IgnoreMathjax          bool   `json:"ignoreMathjax"`
 	ShowAdvancedEditorMode bool   `json:"showAdvancedEditorMode"`
+	IsSlackMember          bool   `json:"isSlackMember"`
 
 	// If the user isn't logged in, this is set to their unique session id
 	SessionId string `json:"-"`
@@ -167,12 +168,12 @@ func LoadCurrentUserFromDb(db *database.DB, userId string, u *CurrentUser) (*Cur
 		u = NewCurrentUser()
 	}
 	row := db.NewStatement(`
-		SELECT id,fbUserId,email,firstName,lastName,isAdmin,isTrusted,
+		SELECT id,fbUserId,email,firstName,lastName,isAdmin,isTrusted,isSlackMember,
 			emailFrequency,emailThreshold,ignoreMathjax,showAdvancedEditorMode
 		FROM users
 		WHERE id=?`).QueryRow(userId)
 	exists, err := row.Scan(&u.Id, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
-		&u.IsAdmin, &u.IsTrusted, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
+		&u.IsAdmin, &u.IsTrusted, &u.IsSlackMember, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
 		&u.ShowAdvancedEditorMode)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load user: %v", err)
@@ -209,11 +210,11 @@ func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*C
 	var pretendToBeUserId string
 	row := db.NewStatement(`
 		SELECT id,pretendToBeUserId,fbUserId,email,firstName,lastName,isAdmin,isTrusted,
-			emailFrequency,emailThreshold,ignoreMathjax,showAdvancedEditorMode
+			isSlackMember,emailFrequency,emailThreshold,ignoreMathjax,showAdvancedEditorMode
 		FROM users
 		WHERE email=?`).QueryRow(cookie.Email)
 	exists, err := row.Scan(&u.Id, &pretendToBeUserId, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
-		&u.IsAdmin, &u.IsTrusted, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
+		&u.IsAdmin, &u.IsTrusted, &u.IsSlackMember, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
 		&u.ShowAdvancedEditorMode)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a user: %v", err)
