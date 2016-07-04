@@ -28,24 +28,29 @@ app.directive('arbWriteNewModePanel', function($http, arb) {
 	return {
 		templateUrl: versionUrl('static/html/writeNewPanel.html'),
 		scope: {
-			numToDisplay: '=',
 			isFullPage: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
 
 			arb.stateService.postData('/json/writeNew/', {
-					numPagesToLoad: $scope.numToDisplay,
+					isFullPage: $scope.isFullPage,
 				},
 				function(data) {
 					$scope.redLinkRows = data.result.redLinks;
+					$scope.stubRows = data.result.stubs;
 
 					// calculate this ahead of time so that rows don't jump around when the user updates their like value
 					for (var i = 0; i < $scope.redLinkRows.length; ++i) {
 						var row = $scope.redLinkRows[i];
 						row.originalTotalLikeCount = row.likeCount + row.myLikeValue;
 					}
-				});
+				}
+			);
+
+			$scope.editStubLinkClicked = function(event) {
+				arb.analyticsService.reportEditPageAction(event, 'front page stub');
+			};
 		},
 	};
 });
@@ -159,7 +164,7 @@ app.directive('arbExplanationRequestRow', function(arb) {
 			);
 
 			$scope.editLinkClicked = function(event) {
-				arb.analyticsService.reportEditLinkClick(event);
+				arb.analyticsService.reportEditPageAction(event, 'front page red alias');
 			};
 
 			$scope.toggleExpand = function() {

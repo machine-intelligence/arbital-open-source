@@ -8,8 +8,29 @@
 
 	<md-progress-circular md-mode="indeterminate" ng-cloak ng-if="!redLinkRows"></md-progress-circular>
 	<arb-explanation-request-row ng-repeat="row in redLinkRows | orderBy:['-originalTotalLikeCount','-refCount','alias']"
-		row="::row">
+			row="::row">
 	</arb-explanation-request-row>
+
+	<!-- Stub requests -->
+	<arb-list-sub-header>
+		Some pages already have a bit of content. You can propose edits to help them grow into featured pages.
+	</arb-list-sub-header>
+
+	<md-progress-circular md-mode="indeterminate" ng-cloak ng-if="!stubRows"></md-progress-circular>
+	<md-list-item layout="column" layout-align="center" ng-repeat="row in stubRows">
+		<div layout="row" layout-align="start center">
+			<div flex>
+				<arb-page-title page-id="{{::row.pageId}}" is-link="true" show-clickbait="true"></arb-page-title>
+			</div>
+			<md-button ng-href="{{arb.urlService.getEditPageUrl(row.pageId)}}"
+					class="md-icon-button icon-first"
+					ng-click="editStubLinkClicked($event)"
+					aria-label="Edit page">
+				<md-icon>create</md-icon>
+			</md-button>
+		</div>
+		<md-divider></md-divider>
+	</md-list-item>
 
 	<!-- Footer -->
 	<arb-list-sub-header>

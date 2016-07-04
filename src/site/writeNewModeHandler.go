@@ -19,7 +19,7 @@ const (
 )
 
 type writeNewModeData struct {
-	NumPagesToLoad int
+	IsFullPage bool
 }
 
 var writeNewModeHandler = siteHandler{
@@ -35,6 +35,10 @@ type RedLinkRow struct {
 	RefCount string `json:"refCount"`
 }
 
+type StubRow struct {
+	PageId string `json:"pageId"`
+}
+
 func writeNewModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
@@ -46,14 +50,28 @@ func writeNewModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
-	if data.NumPagesToLoad <= 0 {
-		data.NumPagesToLoad = DefaultModeRowCount
+
+	numPagesToLoad := 15
+	if data.IsFullPage {
+		numPagesToLoad = FullModeRowCount
 	}
 
 	// Load redlinks in math
-	returnData.ResultMap["redLinks"], err = loadRedLinkRows(db, returnData.User, data.NumPagesToLoad)
+	returnData.ResultMap["redLinks"], err = loadRedLinkRows(db, returnData.User, numPagesToLoad)
 	if err != nil {
 		return pages.Fail("Error loading drafts", err)
+	}
+
+	// Load stubs in math
+	returnData.ResultMap["stubs"], err = loadStubRows(db, returnData, numPagesToLoad)
+	if err != nil {
+		return pages.Fail("Error loading drafts", err)
+	}
+
+	// Load pages
+	err = core.ExecuteLoadPipeline(db, returnData)
+	if err != nil {
+		return pages.Fail("Pipeline error", err)
 	}
 
 	return pages.Success(returnData)
@@ -136,4 +154,38 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 	}
 
 	return redLinks, nil
+}
+
+// Load pages that are marked as stubs
+func loadStubRows(db *database.DB, returnData *core.CommonHandlerData, limit int) ([]*StubRow, error) {
+	stubRows := make([]*StubRow, 0)
+	rows := database.NewQuery(`
+		SELECT pi.pageId
+		FROM`).AddPart(core.PageInfosTable(returnData.User)).Add(`AS pi
+		JOIN pagePairs AS pp
+		ON (pi.pageId=pp.childId)
+		JOIN pageDomainPairs AS pdp
+		ON (pi.pageId=pdp.pageId)
+		LEFT JOIN likes AS l
+		ON (pi.likeableId=l.likeableId)
+		WHERE pp.parentId=?`, core.StubPageId).Add(`
+			AND pdp.domainId=?`, core.MathDomainId).Add(`
+			AND pi.lockedUntil < NOW()
+		GROUP BY 1
+		ORDER BY SUM(l.value) DESC
+		LIMIT ?`, limit).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageId string
+		err := rows.Scan(&pageId)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		stubRows = append(stubRows, &StubRow{PageId: pageId})
+		core.AddPageIdToMap(pageId, returnData.PageMap)
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load stub rows: %v", err)
+	}
+	return stubRows, nil
 }

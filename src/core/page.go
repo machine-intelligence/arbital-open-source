@@ -71,6 +71,7 @@ const (
 	PageQuickLockDuration = 5 * 60  // in seconds
 	PageLockDuration      = 30 * 60 // in seconds
 
+	StubPageId                    = "72"
 	RequestForEditTagParentPageId = "3zj"
 	MathDomainId                  = "1lw"
 )

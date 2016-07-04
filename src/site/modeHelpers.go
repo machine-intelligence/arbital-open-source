@@ -11,6 +11,7 @@ import (
 
 const (
 	DefaultModeRowCount = 25
+	FullModeRowCount    = 100
 
 	PageModeRowType               = "page"
 	CommentModeRowType            = "comment"
