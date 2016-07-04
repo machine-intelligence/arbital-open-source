@@ -1153,6 +1153,15 @@ arb-multiple-choice {
 	}
 }
 
+arb-checkbox, [arb-checkbox] {
+	position: relative;
+	top: -1em;
+
+	p {
+		margin-bottom: 0;
+	}
+}
+
 .learn-requirements {
 	margin-left: 10px;
 	border-left: #e0e0e0 3px solid;
