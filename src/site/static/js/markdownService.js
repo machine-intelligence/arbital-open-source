@@ -160,7 +160,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		});
 
 		// Process %fixme:markdown% blocks.
-		var fixmeBlockRegexp = new RegExp('^(%+)todo: ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
+		var fixmeBlockRegexp = new RegExp('^(%+)fixme: ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(fixmeBlockRegexp, function(whole, bars, markdown) {
 				if (isEditor) {
