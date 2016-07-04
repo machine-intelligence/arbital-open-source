@@ -255,13 +255,13 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		// wants: [alias1],[alias2]...
 		// ] blocks.
 		var checkboxBlockRegexp = new RegExp('^\\[checkbox\\(' + aliasMatch + '\\): ?([^\n]+?)\n' +
-				'(y:\n)' +
+				'(y!?:\n)' +
 				'(knows: ?[^\n]+?\n)?' +
 				'(wants: ?[^\n]+?\n)?' +
 				'(-knows: ?[^\n]+?\n)?' +
 				'(-wants: ?[^\n]+?\n)?' +
 				'(path: ?[^\n]+?\n)?' +
-				'(n:\n)' +
+				'(n!?:\n)' +
 				'(knows: ?[^\n]+?\n)?' +
 				'(wants: ?[^\n]+?\n)?' +
 				'(-knows: ?[^\n]+?\n)?' +
@@ -270,6 +270,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				'\\] *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(checkboxBlockRegexp, function() {
+				var defaultValue = 'n';
 				var result = [];
 				// Process captured groups
 				for (var n = 2; n < arguments.length; n++) {
@@ -280,15 +281,21 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 						result.push(arg + '\n\n');
 					} else {
 						// Match answer line
-						var match = arg.match(/^([yn]):\n$/);
+						var match = arg.match(/^([yn]!?):\n$/);
 						if (match) {
-							result.push('- ' + match[1] + '\n');
+							var answer = match[1];
+							if (answer.length >= 1 && answer[1] == '!') {
+								defaultValue = answer[0];
+							}
+							result.push('- ' + answer + '\n');
 							continue;
 						}
 						result.push(' - ' + arg);
 					}
 				}
-				return '<arb-checkbox page-id=\'' + pageId + '\' object-alias=\'' + arguments[1] + '\'>' +
+				return '<arb-checkbox page-id=\'' + pageId +
+					'\' object-alias=\'' + arguments[1] +
+					'\' default=\'' + defaultValue + '\'>' +
 					runBlockGamut(result.join('')) + '\n\n</arb-checkbox>';
 			});
 		});
