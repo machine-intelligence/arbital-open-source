@@ -295,6 +295,24 @@ app.directive('arbLikes', function($http, arb) {
 	};
 });
 
+app.directive('arbEditButton', function(arb) {
+	return {
+		templateUrl: versionUrl('static/html/editButton.html'),
+		scope: {
+			editUrl: '@',
+			analyticsString: '@',
+		},
+		controller: function($scope) {
+			$scope.processClick = function(event) {
+				arb.analyticsService.reportEditLinkClick(event);
+				arb.signupService.wrapInSignupFlow($scope.analyticsString, function() {
+					arb.urlService.goToUrl($scope.editUrl);
+				});
+			};
+		},
+	}
+});
+
 // subscribe directive displays the button for subscribing to a page.
 app.directive('arbSubscribe', function($http, arb) {
 	return {
