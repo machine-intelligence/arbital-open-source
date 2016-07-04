@@ -9,6 +9,7 @@ app.directive('arbCheckbox', function($timeout, $http, $compile, arb) {
 			pageId: '@',
 			index: '@',
 			objectAlias: '@',
+			default: '@',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -84,13 +85,25 @@ app.directive('arbCheckbox', function($timeout, $http, $compile, arb) {
 			});
 			element.find('ng-transclude > ul').remove();
 
+			// Add the element which shows what pages were added
+			var addedPagesHtml = [
+				'<div class="md-caption" ng-if="path[letterChoice].length > 0 && arb.pathService.isOnPath()">',
+				'<span>Added to path:</span>',
+				'<span ng-repeat="(index, pageId) in path[letterChoice]">',
+				'	<span class="comma" ng-if="index > 0">,</span>',
+				'	<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>',
+				'</span>',
+				'</div>'].join('');
+			element.find('ng-transclude').append($compile(addedPagesHtml)(scope));
+
 			$timeout(function() {
 				// Process all math.
 				arb.markdownService.compileChildren(scope, element, true);
 
-				// Trigget an update to select 'n'
-				$scope.choice = true;
-				$scope.toggleChoice();
+				// Toggle choice to make sure we select the default value and propagate
+				// that change to the server
+				scope.choice = scope.default != 'y';
+				scope.toggleChoice();
 			});
 		},
 	};
