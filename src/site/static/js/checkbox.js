@@ -37,7 +37,7 @@ app.directive('arbCheckbox', function($timeout, $http, $compile, arb) {
 			};
 		},
 		link: function(scope, element, attrs) {
-			var buttonHtml = '<md-button class=\'md-icon-button\' ng-click=\'toggleChoice()\' aria-label=\'Toggle\'>' +
+			var buttonHtml = '<md-button class=\'md-icon-button small-button\' ng-click=\'toggleChoice()\' aria-label=\'Toggle\'>' +
 			'	<md-icon ng-if=\'choice\'>' +
 			'		check_box' +
 			'	</md-icon>' +
@@ -87,6 +87,10 @@ app.directive('arbCheckbox', function($timeout, $http, $compile, arb) {
 			$timeout(function() {
 				// Process all math.
 				arb.markdownService.compileChildren(scope, element, true);
+
+				// Trigget an update to select 'n'
+				$scope.choice = true;
+				$scope.toggleChoice();
 			});
 		},
 	};
