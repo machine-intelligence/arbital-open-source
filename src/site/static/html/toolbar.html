@@ -136,7 +136,7 @@
 </md-sidenav>
 
 <!-- Right sidenav slide out; only if the user is logged out -->
-<md-sidenav class="md-sidenav-right md-whiteframe-6dp" md-component-id="right" ng-if="!arb.userService.userIsLoggedIn()">
+<md-sidenav class="md-sidenav-right md-whiteframe-6dp" md-component-id="right" ng-if="!arb.userService.user.id !== ''">
 	<md-toolbar>
 		<h1 class="md-toolbar-tools" layout="row" layout-align="space-between center">
 			<span>Log In</span>
