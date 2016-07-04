@@ -102,7 +102,7 @@ type CookieSession struct {
 	Email     string
 	SessionId string
 
-	// Randomly generated string (for security/encryption reasons)
+	// Randomly generated salt (for security/encryption reasons)
 	Random string
 }
 
@@ -150,7 +150,7 @@ func SaveCookie(w http.ResponseWriter, r *http.Request, email string) (string, e
 
 	rand.Seed(time.Now().UnixNano())
 	sessionId := fmt.Sprintf("sid:%d", rand.Int63())
-	s.Values[sessionKey] = CookieSession{
+	s.Values[sessionKey] = &CookieSession{
 		Email:     email,
 		SessionId: sessionId,
 		Random:    fmt.Sprintf("%d", rand.Int63()),
@@ -183,10 +183,8 @@ func LoadCurrentUserFromDb(db *database.DB, userId string, u *CurrentUser) (*Cur
 	return u, nil
 }
 
-// loadUserFromDb tries to load the current user's info from the database. If
-// there is no data in the DB, but the user is logged in through AppEngine,
-// a new record is created.
-func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*CurrentUser, error) {
+// LoadCurrentUser loads the user by their email via the cookie.
+func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (userPtr *CurrentUser, err error) {
 	// Load email from the cookie
 	s, err := sessions.GetSession(r)
 	if err != nil {
@@ -237,21 +235,6 @@ func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*C
 	}
 
 	return u, nil
-}
-
-// LoadUser returns user object corresponding to logged in user. First, we check
-// if the user is logged in via App Engine. If they are, we make sure they are
-// in the database. If the user is not logged in, we return a partially filled
-// User object.
-// A user object is returned iff there is no error.
-func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (userPtr *CurrentUser, err error) {
-	userPtr, err = loadUserFromDb(w, r, db)
-	if err != nil {
-		return
-	} else if userPtr == nil {
-		userPtr = NewCurrentUser()
-	}
-	return
 }
 
 // LoadUpdateCount returns the number of not seen updates the given user has.

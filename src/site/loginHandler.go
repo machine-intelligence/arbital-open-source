@@ -55,6 +55,12 @@ func loginHandlerInternalFunc(params *pages.HandlerParams, data *loginHandlerDat
 		return pages.Fail("Couldn't save a cookie", err)
 	}
 
+	// Load the user object from the cookie
+	params.U, err = core.LoadCurrentUser(params.W, params.R, params.DB)
+	if err != nil {
+		return pages.Fail("Couldn't load user", err)
+	}
+
 	return pages.Success(core.NewHandlerData(params.U))
 }
 

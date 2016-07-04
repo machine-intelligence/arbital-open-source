@@ -8,17 +8,23 @@ app.directive('arbIndex', function($http, arb) {
 			$scope.arb = arb;
 			$scope.readTab = 0;
 			$scope.writeTab = 0;
-			$scope.showJoinSlack = false;
+			$scope.showJoinSlackInput = false;
+			$scope.showJoinSlackButton = arb.userService.user && !arb.userService.user.isSlackMember;
+			if (Cookies.getJSON('isSlackMember')) {
+				$scope.showJoinSlackButton = false;
+			}
+
 			$scope.slackInvite = {email: ''};
 
 			$scope.joinSlack = function() {
-				$scope.showJoinSlack = true;
+				$scope.showJoinSlackInput = true;
 				$scope.slackInvite.email = arb.userService.user.email;
 			};
 
 			$scope.joinSlackSubmit = function() {
 				arb.stateService.postDataWithoutProcessing('/json/sendSlackInvite/', $scope.slackInvite, function() {
 					arb.userService.user.isSlackMember = true;
+					Cookies.set('isSlackMember', true);
 				});
 				arb.userService.user.isSlackMember = true;
 			};
