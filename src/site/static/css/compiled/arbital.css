@@ -1146,6 +1146,12 @@ arb-multiple-choice {
     arb-multiple-choice .multiple-choice-option + .multiple-choice-option {
       margin-top: 5px; } }
 
+arb-checkbox, [arb-checkbox] {
+  position: relative;
+  top: -1em; }
+  arb-checkbox p, [arb-checkbox] p {
+    margin-bottom: 0; }
+
 .learn-requirements {
   margin-left: 10px;
   border-left: #e0e0e0 3px solid;
