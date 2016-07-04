@@ -21,12 +21,7 @@
 		</div>
 
 		<div layout="row" layout-align="center center">
-			<md-button ng-href="{{editUrl}}"
-					class="md-icon-button icon-first"
-					ng-click="editLinkClicked($event)"
-					aria-label="Create page">
-				<md-icon>create</md-icon>
-			</md-button>
+			<arb-edit-button edit-url="{{editUrl}}" analytics-string="write:new edit button">Create</arb-edit-button>
 			<div class="expand-button-container">
 				<md-button ng-click="toggleExpand()"
 						class="md-icon-button icon-last remove-extra-space s24 expand-button"
