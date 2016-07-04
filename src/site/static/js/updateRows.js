@@ -30,7 +30,7 @@ app.directive('arbUpdateRowDismissButton', function(arb) {
 // directive for an update timestamp
 app.directive('arbUpdateTimestamp', function(arb) {
 	return {
-		template: '<span class="md-caption nowrap" ng-bind="::(update.createdAt | smartDateTime)"></span>',
+		template: '<span class="md-caption nowrap" ng-bind="::(update.createdAt || changeLog.createdAt || createdAt | smartDateTime)"></span>',
 		scope: false,
 		require: '^updateRow'
 	};
