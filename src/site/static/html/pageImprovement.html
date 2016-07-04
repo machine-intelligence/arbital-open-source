@@ -2,7 +2,12 @@
 		layout="row"
 		layout-align="start center"
 		ng-if="shouldShowImprovements()">
-	<div flex>This page is just getting off the ground. Can you help?</div>
+	<div flex ng-switch="qualityTag">
+		<span ng-switch-when="unassessed">This page's quality is unassessed. Can you help?</span>
+		<span ng-switch-when="stub">This page is just getting started. Can you help?</span>
+		<span ng-switch-when="start">This page has some issues. Can you help?</span>
+		<span ng-switch-when="c-class">This page could use some improvement. Can you help?</span>
+	</div>
 	<md-button ng-click="toggleExpand()" class="short-button" aria-label="Expand">
 		<span ng-if="!expanded">Expand</span>
 		<arb-expand-icon expanded="expanded"></arb-expand-icon>
