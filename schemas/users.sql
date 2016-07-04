@@ -23,6 +23,9 @@ CREATE TABLE users (
 	/* Can only be set manually by an admin via DB console. Used for debugging.
 		The system will load the information for the given user, instead of this user. */
 	pretendToBeUserId VARCHAR(32) NOT NULL,
+	/* If the user asked to be invited to Slack. It's very possible that the user
+		is already a Slack member, but this field isn't set. */
+	isSlackMember BOOLEAN NOT NULL,
 
 	/* ============================= Settings ====================================
 	/* How frequently to send update emails. */

@@ -72,6 +72,10 @@ arb-signup {
 	min-width: 0 !important;
 }
 
+.light {
+	opacity: 0.7;
+}
+
 .nice-blockquote {
 	border-left: lightgray 7px solid;
 	padding-left: 10px;
@@ -529,26 +533,15 @@ a:not(.md-button) {
 }
 
 #index-header {
-	box-shadow: 0 1px 3px -3px rgba(0,0,0,.2),0 1px 1px 0 rgba(0,0,0,.14),0 2px 1px -1px rgba(0,0,0,.12);
-	position: relative;
-	top: 0px;
+	padding: 15px 10px 10px;
 
-	background: $primary-hue-3;
-	color: white !important;
-	padding: 5px 10px 10px;
-	z-index: 2;
-
-	span {
-		opacity: 0.7;
+	& > div {
+		padding: 10px;
+		background-color: white;
 	}
 
-	a {
-		color: white !important;
-		font-weight: bold;
-	}
-
-	.comma {
-		margin-left: -4px;
+	md-input-container {
+		margin-bottom: 0;
 	}
 }
 
@@ -791,12 +784,16 @@ arb-intrasite-popover, arb-user-popover, arb-text-popover {
 	}
 }
 
-arb-text-popover {
+.shadow-primary-hue-1 {
 	border: 2px solid $primary-hue-1;
 	border-radius: 5px;
 	box-shadow: 0 6px 6px -3px rgba(224,242,241,0.4),
 		0 10px 14px 1px rgba(224,242,241,0.4),
 		0 4px 18px 3px rgba(224,242,241,0.4);
+}
+
+arb-text-popover {
+	@extend .shadow-primary-hue-1;
 }
 
 arb-intrasite-popover {

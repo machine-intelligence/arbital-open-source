@@ -1582,10 +1582,11 @@
 			} else if (wrapType == 'multipleChoice') {
 				var suffix = [
 					'a: Answer 1 ("knows" will set the requisites when the user picks that answer)',
-					'knows: [bayes_rule],[bayes_rule_odds]',
-					'wants: [bayes_rule],[bayes_rule_odds]',
-					'-knows: [bayes_rule],[bayes_rule_odds]',
-					'-wants: [bayes_rule],[bayes_rule_odds]',
+					//'knows: [bayes_rule],[bayes_rule_odds]',
+					//'wants: [bayes_rule],[bayes_rule_odds]',
+					//'-knows: [bayes_rule],[bayes_rule_odds]',
+					//'-wants: [bayes_rule],[bayes_rule_odds]',
+					'path: [bayes_rule],[bayes_rule_odds]',
 					'b: Answer 2 ("wants" will set the requisites as wanted when the user picks that answer)',
 					'c: Answer 3 ("-knows" will set the requisites as not known when the user picks that answer)',
 					'd: Answer 4 ("-wants" will set the requisites as not wanted when the user picks that answer)',
@@ -1594,10 +1595,11 @@
 			} else if (wrapType == 'checkbox') {
 				var suffix = [
 					'y:',
-					'knows: [bayes_rule],[bayes_rule_odds]',
-					'wants: [bayes_rule],[bayes_rule_odds]',
-					'-knows: [bayes_rule],[bayes_rule_odds]',
-					'-wants: [bayes_rule],[bayes_rule_odds]',
+					//'knows: [bayes_rule],[bayes_rule_odds]',
+					//'wants: [bayes_rule],[bayes_rule_odds]',
+					//'-knows: [bayes_rule],[bayes_rule_odds]',
+					//'-wants: [bayes_rule],[bayes_rule_odds]',
+					'path: [bayes_rule],[bayes_rule_odds]',
 					'n:',
 					];
 				linkEnteredCallback('[checkbox(checkboxAlias): ', 'Do you dare to check this box?\n', suffix.join('\n') + '\n]\n\n');

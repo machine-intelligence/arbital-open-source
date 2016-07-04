@@ -57,6 +57,7 @@ type CurrentUser struct {
 	EmailThreshold         int    `json:"emailThreshold"`
 	IgnoreMathjax          bool   `json:"ignoreMathjax"`
 	ShowAdvancedEditorMode bool   `json:"showAdvancedEditorMode"`
+	IsSlackMember          bool   `json:"isSlackMember"`
 
 	// If the user isn't logged in, this is set to their unique session id
 	SessionId string `json:"-"`
@@ -101,7 +102,7 @@ type CookieSession struct {
 	Email     string
 	SessionId string
 
-	// Randomly generated string (for security/encryption reasons)
+	// Randomly generated salt (for security/encryption reasons)
 	Random string
 }
 
@@ -149,7 +150,7 @@ func SaveCookie(w http.ResponseWriter, r *http.Request, email string) (string, e
 
 	rand.Seed(time.Now().UnixNano())
 	sessionId := fmt.Sprintf("sid:%d", rand.Int63())
-	s.Values[sessionKey] = CookieSession{
+	s.Values[sessionKey] = &CookieSession{
 		Email:     email,
 		SessionId: sessionId,
 		Random:    fmt.Sprintf("%d", rand.Int63()),
@@ -167,12 +168,12 @@ func LoadCurrentUserFromDb(db *database.DB, userId string, u *CurrentUser) (*Cur
 		u = NewCurrentUser()
 	}
 	row := db.NewStatement(`
-		SELECT id,fbUserId,email,firstName,lastName,isAdmin,isTrusted,
+		SELECT id,fbUserId,email,firstName,lastName,isAdmin,isTrusted,isSlackMember,
 			emailFrequency,emailThreshold,ignoreMathjax,showAdvancedEditorMode
 		FROM users
 		WHERE id=?`).QueryRow(userId)
 	exists, err := row.Scan(&u.Id, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
-		&u.IsAdmin, &u.IsTrusted, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
+		&u.IsAdmin, &u.IsTrusted, &u.IsSlackMember, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
 		&u.ShowAdvancedEditorMode)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load user: %v", err)
@@ -182,10 +183,8 @@ func LoadCurrentUserFromDb(db *database.DB, userId string, u *CurrentUser) (*Cur
 	return u, nil
 }
 
-// loadUserFromDb tries to load the current user's info from the database. If
-// there is no data in the DB, but the user is logged in through AppEngine,
-// a new record is created.
-func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*CurrentUser, error) {
+// LoadCurrentUser loads the user by their email via the cookie.
+func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (userPtr *CurrentUser, err error) {
 	// Load email from the cookie
 	s, err := sessions.GetSession(r)
 	if err != nil {
@@ -209,11 +208,11 @@ func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*C
 	var pretendToBeUserId string
 	row := db.NewStatement(`
 		SELECT id,pretendToBeUserId,fbUserId,email,firstName,lastName,isAdmin,isTrusted,
-			emailFrequency,emailThreshold,ignoreMathjax,showAdvancedEditorMode
+			isSlackMember,emailFrequency,emailThreshold,ignoreMathjax,showAdvancedEditorMode
 		FROM users
 		WHERE email=?`).QueryRow(cookie.Email)
 	exists, err := row.Scan(&u.Id, &pretendToBeUserId, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
-		&u.IsAdmin, &u.IsTrusted, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
+		&u.IsAdmin, &u.IsTrusted, &u.IsSlackMember, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
 		&u.ShowAdvancedEditorMode)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a user: %v", err)
@@ -236,21 +235,6 @@ func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*C
 	}
 
 	return u, nil
-}
-
-// LoadUser returns user object corresponding to logged in user. First, we check
-// if the user is logged in via App Engine. If they are, we make sure they are
-// in the database. If the user is not logged in, we return a partially filled
-// User object.
-// A user object is returned iff there is no error.
-func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (userPtr *CurrentUser, err error) {
-	userPtr, err = loadUserFromDb(w, r, db)
-	if err != nil {
-		return
-	} else if userPtr == nil {
-		userPtr = NewCurrentUser()
-	}
-	return
 }
 
 // LoadUpdateCount returns the number of not seen updates the given user has.

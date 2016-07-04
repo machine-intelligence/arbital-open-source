@@ -1,0 +1,53 @@
+<div layout="row"
+		layout-align="start center"
+		layout-align-xs="center center"
+		class="next-prev-nav">
+
+	<!-- Show this when the user has veered off the current path -->
+	<div ng-if="path && !arb.pathService.isOnPath()">
+		<md-button ng-click="arb.pathService.goToPathPage()"
+				class="md-primary md-raised">
+			Return to path
+			<md-icon>chevron_right</md-icon>
+		</md-button>
+	</div>
+
+	<!-- Show this when the user is not on a path, but can start one -->
+	<div ng-if="!path && page.pathPages.length > 0 && !arb.pathService.isOnPath()">
+		<md-button ng-click="arb.pathService.startPath(pageId)"
+				class="md-primary md-raised">
+			Start path
+			<md-icon>chevron_right</md-icon>
+		</md-button>
+	</div>
+
+	<!-- If on the path, show "<Back" and "Next>" buttons -->
+	<div ng-if="arb.pathService.isOnPath()">
+		<!--<md-button ng-click="arb.pathService.updateProgress(path.progress-1)">
+			<md-icon>chevron_left</md-icon>
+			<span>Back</span>
+		</md-button>-->
+		<span ng-if="!arb.pathService.showFinish()">
+			Path: {{path.progress+1}}/{{path.pageIds.length}}
+			<span ng-if="arb.pathService.pageExtensionLength() > 0">
+				(+{{arb.pathService.pageExtensionLength()}})
+			</span>
+		</span>
+		<md-button class="md-primary md-raised"
+				ng-click="arb.pathService.updateProgress(path.progress+1)"
+				ng-if="!arb.pathService.showFinish()">
+			<span>Next</span>
+			<md-icon>chevron_right</md-icon>
+		</md-button>
+		<span ng-if="arb.pathService.showFinish()">
+			<md-button class="md-primary md-raised"
+				ng-click="arb.pathService.finishPath()"
+				ng-if="!path.isFinished">
+				Finish!
+			</md-button>
+			<span ng-if="path.isFinished">
+				Path finished!
+			</span>
+		</span>
+	</div>
+</div>

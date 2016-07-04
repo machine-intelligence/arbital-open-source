@@ -71,6 +71,7 @@ const (
 	PageQuickLockDuration = 5 * 60  // in seconds
 	PageLockDuration      = 30 * 60 // in seconds
 
+	StubPageId                    = "72"
 	RequestForEditTagParentPageId = "3zj"
 	MathDomainId                  = "1lw"
 )
@@ -301,6 +302,7 @@ func (a LensList) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a LensList) Less(i, j int) bool { return a[i].LensIndex < a[j].LensIndex }
 
 // PathPage connection
+// Corresponds to one row from pathPages table
 type PathPage struct {
 	Id         int64  `json:"id,string"`
 	GuideId    string `json:"guideId"`
@@ -317,6 +319,26 @@ type Path []*PathPage
 func (a Path) Len() int           { return len(a) }
 func (a Path) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a Path) Less(i, j int) bool { return a[i].PathIndex < a[j].PathIndex }
+
+// When a user starts a path, they get their own path instance
+// Corresponds to one row from pathInstances table
+type PathInstance struct {
+	Id         int64    `json:"id,string"`
+	GuideId    string   `json:"guideId"`
+	PageIds    []string `json:"pageIds"`
+	Progress   int      `json:"progress"`
+	CreatedAt  string   `json:"createdAt"`
+	UpdatedAt  string   `json:"updatedAt"`
+	IsFinished bool     `json:"isFinished"`
+
+	// True if the path was created by current user
+	IsByCurrentUser bool `json:"isByCurrentUser"`
+
+	// FE data
+	// Insert these page ids when continuing the path
+	// question alias -> list of page ids
+	PageIdsToInsert map[string][]string `json:"-"`
+}
 
 type Vote struct {
 	Value     int    `json:"value"`
@@ -2589,4 +2611,28 @@ func LoadPathPage(db *database.DB, id string) (*PathPage, error) {
 		return nil, fmt.Errorf("Couldn't load the path page: %v", err)
 	}
 	return pathPage, nil
+}
+
+// Load path instance with the given id
+func LoadPathInstance(db *database.DB, id string, u *CurrentUser) (*PathInstance, error) {
+	var instance *PathInstance
+	rows := database.NewQuery(`
+		SELECT id,userId,guideId,pageIds,progress,createdAt,updatedAt,isFinished
+		FROM pathInstances`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		instance = &PathInstance{}
+		var pageIds, userId string
+		err := rows.Scan(&instance.Id, &userId, &instance.GuideId, &pageIds, &instance.Progress,
+			&instance.CreatedAt, &instance.UpdatedAt, &instance.IsFinished)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		instance.IsByCurrentUser = userId == u.Id
+		instance.PageIds = strings.Split(pageIds, ",")
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load path instance: %v", err)
+	}
+	return instance, nil
 }

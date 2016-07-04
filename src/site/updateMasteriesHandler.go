@@ -131,9 +131,11 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 			}
 		}
 
-		statement := tx.DB.NewMultipleInsertStatement("userMasteryPairs", hashmaps, "has", "wants", "updatedAt", "taughtBy", "userTrustSnapshotId")
-		if _, err := statement.WithTx(tx).Exec(); err != nil {
-			return sessions.NewError("Failed to insert masteries", err)
+		if len(hashmaps) > 0 {
+			statement := tx.DB.NewMultipleInsertStatement("userMasteryPairs", hashmaps, "has", "wants", "updatedAt", "taughtBy", "userTrustSnapshotId")
+			if _, err := statement.WithTx(tx).Exec(); err != nil {
+				return sessions.NewError("Failed to insert masteries", err)
+			}
 		}
 		return nil
 	})

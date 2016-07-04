@@ -578,7 +578,7 @@
 			</md-tab>
 
 			<!-- (4) Changelog tab -->
-			<md-tab label="Changelog" ng-disabled="::(page.isComment())" ng-if="showAdvancedMode()">
+			<md-tab label="History" ng-disabled="::(page.isComment())" ng-if="showAdvancedMode()">
 				<div class="md-caption" layout-padding ng-if="::(page.changeLogs.length <= 0)">No changes yet</div>
 				<md-list class="editor-tab" flex>
 					<md-list-item ng-repeat="(index,changeLog) in ::page.changeLogs">

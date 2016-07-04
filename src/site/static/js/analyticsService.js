@@ -19,13 +19,13 @@ app.service('analyticsService', function($http, $location, stateService) {
 		ga('send', 'pageview');
 	};
 
-	// Called when a user clicks on an edit link
-	this.reportEditLinkClick = function(event) {
+	// Called when a user edits a page
+	this.reportEditPageAction = function(event, action) {
 		if (!isLive()) return;
 		ga('send', {
 			hitType: 'event',
 			eventCategory: 'Edit',
-			eventAction: 'linkClick',
+			eventAction: action,
 			eventLabel: event.target.href,
 			eventValue: 1,
 		});

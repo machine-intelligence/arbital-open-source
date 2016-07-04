@@ -441,6 +441,9 @@ arb-signup .md-button.md-raised.facebook-button {
 .short-button {
   min-width: 0 !important; }
 
+.light {
+  opacity: 0.7; }
+
 .nice-blockquote, arb-markdown blockquote, [arb-markdown] blockquote, .preview-area blockquote {
   border-left: lightgray 7px solid;
   padding-left: 10px;
@@ -718,20 +721,12 @@ a:not(.md-button) {
   color: #004D40; }
 
 #index-header {
-  box-shadow: 0 1px 3px -3px rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12);
-  position: relative;
-  top: 0px;
-  background: #004D40;
-  color: white !important;
-  padding: 5px 10px 10px;
-  z-index: 2; }
-  #index-header span {
-    opacity: 0.7; }
-  #index-header a {
-    color: white !important;
-    font-weight: bold; }
-  #index-header .comma {
-    margin-left: -4px; }
+  padding: 15px 10px 10px; }
+  #index-header > div {
+    padding: 10px;
+    background-color: white; }
+  #index-header md-input-container {
+    margin-bottom: 0; }
 
 #footer {
   font-size: 12px;
@@ -910,7 +905,7 @@ arb-intrasite-popover, arb-user-popover, arb-text-popover {
     padding-top: 12px;
     font-weight: 500; }
 
-arb-text-popover {
+.shadow-primary-hue-1, arb-text-popover {
   border: 2px solid #E0F2F1;
   border-radius: 5px;
   box-shadow: 0 6px 6px -3px rgba(224, 242, 241, 0.4), 0 10px 14px 1px rgba(224, 242, 241, 0.4), 0 4px 18px 3px rgba(224, 242, 241, 0.4); }

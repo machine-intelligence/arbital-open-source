@@ -44,17 +44,16 @@ func moreRelationshipsJsonHandler(params *pages.HandlerParams) *pages.Result {
 		FROM links AS l
 		JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
 		ON (l.parentId=pi.pageId OR l.parentId=pi.alias)`)
-
 	if data.RestrictToMathDomain {
 		query.Add(`
 			JOIN pageDomainPairs as pdp
 			ON pdp.pageId=l.parentId AND pdp.domainId=?`, core.MathDomainId)
 	}
-
 	query.Add(`WHERE l.childAlias=?`, data.PageAlias)
 
 	rows := query.ToStatement(db).Query()
-	returnData.ResultMap["moreRelationshipIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
+	loadOptions := (&core.PageLoadOptions{ViewCount: true}).Add(core.TitlePlusLoadOptions)
+	returnData.ResultMap["moreRelationshipIds"], err = core.LoadPageIds(rows, returnData.PageMap, loadOptions)
 	if err != nil {
 		return pages.Fail("error while loading links", err)
 	}

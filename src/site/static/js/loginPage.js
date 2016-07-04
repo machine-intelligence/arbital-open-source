@@ -11,6 +11,7 @@ app.directive('arbLogin', function($location, $http, arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.formData = {};
+			$scope.forgotPasswordSuccess = false;
 
 			$scope.formSubmit = function(event) {
 				submitForm($(event.currentTarget), '/login/', $scope.formData, function(r) {
@@ -41,6 +42,15 @@ app.directive('arbLogin', function($location, $http, arb) {
 						$scope.socialError = 'Error: ' + response.status;
 					}
 				});
+			};
+
+			$scope.forgotPassword = function() {
+				arb.stateService.postDataWithoutProcessing('/json/forgotPassword/',
+					{email: $scope.formData.email},
+					function() {
+						$scope.forgotPasswordSuccess = true;
+					}
+				);
 			};
 		},
 	};

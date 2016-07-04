@@ -13,6 +13,8 @@ import (
 type PageInfosOptions struct {
 	Unpublished bool
 	Deleted     bool
+	Fields      []string
+	WhereFilter *database.QueryPart
 }
 
 // PageInfosTable is a wrapper for loading data from the pageInfos table.
@@ -36,7 +38,19 @@ func PageInfosTableWithOptions(u *CurrentUser, options *PageInfosOptions) *datab
 		return database.NewQuery(`pageInfos`)
 	}
 
-	q := database.NewQuery(`(SELECT * FROM pageInfos WHERE true`)
+	var fieldsString string
+	if options.Fields != nil && len(options.Fields) > 0 {
+		for i, f := range options.Fields {
+			fieldsString += f
+			if i > 0 {
+				fieldsString += ","
+			}
+		}
+	} else {
+		fieldsString = "*"
+	}
+
+	q := database.NewQuery(`(SELECT ` + fieldsString + ` FROM pageInfos WHERE true`)
 	if u != nil {
 		allowedGroups := append(u.GroupIds, "")
 		q.Add(`AND seeGroupId IN`).AddArgsGroupStr(allowedGroups)
@@ -46,6 +60,9 @@ func PageInfosTableWithOptions(u *CurrentUser, options *PageInfosOptions) *datab
 	}
 	if !options.Deleted {
 		q.Add(`AND not isDeleted`)
+	}
+	if options.WhereFilter != nil {
+		q.Add(`AND (`).AddPart(options.WhereFilter).Add(`)`)
 	}
 	return q.Add(`)`)
 }

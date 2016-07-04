@@ -317,9 +317,7 @@ func GetNotificationUpdateTypes() []string {
 	return []string{
 		TopLevelCommentUpdateType,
 		ReplyUpdateType,
-		PageToDomainSubmissionUpdateType,
 		AtMentionUpdateType,
-		NewMarkUpdateType,
 		ResolvedThreadUpdateType,
 		ResolvedMarkUpdateType,
 		AnsweredMarkUpdateType,
@@ -330,8 +328,10 @@ func GetMaintenanceUpdateTypes() []string {
 	return []string{
 		PageEditUpdateType,
 		ChangeLogUpdateType,
+		PageToDomainSubmissionUpdateType,
 		QuestionMergedUpdateType,
 		QuestionMergedReverseUpdateType,
+		NewMarkUpdateType,
 	}
 }
 

@@ -570,6 +570,8 @@ app.directive('arbPageRow', function(arb) {
 			hideLikes: '=',
 			showLastEdit: '=',
 			showCreatedAt: '=',
+			showOtherDateTime: '=',
+			otherDateTime: '=',
 			showQuickEdit: '=',
 			showRedLinkCount: '=',
 			showCommentCount: '=',
