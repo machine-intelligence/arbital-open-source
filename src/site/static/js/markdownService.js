@@ -159,6 +159,17 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		});
 
+		// Process %fixme:markdown% blocks.
+		var fixmeBlockRegexp = new RegExp('^(%+)todo: ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
+		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
+			return text.replace(fixmeBlockRegexp, function(whole, bars, markdown) {
+				if (isEditor) {
+					return '<div class=\'todo-text editor-block\'>' + runBlockGamut(markdown) + '\n\n</div>';
+				}
+				return '';
+			});
+		});
+
 		// Process %comment:markdown% blocks.
 		var commentBlockRegexp = new RegExp('^(%+)comment: ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
@@ -400,6 +411,17 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 					return prefix + '<span class=\'todo-text\'>' + text + '</span>';
 				}
 				markdownPage.todos.push(text);
+				return prefix;
+			});
+		});
+
+		// Process [fixme:text] spans.
+		var fixmeSpanRegexp = new RegExp(notEscaped + '\\[fixme: ?([^\\]]+?)\\]' + noParen, 'g');
+		converter.hooks.chain('preSpanGamut', function(text) {
+			return text.replace(fixmeSpanRegexp, function(whole, prefix, text) {
+				if (isEditor) {
+					return prefix + '<span class=\'todo-text\'>' + text + '</span>';
+				}
 				return prefix;
 			});
 		});

@@ -28,7 +28,7 @@
 		<ng-pluralize count="page.todos.length"
 				when="{'one': 'item', 'other': 'items'}"></ng-pluralize>:
 		<ul>
-			<li ng-repeat="text in page.todos">
+			<li ng-repeat="text in page.todos track by $index">
 				{{text}}
 			</li>
 		</ul>
