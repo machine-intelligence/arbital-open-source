@@ -164,7 +164,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(fixmeBlockRegexp, function(whole, bars, markdown) {
 				if (isEditor) {
-					return '<div class=\'todo-text editor-block\'>' + runBlockGamut(markdown) + '\n\n</div>';
+					return '<div class=\'fixme-text editor-block\'>' + runBlockGamut(markdown) + '\n\n</div>';
 				}
 				return '';
 			});
@@ -413,7 +413,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(fixmeSpanRegexp, function(whole, prefix, text) {
 				if (isEditor) {
-					return prefix + '<span class=\'todo-text\'>' + text + '</span>';
+					return prefix + '<span class=\'fixme-text\'>' + text + '</span>';
 				}
 				return prefix;
 			});
