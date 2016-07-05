@@ -97,6 +97,14 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 					arb.analyticsService.reportPageToDomainSubmission();
 				});
 			};
+
+			$scope.updateBonusTrust = {
+				userId: $scope.page.pageId,
+				bonusEditTrust: 0,
+			};
+			$scope.pushBonusTrust = function() {
+				arb.stateService.postDataWithoutProcessing('/json/updateBonusTrust/', $scope.updateBonusTrust);
+			};
 		},
 		link: function(scope, element, attrs) {
 			// Manage switching between lenses, including loading the necessary data.

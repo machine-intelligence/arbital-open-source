@@ -14,6 +14,8 @@ CREATE TABLE invites (
 	claimedAt DATETIME NOT NULL,
 	/* When the invite email was sent. */
 	emailSentAt DATETIME NOT NULL,
+	/* How much additional edit trust to give to the invited user. */
+	bonusEditTrust INT NOT NULL,
 
 	PRIMARY KEY(fromUserId,domainId,toEmail)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

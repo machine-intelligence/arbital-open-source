@@ -25,9 +25,10 @@ const (
 const (
 	// Karma requirements to perform various actions
 	// NOTE: all the numbers are made up right now. The only real number is 200
-	CommentKarmaReq    = 200
-	EditPageKarmaReq   = 200
-	DeletePageKarmaReq = 200
+	CommentKarmaReq             = 200
+	EditPageKarmaReq            = 200
+	DeletePageKarmaReq          = 200
+	ApprovePageToDomainKarmaReq = 300
 
 	DefaultInviteKarma = 200
 )
@@ -87,6 +88,8 @@ type Invite struct {
 	ToUserId    string `json:"toUserId"`
 	ClaimedAt   string `json:"claimedAt"`
 	EmailSentAt string `json:"emailSentAt"`
+
+	BonusEditTrust int `json:"-"`
 }
 
 // Trust has the different scores for how much we trust a user.
@@ -385,6 +388,9 @@ func LoadUserTrust(db *database.DB, u *CurrentUser, domainIds []string) error {
 			trust := u.TrustMap[invite.DomainId]
 			if trust.EditTrust < DefaultInviteKarma {
 				trust.EditTrust = DefaultInviteKarma
+				// NOTE: there might be multiple invites for the same domain and for now we
+				// set bonusEditTrust for all of them
+				trust.EditTrust += invite.BonusEditTrust
 			}
 			trust.Permissions.DomainAccess.Has = true
 			u.IsDomainMember = true
@@ -410,7 +416,7 @@ func LoadUserTrust(db *database.DB, u *CurrentUser, domainIds []string) error {
 		if !trust.Permissions.DomainAccess.Has {
 			trust.Permissions.DomainAccess.Reason = "You don't have access to this domain"
 		}
-		trust.Permissions.DomainTrust.Has = u.IsTrusted
+		trust.Permissions.DomainTrust.Has = trust.EditTrust >= ApprovePageToDomainKarmaReq
 		if !trust.Permissions.DomainTrust.Has {
 			trust.Permissions.DomainTrust.Reason = "You don't have full trust for this domain"
 		}
@@ -435,12 +441,13 @@ func LoadUserTrust(db *database.DB, u *CurrentUser, domainIds []string) error {
 func LoadInvitesWhere(db *database.DB, wherePart *database.QueryPart) ([]*Invite, error) {
 	invites := make([]*Invite, 0)
 	rows := database.NewQuery(`
-		SELECT fromUserId,domainId,toEmail,createdAt,toUserId,claimedAt,emailSentAt
+		SELECT fromUserId,domainId,toEmail,createdAt,toUserId,claimedAt,emailSentAt,bonusEditTrust
 		FROM invites`).AddPart(wherePart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		invite := &Invite{}
 		err := rows.Scan(&invite.FromUserId, &invite.DomainId, &invite.ToEmail,
-			&invite.CreatedAt, &invite.ToUserId, &invite.ClaimedAt, &invite.EmailSentAt)
+			&invite.CreatedAt, &invite.ToUserId, &invite.ClaimedAt, &invite.EmailSentAt,
+			&invite.BonusEditTrust)
 		if err != nil {
 			return fmt.Errorf("failed to scan an invite: %v", err)
 		}
