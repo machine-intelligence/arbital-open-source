@@ -49,7 +49,7 @@
 
 	<!-- Menu with all the other stuff -->
 	<!-- TODO(alexei): figure out a better way than hardcoding these numbers -->
-	<md-menu md-offset="0 -100">
+	<md-menu md-offset="0 -145">
 		<!-- Trigger element is a md-button with an icon -->
 		<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button icon-last" aria-label="More page actions">
 			<md-icon>more_vert</md-icon>
@@ -60,6 +60,13 @@
 			<md-menu-item>
 				<md-button ng-href="{{arb.urlService.getPageUrl(selectedLens.pageId, {permalink: true})}}">
 					Permalink
+				</md-button>
+			</md-menu-item>
+
+			<!-- Show panel to quickly add tags -->
+			<md-menu-item ng-if="!isTagsPanelVisible">
+				<md-button ng-click="showTagsPanel()">
+					Edit tags
 				</md-button>
 			</md-menu-item>
 
