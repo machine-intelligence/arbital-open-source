@@ -519,6 +519,7 @@ app.run(function($http, $location, arb) {
 
 				arb.stateService.primaryPage = page;
 				arb.urlService.ensureCanonPath(arb.urlService.getPageUrl(page.pageId, {lensId: data.result.lensId}));
+				arb.pathService.primaryPageChanged();
 				return {
 					title: page.title,
 					content: $scope.newElement(pageTemplate),

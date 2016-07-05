@@ -323,21 +323,33 @@ func (a Path) Less(i, j int) bool { return a[i].PathIndex < a[j].PathIndex }
 // When a user starts a path, they get their own path instance
 // Corresponds to one row from pathInstances table
 type PathInstance struct {
-	Id         int64    `json:"id,string"`
-	GuideId    string   `json:"guideId"`
-	PageIds    []string `json:"pageIds"`
-	Progress   int      `json:"progress"`
-	CreatedAt  string   `json:"createdAt"`
-	UpdatedAt  string   `json:"updatedAt"`
-	IsFinished bool     `json:"isFinished"`
+	Id         int64               `json:"id,string"`
+	GuideId    string              `json:"guideId"`
+	Pages      []*PathInstancePage `json:"pages"`
+	Progress   int                 `json:"progress"`
+	CreatedAt  string              `json:"createdAt"`
+	UpdatedAt  string              `json:"updatedAt"`
+	IsFinished bool                `json:"isFinished"`
 
 	// True if the path was created by current user
 	IsByCurrentUser bool `json:"isByCurrentUser"`
 
 	// FE data
 	// Insert these page ids when continuing the path
-	// question alias -> list of page ids
-	PageIdsToInsert map[string][]string `json:"-"`
+	// question alias -> list of pages
+	PagesToInsert map[string][]*PathInstancePage `json:"-"`
+}
+
+func NewPathInstance() *PathInstance {
+	var p PathInstance
+	p.Pages = make([]*PathInstancePage, 0)
+	return &p
+}
+
+// A structure for each page on a path
+type PathInstancePage struct {
+	PageId   string `json:"pageId"`
+	SourceId string `json:"sourceId"`
 }
 
 type Vote struct {
@@ -2617,18 +2629,22 @@ func LoadPathPage(db *database.DB, id string) (*PathPage, error) {
 func LoadPathInstance(db *database.DB, id string, u *CurrentUser) (*PathInstance, error) {
 	var instance *PathInstance
 	rows := database.NewQuery(`
-		SELECT id,userId,guideId,pageIds,progress,createdAt,updatedAt,isFinished
+		SELECT id,userId,guideId,pageIds,sourcePageIds,progress,createdAt,updatedAt,isFinished
 		FROM pathInstances`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		instance = &PathInstance{}
-		var pageIds, userId string
-		err := rows.Scan(&instance.Id, &userId, &instance.GuideId, &pageIds, &instance.Progress,
-			&instance.CreatedAt, &instance.UpdatedAt, &instance.IsFinished)
+		instance = NewPathInstance()
+		var pageIds, sourcePageIds, userId string
+		err := rows.Scan(&instance.Id, &userId, &instance.GuideId, &pageIds, &sourcePageIds,
+			&instance.Progress, &instance.CreatedAt, &instance.UpdatedAt, &instance.IsFinished)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
 		instance.IsByCurrentUser = userId == u.Id
-		instance.PageIds = strings.Split(pageIds, ",")
+		pageIdsList := strings.Split(pageIds, ",")
+		sourceIdsList := strings.Split(sourcePageIds, ",")
+		for n, pageId := range pageIdsList {
+			instance.Pages = append(instance.Pages, &PathInstancePage{pageId, sourceIdsList[n]})
+		}
 		return nil
 	})
 	if err != nil {

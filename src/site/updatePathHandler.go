@@ -18,10 +18,11 @@ var updatePathHandler = siteHandler{
 }
 
 type updatePathData struct {
-	Id              string
-	Progress        int
-	PageIdsToInsert []string
-	IsFinished      bool
+	Id         string
+	Progress   int
+	IsFinished bool
+
+	Pages []*core.PathInstancePage
 }
 
 func updatePathHandlerFunc(params *pages.HandlerParams) *pages.Result {
@@ -44,18 +45,20 @@ func updatePathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't find the path instance", nil).Status(http.StatusBadRequest)
 	}
 
-	// Extend the path as necessary
-	if len(data.PageIdsToInsert) > 0 {
-		before := append([]string{}, instance.PageIds[:instance.Progress+1]...)
-		after := append([]string{}, instance.PageIds[instance.Progress+1:]...)
-		instance.PageIds = before
-		instance.PageIds = append(instance.PageIds, data.PageIdsToInsert...)
-		instance.PageIds = append(instance.PageIds, after...)
+	// Update the path as necessary
+	if len(data.Pages) > 0 {
+		instance.Pages = data.Pages
 	}
-
 	instance.Progress = data.Progress
 	if data.IsFinished {
 		instance.IsFinished = true
+	}
+
+	pageIds := make([]string, 0)
+	sourceIds := make([]string, 0)
+	for _, page := range instance.Pages {
+		pageIds = append(pageIds, page.PageId)
+		sourceIds = append(sourceIds, page.SourceId)
 	}
 
 	// Begin the transaction.
@@ -65,7 +68,8 @@ func updatePathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["id"] = data.Id
 		hashmap["userId"] = u.Id
 		hashmap["progress"] = instance.Progress
-		hashmap["pageIds"] = strings.Join(instance.PageIds, ",")
+		hashmap["pageIds"] = strings.Join(pageIds, ",")
+		hashmap["sourcePageIds"] = strings.Join(sourceIds, ",")
 		hashmap["isFinished"] = instance.IsFinished
 		hashmap["updatedAt"] = database.Now()
 		statement := db.NewInsertStatement("pathInstances", hashmap, hashmap.GetKeys()...).WithTx(tx)

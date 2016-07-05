@@ -52,6 +52,12 @@ func startPathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("No path pages found for this guide", nil).Status(http.StatusBadRequest)
 	}
 
+	// Create the sourcePageIds
+	sourcePageIds := make([]string, 0)
+	for _, _ = range pathPageIds {
+		sourcePageIds = append(sourcePageIds, data.GuideId)
+	}
+
 	// Begin the transaction.
 	var id int64
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
@@ -60,6 +66,7 @@ func startPathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["userId"] = u.Id
 		hashmap["guideId"] = data.GuideId
 		hashmap["pageIds"] = strings.Join(pathPageIds, ",")
+		hashmap["sourcePageIds"] = strings.Join(sourcePageIds, ",")
 		hashmap["createdAt"] = database.Now()
 		hashmap["updatedAt"] = database.Now()
 		statement := db.NewInsertStatement("pathInstances", hashmap).WithTx(tx)

@@ -8,6 +8,8 @@ CREATE TABLE pathInstances (
 	guideId VARCHAR(32) NOT NULL,
 	/* Comma separated list of page ids which this path has. FK into pageInfos. */
 	pageIds TEXT NOT NULL,
+	/* Comma separated list of which page added the corresponding page to pageIds. FK into pageInfos. */
+	sourcePageIds TEXT NOT NULL,
 	/* Index of the page the user is on. */
 	progress INT NOT NULL,
 	/* When this instance was created. */
