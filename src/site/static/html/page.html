@@ -9,14 +9,25 @@
 			<div arb-next-prev page-id="{{::page.pageId}}" whiteframe="::true"></div>
 		</div>
 
-		<!-- For user page, display what domains this user has access to -->
+		<!-- For user page display some additional info -->
 		<div ng-if="::(page.isUser() && page.domainMembershipIds.length > 0 && !isSimpleEmbed)">
-			<span>Domains this user has access to:</span>
-			<span ng-repeat="(index, domainId) in ::page.domainMembershipIds">
-				<span class="comma" ng-if="index > 0">,</span>
-				<arb-page-title page-id="{{::domainId}}" is-link="true" ng-if="::domainId"></arb-page-title>
-				<span ng-if="::!domainId">General</span>
-			</span>
+
+			<!-- Display what domains this user has access to -->
+			<div ng-if="::page.domainMembershipIds.length > 0">
+				<span>Domains this user has access to:</span>
+				<span ng-repeat="(index, domainId) in ::page.domainMembershipIds">
+					<span class="comma" ng-if="index > 0">,</span>
+					<arb-page-title page-id="{{::domainId}}" is-link="true" ng-if="::domainId"></arb-page-title>
+					<span ng-if="::!domainId">General</span>
+				</span>
+			</div>
+
+			<!-- If current user is an admin, they can give bonus trust to this user -->
+			<div ng-if="::arb.userService.user.isAdmin">
+				Bonus edit trust (admin only):
+				<input type="number" ng-model="updateBonusTrust.bonusEditTrust">
+				<md-button ng-click="pushBonusTrust()">Update</md-button>
+			</div>
 		</div>
 
 		<!-- Unlisted page -->

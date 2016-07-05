@@ -2004,38 +2004,6 @@ func LoadAnswerCounts(db *database.DB, pageMap map[string]*Page) error {
 	return err
 }
 
-// LoadTaggedAsIds for each page in the source map loads the ids of the pages that tag it.
-func LoadTaggedAsIds(db *database.DB, pageMap map[string]*Page, options *LoadChildIdsOptions) error {
-	if options == nil {
-		options = &LoadChildIdsOptions{}
-	}
-	sourcePageMap := pageMap
-	if options.ForPages != nil {
-		sourcePageMap = options.ForPages
-	}
-	if len(sourcePageMap) <= 0 {
-		return nil
-	}
-	pageIds := PageIdsListFromMap(sourcePageMap)
-	rows := database.NewQuery(`
-		SELECT parentId,childId
-		FROM pagePairs
-		WHERE type=?`, TagPagePairType).Add(`AND childId IN`).AddArgsGroup(pageIds).Add(`
-		`).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var parentId, childId string
-		err := rows.Scan(&parentId, &childId)
-		if err != nil {
-			return fmt.Errorf("failed to scan for page pairs: %v", err)
-		}
-		child := sourcePageMap[childId]
-		child.TaggedAsIds = append(child.TaggedAsIds, parentId)
-		AddPageIdToMap(parentId, pageMap)
-		return nil
-	})
-	return err
-}
-
 // LoadCommentIds loads ids of all the comments for the pages in the given pageMap.
 func LoadCommentIds(db *database.DB, u *CurrentUser, pageMap map[string]*Page, options *LoadDataOptions) error {
 	sourcePageMap := options.ForPages

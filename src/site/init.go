@@ -154,6 +154,7 @@ func init() {
 	s.HandleFunc(similarPageSearchHandler.URI, handlerWrapper(similarPageSearchHandler)).Methods("POST")
 	s.HandleFunc(startPathHandler.URI, handlerWrapper(startPathHandler)).Methods("POST")
 	s.HandleFunc(titleHandler.URI, handlerWrapper(titleHandler)).Methods("POST")
+	s.HandleFunc(updateBonusTrustHandler.URI, handlerWrapper(updateBonusTrustHandler)).Methods("POST")
 	s.HandleFunc(updateLensNameHandler.URI, handlerWrapper(updateLensNameHandler)).Methods("POST")
 	s.HandleFunc(updateLensOrderHandler.URI, handlerWrapper(updateLensOrderHandler)).Methods("POST")
 	s.HandleFunc(updateMarkHandler.URI, handlerWrapper(updateMarkHandler)).Methods("POST")

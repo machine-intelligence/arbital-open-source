@@ -209,6 +209,18 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, op
 	return nil
 }
 
+// LoadParentIds loads the page ids for the given page
+func LoadParentIdsForPage(db *database.DB, pageId string, u *CurrentUser) ([]string, error) {
+	p := NewPage(pageId)
+	pageMap := make(map[string]*Page)
+	pageMap[pageId] = p
+	options := &LoadParentIdsOptions{
+		PagePairType: ParentPagePairType,
+	}
+	err := LoadParentIds(db, pageMap, u, options)
+	return p.ParentIds, err
+}
+
 // Load full edit for both the parent and the child of the given page pair.
 func LoadFullEditsForPagePair(db *database.DB, pagePair *PagePair, u *CurrentUser) (*Page, *Page, error) {
 	editLoadOptions := &LoadEditOptions{
