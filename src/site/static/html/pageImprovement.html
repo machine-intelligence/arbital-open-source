@@ -1,24 +1,60 @@
-<div class="improvement-header"
+<div class="improvement-header {{qualityTag}}"
 		layout="row"
 		layout-align="start center"
-		ng-if="shouldShowImprovements()">
-	<div flex>This page is just getting off the ground. Can you help?</div>
-	<md-button ng-click="toggleExpand()" class="short-button" aria-label="Expand">
-		<span ng-if="!expanded">Expand</span>
+		ng-if="showQualityBar()">
+	<div flex ng-switch="qualityTag">
+		<span ng-switch-when="unassessed">
+			This page's quality is unknown. Can you help
+			<arb-page-title page-id="4yg"
+					is-link="true"
+					custom-page-title="assess"
+					flex></arb-page-title>
+			it?
+		</span>
+		<span ng-switch-when="stub">
+			This page is just getting started. Can you
+			<arb-page-title page-id="3hs"
+					is-link="true"
+					custom-page-title="help"
+					flex></arb-page-title>
+			improve it?
+		</span>
+		<span ng-switch-when="start">
+			This page has some issues, would you like to
+			<arb-page-title page-id="3hs"
+					is-link="true"
+					custom-page-title="help"
+					flex></arb-page-title>
+			fix them?
+		</span>
+		<span ng-switch-when="c-class">
+			This page could use some improvement, would you like to
+			<arb-page-title page-id="3hs"
+					is-link="true"
+					custom-page-title="help"
+					flex></arb-page-title>
+			with it?
+		</span>
+	</div>
+	<md-button ng-click="toggleExpand()" class="short-button icon-last" aria-label="Expand" ng-if="shouldShowImprovements()">
+		<span ng-if="!expanded">See details</span>
+		<span ng-if="expanded">Hide details</span>
 		<arb-expand-icon expanded="expanded"></arb-expand-icon>
 	</md-button>
 </div>
 
-<div class="improvement-body expand-tray" layout="row" ng-if="expanded && shouldShowImprovements()">
-	<div class="improvement-column" flex ng-if="shouldShowTagsColumn()">
-		The following issues have been raised by editors:
-		<ul>
-			<li ng-repeat="tagId in page.improvementTagIds">
-				<arb-page-title page-id="{{::tagId}}" is-link="true" show-clickbait="true"></arb-page-title>
-			</li>
-		</ul>
+<div class="improvement-body expand-tray vertical-layout-padding" layout="column" ng-if="expanded && shouldShowImprovements()">
+	<div ng-if="shouldShowTags()">
+		<span>
+			This page has the following issues:
+			<span ng-repeat="tagId in page.improvementTagIds">
+				<arb-page-title page-id="{{::tagId}}"
+						is-link="true"></arb-page-title>
+				<span class="comma" ng-if="!$last">,</span>
+			</span>
+		</span>
 	</div>
-	<div class="improvement-column" flex ng-if="shouldShowTodosColumn()">
+	<div ng-if="shouldShowTodos()">
 		This page has {{page.todos.length}} TODO
 		<ng-pluralize count="page.todos.length"
 				when="{'one': 'item', 'other': 'items'}"></ng-pluralize>:
@@ -27,5 +63,13 @@
 				{{text}}
 			</li>
 		</ul>
+	</div>
+	<div>
+		<md-button ng-href="{{arb.urlService.getEditPageUrl(page.pageId)}}"
+				ng-class="::{'md-icon-button': isTinyScreen}"
+				arb-user-check="cool">
+			<md-icon>create</md-icon>
+			<span>Edit</span>
+		</md-button>
 	</div>
 </div>

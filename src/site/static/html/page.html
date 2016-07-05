@@ -81,14 +81,14 @@
 				</md-button>
 			</div>
 
-			<!-- How to make this page better box -->
-			<div arb-page-improvement page="selectedLens" class="md-whiteframe-1dp" ng-if="selectedLens"></div>
-
 			<!-- For each lens -->
 			<div ng-repeat="lens in ::lenses" ng-if="lens.lensId === selectedLens.pageId">
 				<!-- Lens body -->
 				<div class="md-whiteframe-1dp">
 					<div class="md-whiteframe-1dp page-lens-body">
+						<!-- How to make this page better box -->
+						<div arb-page-improvement page="selectedLens" ng-if="selectedLens"></div>
+
 						<div ng-style="{'min-height': 500}"
 								layout="column"
 								layout-align="center center"

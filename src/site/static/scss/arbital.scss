@@ -1546,20 +1546,23 @@ arb-page-improvement, [arb-page-improvement] {
 	.improvement-header {
 		background-color: $accent-hue-1;
 		padding: 5px 20px;
+		min-height: 46px;
+		border-bottom: 1px solid #efefef;
+	}
+
+	.improvement-header.c-class {
+		background-color: #ffffe8;
+	}
+
+	.improvement-header.start {
+		background-color: rgba(241,103,0,.15);
 	}
 
 	.improvement-body {
-		padding: 10px 20px;
-		font-size: 16px;
+		padding: 5px 20px 16px 20px;
+		color: #282828;
+		font-size: 14px;
 		line-height: 18px;
-	}
-
-	.improvement-column {
-		margin-bottom: 10px;
-	}
-
-	.improvement-column + .improvement-column {
-		margin-left: 40px;
 	}
 
 	ul {

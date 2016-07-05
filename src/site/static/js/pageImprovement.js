@@ -10,14 +10,33 @@ app.directive('arbPageImprovement', function($timeout, $http, $compile, arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 
-			$scope.shouldShowTagsColumn = function() {
+			// Determine which style of bar to show
+			$scope.qualityTag = 'unassessed';
+			if ($scope.page.taggedAsIds.includes('72')) {
+				$scope.qualityTag = 'stub';
+			} else if ($scope.page.taggedAsIds.includes('3rk')) {
+				$scope.qualityTag = 'start';
+			} else if ($scope.page.taggedAsIds.includes('4y7')) {
+				$scope.qualityTag = 'c-class';
+			} else if ($scope.page.taggedAsIds.includes('4yd')) {
+				$scope.qualityTag = 'b-class';
+			} else if ($scope.page.taggedAsIds.includes('4yf')) {
+				$scope.qualityTag = 'a-class';
+			} else if ($scope.page.taggedAsIds.includes('4yl')) {
+				$scope.qualityTag = 'featured';
+			}
+
+			$scope.shouldShowTags = function() {
 				return $scope.page.improvementTagIds.length > 0;
 			};
-			$scope.shouldShowTodosColumn = function() {
+			$scope.shouldShowTodos = function() {
 				return $scope.page.todos.length > 0;
 			};
 			$scope.shouldShowImprovements = function() {
-				return $scope.shouldShowTagsColumn() || $scope.shouldShowTodosColumn();
+				return $scope.shouldShowTags() || $scope.shouldShowTodos();
+			};
+			$scope.showQualityBar = function() {
+				return !['b-class', 'a-class', 'featured'].includes($scope.qualityTag);
 			};
 
 			$scope.expanded = $scope.page.isSubscribedAsMaintainer;
