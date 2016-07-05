@@ -147,6 +147,20 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		});
 
+		// Process %if-before([alias]):markdown% blocks.
+		var ifBeforeBlockRegexp = new RegExp('^(%+)(!?)if-(before|after)\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
+		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
+			return text.replace(ifBeforeBlockRegexp, function(whole, bars, not, beforeOrAfter, alias, markdown) {
+				var pageId = (alias in stateService.pageMap) ? stateService.pageMap[alias].pageId : alias;
+				var fnName = beforeOrAfter == 'before' ? 'isBefore' : 'isAfter';
+				var div = '<div ng-show=\'' + (not ? '!' : '') + 'arb.pathService.' + fnName + '("' + pageId + '")\'>';
+				if (isEditor) {
+					div = '<div class=\'conditional-text editor-block\'>';
+				}
+				return div + runBlockGamut(markdown) + '\n\n</div>';
+			});
+		});
+
 		// Process %todo:markdown% blocks.
 		var todoBlockRegexp = new RegExp('^(%+)todo: ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
@@ -385,6 +399,20 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			return text.replace(wantsReqSpanRegexp, function(whole, prefix, bars, not, alias, markdown) {
 				var pageId = (alias in stateService.pageMap) ? stateService.pageMap[alias].pageId : alias;
 				var span = '<span ng-show=\'' + (not ? '!' : '') + 'arb.masteryService.wantsMastery("' + pageId + '")\'>';
+				if (isEditor) {
+					span = '<span class=\'conditional-text\'>';
+				}
+				return prefix + span + markdown + '</span>';
+			});
+		});
+
+		// Process %if-before([alias]): markdown% spans.
+		var ifBeforeSpanRegexp = new RegExp(notEscaped + '(%+)(!?)if-(before|after)\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\2', 'g');
+		converter.hooks.chain('preSpanGamut', function(text) {
+			return text.replace(ifBeforeSpanRegexp, function(whole, prefix, bars, not, beforeOrAfter, alias, markdown) {
+				var pageId = (alias in stateService.pageMap) ? stateService.pageMap[alias].pageId : alias;
+				var fnName = beforeOrAfter == 'before' ? 'isBefore' : 'isAfter';
+				var span = '<span ng-show=\'' + (not ? '!' : '') + 'arb.pathService.' + fnName + '("' + pageId + '")\'>';
 				if (isEditor) {
 					span = '<span class=\'conditional-text\'>';
 				}
