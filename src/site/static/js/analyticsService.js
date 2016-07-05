@@ -57,7 +57,7 @@ app.service('analyticsService', function($http, $location, stateService) {
 
 	// Called when a user publishes a page
 	this.reportPublishAction = function(action, pageId, length) {
-		//if (!isLive()) return;
+		if (!isLive()) return;
 		ga('send', {
 			hitType: 'event',
 			eventCategory: 'Publish',
