@@ -12,7 +12,11 @@ app.directive('arbPageImprovement', function($timeout, $http, $compile, arb) {
 
 			// Determine which style of bar to show
 			$scope.qualityTag = 'unassessed';
-			if ($scope.page.taggedAsIds.includes('72')) {
+			if ($scope.page.taggedAsIds.includes('4v')) {
+				$scope.qualityTag = 'wip';
+			} else if ($scope.page.taggedAsIds.includes('4v4')) {
+				$scope.qualityTag = 'still-needs-work';
+			} else if ($scope.page.taggedAsIds.includes('72')) {
 				$scope.qualityTag = 'stub';
 			} else if ($scope.page.taggedAsIds.includes('3rk')) {
 				$scope.qualityTag = 'start';
