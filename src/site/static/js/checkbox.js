@@ -21,9 +21,13 @@ app.directive('arbCheckbox', function($timeout, $http, $compile, arb) {
 			$scope.delWants = {};
 			$scope.path = {};
 
-			// Called when a user toggles the choice
-			$scope.toggleChoice = function() {
-				$scope.choice = !$scope.choice;
+			// Called when a user toggles the choice (or sets it to the given value)
+			$scope.toggleChoice = function(newChoice) {
+				if (newChoice === undefined) {
+					$scope.choice = !$scope.choice;
+				} else {
+					$scope.choice = newChoice;
+				}
 				$scope.letterChoice = $scope.choice ? 'y' : 'n';
 				arb.masteryService.setQuestionAnswer($scope.index,
 						$scope.knows[$scope.letterChoice], $scope.wants[$scope.letterChoice],
@@ -100,10 +104,13 @@ app.directive('arbCheckbox', function($timeout, $http, $compile, arb) {
 				// Process all math.
 				arb.markdownService.compileChildren(scope, element, true);
 
-				// Toggle choice to make sure we select the default value and propagate
-				// that change to the server
-				scope.choice = scope.default != 'y';
-				scope.toggleChoice();
+				// Restore the choice value set last time, or set the default
+				var pageObject = arb.masteryService.getPageObject(scope.pageId, scope.objectAlias);
+				if (pageObject) {
+					scope.toggleChoice(pageObject.value);
+				} else {
+					scope.toggleChoice(scope.default == 'y');
+				}
 			});
 		},
 	};

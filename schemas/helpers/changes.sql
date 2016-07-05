@@ -50,3 +50,4 @@ CREATE TABLE pathInstances (
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 alter table users add column isSlackMember boolean not null;
+alter table pathInstances add column sourcePageIds text not null;

@@ -54,25 +54,39 @@ app.service('pathService', function($http, $compile, $location, $mdToast, $rootS
 	// Add/remove the given pageIds to the path at the current point
 	this.extendPath = function(index, pageIds) {
 		if (!that.isOnPath()) return;
-		if (!stateService.path.pageIdsToInsert) {
-			stateService.path.pageIdsToInsert = {};
+		if (!stateService.path.pagesToInsert) {
+			stateService.path.pagesToInsert = {};
 		}
-		stateService.path.pageIdsToInsert[index] = pageIds;
+		var pages = [];
+		for (var n = 0; n < pageIds.length; n++) {
+			pages.push({
+				pageId: pageIds[n],
+				sourceId: pageService.getCurrentPageId(),
+			});
+		}
+		stateService.path.pagesToInsert[index] = pages;
 	};
 
 	// Change the progress of the current path
 	this.updateProgress = function(progress) {
-		var pageIdsToInsert = [];
-		if (stateService.path.pageIdsToInsert) {
-			for (var index in stateService.path.pageIdsToInsert) {
-				pageIdsToInsert = pageIdsToInsert.concat(stateService.path.pageIdsToInsert[index]);
+		var path = stateService.path;
+		var pagesToInsert = [];
+		if (path.pagesToInsert) {
+			for (var index in path.pagesToInsert) {
+				pagesToInsert = pagesToInsert.concat(path.pagesToInsert[index]);
 			}
 		}
+
+		// Compute pages
+		var pages = path.pages.slice(0, path.progress + 1);
+		pages = pages.concat(pagesToInsert);
+		pages = pages.concat(path.pages.slice(path.progress + 1));
+
 		var params = {
-			id: stateService.path.id,
+			id: path.id,
 			progress: progress,
-			pageIdsToInsert: pageIdsToInsert,
-			isFinished: stateService.path.isFinished,
+			pages: pages,
+			isFinished: path.isFinished,
 		};
 		stateService.postData('/json/updatePath/', params, function(data) {
 			stateService.path = data.result.path;
@@ -84,13 +98,14 @@ app.service('pathService', function($http, $compile, $location, $mdToast, $rootS
 	this.finishPath = function() {
 		stateService.path.isFinished = true;
 		that.updateProgress(stateService.path.progress);
+		$location.replace().search("pathId", undefined);
 	};
 
 	// Go to the page that the path's progress says we should be on
 	this.goToPathPage = function() {
 		var path = stateService.path;
 		if (path.progress >= 0) {
-			var url = urlService.getPageUrl(path.pageIds[path.progress], {pathInstanceId: path.id});
+			var url = urlService.getPageUrl(path.pages[path.progress].pageId, {pathInstanceId: path.id});
 		} else {
 			var url = urlService.getPageUrl(path.guideId);
 			stateService.path = undefined;
@@ -102,22 +117,42 @@ app.service('pathService', function($http, $compile, $location, $mdToast, $rootS
 	this.isOnPath = function() {
 		var path = stateService.path;
 		if (!path) return false;
-		return path.pageIds[path.progress] == pageService.getCurrentPageId();
+		return path.pages[path.progress].pageId == pageService.getCurrentPageId();
 	};
 
 	// Return true iff the user is at the end of the path and there are no more pages left.
 	this.showFinish = function() {
 		return that.isOnPath() && that.pageExtensionLength() <= 0 &&
-			stateService.path.progress >= stateService.path.pageIds.length - 1;
+			stateService.path.progress >= stateService.path.pages.length - 1;
+	};
+
+	// Called when the primary page changes.
+	this.primaryPageChanged = function() {
+		if (!stateService.path) return;
+
+		// Remove all pages that were added by the page we are currently on
+		for (var n = 0; n < stateService.path.pages.length; n++) {
+			stateService.path.pages = stateService.path.pages.filter(function(page) {
+				return page.sourceId != pageService.getCurrentPageId();
+			});
+		}
+
+		// Make sure progress value is right
+		for (var n = 0; n < stateService.path.pages.length; n++) {
+			if (stateService.path.pages[n].pageId == pageService.getCurrentPageId()) {
+				stateService.path.progress = n;
+				break;
+			}
+		}
 	};
 
 	// Return the number of pages that will be added to the path.
 	this.pageExtensionLength = function() {
 		if (!that.isOnPath()) return 0;
-		if (!stateService.path.pageIdsToInsert) return 0;
+		if (!stateService.path.pagesToInsert) return 0;
 		var count = 0;
-		for (var index in stateService.path.pageIdsToInsert) {
-			count += stateService.path.pageIdsToInsert[index].length;
+		for (var index in stateService.path.pagesToInsert) {
+			count += stateService.path.pagesToInsert[index].length;
 		}
 		return count;
 	};
@@ -126,8 +161,8 @@ app.service('pathService', function($http, $compile, $location, $mdToast, $rootS
 	this.isBefore = function(pageId) {
 		if (!that.isOnPath()) return false;
 		var path = stateService.path;
-		for (var n = path.progress + 1; n < path.pageIds.length; n++) {
-			if (path.pageIds[n] == pageId) return true;
+		for (var n = path.progress + 1; n < path.pages.length; n++) {
+			if (path.pages[n].pageId == pageId) return true;
 		}
 		return false;
 	};
@@ -137,7 +172,7 @@ app.service('pathService', function($http, $compile, $location, $mdToast, $rootS
 		if (!that.isOnPath()) return false;
 		var path = stateService.path;
 		for (var n = 0; n < path.progress; n++) {
-			if (path.pageIds[n] == pageId) return true;
+			if (path.pages[n].pageId == pageId) return true;
 		}
 		return false;
 	};
