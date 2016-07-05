@@ -479,6 +479,8 @@ arb-markdown, [arb-markdown], .preview-area {
     padding: 10px 15px 5px 15px; }
   .preview-area .todo-text {
     background-color: rgba(255, 0, 0, 0.15); }
+  .preview-area .fixme-text {
+    background-color: rgba(100, 0, 0, 0.15); }
   .preview-area .conditional-text {
     background-color: rgba(0, 255, 0, 0.15); }
   .preview-area .info-text {
