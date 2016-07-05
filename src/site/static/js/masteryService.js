@@ -89,6 +89,9 @@ app.service('masteryService', function($http, $compile, $location, $mdToast, $ro
 
 	// Compute the status of the given masteries and update the server
 	this.pushMasteriesToServer = function(affectedMasteryIds, callback) {
+		if (affectedMasteryIds.length <= 0) {
+			return;
+		}
 		var addMasteries = [];
 		var delMasteries = [];
 		var wantsMasteries = [];

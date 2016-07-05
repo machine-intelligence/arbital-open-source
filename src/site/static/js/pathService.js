@@ -121,4 +121,24 @@ app.service('pathService', function($http, $compile, $location, $mdToast, $rootS
 		}
 		return count;
 	};
+
+	// Return true if the user is on the path and will eventually read the given page.
+	this.isBefore = function(pageId) {
+		if (!that.isOnPath()) return false;
+		var path = stateService.path;
+		for (var n = path.progress + 1; n < path.pageIds.length; n++) {
+			if (path.pageIds[n] == pageId) return true;
+		}
+		return false;
+	};
+
+	// Return true if the user is on the path and already read the given page.
+	this.isAfter = function(pageId) {
+		if (!that.isOnPath()) return false;
+		var path = stateService.path;
+		for (var n = 0; n < path.progress; n++) {
+			if (path.pageIds[n] == pageId) return true;
+		}
+		return false;
+	};
 });
