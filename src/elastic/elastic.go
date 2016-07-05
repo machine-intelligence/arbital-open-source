@@ -162,7 +162,7 @@ func CreatePageIndex(c sessions.Context) error {
 	mapping.Properties["alias"] = &Property{Type: "string"}
 	mapping.Properties["seeGroupId"] = &Property{Type: "string", Index: "not_analyzed"}
 	mapping.Properties["creatorId"] = &Property{Type: "string", Index: "not_analyzed"}
-	mapping.Properties["searchStrings"] = &Property{Type: "string", Analyzer: "english"}
+	mapping.Properties["searchStrings"] = &Property{Type: "string", IndexName: "searchString", Analyzer: "english"}
 
 	var schema IndexSchema
 	schema.Mappings = make(map[string]*Mapping)
