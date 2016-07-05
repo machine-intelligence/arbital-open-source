@@ -818,10 +818,7 @@ md-toast md-icon {
     margin-left: -5px;
     margin-right: -5px;
     padding-left: 5px;
-    padding-right: 5px; }
-
-  .improvement-body {
-    padding: 10px 5px; } }
+    padding-right: 5px; } }
 @media (min-width: 600px) and (max-width: 959px) {
   .lens-text-container {
     padding: 20px 50px 20px;
@@ -842,10 +839,7 @@ md-toast md-icon {
     margin-left: -50px;
     margin-right: -50px;
     padding-left: 50px;
-    padding-right: 50px; }
-
-  .improvement-body {
-    padding: 10px 50px; } }
+    padding-right: 50px; } }
 @media (min-width: 960px) and (max-width: 1099px) {
   .lens-text-container {
     padding: 20px 90px 60px;
@@ -866,10 +860,7 @@ md-toast md-icon {
     margin-left: -90px;
     margin-right: -90px;
     padding-left: 90px;
-    padding-right: 90px; }
-
-  .improvement-body {
-    padding: 10px 90px; } }
+    padding-right: 90px; } }
 @media (min-width: 1100px) {
   .lens-text-container {
     padding: 20px 100px 80px;
@@ -890,10 +881,7 @@ md-toast md-icon {
     margin-left: -100px;
     margin-right: -100px;
     padding-left: 100px;
-    padding-right: 100px; }
-
-  .improvement-body {
-    padding: 10px 100px; } }
+    padding-right: 100px; } }
 .requirements-container {
   padding: 5px 10px;
   border-bottom: silver 1px solid; }
@@ -1436,7 +1424,7 @@ arb-page-improvement .improvement-header, [arb-page-improvement] .improvement-he
 arb-page-improvement .improvement-header.c-class, [arb-page-improvement] .improvement-header.c-class {
   background-color: #ffffe8; }
 arb-page-improvement .improvement-header.start, [arb-page-improvement] .improvement-header.start {
-  background-color: rgba(241, 103, 0, 0.3); }
+  background-color: rgba(241, 103, 0, 0.4); }
 arb-page-improvement .improvement-body, [arb-page-improvement] .improvement-body {
   padding: 5px 20px 16px 20px;
   color: #282828;

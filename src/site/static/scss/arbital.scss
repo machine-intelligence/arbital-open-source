@@ -675,9 +675,6 @@ md-toast {
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
 	}
-	.improvement-body {
-		padding: 10px $lens-padding;
-	}
 }
 @media (min-width: 600px) and (max-width: 959px) {
 	$lens-padding: 50px;
@@ -701,9 +698,6 @@ md-toast {
 		margin-right: 0 - $lens-padding;
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
-	}
-	.improvement-body {
-		padding: 10px $lens-padding;
 	}
 }
 @media (min-width: 960px) and (max-width: 1099px) {
@@ -729,9 +723,6 @@ md-toast {
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
 	}
-	.improvement-body {
-		padding: 10px $lens-padding;
-	}
 }
 @media (min-width: 1100px) {
 	$lens-padding: 100px;
@@ -755,9 +746,6 @@ md-toast {
 		margin-right: 0 - $lens-padding;
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
-	}
-	.improvement-body {
-		padding: 10px $lens-padding;
 	}
 }
 
