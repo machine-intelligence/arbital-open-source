@@ -338,9 +338,19 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				if (!$scope.page.permissions.edit.has) {
 					arb.popupService.showToast({text: 'Your proposal has been submitted.'});
 				}
+				// Report to analytics
+				if (!$scope.page.isComment()) {
+					if (!$scope.page.permissions.edit.has) {
+						arb.analyticsService.reportPublishAction('propose edit', $scope.pageId, $scope.page.text.length);
+					} else if ($scope.page.wasPublished) {
+						arb.analyticsService.reportPublishAction('edit', $scope.pageId, $scope.page.text.length);
+					} else {
+						arb.analyticsService.reportPublishAction('new', $scope.pageId, $scope.page.text.length);
+					}
+				}
 				$scope.doneFn({result: {
 					pageId: $scope.page.pageId,
-					alias: $scope.page.alias
+					alias: $scope.page.alias,
 				}});
 			};
 			// Called when user clicks Publish button
