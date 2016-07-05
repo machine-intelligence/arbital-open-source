@@ -54,4 +54,16 @@ app.service('analyticsService', function($http, $location, stateService) {
 			eventValue: 1,
 		});
 	};
+
+	// Called when a user publishes a page
+	this.reportPublishAction = function(action, pageId, length) {
+		//if (!isLive()) return;
+		ga('send', {
+			hitType: 'event',
+			eventCategory: 'Publish',
+			eventAction: action,
+			eventLabel: pageId,
+			eventValue: length,
+		});
+	};
 });
