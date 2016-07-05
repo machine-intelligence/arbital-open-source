@@ -98,13 +98,15 @@
 							layout-padding
 							ng-if="selectedLens.parentIds.length > 0 || (selectedLens.nonMetaTagIds.length > 0 && !isSimpleEmbed)">
 						<!-- Parents -->
-						<div layout-align="start center"
-								ng-if="selectedLens.parentIds.length > 0" flex>
-							<span>Parents:</span>
-							<span ng-repeat="(index, parentId) in selectedLens.parentIds">
-								<span class="comma" ng-if="index > 0">,</span>
-								<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
-							</span>
+						<div flex>
+							<div layout-align="start center"
+									ng-if="selectedLens.parentIds.length > 0">
+								<span>Parents:</span>
+								<span ng-repeat="(index, parentId) in selectedLens.parentIds">
+									<span class="comma" ng-if="index > 0">,</span>
+									<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
+								</span>
+							</div>
 						</div>
 
 						<!-- Tags -->
@@ -116,6 +118,16 @@
 				 				<arb-page-title page-id="{{::tagId}}" is-link="true"></arb-page-title>
 				 			</span>
 				 		</div>
+					</div>
+
+					<!-- Add tags panel -->
+					<div layout-padding ng-if="isTagsPanelVisible">
+						<div arb-relationships
+								class="edit-relationship-div"
+								page-id="{{::selectedLens.pageId}}"
+								use-normal-page-map="true"
+								type="tag"
+								force-edit-mode="true"></div>
 					</div>
 				</div>
 

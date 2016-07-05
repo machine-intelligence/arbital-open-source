@@ -10,10 +10,16 @@ app.directive('arbRelationships', function($q, $timeout, $interval, $http, arb) 
 			readonly: '=',
 			// Optional. Id of the parent page for quick add
 			quickParentId: '@',
+			// If set, will take the page from pageMap not editMap
+			useNormalPageMap: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.page = arb.stateService.editMap[$scope.pageId];
+			if ($scope.useNormalPageMap) {
+				$scope.page = arb.stateService.pageMap[$scope.pageId];
+			} else {
+				$scope.page = arb.stateService.editMap[$scope.pageId];
+			}
 
 			// Helper variables
 			$scope.isParentType = $scope.type === 'parent';
