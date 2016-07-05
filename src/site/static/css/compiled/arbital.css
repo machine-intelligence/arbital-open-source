@@ -1432,7 +1432,7 @@ arb-page-improvement .improvement-header, [arb-page-improvement] .improvement-he
 arb-page-improvement .improvement-header.c-class, [arb-page-improvement] .improvement-header.c-class {
   background-color: #ffffe8; }
 arb-page-improvement .improvement-header.start, [arb-page-improvement] .improvement-header.start {
-  background-color: rgba(241, 103, 0, 0.23); }
+  background-color: rgba(241, 103, 0, 0.15); }
 arb-page-improvement .improvement-body, [arb-page-improvement] .improvement-body {
   padding: 5px 20px 16px 20px;
   color: #282828;
