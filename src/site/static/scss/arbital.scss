@@ -679,6 +679,9 @@ md-toast {
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
 	}
+	.improvement-body {
+		padding: 10px $lens-padding;
+	}
 }
 @media (min-width: 600px) and (max-width: 959px) {
 	$lens-padding: 50px;
@@ -702,6 +705,9 @@ md-toast {
 		margin-right: 0 - $lens-padding;
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
+	}
+	.improvement-body {
+		padding: 10px $lens-padding;
 	}
 }
 @media (min-width: 960px) and (max-width: 1099px) {
@@ -727,6 +733,9 @@ md-toast {
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
 	}
+	.improvement-body {
+		padding: 10px $lens-padding;
+	}
 }
 @media (min-width: 1100px) {
 	$lens-padding: 100px;
@@ -750,6 +759,9 @@ md-toast {
 		margin-right: 0 - $lens-padding;
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
+	}
+	.improvement-body {
+		padding: 10px $lens-padding;
 	}
 }
 
@@ -1546,20 +1558,23 @@ arb-page-improvement, [arb-page-improvement] {
 	.improvement-header {
 		background-color: $accent-hue-1;
 		padding: 5px 20px;
+		min-height: 46px;
+		border-bottom: 1px solid #efefef;
+	}
+
+	.improvement-header.c-class {
+		background-color: #ffffe8;
+	}
+
+	.improvement-header.start {
+		background-color: rgba(241,103,0,.4);
 	}
 
 	.improvement-body {
-		padding: 10px 20px;
-		font-size: 16px;
+		padding: 5px 20px 16px 20px;
+		color: #282828;
+		font-size: 14px;
 		line-height: 18px;
-	}
-
-	.improvement-column {
-		margin-bottom: 10px;
-	}
-
-	.improvement-column + .improvement-column {
-		margin-left: 40px;
 	}
 
 	ul {

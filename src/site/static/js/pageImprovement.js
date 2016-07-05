@@ -26,13 +26,16 @@ app.directive('arbPageImprovement', function($timeout, $http, $compile, arb) {
 				$scope.qualityTag = 'featured';
 			}
 
-			$scope.shouldShowTagsColumn = function() {
+			$scope.shouldShowTags = function() {
 				return $scope.page.improvementTagIds.length > 0;
 			};
-			$scope.shouldShowTodosColumn = function() {
+			$scope.shouldShowTodos = function() {
 				return $scope.page.todos.length > 0;
 			};
 			$scope.shouldShowImprovements = function() {
+				return $scope.shouldShowTags() || $scope.shouldShowTodos();
+			};
+			$scope.showQualityBar = function() {
 				return !['b-class', 'a-class', 'featured'].includes($scope.qualityTag);
 			};
 
