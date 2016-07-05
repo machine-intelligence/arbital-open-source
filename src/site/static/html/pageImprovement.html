@@ -3,6 +3,12 @@
 		layout-align="start center"
 		ng-if="showQualityBar()">
 	<div flex ng-switch="qualityTag">
+		<span ng-switch-when="wip">
+			An editor is actively working on this page. Check with them before making major changes.
+		</span>
+		<span ng-switch-when="still-needs-work">
+			An editor has plans for this page. You may want to check with them before making major changes.
+		</span>
 		<span ng-switch-when="unassessed">
 			This page's quality is unknown. Can you help
 			<arb-page-title page-id="4yg"
