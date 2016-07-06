@@ -1276,7 +1276,7 @@ md-icon.icon-first {
 
 .md-button.icon-last,
 .md-icon.icon-last,
-.icon-last md-button {
+.icon-last .md-button {
   margin-right: -12px; }
 
 .md-icon.s24 {
