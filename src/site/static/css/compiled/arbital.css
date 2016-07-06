@@ -1429,15 +1429,18 @@ arb-likes.tiny {
 
 arb-page-improvement .improvement-header, [arb-page-improvement] .improvement-header {
   background-color: #FFCCBC;
-  padding: 5px 20px; }
+  padding: 5px 20px;
+  min-height: 46px;
+  border-bottom: 1px solid #efefef; }
+arb-page-improvement .improvement-header.c-class, [arb-page-improvement] .improvement-header.c-class {
+  background-color: #ffffe8; }
+arb-page-improvement .improvement-header.start, [arb-page-improvement] .improvement-header.start {
+  background-color: rgba(241, 103, 0, 0.15); }
 arb-page-improvement .improvement-body, [arb-page-improvement] .improvement-body {
-  padding: 10px 20px;
-  font-size: 16px;
+  padding: 5px 20px 16px 20px;
+  color: #282828;
+  font-size: 14px;
   line-height: 18px; }
-arb-page-improvement .improvement-column, [arb-page-improvement] .improvement-column {
-  margin-bottom: 10px; }
-arb-page-improvement .improvement-column + .improvement-column, [arb-page-improvement] .improvement-column + .improvement-column {
-  margin-left: 40px; }
 arb-page-improvement ul, [arb-page-improvement] ul {
   margin: 0;
   margin-top: 5px;
