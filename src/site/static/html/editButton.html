@@ -1,6 +1,5 @@
 <div layout="column" layout-align="start center">
-	<md-button ng-href="{{arb.urlService.getEditPageUrl(page.pageId)}}"
-			ng-class="::{'md-icon-button': isTinyScreen}">
+	<md-button ng-click="processClick($event)" ng-class="::{'md-icon-button': isTinyScreen}">
 		<!-- The icon -->
 		<md-icon>create</md-icon>
 		<!-- The text if it's an edit button -->
