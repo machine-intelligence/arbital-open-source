@@ -14,6 +14,20 @@ app.directive('arbUserName', function(arb) {
 	};
 });
 
+// arb-edit-button shows an edit button for a page, and handles users not being logged in
+app.directive('arbEditButton', function(arb) {
+	return {
+		templateUrl: versionUrl('static/html/editButton.html'),
+		scope: {
+			pageId: '@',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+			$scope.page = arb.stateService.pageMap[$scope.pageId];
+		},
+	};
+});
+
 // directive for an expanded icon
 app.directive('arbExpandIcon', function(arb) {
 	return {

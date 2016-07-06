@@ -1,0 +1,27 @@
+<div layout="column" layout-align="start center">
+	<md-button ng-href="{{arb.urlService.getEditPageUrl(page.pageId)}}"
+			ng-class="::{'md-icon-button': isTinyScreen}">
+		<!-- The icon -->
+		<md-icon>create</md-icon>
+		<!-- The text -->
+		<span ng-if="::!isTinyScreen">
+			<!-- TODO: show different stuff if the user is not logged in -->
+			Edit
+		</span>
+
+		<!-- Telling the user they can't edit the page -->
+		<md-tooltip md-delay="500" ng-if="arb.userService.userIsLoggedIn() && !page.permissions.edit.has">
+			{{selectedLens.cantEditMessage}}
+		</md-tooltip>
+	</md-button>
+	<!-- Show a dot if the user has a draft and the screen is small -->
+	<span class="accent-dot" ng-if="(selectedLens.hasDraft && isTinyScreen)">
+		<md-tooltip md-delay="500">
+			You have an unpublished draft
+		</md-tooltip>
+	</span>
+	<!-- Show some text if the user has a draft -->
+	<span class="md-accent md-caption" ng-if="selectedLens.hasDraft">
+		Unpublished draft
+	</span>
+</div>
