@@ -14,6 +14,31 @@ app.directive('arbUserName', function(arb) {
 	};
 });
 
+// arb-edit-button shows an edit button for a page, and handles users not being logged in
+app.directive('arbEditButton', function(arb) {
+	return {
+		templateUrl: versionUrl('static/html/editButton.html'),
+		scope: {
+			pageId: '@',
+			createText: '=',
+			analyticsDesc: '@',
+			customText: '@',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+			$scope.page = arb.stateService.pageMap[$scope.pageId];
+
+			$scope.processClick = function(event) {
+				arb.analyticsService.reportEditPageAction(event, $scope.analyticsDesc);
+				arb.signupService.wrapInSignupFlow('edit click:' + $scope.analyticsDesc,
+					function() {
+						arb.urlService.goToUrl(arb.urlService.getEditPageUrl($scope.pageId));
+					});
+			};
+		},
+	};
+});
+
 // directive for an expanded icon
 app.directive('arbExpandIcon', function(arb) {
 	return {

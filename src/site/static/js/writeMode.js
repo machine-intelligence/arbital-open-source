@@ -47,10 +47,6 @@ app.directive('arbWriteNewModePanel', function($http, arb) {
 					}
 				}
 			);
-
-			$scope.editStubLinkClicked = function(event) {
-				arb.analyticsService.reportEditPageAction(event, 'front page stub');
-			};
 		},
 	};
 });
@@ -162,10 +158,6 @@ app.directive('arbExplanationRequestRow', function(arb) {
 					$scope.totalViewCount = totalViewCount;
 				}
 			);
-
-			$scope.editLinkClicked = function(event) {
-				arb.analyticsService.reportEditPageAction(event, 'front page red alias');
-			};
 
 			$scope.toggleExpand = function() {
 				$scope.expanded = !$scope.expanded;

@@ -1278,7 +1278,8 @@ md-icon.icon-first {
   margin-left: -12px; }
 
 .md-button.icon-last,
-.md-icon.icon-last {
+.md-icon.icon-last,
+.icon-last .md-button {
   margin-right: -12px; }
 
 .md-icon.s24 {
