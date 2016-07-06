@@ -59,7 +59,8 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 	}()
 
 	if p.LockedUntil > database.Now() && p.LockedBy != u.Id {
-		p.Permissions.Edit.Reason = "Can't change locked page"
+		p.Permissions.Edit.Reason = fmt.Sprintf(
+			"Another editor is currently working on the page. It will automatically unlock within half an hour.")
 		return
 	}
 
