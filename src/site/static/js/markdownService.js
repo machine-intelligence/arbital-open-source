@@ -328,8 +328,16 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		// Process [toc:] block.
 		var tocBlockRegexp = new RegExp('^\\[toc:\\] *(?=\Z|\n\Z|\n\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
-			return text.replace(tocBlockRegexp, function(whole, text, knows, wants) {
+			return text.replace(tocBlockRegexp, function(whole) {
 				return '<arb-table-of-contents page-id=\'' + pageId + '\'></arb-table-of-contents>';
+			});
+		});
+
+		// Process [vizualisation(log-graph-demo):] block.
+		var vizBlockRegexp = new RegExp('^\\[vizualisation\\(([^)]+)\\):\\] *(?=\Z|\n\Z|\n\n)', 'gm');
+		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
+			return text.replace(vizBlockRegexp, function(whole, name) {
+				return '<div class=\'react-demo\' data-demo-name="' + name + '">\n\n</div>';
 			});
 		});
 
