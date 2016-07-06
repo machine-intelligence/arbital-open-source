@@ -563,67 +563,51 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		}
 
 		// If first time around, set up the functions
-		if (scope._currentMathCounter === undefined) {
-			scope._currentMathCounter = 0;
+		if (scope._cacheMath === undefined) {
+			// Go through all rendered mathjax elements and cache the HTML
+			scope._cacheMath = function(elements) {
+				for (var n = 0; n < elements.length; n++) {
+					var $element = elements[n].$element;
 
-			// Called when a mathjax item has been processed via MathJax
-			scope._mathItemProcessed = function($element, encodedMathjaxText, currentMathCounter) {
-				if (currentMathCounter != scope._currentMathCounter) return;
-				var $contentElement = $element.find('.MathJax_Display');
-				if ($contentElement.length <= 0) {
-					$contentElement = $element.find('.MathJax');
-				}
-				if ($element.closest('body').length <= 0 || $contentElement.length <= 0) {
-					return;
-				}
+					// Check that the element is still in DOM and the contents were rendered
+					var $contentElement = $element.find('.MathJax, .MathJax_Display, .MathJax_SVG, .MathJax_SVG_Display');
+					if ($element.closest('body').length <= 0 || $contentElement.length <= 0) {
+						continue;
+					}
 
-				stateService.cacheMathjax(encodedMathjaxText, {
-					html: $element.html(),
-					style: 'width:' + $contentElement.width() + 'px;' +
-						'height:' + $contentElement.height() + 'px',
-				});
-			};
-
-			// Take one element from queue and process it. Once done, continue processing
-			// the queue if there are items.
-			scope._processMathQueue = function(currentMathCounter) {
-				if (currentMathCounter != scope._currentMathCounter) return;
-				if (scope._mathQueue.length <= 0) return;
-				var $element = scope._mathQueue.shift();
-				var encodedMathjaxText = $element.attr('arb-math-compiler');
-
-				// Try to read from cache
-				var cachedValue = stateService.getMathjaxCacheValue(encodedMathjaxText);
-				if (cachedValue) {
-					$element.html(cachedValue.html);
-					$element.removeAttr('style');
-					scope._processMathQueue(currentMathCounter);
-				} else {
-					$element.text('$~' + decodeURIComponent(encodedMathjaxText) + '~$');
-					MathJax.Hub.Queue(['Typeset', MathJax.Hub, $element.get(0)]);
-					MathJax.Hub.Queue(['_mathItemProcessed', scope, $element, encodedMathjaxText, currentMathCounter]);
-					MathJax.Hub.Queue(['_processMathQueue', scope, currentMathCounter]);
+					stateService.cacheMathjax(elements[n].encodedMathjaxText, {
+						html: $element.html(),
+						style: 'width:' + $contentElement.width() + 'px;' +
+							'height:' + $contentElement.height() + 'px',
+					});
 				}
 			};
 		}
-		scope._mathQueue = [];
-		scope._currentMathCounter++;
 
 		if (options.isEditor) {
-			// Go through all mathjax elements, and queue them up
-			// Delay to wait for $compile to finish.
+			// Delay all math rendering to prevent constant flickering when typing
 			$timeout.cancel(scope._mathRenderPromise);
 			scope._mathRenderPromise = $timeout(function() {
-				//scope._processMathQueue(scope._currentMathCounter);
+				// Track all elements that should be cached after they are rendered
+				var elements = [];
+				// Go through all mathjax elements
 				$pageText.find('[arb-math-compiler]').each(function() {
-					//scope._mathQueue.push($(this));
 					var $element = $(this);
-					var encodedMathjaxText = '$~' + $element.attr('arb-math-compiler') + '~$';
-					$element.text(decodeURIComponent(encodedMathjaxText));
+					var encodedMathjaxText = $element.attr('arb-math-compiler');
+					// Try to read from cache
+					var cachedValue = stateService.getMathjaxCacheValue(encodedMathjaxText);
+					if (cachedValue) {
+						$timeout(function() {
+							$element.html(cachedValue.html);
+							$element.removeAttr('style');
+						});
+					} else {
+						$element.text('$~' + decodeURIComponent(encodedMathjaxText) + '~$');
+						elements.push({'$element': $element, encodedMathjaxText: encodedMathjaxText});
+					}
 				});
-				$timeout(function() {
-					MathJax.Hub.Queue(['Typeset', MathJax.Hub, $pageText.get(0)]);
-				});
+				MathJax.Hub.Queue(['Typeset', MathJax.Hub, $pageText.get(0)]);
+				MathJax.Hub.Queue(['_cacheMath', scope, elements]);
 			}, scope._mathRenderPromise ? 500 : 0);
 		} else {
 			// Compile all mathjax at once

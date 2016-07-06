@@ -332,6 +332,9 @@ md-list {
   .reveal-after-render-parent .my-vote-knob {
     visibility: hidden !important; }
 
+.invisible {
+  visibility: hidden !important; }
+
 .primary-dot {
   position: relative;
   top: -0.4em;
@@ -480,7 +483,7 @@ arb-markdown, [arb-markdown], .preview-area {
   .preview-area .todo-text {
     background-color: rgba(255, 0, 0, 0.15); }
   .preview-area .fixme-text {
-    background-color: rgba(100, 0, 0, 0.15); }
+    background-color: rgba(180, 0, 0, 0.35); }
   .preview-area .conditional-text {
     background-color: rgba(0, 255, 0, 0.15); }
   .preview-area .info-text {

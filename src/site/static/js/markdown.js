@@ -17,7 +17,7 @@ app.directive('arbMarkdown', function($compile, $timeout, arb) {
 			$scope.mark = !!$scope.markId ? arb.markService.markMap[$scope.markId] : undefined;
 		},
 		link: function(scope, element, attrs) {
-			element.addClass('markdown-text reveal-after-render');
+			element.addClass('markdown-text reveal-after-render invisible');
 
 			// Convert page text to html.
 			// Note: converter takes pageId, which might not be set if we are displaying
@@ -55,6 +55,7 @@ app.directive('arbMarkdown', function($compile, $timeout, arb) {
 					arb.markdownService.compileChildren(scope, $pageText);
 					// Highlight the anchorText for marks.
 					MathJax.Hub.Queue(function() {
+						element.removeClass('invisible');
 						if (scope.mark) {
 							var highlightClass = 'inline-comment-highlight-hover';
 							createInlineCommentHighlight(element.children().get(0), scope.mark.anchorOffset,

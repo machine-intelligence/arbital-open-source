@@ -65,6 +65,10 @@
 	}
 }
 
+.invisible {
+	visibility: hidden !important;
+}
+
 // Used to style the dot we display when a page hasn't been visited / was updated
 @mixin dot($color) {
 	position: relative;

@@ -447,7 +447,7 @@
 							</div>
 
 							<!-- See group id -->
-							<div layout="row" ng-if="::!page.wasPublished">
+							<!--<div layout="row" ng-if="::!page.wasPublished">
 								<md-input-container flex>
 									<label>See group</label>
 									<md-select ng-model="page.seeGroupId">
@@ -457,10 +457,10 @@
 								<div class="md-caption" layout-margin flex>
 									Group that can see this page. If not set, anyone can see it
 								</div>
-							</div>
+							</div>-->
 
 							<!-- Edit group id -->
-							<div layout="row">
+							<div layout="row" ng-if="arb.userService.user.isAdmin || arb.userService.user.isTrusted">
 								<md-input-container flex>
 									<label>Edit group</label>
 									<md-select ng-model="page.editGroupId">
