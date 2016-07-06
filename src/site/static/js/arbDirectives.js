@@ -22,6 +22,7 @@ app.directive('arbEditButton', function(arb) {
 			pageId: '@',
 			createText: '=',
 			analyticsDesc: '@',
+			customText: '@',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;

@@ -480,7 +480,7 @@ arb-markdown, [arb-markdown], .preview-area {
   .preview-area .todo-text {
     background-color: rgba(255, 0, 0, 0.15); }
   .preview-area .fixme-text {
-    background-color: rgba(100, 0, 0, 0.15); }
+    background-color: rgba(180, 0, 0, 0.35); }
   .preview-area .conditional-text {
     background-color: rgba(0, 255, 0, 0.15); }
   .preview-area .info-text {
@@ -1275,7 +1275,8 @@ md-icon.icon-first {
   margin-left: -12px; }
 
 .md-button.icon-last,
-.md-icon.icon-last {
+.md-icon.icon-last,
+.icon-last md-button {
   margin-right: -12px; }
 
 .md-icon.s24 {

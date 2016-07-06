@@ -14,7 +14,7 @@
 				<div layout="row" layout-align="start center">
 					{{::prettyName}} &nbsp;
 					<span ng-if="::row.refCount" class="md-caption">
-						referenced on {{::row.refCount}} pages with {{totalViewCount}} total views
+						referenced on <a ng-click="toggleExpand()">{{::row.refCount}} pages</a> with {{totalViewCount}} total views
 					</span>
 				</div>
 			</div>
@@ -22,16 +22,10 @@
 
 		<div layout="row" layout-align="center center">
 			<!-- Edit -->
-			<arb-edit-button page-id="{{row.alias}}" analytics-desc="write new red link" create-text="true"></arb-edit-button>
-
-			<div class="expand-button-container">
-				<md-button ng-click="toggleExpand()"
-						class="md-icon-button icon-last remove-extra-space s24 expand-button"
-						aria-label="Expand"
-						ng-if="::row.refCount">
-					<arb-expand-icon expanded="expanded"></arb-expand-icon>
-				</md-button>
-			</div>
+			<arb-edit-button class="icon-last"
+					page-id="{{row.alias}}"
+					analytics-desc="write new red link"
+					custom-text="Create"></arb-edit-button>
 		</div>
 	</div>
 
