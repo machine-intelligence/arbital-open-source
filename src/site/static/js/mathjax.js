@@ -5,8 +5,8 @@ var InitMathjax = (function() {
 	var ready   = false;  // true after initial typeset is complete
 	var pending = false;  // true when MathJax has been requested
 	var preview = null;   // the preview container
-	var inlineDelim = '$';  // the inline math delimiter
-	var blockDelim = '$$';  // the block math delimeter
+	var inlineDelim = '$$$$$$';  // the inline math delimiter
+	var blockDelim = '$$$$$$$';  // the block math delimeter
 
 	var blocks, start, end, last, braces; // used in searching for math
 	var math;                             // stores math until markdone is done
@@ -143,17 +143,19 @@ var InitMathjax = (function() {
 			editorObject.hooks.chain('onPreviewRefresh', UpdateMJ);
 			preview = document.getElementById('wmd-preview' + wmdId);
 		}*/
-		HUB.Config({
+		/*HUB.Config({
 			// reduce chunk for more frequent updates
-			'HTML-CSS': {EqnChunk: 10, EqnChunkFactor: 1, EqnChunkDelay: 50, linebreaks: {automatic: true}},
-			SVG: {EqnChunk: 10, EqnChunkFactor: 1, linebreaks: {automatic: true}},
+			jax: ["input/TeX","output/PreviewHTML"],
+			'HTML-CSS': {EqnChunk: 10, EqnChunkFactor: 1,  linebreaks: {automatic: true}},
+			PreviewHTML: {EqnChunk: 10, EqnChunkFactor: 1,  linebreaks: {automatic: true}},
+			SVG: {EqnChunk: 10, EqnChunkFactor: 1, useFontCache: false, linebreaks: {automatic: true}},
 			tex2jax: {
 				inlineMath: [[inlineDelim, inlineDelim]],
 				displayMath: [[blockDelim, blockDelim]],
 				processEscapes: true,
 			},
 			showProcessingMessages: false,
-		});
+		});*/
 	}
 
 	return prepareWmdForMathJax;

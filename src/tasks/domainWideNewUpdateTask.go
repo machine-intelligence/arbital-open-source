@@ -76,7 +76,6 @@ func (task DomainWideNewUpdateTask) Execute(db *database.DB) (delay int, err err
 		hashmap["userId"] = userId
 		hashmap["byUserId"] = task.UserId
 		hashmap["type"] = task.UpdateType
-		hashmap["groupByPageId"] = task.DomainId
 		hashmap["subscribedToId"] = task.DomainId
 		hashmap["goToPageId"] = task.GoToPageId
 		hashmap["createdAt"] = database.Now()

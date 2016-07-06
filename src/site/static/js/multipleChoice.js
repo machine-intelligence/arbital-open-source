@@ -156,7 +156,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 
 			$timeout(function() {
 				// Process all math.
-				arb.markdownService.compileChildren(scope, element, true);
+				arb.markdownService.compileChildren(scope, element, {skipCompile: true});
 			});
 		},
 	};

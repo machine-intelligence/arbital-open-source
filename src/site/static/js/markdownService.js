@@ -525,7 +525,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			converter.hooks.chain('postConversion', function(text) {
 				$timeout(function() {
 					that.processLinks(scope, $wmdPreview);
-					that.compileChildren(scope, $wmdPreview);
+					that.compileChildren(scope, $wmdPreview, {isEditor: true});
 				});
 				return text;
 			});
@@ -547,10 +547,16 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 	};
 
 	// Compile all the children of arb-markdown
-	this.compileChildren = function(scope, $pageText, skipCompile) {
+	// options = {
+	//	isEditor: this compilation is done for a page preview
+	//	skipCompile: don't compile the children
+	// }
+	this.compileChildren = function(scope, $pageText, options) {
+		options = options || {};
+
 		// NOTE: have to compile children individually because otherwise there is a bug
 		// with intrasite popovers in preview.
-		if (!skipCompile) {
+		if (!options.skipCompile) {
 			$pageText.children().each(function(index) {
 				$compile($(this))(scope);
 			});
@@ -593,7 +599,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 					$element.removeAttr('style');
 					scope._processMathQueue(currentMathCounter);
 				} else {
-					$element.text(decodeURIComponent(encodedMathjaxText));
+					$element.text('$~' + decodeURIComponent(encodedMathjaxText) + '~$');
 					MathJax.Hub.Queue(['Typeset', MathJax.Hub, $element.get(0)]);
 					MathJax.Hub.Queue(['_mathItemProcessed', scope, $element, encodedMathjaxText, currentMathCounter]);
 					MathJax.Hub.Queue(['_processMathQueue', scope, currentMathCounter]);
@@ -603,15 +609,31 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		scope._mathQueue = [];
 		scope._currentMathCounter++;
 
-		// Go through all mathjax elements, and queue them up
-		// Delay to wait for $compile to finish.
-		$pageText.find('[arb-math-compiler]').each(function() {
-			scope._mathQueue.push($(this));
-		});
-		$timeout.cancel(scope._mathRenderPromise);
-		scope._mathRenderPromise = $timeout(function() {
-			scope._processMathQueue(scope._currentMathCounter);
-		}, scope._mathRenderPromise ? 500 : 0);
+		if (options.isEditor) {
+			// Go through all mathjax elements, and queue them up
+			// Delay to wait for $compile to finish.
+			$timeout.cancel(scope._mathRenderPromise);
+			scope._mathRenderPromise = $timeout(function() {
+				//scope._processMathQueue(scope._currentMathCounter);
+				$pageText.find('[arb-math-compiler]').each(function() {
+					//scope._mathQueue.push($(this));
+					var $element = $(this);
+					var encodedMathjaxText = '$~' + $element.attr('arb-math-compiler') + '~$';
+					$element.text(decodeURIComponent(encodedMathjaxText));
+				});
+				$timeout(function() {
+					MathJax.Hub.Queue(['Typeset', MathJax.Hub, $pageText.get(0)]);
+				});
+			}, scope._mathRenderPromise ? 500 : 0);
+		} else {
+			// Compile all mathjax at once
+			$pageText.find('[arb-math-compiler]').each(function() {
+				var $element = $(this);
+				var encodedMathjaxText = '$~' + $element.attr('arb-math-compiler') + '~$';
+				$element.text(decodeURIComponent(encodedMathjaxText));
+			});
+			MathJax.Hub.Queue(['Typeset', MathJax.Hub, $pageText.get(0)]);
+		}
 	};
 
 	this.createConverter = function(scope, pageId) {

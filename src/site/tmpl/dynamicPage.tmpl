@@ -44,7 +44,21 @@
 	<script src="/static/js/Markdown.Editor.js?{{.VersionId}}"></script>
 	<script src="/static/js/Markdown.Sanitizer.js?{{.VersionId}}"></script>
 
-	<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+	<script type="text/x-mathjax-config">
+		MathJax.Hub.Config({
+			SVG: {EqnChunk: 10, EqnChunkFactor: 1, EqChunkDelay: 10, useFontCache: false, linebreaks: {automatic: true}},
+			tex2jax: {
+				inlineMath: [['$~$', '$~$']],
+				displayMath: [['$~$$', '$$~$']],
+				processEscapes: true,
+				preview: 'none',
+			},
+			showProcessingMessages: false,
+			messageStyle: 'none',
+			skipStartupTypeset: 'true',
+		});
+	</script>
+	<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_SVG-full"></script>
 	<script src="/static/js/lib/diff_match_patch.min.js"></script>
 	<script src="/static/js/lib/moment.min.js"></script>
 	<script src="/static/js/lib/ng-sortable.min.js"></script>

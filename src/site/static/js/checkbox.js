@@ -102,7 +102,7 @@ app.directive('arbCheckbox', function($timeout, $http, $compile, arb) {
 
 			$timeout(function() {
 				// Process all math.
-				arb.markdownService.compileChildren(scope, element, true);
+				arb.markdownService.compileChildren(scope, element, {skipCompile: true});
 
 				// Restore the choice value set last time, or set the default
 				var pageObject = arb.masteryService.getPageObject(scope.pageId, scope.objectAlias);
