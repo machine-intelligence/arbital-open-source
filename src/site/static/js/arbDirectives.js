@@ -20,10 +20,20 @@ app.directive('arbEditButton', function(arb) {
 		templateUrl: versionUrl('static/html/editButton.html'),
 		scope: {
 			pageId: '@',
+			createText: '=',
+			analyticsDesc: '@',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.page = arb.stateService.pageMap[$scope.pageId];
+
+			$scope.processClick = function(event) {
+				arb.analyticsService.reportEditPageAction(event, $scope.analyticsDesc);
+				arb.signupService.wrapInSignupFlow('edit click:' + $scope.analyticsDesc,
+					function() {
+						arb.urlService.goToUrl(arb.urlService.getEditPageUrl($scope.pageId));
+					});
+			};
 		},
 	};
 });

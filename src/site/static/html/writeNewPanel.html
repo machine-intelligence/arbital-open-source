@@ -22,12 +22,8 @@
 			<div flex>
 				<arb-page-title page-id="{{::row.pageId}}" is-link="true" show-clickbait="true"></arb-page-title>
 			</div>
-			<md-button ng-href="{{arb.urlService.getEditPageUrl(row.pageId)}}"
-					class="md-icon-button icon-first"
-					ng-click="editStubLinkClicked($event)"
-					aria-label="Edit page">
-				<md-icon>create</md-icon>
-			</md-button>
+			<!-- Edit -->
+			<arb-edit-button page-id="{{row.pageId}}" analytics-desc="write new stub"></arb-edit-button>
 		</div>
 		<md-divider></md-divider>
 	</md-list-item>
