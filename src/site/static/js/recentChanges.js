@@ -12,9 +12,13 @@ app.directive('arbRecentChanges', function($http, arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 
-			arb.stateService.postData('/json/recentChanges/', {
+			var postUrl = '/json/recentChanges/';
+			if ($scope.type == 'relationships') {
+				postUrl = '/json/recentRelationshipChanges/';
+			}
+
+			arb.stateService.postData(postUrl, {
 					numToLoad: $scope.numToDisplay,
-					changeType: $scope.type || 'edits',
 				},
 				function(data) {
 					$scope.modeRows = data.result.modeRows;
