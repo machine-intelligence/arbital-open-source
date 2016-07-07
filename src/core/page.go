@@ -2464,7 +2464,7 @@ func LoadLensesForPages(db *database.DB, resultData *CommonHandlerData, options 
 	pageIds := PageIdsListFromMap(sourcePageMap)
 	queryPart := database.NewQuery(`
 		JOIN`).AddPart(PageInfosTable(resultData.User)).Add(`AS pi
-		ON (l.pageId=pi.pageId)`).Add(`
+		ON (l.lensId=pi.pageId)`).Add(`
 		WHERE l.pageId IN`).AddArgsGroup(pageIds)
 	err := LoadLenses(db, queryPart, resultData, func(db *database.DB, lens *Lens) error {
 		sourcePageMap[lens.PageId].Lenses = append(sourcePageMap[lens.PageId].Lenses, lens)
