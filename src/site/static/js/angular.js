@@ -541,6 +541,19 @@ app.run(function($http, $location, arb) {
 			.error($scope.getErrorFunc('default'));
 		},
 	});
+	arb.urlService.addUrlHandler('/recentChanges/', {
+		name: 'RecentChangesPage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/default/'})
+			.success($scope.getSuccessFunc(function(data) {
+				return {
+					title: 'Recent changes',
+					content: $scope.newElement('<arb-recent-changes-page></arb-recent-changes-page>'),
+				};
+			}))
+			.error($scope.getErrorFunc('default'));
+		},
+	});
 	arb.urlService.addUrlHandler('/requisites/', {
 		name: 'RequisitesPage',
 		handler: function(args, $scope) {
