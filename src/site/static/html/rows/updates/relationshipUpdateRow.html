@@ -1,6 +1,8 @@
 <div layout="row" layout-align="start center">
 	<div layout="row" layout-align="start center" flex>
+		<arb-change-log-row-like-button class="icon-first"></arb-change-log-row-like-button>&nbsp;
 		<div>
+
 			<!-- a user -->
 			<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 
@@ -63,8 +65,6 @@
 
 			<!-- a page this user is subscribed to -->
 			<arb-page-title page-id="{{::changeLog.pageId}}" is-link="true"></arb-page-title>
-
-			<arb-change-log-row-like-button></arb-change-log-row-like-button>
 		</div>
 	</div>
 
