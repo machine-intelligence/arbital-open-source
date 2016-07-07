@@ -741,6 +741,12 @@ a:not(.md-button) {
     color: rgba(0, 0, 0, 0.87);
     text-decoration: underline; }
 
+.cursor-pointer {
+  cursor: pointer; }
+
+.underline {
+  text-decoration: underline; }
+
 .edit-page-dialog {
   width: 90vw;
   height: 90vh;

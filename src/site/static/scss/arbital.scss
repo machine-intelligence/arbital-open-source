@@ -560,6 +560,14 @@ a:not(.md-button) {
 	}
 }
 
+.cursor-pointer {
+	cursor: pointer;
+}
+
+.underline {
+	text-decoration: underline;
+}
+
 .edit-page-dialog {
 	width: 90vw;
 	height: 90vh;

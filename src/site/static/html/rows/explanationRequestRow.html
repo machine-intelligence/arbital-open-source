@@ -14,7 +14,9 @@
 				<div layout="row" layout-align="start center">
 					{{::prettyName}} &nbsp;
 					<span ng-if="::row.refCount" class="md-caption">
-						referenced on <a ng-click="toggleExpand()">{{::row.refCount}} pages</a> with {{totalViewCount}} total views
+						referenced on
+						<span class="cursor-pointer underline" ng-click="toggleExpand()">{{::row.refCount}} pages</span>
+						with {{totalViewCount}} total views
 					</span>
 				</div>
 			</div>
