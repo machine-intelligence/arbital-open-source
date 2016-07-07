@@ -11,25 +11,7 @@
 			is-button="true"></arb-likes>
 
 	<!-- Edit -->
-	<div layout="column" layout-align="start center">
-		<md-button ng-href="{{arb.urlService.getEditPageUrl(selectedLens.pageId)}}"
-				ng-class="::{'md-icon-button': isTinyScreen}"
-				arb-user-check="cool">
-			<md-icon>create</md-icon>
-			<span ng-if="::!isTinyScreen">Edit</span>
-			<md-tooltip md-delay="500" ng-if="!selectedLens.permissions.edit.has && arb.userService.userIsLoggedIn()">
-				{{selectedLens.cantEditMessage}}
-			</md-tooltip>
-		</md-button>
-		<span class="accent-dot" ng-if="(selectedLens.hasDraft && isTinyScreen)">
-			<md-tooltip md-delay="500">
-				You have an unpublished draft
-			</md-tooltip>
-		</span>
-		<span class="md-accent md-caption" ng-if="selectedLens.hasDraft">
-			Unpublished draft
-		</span>
-	</div>
+	<arb-edit-button page-id="{{selectedLens.pageId}}" analytics-desc="lens toolbar"></arb-edit-button>
 
 	<!-- Subscribe -->
 	<arb-subscribe page-id="{{selectedLens.pageId}}"
