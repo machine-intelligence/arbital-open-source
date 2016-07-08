@@ -2,14 +2,15 @@
 		ng-class="{
 				'dense-panel': !isFullPage || (allowDense && arb.stateService.isSmallScreen),
 				'tiny-panel': allowDense && arb.stateService.isSmallScreen
-			}"
-		ng-if="modeRows && modeRows.length != 0">
+			}">
 	<!-- Header -->
 	<md-toolbar class="md-hue-2" ng-if="::title && isFullPage">
 		<div class="md-toolbar-tools">
 			<span ng-bind="::title"></span>
 		</div>
 	</md-toolbar>
+
+	<md-progress-circular md-mode="indeterminate" ng-if="!modeRows"></md-progress-circular>
 
 	<!-- List of mode rows -->
 	<md-list class="full-height prevent-scroll-leak">
@@ -154,6 +155,24 @@
 						change-log="::modeRow.changeLog"></div>
 				<div ng-switch-when="newEdit"
 						arb-page-edit-update-row
+						change-log="::modeRow.changeLog"></div>
+				<div ng-switch-when="newTag"
+						arb-relationship-update-row
+						change-log="::modeRow.changeLog"></div>
+				<div ng-switch-when="deleteTag"
+						arb-relationship-update-row
+						change-log="::modeRow.changeLog"></div>
+				<div ng-switch-when="newParent"
+						arb-relationship-update-row
+						change-log="::modeRow.changeLog"></div>
+				<div ng-switch-when="deleteParent"
+						arb-relationship-update-row
+						change-log="::modeRow.changeLog"></div>
+				<div ng-switch-when="newRequirement"
+						arb-relationship-update-row
+						change-log="::modeRow.changeLog"></div>
+				<div ng-switch-when="deleteRequirement"
+						arb-relationship-update-row
 						change-log="::modeRow.changeLog"></div>
 
 				<div ng-switch-default class="md-warn">unhandled row type: {{modeRow.rowType}}</div>

@@ -53,6 +53,9 @@ var getUpdateRowDirectiveFunc = function(templateUrl, controllerInternal) {
 
 				// Fill these in to make the following code easier.
 				$scope.changeLog = $scope.changeLog || {};
+				if ($scope.update && $scope.update.changeLog) {
+					$scope.changeLog = $scope.update.changeLog;
+				}
 				$scope.submission = $scope.submission || {};
 
 				$scope.goToPageId = $scope.changeLog.pageId || $scope.submission.pageId || $scope.update.goToPageId;

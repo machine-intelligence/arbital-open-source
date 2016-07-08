@@ -34,20 +34,20 @@ func recentChangesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		data.NumToLoad = DefaultModeRowCount
 	}
 
-	// Load new page submissions
-	pageToDomainSubmissionRows, err := loadPageToDomainSubmissionModeRows(db, returnData, data.NumToLoad)
-	if err != nil {
-		return pages.Fail("Error loading pageToDomainSubmissionRows", err)
-	}
-
 	// Load edits, edit proposals, and deleted pages
 	// TODO: add newPage as a changeLog event, and then include it here.
 	changeLogRows, err := loadChangeLogModeRows(db, returnData, data.NumToLoad,
 		core.NewEditProposalChangeLog,
 		core.NewEditChangeLog,
-		core.DeletePageChangeLog)
+		core.DeletePageChangeLog,
+		core.RevertEditChangeLog)
 	if err != nil {
 		return pages.Fail("Error loading changeLogRows", err)
+	}
+
+	pageToDomainSubmissionRows, err := loadPageToDomainSubmissionModeRows(db, returnData, data.NumToLoad)
+	if err != nil {
+		return pages.Fail("Error loading pageToDomainSubmissionRows", err)
 	}
 
 	returnData.ResultMap["modeRows"] = combineModeRows(data.NumToLoad, pageToDomainSubmissionRows, changeLogRows)
