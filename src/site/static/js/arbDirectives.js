@@ -746,14 +746,14 @@ app.directive('arbLensToolbar', function($window, $mdConstant, $mdUtil, $compile
 			// Process click on "Subscribe as maintainer"
 			$scope.toggleMaintainerSub = function() {
 				$scope.selectedLens.isSubscribedAsMaintainer = !$scope.selectedLens.isSubscribedAsMaintainer;
-				if ($scope.selectedLens.isSubscribedAsMaintainer) {
-					$scope.selectedLens.isSubscribed = true;
+				if ($scope.page.isSubscribedAsMaintainer) {
+					$scope.page.isSubscribed = true;
 				}
 
 				$http({method: 'POST', url: '/updateSubscription/', data: JSON.stringify({
-					toId: $scope.selectedLens.pageId,
-					isSubscribed: $scope.selectedLens.isSubscribed,
-					asMaintainer: $scope.selectedLens.isSubscribedAsMaintainer,
+					toId: $scope.page.pageId,
+					isSubscribed: $scope.page.isSubscribed,
+					asMaintainer: $scope.page.isSubscribedAsMaintainer,
 				})});
 			};
 		},
