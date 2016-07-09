@@ -33,7 +33,10 @@ app.directive('arbRecentChanges', function($http, arb) {
 							// Remove duplicates
 							$scope.modeRows = allModeRows.filter(function(i, index) {
 							    return index == allModeRows.findIndex(function(j) {
-									return i.changeLog.id == j.changeLog.id;
+									if (i.changeLog && j.changeLog) {
+										return i.changeLog.id == j.changeLog.id;
+									}
+									return false;
 							    });
 							});
 						} else {
