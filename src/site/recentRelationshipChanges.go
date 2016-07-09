@@ -6,11 +6,13 @@ import (
 	"net/http"
 
 	"zanaduu3/src/core"
+	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
 type recentRelationshipChangesData struct {
-	NumToLoad int
+	NumToLoad     int
+	CreatedBefore string
 }
 
 var recentRelationshipChangesHandler = siteHandler{
@@ -33,8 +35,11 @@ func recentRelationshipChangesHandlerFunc(params *pages.HandlerParams) *pages.Re
 	if data.NumToLoad <= 0 {
 		data.NumToLoad = DefaultModeRowCount
 	}
+	if data.CreatedBefore == "" {
+		data.CreatedBefore = database.Now()
+	}
 
-	changeLogRows, err := loadChangeLogModeRows(db, returnData, data.NumToLoad,
+	changeLogRows, err := loadChangeLogModeRows(db, returnData, data.NumToLoad, data.CreatedBefore,
 		core.NewParentChangeLog,
 		core.DeleteParentChangeLog,
 		core.NewTagChangeLog,

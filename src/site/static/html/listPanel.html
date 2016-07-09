@@ -14,7 +14,7 @@
 
 	<!-- List of mode rows -->
 	<md-list class="full-height prevent-scroll-leak">
-		<md-list-item ng-repeat="(index, modeRow) in modeRows | orderBy:'-activityDate' | limitTo:numToDisplay"
+		<md-list-item ng-repeat="(index, modeRow) in modeRows | orderBy:'-activityDate'"
 				class="panel-list-item"
 				ng-class="{'unseen-update': modeRow.activityDate > lastView || (modeRow.update && !modeRow.update.seen)}">
 
@@ -178,7 +178,12 @@
 				<div ng-switch-default class="md-warn">unhandled row type: {{modeRow.rowType}}</div>
 			</div>
 
-			<md-divider ng-if="::!$last"></md-divider>
+			<md-divider ng-if="!$last"></md-divider>
+		</md-list-item>
+		<md-divider></md-divider>
+		<md-list-item ng-if="modeRows && fetchMore">
+			<md-progress-circular md-mode="indeterminate" ng-if="fetchingMore"></md-progress-circular>
+			<md-button ng-click="fetchMore()" ng-if="!fetchingMore">See more</md-button>
 		</md-list-item>
 	</md-list>
 

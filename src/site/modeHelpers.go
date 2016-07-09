@@ -577,7 +577,7 @@ func loadPageToDomainSubmissionModeRows(db *database.DB, returnData *core.Common
 }
 
 // Load changes that have been made to the math domain
-func loadChangeLogModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int, changeLogTypes ...string) (ModeRows, error) {
+func loadChangeLogModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int, createdBefore string, changeLogTypes ...string) (ModeRows, error) {
 	changeLogs := make([]*core.ChangeLog, 0)
 	pageLoadOptions := (&core.PageLoadOptions{
 		DomainsAndPermissions: true,
@@ -588,6 +588,7 @@ func loadChangeLogModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 		ON pi.pageId = cl.pageId
 		WHERE cl.type IN `).AddArgsGroupStr(changeLogTypes).Add(`
 			AND pi.type!=?`, core.CommentPageType).Add(`
+			AND cl.createdAt<?`, createdBefore).Add(`
 		ORDER BY cl.createdAt DESC
 		LIMIT ?`, limit)
 	err := core.LoadChangeLogs(db, queryPart, returnData, func(db *database.DB, changeLog *core.ChangeLog) error {

@@ -7,23 +7,36 @@ app.directive('arbRecentChanges', function($http, arb) {
 		scope: {
 			numToDisplay: '=',
 			isFullPage: '=',
-			type: '@'
+			type: '@',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
 
-			var postUrl = '/json/recentChanges/';
-			if ($scope.type == 'relationships') {
-				postUrl = '/json/recentRelationshipChanges/';
-			}
+			$scope.fetchMore = function() {
+				var postUrl = '/json/recentChanges/';
+				if ($scope.type == 'relationships') {
+					postUrl = '/json/recentRelationshipChanges/';
+				}
 
-			arb.stateService.postData(postUrl, {
-					numToLoad: $scope.numToDisplay,
-				},
-				function(data) {
-					$scope.modeRows = data.result.modeRows;
-					$scope.lastView = data.result.lastView;
-				});
+				var createdBefore = $scope.modeRows ?
+						$scope.modeRows[$scope.modeRows.length - 1].changeLog.createdAt : 'a';
+
+				$scope.fetchingMore = true;
+				arb.stateService.postData(postUrl, {
+						numToLoad: $scope.numToDisplay,
+						createdBefore: createdBefore,
+					},
+					function(data) {
+						if ($scope.modeRows) {
+							$scope.modeRows = $scope.modeRows.concat(data.result.modeRows);
+						} else {
+							$scope.modeRows = data.result.modeRows;
+							$scope.lastView = data.result.lastView;
+						}
+						$scope.fetchingMore = false;
+					});
+			};
+			$scope.fetchMore();
 		},
 	};
 });
