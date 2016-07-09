@@ -46,7 +46,7 @@ func (task PublishPagePairTask) Execute(db *database.DB) (delay int, err error) 
 	// Load the page pair
 	var pagePair *core.PagePair
 	queryPart := database.NewQuery(`
-		WHERE NOT everPublished AND id=?`, task.PagePairId)
+		WHERE NOT pp.everPublished AND pp.id=?`, task.PagePairId)
 	err = core.LoadPagePairs(db, queryPart, func(db *database.DB, pp *core.PagePair) error {
 		pagePair = pp
 		return nil

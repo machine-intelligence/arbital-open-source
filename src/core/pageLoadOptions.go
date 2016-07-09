@@ -26,8 +26,7 @@ type PageLoadOptions struct {
 	Related                 bool
 	Lenses                  bool
 	Path                    bool
-	Requirements            bool
-	Subjects                bool
+	Requisites              bool
 	SubmittedTo             bool
 	Answers                 bool
 	UserMarks               bool // marks owned by the logged in user
@@ -85,8 +84,7 @@ var (
 		ChangeLogs:       true,
 		Lenses:           true,
 		Path:             true,
-		Requirements:     true,
-		Subjects:         true,
+		Requisites:       true,
 		SubmittedTo:      true,
 		UserMarks:        true,
 		UnresolvedMarks:  true,
@@ -106,8 +104,7 @@ var (
 		Tags:                  true,
 		Lenses:                true,
 		Path:                  true,
-		Requirements:          true,
-		Subjects:              true,
+		Requisites:            true,
 		Answers:               true,
 		DomainsAndPermissions: true,
 		ChangeLogs:            true,
@@ -125,8 +122,7 @@ var (
 		Tags:            true,
 		Path:            true,
 		SubpageCounts:   true,
-		Requirements:    true,
-		Subjects:        true,
+		Requisites:      true,
 		SubmittedTo:     true,
 		UserMarks:       true,
 		UnresolvedMarks: true,

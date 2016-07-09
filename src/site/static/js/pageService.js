@@ -426,18 +426,17 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 	};
 
 	// Add a new relationship between pages using the given params.
-	// params = {
-	//	parentId: id of the parent page
-	//	childId: id of the child page
-	//	type: type of the relationships
-	// }
 	this.newPagePair = function(params, successFn, errorFn) {
 		stateService.postDataWithoutProcessing('/newPagePair/', params, successFn, errorFn);
 	};
-	// Note: you also need to specify the type of the relationship here, sinc we
+	// Note: you also need to specify the type of the relationship here, since we
 	// don't want to accidentally delete the wrong type.
 	this.deletePagePair = function(params, successFn, errorFn) {
 		stateService.postDataWithoutProcessing('/deletePagePair/', params, successFn, errorFn);
+	};
+	// Update an existing page pair relationship
+	this.updatePagePair = function(params, successFn, errorFn) {
+		stateService.postDataWithoutProcessing('/updatePagePair/', params, successFn, errorFn);
 	};
 
 	// TODO: make these into page functions?

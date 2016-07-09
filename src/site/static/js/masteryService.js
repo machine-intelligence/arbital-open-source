@@ -50,7 +50,7 @@ app.service('masteryService', function($http, $compile, $location, $mdToast, $ro
 		var affectedMasteryIds = [];
 		if (options.delete) {
 			for (var n = 0; n < options.delete.length; n++) {
-				var masteryId = options.delete[n];
+				var masteryId = options.delete[n].parentId;
 				var mastery = this.masteryMap[masteryId];
 				if (!mastery) continue;
 				mastery.has = false;
@@ -60,7 +60,7 @@ app.service('masteryService', function($http, $compile, $location, $mdToast, $ro
 		}
 		if (options.wants) {
 			for (var n = 0; n < options.wants.length; n++) {
-				var masteryId = options.wants[n];
+				var masteryId = options.wants[n].parentId;
 				var mastery = this.masteryMap[masteryId];
 				if (!mastery) {
 					mastery = {pageId: masteryId};
@@ -73,7 +73,7 @@ app.service('masteryService', function($http, $compile, $location, $mdToast, $ro
 		}
 		if (options.knows) {
 			for (var n = 0; n < options.knows.length; n++) {
-				var masteryId = options.knows[n];
+				var masteryId = options.knows[n].parentId;
 				var mastery = this.masteryMap[masteryId];
 				if (!mastery) {
 					mastery = {pageId: masteryId};

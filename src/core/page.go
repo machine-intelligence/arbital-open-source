@@ -183,16 +183,18 @@ type Page struct {
 	CreatorIds []string `json:"creatorIds"`
 
 	// Relevant ids.
-	CommentIds     []string `json:"commentIds"`
-	QuestionIds    []string `json:"questionIds"`
-	TaggedAsIds    []string `json:"taggedAsIds"`
-	RelatedIds     []string `json:"relatedIds"`
-	RequirementIds []string `json:"requirementIds"`
-	SubjectIds     []string `json:"subjectIds"`
-	DomainIds      []string `json:"domainIds"`
-	ChildIds       []string `json:"childIds"`
-	ParentIds      []string `json:"parentIds"`
-	MarkIds        []string `json:"markIds"`
+	ChildIds    []string `json:"childIds"`
+	ParentIds   []string `json:"parentIds"`
+	CommentIds  []string `json:"commentIds"`
+	QuestionIds []string `json:"questionIds"`
+	TaggedAsIds []string `json:"taggedAsIds"`
+	RelatedIds  []string `json:"relatedIds"`
+	DomainIds   []string `json:"domainIds"`
+	MarkIds     []string `json:"markIds"`
+
+	// Requisite sstuff
+	Requirements []*PagePair `json:"requirements"`
+	Subjects     []*PagePair `json:"subjects"`
 
 	// Lens stuff
 	Lenses       LensList `json:"lenses"`
@@ -256,8 +258,8 @@ func NewPage(pageId string) *Page {
 	p.QuestionIds = make([]string, 0)
 	p.TaggedAsIds = make([]string, 0)
 	p.RelatedIds = make([]string, 0)
-	p.RequirementIds = make([]string, 0)
-	p.SubjectIds = make([]string, 0)
+	p.Requirements = make([]*PagePair, 0)
+	p.Subjects = make([]*PagePair, 0)
 	p.DomainIds = make([]string, 0)
 	p.ChangeLogs = make([]*ChangeLog, 0)
 	p.ChildIds = make([]string, 0)
@@ -625,28 +627,14 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		return fmt.Errorf("LoadPathForPages failed: %v", err)
 	}
 
-	// Load requirements
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Requirements })
-	err = LoadParentIds(db, pageMap, u, &LoadParentIdsOptions{
-		ForPages:     filteredPageMap,
-		PagePairType: RequirementPagePairType,
-		LoadOptions:  TitlePlusLoadOptions,
-		MasteryMap:   masteryMap,
+	// Load requisites
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Requisites })
+	err = LoadRequisites(db, pageMap, u, &LoadReqsOptions{
+		ForPages:   filteredPageMap,
+		MasteryMap: masteryMap,
 	})
 	if err != nil {
-		return fmt.Errorf("LoadParentIds for requirements failed: %v", err)
-	}
-
-	// Load subjects
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Subjects })
-	err = LoadParentIds(db, pageMap, u, &LoadParentIdsOptions{
-		ForPages:     filteredPageMap,
-		PagePairType: SubjectPagePairType,
-		LoadOptions:  TitlePlusLoadOptions,
-		MasteryMap:   masteryMap,
-	})
-	if err != nil {
-		return fmt.Errorf("LoadParentIds for subjects failed: %v", err)
+		return fmt.Errorf("LoadRequisites failed: %v", err)
 	}
 
 	// Load domains the pages have been submitted to
