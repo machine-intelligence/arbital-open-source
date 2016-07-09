@@ -5,18 +5,18 @@
 		layout-padding>
 	<!-- Like -->
 	<arb-likes class="no-right-margin"
-			object-id="{{selectedLens.pageId}}"
-			likeable="selectedLens"
+			object-id="{{page.pageId}}"
+			likeable="page"
 			is-stretched="!isTinyScreen"
 			is-button="true"></arb-likes>
 
 	<!-- Edit -->
-	<arb-edit-button page-id="{{selectedLens.pageId}}" analytics-desc="lens toolbar"></arb-edit-button>
+	<arb-edit-button page-id="{{page.pageId}}" analytics-desc="lens toolbar"></arb-edit-button>
 
 	<!-- Subscribe -->
-	<arb-subscribe page-id="{{selectedLens.pageId}}"
+	<arb-subscribe page-id="{{page.pageId}}"
 			is-stretched="::!isTinyScreen"
-			ng-if="selectedLens.isSubscribedAsMaintainer"></arb-subscribe>
+			ng-if="page.isSubscribedAsMaintainer"></arb-subscribe>
 
 	<!-- Link -->
 	<div>
@@ -40,7 +40,7 @@
 
 			<!-- Permalink -->
 			<md-menu-item>
-				<md-button ng-href="{{arb.urlService.getPageUrl(selectedLens.pageId, {permalink: true})}}">
+				<md-button ng-href="{{arb.urlService.getPageUrl(page.pageId, {permalink: true})}}">
 					Permalink
 				</md-button>
 			</md-menu-item>
@@ -57,7 +57,7 @@
 				<md-button ng-click="toggleMaintainerSub()"
 						aria-label="Toggle subscribe as maintainer"
 						arb-user-check="cool">
-					{{selectedLens.isSubscribedAsMaintainer ? 'Unsubscribe' : 'Subscribe'}} as maintainer
+					{{page.isSubscribedAsMaintainer ? 'Unsubscribe' : 'Subscribe'}} as maintainer
 					<md-tooltip md-delay="500">
 						Get updates for edits and marks on this page
 					</md-tooltip>

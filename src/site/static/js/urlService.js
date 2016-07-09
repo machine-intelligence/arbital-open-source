@@ -207,6 +207,10 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 			url += url.indexOf('?') < 0 ? '?' : '&';
 			url += 'parentId=' + options.parentId;
 		}
+		if (options.tabId) {
+			url += url.indexOf('?') < 0 ? '?' : '&';
+			url += 'tab=' + options.tabId;
+		}
 		url = that.getDomainUrl() + url;
 		return url;
 	};

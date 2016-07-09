@@ -17,6 +17,16 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 			$scope.isSingleColumn = !$mdMedia('gt-md');
 			$scope.isUser = !!arb.userService.userMap[$scope.pageId];
 			$scope.selectedLens = undefined;
+			$scope.page.authors = $scope.page.changeLogs
+					.map(function(changeLog) {
+						return changeLog.userId;
+					})
+					.reduce(function(accumulator, item) {
+						if (!accumulator.includes(item)) {
+							accumulator.push(item);
+						}
+						return accumulator;
+					}, []);
 
 			// Check if the user has all the requisites for the given lens
 			$scope.hasAllReqs = function(lensId) {

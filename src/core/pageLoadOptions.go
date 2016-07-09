@@ -82,6 +82,7 @@ var (
 		Parents:          true,
 		Tags:             true,
 		Related:          true,
+		ChangeLogs:       true,
 		Lenses:           true,
 		Path:             true,
 		Requirements:     true,

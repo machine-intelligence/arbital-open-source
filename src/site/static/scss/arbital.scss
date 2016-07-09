@@ -639,6 +639,8 @@ arb-requisite-button, [arb-requisite-button] {
 	arb-likes {
 		margin: 0;
 	}
+
+	border-top: 1px solid #efefef;
 }
 
 .lens-menu-floating {
@@ -655,7 +657,11 @@ arb-requisite-button, [arb-requisite-button] {
 }
 
 .lens-menu-floater-hidden {
-		transform: translate(-50%, 100%);
+	transform: translate(-50%, 100%);
+}
+
+.page-meta-bar {
+	height: 73px;
 }
 
 md-toast {
