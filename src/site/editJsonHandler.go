@@ -126,8 +126,8 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	p.ChildIds = livePage.ChildIds
 	p.ParentIds = livePage.ParentIds
 	p.TaggedAsIds = livePage.TaggedAsIds
-	p.RequirementIds = livePage.RequirementIds
-	p.SubjectIds = livePage.SubjectIds
+	p.Requirements = livePage.Requirements
+	p.Subjects = livePage.Subjects
 	p.Lenses = livePage.Lenses
 	p.PathPages = livePage.PathPages
 	p.ChangeLogs = livePage.ChangeLogs

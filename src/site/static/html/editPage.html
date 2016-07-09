@@ -310,7 +310,7 @@
 									readonly="::!(page.isWiki() || page.isQuestion())"></div>
 
 							<!-- Requirements -->
-							<div arb-relationships
+							<div arb-req-relationships
 									class="edit-relationship-div"
 									page-id="{{::page.pageId}}"
 									type="requirement"
@@ -318,7 +318,7 @@
 									readonly="::!(page.isWiki() || page.isQuestion())"></div>
 
 							<!-- Teaches -->
-							<div arb-relationships
+							<div arb-req-relationships
 									class="edit-relationship-div"
 									page-id="{{::page.pageId}}"
 									type="subject"
@@ -326,10 +326,9 @@
 									readonly="::!(page.isWiki())"></div>
 
 							<!-- Children and lenses -->
-							<div arb-relationships
+							<div arb-child-relationships
 									class="edit-relationship-div"
 									page-id="{{::page.pageId}}"
-									type="child"
 									force-edit-mode="true"
 									readonly="::!(page.isWiki())"></div>
 
