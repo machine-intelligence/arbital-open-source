@@ -7,23 +7,43 @@ app.directive('arbRecentChanges', function($http, arb) {
 		scope: {
 			numToDisplay: '=',
 			isFullPage: '=',
-			type: '@'
+			type: '@',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
 
-			var postUrl = '/json/recentChanges/';
-			if ($scope.type == 'relationships') {
-				postUrl = '/json/recentRelationshipChanges/';
-			}
+			$scope.fetchMore = function() {
+				var postUrl = '/json/recentChanges/';
+				if ($scope.type == 'relationships') {
+					postUrl = '/json/recentRelationshipChanges/';
+				}
 
-			arb.stateService.postData(postUrl, {
-					numToLoad: $scope.numToDisplay,
-				},
-				function(data) {
-					$scope.modeRows = data.result.modeRows;
-					$scope.lastView = data.result.lastView;
-				});
+				var createdBefore = $scope.modeRows ?
+						$scope.modeRows[$scope.modeRows.length - 1].changeLog.createdAt : '';
+
+				$scope.fetchingMore = true;
+				arb.stateService.postData(postUrl, {
+						numToLoad: $scope.numToDisplay,
+						createdBefore: createdBefore,
+					},
+					function(data) {
+						if ($scope.modeRows) {
+							var allModeRows = $scope.modeRows.concat(data.result.modeRows);
+
+							// Remove duplicates
+							$scope.modeRows = allModeRows.filter(function(i, index) {
+							    return index == allModeRows.findIndex(function(j) {
+									return i.changeLog.id == j.changeLog.id;
+							    });
+							});
+						} else {
+							$scope.modeRows = data.result.modeRows;
+							$scope.lastView = data.result.lastView;
+						}
+						$scope.fetchingMore = false;
+					});
+			};
+			$scope.fetchMore();
 		},
 	};
 });

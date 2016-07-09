@@ -10,7 +10,8 @@ import (
 )
 
 type recentRelationshipChangesData struct {
-	NumToLoad int
+	NumToLoad     int
+	CreatedBefore string
 }
 
 var recentRelationshipChangesHandler = siteHandler{
@@ -34,7 +35,7 @@ func recentRelationshipChangesHandlerFunc(params *pages.HandlerParams) *pages.Re
 		data.NumToLoad = DefaultModeRowCount
 	}
 
-	changeLogRows, err := loadChangeLogModeRows(db, returnData, data.NumToLoad,
+	changeLogRows, err := loadChangeLogModeRows(db, returnData, data.NumToLoad, data.CreatedBefore,
 		core.NewParentChangeLog,
 		core.DeleteParentChangeLog,
 		core.NewTagChangeLog,
