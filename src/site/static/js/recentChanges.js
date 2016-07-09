@@ -28,7 +28,14 @@ app.directive('arbRecentChanges', function($http, arb) {
 					},
 					function(data) {
 						if ($scope.modeRows) {
-							$scope.modeRows = $scope.modeRows.concat(data.result.modeRows);
+							var allModeRows = $scope.modeRows.concat(data.result.modeRows);
+
+							// Remove duplicates
+							$scope.modeRows = allModeRows.filter(function(i, index) {
+							    return index == allModeRows.findIndex(function(j) {
+									return i.changeLog.id == j.changeLog.id;
+							    });
+							});
 						} else {
 							$scope.modeRows = data.result.modeRows;
 							$scope.lastView = data.result.lastView;

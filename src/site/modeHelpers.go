@@ -583,12 +583,17 @@ func loadChangeLogModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 		DomainsAndPermissions: true,
 		EditHistory:           true,
 	}).Add(core.EmptyLoadOptions)
+
+	if createdBefore == "" {
+		createdBefore = database.Now()
+	}
+
 	queryPart := database.NewQuery(`
 		JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
 		ON pi.pageId = cl.pageId
 		WHERE cl.type IN `).AddArgsGroupStr(changeLogTypes).Add(`
 			AND pi.type!=?`, core.CommentPageType).Add(`
-			AND cl.createdAt<?`, createdBefore).Add(`
+			AND cl.createdAt<=?`, createdBefore).Add(`
 		ORDER BY cl.createdAt DESC
 		LIMIT ?`, limit)
 	err := core.LoadChangeLogs(db, queryPart, returnData, func(db *database.DB, changeLog *core.ChangeLog) error {

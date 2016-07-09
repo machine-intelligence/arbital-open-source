@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
@@ -34,9 +33,6 @@ func recentChangesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 	if data.NumToLoad <= 0 {
 		data.NumToLoad = DefaultModeRowCount
-	}
-	if data.CreatedBefore == "" {
-		data.CreatedBefore = database.Now()
 	}
 
 	// Load edits, edit proposals, and deleted pages
