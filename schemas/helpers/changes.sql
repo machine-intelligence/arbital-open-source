@@ -52,3 +52,6 @@ CREATE TABLE pathInstances (
 alter table users add column isSlackMember boolean not null;
 alter table pathInstances add column sourcePageIds text not null;
 alter table invites add column bonusEditTrust int not null;
+
+alter table pagePairs add column level int not null;
+alter table pagePairs add column isStrong boolean not null;

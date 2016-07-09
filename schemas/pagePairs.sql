@@ -32,7 +32,13 @@ CREATE TABLE pagePairs (
 		and child pages are deleted.) */
 	everPublished BOOLEAN NOT NULL,
 
-	UNIQUE(parentId, childId, type),
+	/* For requirements and subjects, this sets the level of the understanding
+		required / taught */
+	level INT NOT NULL,
 
+	/* Determines if the requirement is strong or weak. */
+	isStrong BOOLEAN NOT NULL,
+
+	UNIQUE(parentId, childId, type),
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

@@ -39,8 +39,8 @@ func (task UpdatePagePairsTask) Execute(db *database.DB) (delay int, err error) 
 
 	// Load relationships which haven't been published yet
 	queryPart := database.NewQuery(`
-		WHERE (childId=? OR parentId=?)`, task.PageId, task.PageId).Add(`
-			AND NOT everPublished`)
+		WHERE (pp.childId=? OR pp.parentId=?)`, task.PageId, task.PageId).Add(`
+			AND NOT pp.everPublished`)
 	err = core.LoadPagePairs(db, queryPart, func(db *database.DB, pagePair *core.PagePair) error {
 		var task PublishPagePairTask
 		task.UserId = pagePair.CreatorId

@@ -161,6 +161,7 @@ func init() {
 	s.HandleFunc(updateMasteriesHandler.URI, handlerWrapper(updateMasteriesHandler)).Methods("POST")
 	s.HandleFunc(updateMemberHandler.URI, handlerWrapper(updateMemberHandler)).Methods("POST")
 	s.HandleFunc(updatePageObjectHandler.URI, handlerWrapper(updatePageObjectHandler)).Methods("POST")
+	s.HandleFunc(updatePagePairHandler.URI, handlerWrapper(updatePagePairHandler)).Methods("POST")
 	s.HandleFunc(updatePathOrderHandler.URI, handlerWrapper(updatePathOrderHandler)).Methods("POST")
 	s.HandleFunc(updatePathHandler.URI, handlerWrapper(updatePathHandler)).Methods("POST")
 	s.HandleFunc(updateSettingsHandler.URI, handlerWrapper(updateSettingsHandler)).Methods("POST")
