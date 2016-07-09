@@ -6,11 +6,13 @@ import (
 	"net/http"
 
 	"zanaduu3/src/core"
+	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
 type recentChangesData struct {
-	NumToLoad int
+	NumToLoad     int
+	CreatedBefore string
 }
 
 var recentChangesHandler = siteHandler{
@@ -33,10 +35,13 @@ func recentChangesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if data.NumToLoad <= 0 {
 		data.NumToLoad = DefaultModeRowCount
 	}
+	if data.CreatedBefore == "" {
+		data.CreatedBefore = database.Now()
+	}
 
 	// Load edits, edit proposals, and deleted pages
 	// TODO: add newPage as a changeLog event, and then include it here.
-	changeLogRows, err := loadChangeLogModeRows(db, returnData, data.NumToLoad,
+	changeLogRows, err := loadChangeLogModeRows(db, returnData, data.NumToLoad, data.CreatedBefore,
 		core.NewEditProposalChangeLog,
 		core.NewEditChangeLog,
 		core.DeletePageChangeLog,

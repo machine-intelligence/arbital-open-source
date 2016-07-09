@@ -19,7 +19,7 @@ app.directive('arbRecentChanges', function($http, arb) {
 				}
 
 				var createdBefore = $scope.modeRows ?
-						$scope.modeRows[$scope.modeRows.length - 1].changeLog.createdAt : 'a';
+						$scope.modeRows[$scope.modeRows.length - 1].changeLog.createdAt : '';
 
 				$scope.fetchingMore = true;
 				arb.stateService.postData(postUrl, {
