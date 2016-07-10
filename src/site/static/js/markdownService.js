@@ -333,8 +333,8 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		});
 
-		// Process [vizualisation(log-graph-demo):] block.
-		var vizBlockRegexp = new RegExp('^\\[vizualisation\\(([^)]+)\\):\\] *(?=\Z|\n\Z|\n\n)', 'gm');
+		// Process [visualization(log-graph-demo):] block.
+		var vizBlockRegexp = new RegExp('^\\[visualization\\(([^)]+)\\):\\] *(?=\Z|\n\Z|\n\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(vizBlockRegexp, function(whole, name) {
 				return '<div class=\'react-demo\' data-demo-name="' + name + '">\n\n</div>';
