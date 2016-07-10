@@ -568,6 +568,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			$pageText.children().each(function(index) {
 				$compile($(this))(scope);
 			});
+			loadAllDemos();
 		}
 
 		// If first time around, set up the functions
