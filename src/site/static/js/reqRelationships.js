@@ -89,7 +89,16 @@ app.directive('arbReqRelationships', function($q, $timeout, $interval, $http, ar
 					type: $scope.type,
 				};
 				arb.pageService.deletePagePair(params, function success() {
-					$scope.source.splice($scope.source.indexOf(params.parentId), 1);
+					var indexToRemove;
+					for (var i=0; i<$scope.source.length; ++i) {
+						if ($scope.source[i].parentId == params.parentId) {
+							indexToRemove = i;
+							break;
+						}
+					}
+
+					$scope.source.splice(indexToRemove, 1);
+
 					$scope.relatesToItself = $scope.source.some(function(pagePair) {
 						return pagePair.parentId == $scope.pageId;
 					});
