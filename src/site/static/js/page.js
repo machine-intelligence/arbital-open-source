@@ -108,12 +108,14 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 				});
 			};
 
-			$scope.updateBonusTrust = {
-				userId: $scope.page.pageId,
-				bonusEditTrust: 0,
-			};
-			$scope.pushBonusTrust = function() {
-				arb.stateService.postDataWithoutProcessing('/json/updateBonusTrust/', $scope.updateBonusTrust);
+			// Edit trust stuff
+			$scope.updateUserTrust = function(domainId) {
+				var data = {
+					userId: $scope.page.pageId,
+					domainId: domainId,
+					editTrust: +arb.userService.user.trustMap[domainId].editTrust,
+				};
+				arb.stateService.postDataWithoutProcessing('/json/updateUserTrust/', data);
 			};
 		},
 		link: function(scope, element, attrs) {

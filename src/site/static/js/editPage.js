@@ -53,7 +53,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			// Whether the editor should be in advanced mode.
 			$scope.showAdvancedMode = function() {
-				return arb.userService.user.isDomainMember || arb.userService.user.showAdvancedEditorMode;
+				return arb.userService.user.maxTrustLevel > 0 || arb.userService.user.showAdvancedEditorMode;
 			};
 
 			// Called when the advanced mode view is toggled

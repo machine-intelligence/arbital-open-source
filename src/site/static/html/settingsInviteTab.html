@@ -21,9 +21,10 @@
 		</md-input-container>
 
 		<p>Specific domains:</p>
-		<md-checkbox ng-model="selectedDomains[domain.domainId]"
+		<md-checkbox ng-repeat="domain in ::domains"
+				ng-model="selectedDomains[domain.domainId]"
 				aria-label="{{::domain.longName}}"
-				ng-repeat="domain in ::domains">
+				ng-if="arb.userService.user.trustMap[domain.domainId].level >= 2">
 			<span ng-bind="::domain.longName"></span>
 		</md-checkbox>
 

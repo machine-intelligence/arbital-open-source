@@ -11,15 +11,23 @@
 	<h3>
 		Your permissions
 	</h3>
-	<div ng-repeat="(domainId,trust) in arb.userService.user.trustMap"
-			ng-if="::trust.permissions.domainAccess.has">
-		<arb-page-title page-id="{{::domainId}}" is-link="true" ng-if="::domainId"></arb-page-title>
-		<span ng-if="::!domainId">General</span>
-		domain:
-		<span ng-if="::trust.permissions.edit.has">Edit pages,</span>
-		<span ng-if="::trust.permissions.delete.has">Delete pages,</span>
-		<span ng-if="::trust.permissions.comment.has">Comment</span>
+	<div ng-repeat="(domainId, trust) in ::arb.userService.user.trustMap"
+			ng-if="::trust.editTrust > 0">
+		You are
+		<span ng-if="200 <= trust.editTrust && trust.editTrust < 300">
+			<arb-page-title page-id="58l" is-link="true" custom-page-title="a member"></arb-page-title>
+		</span>
+		<span ng-if="300 <= trust.editTrust && trust.editTrust < 400">
+			<arb-page-title page-id="58l" is-link="true" custom-page-title="a reviewer"></arb-page-title>
+		</span>
+		<span ng-if="400 <= trust.editTrust">
+			<arb-page-title page-id="58l" is-link="true" custom-page-title="an arbiter"></arb-page-title>
+		</span>
+		of
+		<arb-page-title page-id="{{::domainId}}" is-link="true"></arb-page-title>
+		domain.
 	</div>
+	<br>
 	<br>
 
 	<!-- Stats bar -->

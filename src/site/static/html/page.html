@@ -22,12 +22,39 @@
 				</span>
 			</div>
 
-			<!-- If current user is an admin, they can give bonus trust to this user -->
-			<div ng-if="::arb.userService.user.isAdmin">
-				Bonus edit trust (admin only):
-				<input type="number" ng-model="updateBonusTrust.bonusEditTrust">
-				<md-button ng-click="pushBonusTrust()">Update</md-button>
+			<!-- Display user trust levels for all domains -->
+			<div ng-repeat="(domainId, trust) in ::arb.userService.user.trustMap"
+					ng-if="::page.pageId == arb.userService.user.id">
+				<!-- Admins can edit the level of the user -->
+				<div layout="row" ng-if="::arb.userService.user.isAdmin">
+					<md-input-container flex>
+						<label>User trust level ({{arb.stateService.pageMap[domainId].title}})</label>
+						<md-select ng-model="trust.editTrust"
+								md-on-close="updateUserTrust(domainId)">
+							<md-option value="0">Default</md-option>
+							<md-option value="200">Basic</md-option>
+							<md-option value="300">Reviewer</md-option>
+							<md-option value="400">Arbiter</md-option>
+						</md-select>
+					</md-input-container>
+				</div>
+				<div ng-if="::!arb.userService.user.isAdmin && trust.editTrust > 0">
+					This user is
+					<span ng-if="200 <= trust.editTrust && trust.editTrust < 300">
+						<arb-page-title page-id="58l" is-link="true" custom-page-title="a member"></arb-page-title>
+					</span>
+					<span ng-if="300 <= trust.editTrust && trust.editTrust < 400">
+						<arb-page-title page-id="58l" is-link="true" custom-page-title="a reviewer"></arb-page-title>
+					</span>
+					<span ng-if="400 <= trust.editTrust">
+						<arb-page-title page-id="58l" is-link="true" custom-page-title="an arbiter"></arb-page-title>
+					</span>
+					of
+					<arb-page-title page-id="{{::domainId}}" is-link="true"></arb-page-title>
+					domain.
+				</div>
 			</div>
+
 		</div>
 
 		<!-- Unlisted page -->
@@ -53,7 +80,7 @@
 				</span>
 				<md-button class='md-primary md-raised'
 						ng-click="arb.pageService.approvePageToDomain(page.pageId, '1lw')"
-						ng-if="page.domainSubmissions['1lw'].approverId == '' && arb.userService.user.trustMap['1lw'].permissions.domainTrust.has">
+						ng-if="page.domainSubmissions['1lw'].approverId == '' && arb.userService.user.trustMap['1lw'].level >= 2">
 					Approve
 				</md-button>
 				<span ng-if="page.domainSubmissions['1lw'].approverId != ''">

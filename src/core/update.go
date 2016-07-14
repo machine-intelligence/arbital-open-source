@@ -30,6 +30,7 @@ const (
 	AddedToGroupUpdateType           = "addedToGroup"
 	RemovedFromGroupUpdateType       = "removedFromGroup"
 	InviteReceivedUpdateType         = "inviteReceived"
+	UserTrustUpdateType              = "userTrust"
 	NewMarkUpdateType                = "newMark"
 	ResolvedThreadUpdateType         = "resolvedThread"
 	ResolvedMarkUpdateType           = "resolvedMark"
@@ -310,6 +311,7 @@ func GetAchievementUpdateTypes() []string {
 		InviteReceivedUpdateType,
 		PageToDomainAcceptedUpdateType,
 		EditProposalAcceptedUpdateType,
+		UserTrustUpdateType,
 	}
 }
 
