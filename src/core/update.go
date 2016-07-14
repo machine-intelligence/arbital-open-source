@@ -208,14 +208,8 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 		return nil, fmt.Errorf("Couldn't load user groups: %v", err)
 	}
 
-	// Load all domains
-	domainIds, err := LoadAllDomainIds(db, nil)
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't load domainIds", err)
-	}
-
 	// Load the user's trust
-	err = LoadUserTrust(db, u, domainIds)
+	err = LoadCurrentUserTrust(db, u)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve user trust", err)
 	}

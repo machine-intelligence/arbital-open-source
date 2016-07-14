@@ -66,7 +66,6 @@ type CurrentUser struct {
 	MaxTrustLevel                 int               `json:"maxTrustLevel"`
 	HasReceivedMaintenanceUpdates bool              `json:"hasReceivedMaintenanceUpdates"`
 	HasReceivedNotifications      bool              `json:"hasReceivedNotifications"`
-	UpdateCount                   int               `json:"updateCount"`
 	NewNotificationCount          int               `json:"newNotificationCount"`
 	NewAchievementCount           int               `json:"newAchievementCount"`
 	MaintenanceUpdateCount        int               `json:"maintenanceUpdateCount"`
@@ -364,61 +363,19 @@ func loadUpdateCountInternal(db *database.DB, userId string, updateTypes []strin
 	return updateCount, err
 }
 
-// LoadUserTrust returns the trust that the user has in all domains.
-func LoadUserTrust(db *database.DB, u *CurrentUser, domainIds []string) error {
-	for _, domainId := range domainIds {
-		u.TrustMap[domainId] = &Trust{}
+// LoadCurrentUserTrust computes the trust that the current user has in all domains.
+func LoadCurrentUserTrust(db *database.DB, u *CurrentUser) error {
+	var err error
+	u.TrustMap, err = LoadUserTrust(db, u.Id)
+	if err != nil {
+		return err
 	}
 
-	if u.Id != "" {
-		// NOTE: this should come last in computing trust, so that the bonus trust from
-		// an invite slowly goes away as the user accumulates real trust.
-		// Compute trust from invites
-		rows := database.NewQuery(`
-			SELECT domainId,generalTrust,editTrust
-			FROM userTrust
-			WHERE userId=?`, u.Id).Add(`
-				AND domainId IN`).AddArgsGroupStr(domainIds).ToStatement(db).Query()
-		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var domainId string
-			var generalTrust, editTrust int
-			err := rows.Scan(&domainId, &generalTrust, &editTrust)
-			if err != nil {
-				return fmt.Errorf("Failed to scan: %v", err)
-			}
-			u.TrustMap[domainId].GeneralTrust = generalTrust
-			u.TrustMap[domainId].EditTrust = editTrust
-			if editTrust >= ArbiterKarmaLevel {
-				u.TrustMap[domainId].Level = ArbiterTrustLevel
-			} else if editTrust >= ReviewerKarmaLevel {
-				u.TrustMap[domainId].Level = ReviewerTrustLevel
-			} else if editTrust >= BasicKarmaLevel {
-				u.TrustMap[domainId].Level = BasicTrustLevel
-			}
-			if u.MaxTrustLevel < u.TrustMap[domainId].Level {
-				u.MaxTrustLevel = u.TrustMap[domainId].Level
-			}
-			return nil
-		})
-		if err != nil {
-			return fmt.Errorf("Error while loading userTrust: %v", err)
+	for _, trust := range u.TrustMap {
+		if u.MaxTrustLevel < trust.Level {
+			u.MaxTrustLevel = trust.Level
 		}
-
-		// Load whether the user has ever had any maintenance updates
-		hasReceivedMaintenanceUpdates, err := LoadHasReceivedMaintenanceUpdates(db, u)
-		if err != nil {
-			return fmt.Errorf("Couldn't process maintenance updates: %v", err)
-		}
-		u.HasReceivedMaintenanceUpdates = hasReceivedMaintenanceUpdates
-
-		// Load whether the user has ever had any notifications
-		hasReceivedNotifications, err := LoadHasReceivedNotifications(db, u)
-		if err != nil {
-			return fmt.Errorf("Couldn't process notifications: %v", err)
-		}
-		u.HasReceivedNotifications = hasReceivedNotifications
 	}
-
 	return nil
 }
 

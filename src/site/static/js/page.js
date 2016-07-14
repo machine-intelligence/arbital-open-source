@@ -113,7 +113,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 				var data = {
 					userId: $scope.page.pageId,
 					domainId: domainId,
-					editTrust: +arb.userService.user.trustMap[domainId].editTrust,
+					editTrust: +$scope.page.trustMap[domainId].editTrust,
 				};
 				arb.stateService.postDataWithoutProcessing('/json/updateUserTrust/', data);
 			};

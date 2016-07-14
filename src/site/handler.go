@@ -83,7 +83,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		}
 
 		// Load the user's trust
-		err = core.LoadUserTrust(db, u, params.DomainIds)
+		err = core.LoadCurrentUserTrust(db, u)
 		if err != nil {
 			fail(http.StatusInternalServerError, "Couldn't retrieve user trust", err)
 			return
@@ -129,13 +129,34 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 				}
 
 				if core.IsIdValid(u.Id) {
-					// Load updates count. (Loading it afterwards since it could be affected by the page)
-					u.UpdateCount, err = core.LoadUpdateCount(db, u.Id)
+					// Load updates counts. (Loading it afterwards since it could be affected by the page)
 					u.NewNotificationCount, err = core.LoadNotificationCount(db, u.Id, false)
+					if err != nil {
+						fail(http.StatusInternalServerError, "Couldn't retrieve notification updates count", err)
+						return
+					}
 					u.NewAchievementCount, err = core.LoadNewAchievementCount(db, u)
+					if err != nil {
+						fail(http.StatusInternalServerError, "Couldn't retrieve achievement updates count", err)
+						return
+					}
 					u.MaintenanceUpdateCount, err = core.LoadMaintenanceUpdateCount(db, u.Id, false)
 					if err != nil {
-						fail(http.StatusInternalServerError, "Couldn't retrieve updates count", err)
+						fail(http.StatusInternalServerError, "Couldn't retrieve maintainance updates count", err)
+						return
+					}
+
+					// Load whether the user has ever had any maintenance updates
+					u.HasReceivedMaintenanceUpdates, err = core.LoadHasReceivedMaintenanceUpdates(db, u)
+					if err != nil {
+						fail(http.StatusInternalServerError, "Couldn't process maintenance updates", err)
+						return
+					}
+
+					// Load whether the user has ever had any notifications
+					u.HasReceivedNotifications, err = core.LoadHasReceivedNotifications(db, u)
+					if err != nil {
+						fail(http.StatusInternalServerError, "Couldn't process notifications", err)
 						return
 					}
 				}
