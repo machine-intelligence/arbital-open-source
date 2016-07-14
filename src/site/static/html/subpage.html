@@ -122,8 +122,7 @@
 						ng-repeat="subpageId in page.subpageIds"></div>
 
 				<!-- Reply to thread button -->
-				<md-button class="md-primary"
-						aria-label="Reply to thread"
+				<md-button aria-label="Reply to thread"
 						ng-click="newReply()"
 						arb-user-check=""
 						ng-if="canReply() && !newReplyId && page.subpageIds.length > 0">

@@ -671,6 +671,8 @@ app.directive('arbUserCheck', function($compile, $mdToast, arb) {
 });
 
 // Directive for a button to toggle requisite state
+// OBSOLETE
+/*
 app.directive('arbRequisiteButton', function(arb) {
 	return {
 		templateUrl: versionUrl('static/html/requisiteButton.html'),
@@ -709,7 +711,7 @@ app.directive('arbRequisiteButton', function(arb) {
 			};
 		},
 	};
-});
+});*/
 
 // Directive for displaying next/prev buttons when learning.
 app.directive('arbNextPrev', function($location, arb) {

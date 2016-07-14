@@ -14,9 +14,13 @@
 
 	<!-- Show this when the user is not on a path, but can start one -->
 	<div ng-if="!path && page.pathPages.length > 0 && !arb.pathService.isOnPath()">
+		<span>
+			<!-- +1 to count the guide page -->
+			Path: 1/{{page.pathPages.length+1}}
+		</span>
 		<md-button ng-click="arb.pathService.startPath(pageId)"
 				class="md-primary md-raised">
-			Start path
+			<span>Next</span>
 			<md-icon>chevron_right</md-icon>
 		</md-button>
 	</div>
@@ -42,8 +46,8 @@
 		</md-button>
 		<span ng-if="arb.pathService.showFinish()">
 			<md-button class="md-primary md-raised"
-				ng-click="arb.pathService.finishPath()"
-				ng-if="!path.isFinished">
+					ng-click="arb.pathService.finishPath()"
+					ng-if="!path.isFinished">
 				Finish!
 			</md-button>
 			<span ng-if="path.isFinished">

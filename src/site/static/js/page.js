@@ -85,9 +85,9 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 
 			// Show the panel to add tags
 			$scope.isTagsPanelVisible = false;
-			$scope.showTagsPanel = function() {
+			$scope.$on('showTagsPanel', function() {
 				$scope.isTagsPanelVisible = true;
-			};
+			});
 
 			// Toggle between show delete answer buttons
 			$scope.showDeleteAnswer = false;
@@ -108,12 +108,14 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 				});
 			};
 
-			$scope.updateBonusTrust = {
-				userId: $scope.page.pageId,
-				bonusEditTrust: 0,
-			};
-			$scope.pushBonusTrust = function() {
-				arb.stateService.postDataWithoutProcessing('/json/updateBonusTrust/', $scope.updateBonusTrust);
+			// Edit trust stuff
+			$scope.updateUserTrust = function(domainId) {
+				var data = {
+					userId: $scope.page.pageId,
+					domainId: domainId,
+					editTrust: +$scope.page.trustMap[domainId].editTrust,
+				};
+				arb.stateService.postDataWithoutProcessing('/json/updateUserTrust/', data);
 			};
 		},
 		link: function(scope, element, attrs) {

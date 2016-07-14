@@ -56,7 +56,9 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 			// ============ Masteries ====================
 
 			// Compute subject ids that the user hasn't learned yet.
-			$scope.subjectIds = $scope.page.subjectIds.filter(function(id) { return !arb.masteryService.hasMastery(id); });
+			$scope.subjects = $scope.page.subjects.filter(function(subject) {
+				return !arb.masteryService.hasMastery(subject.parentId);
+			});
 
 			// Check if the user meets all requirements
 			$scope.meetsAllRequirements = function(pageId) {
@@ -74,8 +76,8 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 
 			// Check if the user knows all the subjects
 			$scope.knowsAllSubjects = function() {
-				for (var n = 0; n < $scope.subjectIds.length; n++) {
-					if (!arb.masteryService.hasMastery($scope.subjectIds[n])) {
+				for (var n = 0; n < $scope.subjects.length; n++) {
+					if (!arb.masteryService.hasMastery($scope.subjects[n].parentId)) {
 						return false;
 					}
 				}
@@ -116,21 +118,21 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					var callbackPromise = $timeout(callback, 500);
 				}
 				if ($scope.knowsAllSubjects()) {
-					arb.masteryService.updateMasteryMap({delete: $scope.subjectIds, callback: callback});
+					arb.masteryService.updateMasteryMap({delete: $scope.subjects, callback: callback});
 				} else {
-					arb.masteryService.updateMasteryMap({knows: $scope.subjectIds, callback: callback});
+					arb.masteryService.updateMasteryMap({knows: $scope.subjects, callback: callback});
 				}
 			};
 
 			$scope.getToggleSubjectsText = function() {
 				if ($scope.knowsAllSubjects()) {
-					if ($scope.page.subjectIds.length > 1) {
+					if ($scope.page.subjects.length > 1) {
 						return 'Nevermind, none of them';
 					} else {
 						return 'Nevermind, I didn\'t get it';
 					}
 				} else {
-					if ($scope.page.subjectIds.length > 1) {
+					if ($scope.page.subjects.length > 1) {
 						return 'Yes, all of them';
 					} else {
 						return 'Yes, I got it';
@@ -154,6 +156,10 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 			$scope.pagesUnlocked = function(data) {
 				$scope.canQuickContinue = false;
 				$scope.unlockedIds = data && data.result && data.result.unlockedIds;
+			};
+
+			$scope.showTagsPanel = function() {
+				$scope.$emit('showTagsPanel');
 			};
 		},
 		link: function(scope, element, attrs) {

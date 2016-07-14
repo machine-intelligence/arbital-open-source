@@ -16,13 +16,15 @@ const (
 )
 
 type PagePair struct {
-	Id            string
-	ParentId      string
-	ChildId       string
-	Type          string
-	CreatorId     string
-	CreatedAt     string
-	EverPublished bool
+	Id            string `json:"id"`
+	ParentId      string `json:"parentId"`
+	ChildId       string `json:"childId"`
+	Type          string `json:"type"`
+	CreatorId     string `json:"creatorId"`
+	CreatedAt     string `json:"createdAt"`
+	Level         int    `json:"level"`
+	IsStrong      bool   `json:"isStrong"`
+	EverPublished bool   `json:"everPublished"`
 }
 
 type LoadChildIdsOptions struct {
@@ -56,18 +58,29 @@ type ProcessPagePairCallback func(db *database.DB, pagePair *PagePair) error
 // LoadPagePairs loads page pairs matching the given query
 func LoadPagePairs(db *database.DB, queryPart *database.QueryPart, callback ProcessPagePairCallback) error {
 	rows := database.NewQuery(`
-		SELECT id,type,childId,parentId,creatorId,createdAt,everPublished
-		FROM pagePairs`).AddPart(queryPart).ToStatement(db).Query()
+		SELECT pp.id,pp.type,pp.childId,pp.parentId,pp.creatorId,pp.createdAt,pp.everPublished,
+			pp.level,pp.isStrong
+		FROM pagePairs AS pp`).AddPart(queryPart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pagePair PagePair
 		err := rows.Scan(&pagePair.Id, &pagePair.Type, &pagePair.ChildId, &pagePair.ParentId,
-			&pagePair.CreatorId, &pagePair.CreatedAt, &pagePair.EverPublished)
+			&pagePair.CreatorId, &pagePair.CreatedAt, &pagePair.EverPublished, &pagePair.Level,
+			&pagePair.IsStrong)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
 		return callback(db, &pagePair)
 	})
 	return err
+}
+func LoadPagePair(db *database.DB, id string) (*PagePair, error) {
+	var pagePair *PagePair
+	queryPart := database.NewQuery(`WHERE pp.id=?`, id)
+	err := LoadPagePairs(db, queryPart, func(db *database.DB, pp *PagePair) error {
+		pagePair = pp
+		return nil
+	})
+	return pagePair, err
 }
 
 // LoadChildIds loads the page ids for all the children of the pages in the given pageMap.
@@ -143,6 +156,7 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, op
 
 	pageIds := PageIdsListFromMap(sourcePageMap)
 	newPages := make(map[string]*Page)
+
 	rows := database.NewQuery(`
 		SELECT pp.parentId,pp.childId,pp.type
 		FROM (
@@ -154,7 +168,6 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, op
 		ON (pi.pageId=pp.parentId)
 		WHERE (pi.currentEdit>0 AND NOT pi.isDeleted) OR pp.parentId=pp.childId
 		`).ToStatement(db).Query()
-
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentId, childId string
 		var ppType string
@@ -169,14 +182,8 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, op
 			childPage.ParentIds = append(childPage.ParentIds, parentId)
 			childPage.HasParents = true
 			newPages[newPage.PageId] = newPage
-		} else if ppType == RequirementPagePairType {
-			childPage.RequirementIds = append(childPage.RequirementIds, parentId)
-			options.MasteryMap[parentId] = &Mastery{PageId: parentId}
 		} else if ppType == TagPagePairType {
 			childPage.TaggedAsIds = append(childPage.TaggedAsIds, parentId)
-		} else if ppType == SubjectPagePairType {
-			childPage.SubjectIds = append(childPage.SubjectIds, parentId)
-			options.MasteryMap[parentId] = &Mastery{PageId: parentId}
 		}
 		return nil
 	})
@@ -219,6 +226,47 @@ func LoadParentIdsForPage(db *database.DB, pageId string, u *CurrentUser) ([]str
 	}
 	err := LoadParentIds(db, pageMap, u, options)
 	return p.ParentIds, err
+}
+
+type LoadReqsOptions struct {
+	// If set, the parents will be loaded for these pages, but added to the
+	// map passed in as the argument.
+	ForPages map[string]*Page
+	// Mastery map to populate with masteries necessary for a requirement
+	MasteryMap map[string]*Mastery
+}
+
+// LoadRequisites loads the subjects and requirements for all pages in the map
+func LoadRequisites(db *database.DB, pageMap map[string]*Page, u *CurrentUser, options *LoadReqsOptions) error {
+	sourcePageMap := options.ForPages
+	if len(sourcePageMap) <= 0 {
+		return nil
+	}
+	pageIds := PageIdsListFromMap(sourcePageMap)
+
+	queryPart := database.NewQuery(`
+		JOIN`).AddPart(PageInfosTableAll(u)).Add(`AS pi
+		ON (pi.pageId=pp.parentId)
+		WHERE ((pi.currentEdit>0 AND NOT pi.isDeleted) OR pp.parentId=pp.childId)
+			AND pp.type IN (?,?)`, RequirementPagePairType, SubjectPagePairType).Add(`
+			AND pp.childId IN`).AddArgsGroup(pageIds).Add(`
+		`)
+	err := LoadPagePairs(db, queryPart, func(db *database.DB, pagePair *PagePair) error {
+		childPage := sourcePageMap[pagePair.ChildId]
+		if pagePair.Type == RequirementPagePairType {
+			childPage.Requirements = append(childPage.Requirements, pagePair)
+			options.MasteryMap[pagePair.ParentId] = &Mastery{PageId: pagePair.ParentId}
+		} else if pagePair.Type == SubjectPagePairType {
+			childPage.Subjects = append(childPage.Subjects, pagePair)
+			options.MasteryMap[pagePair.ParentId] = &Mastery{PageId: pagePair.ParentId}
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("Failed to load parents: %v", err)
+	}
+
+	return nil
 }
 
 // Load full edit for both the parent and the child of the given page pair.
@@ -281,6 +329,28 @@ func _getParents(db *database.DB, pageId string) ([]string, error) {
 		return nil
 	})
 	return parents, err
+}
+
+// Returns the ids of all the subjects taught by the given page (does *not* include deleted and unpublished subjects)
+func GetSubjects(db *database.DB, pageId string) ([]string, error) {
+	subjects := make([]string, 0)
+
+	rows := database.NewQuery(`
+		SELECT parentId
+		FROM pagePairs AS pp
+		JOIN`).AddPart(PageInfosTable(nil)).Add(`AS pi
+		ON pp.parentId=pi.pageId
+		WHERE pp.childId=?`, pageId).Add(`AND pp.type=?`, SubjectPagePairType).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var subjectId string
+		if err := rows.Scan(&subjectId); err != nil {
+			return fmt.Errorf("failed to scan for subjectId: %v", err)
+		}
+
+		subjects = append(subjects, subjectId)
+		return nil
+	})
+	return subjects, err
 }
 
 type GetRelatedFunc func(db *database.DB, pageId string) ([]string, error)

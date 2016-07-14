@@ -87,12 +87,6 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if oldPage.SeeGroupId != data.SeeGroupId && oldPage.WasPublished {
 		return pages.Fail("Editing this page in incorrect private group", nil).Status(http.StatusBadRequest)
 	}
-	if core.IsIdValid(data.SeeGroupId) && !u.IsMemberOfGroup(data.SeeGroupId) {
-		return pages.Fail("Don't have group permission to EVEN SEE this page", nil).Status(http.StatusBadRequest)
-	}
-	if core.IsIdValid(oldPage.EditGroupId) && !u.IsMemberOfGroup(oldPage.EditGroupId) {
-		return pages.Fail("Don't have group permission to edit this page", nil).Status(http.StatusBadRequest)
-	}
 	// Check validity of most options. (We are super permissive with autosaves.)
 	data.Type, err = core.CorrectPageType(data.Type)
 	if err != nil {
@@ -170,7 +164,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	isEditorComment := oldPage.IsEditorComment
 	if oldPage.Type == core.CommentPageType {
 		// See if the user can affect isEditorComment's value
-		if oldPage.Permissions.DomainAccess.Has {
+		if oldPage.Permissions.Comment.Has {
 			isEditorComment = data.IsEditorCommentIntention
 		}
 	}
@@ -193,6 +187,9 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return pages.Success(nil)
 		}
 	}
+
+	c.Debugf("====================== %+v", data)
+	c.Debugf("====================== %+v", oldPage)
 
 	// Make sure the user has the right permissions to edit this page
 	// NOTE: check permissions AFTER checking if any data will be changed, becase we

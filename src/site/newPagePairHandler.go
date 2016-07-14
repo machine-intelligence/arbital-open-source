@@ -1,4 +1,4 @@
-// newPagePairHandler.go handles repages for adding a new tag.
+// newPagePairHandler.go handles creating and updating a page
 package site
 
 import (
@@ -18,6 +18,8 @@ type newPagePairData struct {
 	ParentId string
 	ChildId  string
 	Type     string
+	Level    int
+	IsStrong bool
 }
 
 var newPagePairHandler = siteHandler{
@@ -42,6 +44,7 @@ func newPagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newPagePairData) *pages.Result {
 	c := db.C
+	returnData := core.NewHandlerData(u)
 	var err error
 
 	// Error checking
@@ -60,7 +63,7 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 
 	// Check if this page pair already exists
 	var pagePair *core.PagePair
-	queryPart := database.NewQuery(`WHERE parentId=? AND childId=? AND type=?`, data.ParentId, data.ChildId, data.Type)
+	queryPart := database.NewQuery(`WHERE pp.parentId=? AND pp.childId=? AND pp.type=?`, data.ParentId, data.ChildId, data.Type)
 	err = core.LoadPagePairs(db, queryPart, func(db *database.DB, pp *core.PagePair) error {
 		pagePair = pp
 		return nil
@@ -101,12 +104,15 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 	}
 
 	// Do it!
+	var pagePairId int64
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Create new page pair
 		hashmap := make(database.InsertMap)
 		hashmap["parentId"] = data.ParentId
 		hashmap["childId"] = data.ChildId
 		hashmap["type"] = data.Type
+		hashmap["level"] = data.Level
+		hashmap["isStrong"] = data.IsStrong
 		hashmap["creatorId"] = u.Id
 		hashmap["createdAt"] = database.Now()
 		statement := tx.DB.NewInsertStatement("pagePairs", hashmap).WithTx(tx)
@@ -114,7 +120,7 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 		if err != nil {
 			return sessions.NewError("Couldn't insert pagePair", err)
 		}
-		pagePairId, err := resp.LastInsertId()
+		pagePairId, err = resp.LastInsertId()
 		if err != nil {
 			return sessions.NewError("Couldn't get page pair id", err)
 		}
@@ -157,5 +163,9 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 		return pages.FailWith(err2)
 	}
 
-	return pages.Success(nil)
+	returnData.ResultMap["pagePair"], err = core.LoadPagePair(db, fmt.Sprintf("%d", pagePairId))
+	if err != nil {
+		return pages.Fail("Error loading the page pair", err)
+	}
+	return pages.Success(returnData)
 }

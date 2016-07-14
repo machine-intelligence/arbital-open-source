@@ -21,21 +21,39 @@
 							<arb-page-title page-id="3hs" is-link="true" custom-page-title="Read the author's guide."></arb-page-title>
 						</div>
 
-						<md-input-container>
-							<label>Title</label>
-							<input ng-model="page.title"
-									md-maxlength="100"
-									aria-label="Title"
-									autofocus>
-						</md-input-container>
-						<md-input-container>
-							<label>Clickbait</label>
-							<input ng-model="page.clickbait" md-maxlength="200">
-						</md-input-container>
-						<md-input-container ng-if="showAdvancedMode()">
-							<label>Alias</label>
-							<input ng-model="page.alias" md-maxlength="50">
-						</md-input-container>
+						<div layout="row">
+							<md-input-container flex>
+								<label>Title</label>
+								<input ng-model="page.title"
+										md-maxlength="100"
+										aria-label="Title"
+										autofocus>
+							</md-input-container>
+							<md-button class="md-icon-button intrasite-link editor-input-container-help-button" target="_blank"
+								href="https://arbital.com/p/Arbital_title" page-id="596">
+								<md-icon>live_help</md-icon>
+							</md-button>
+						</div>
+						<div layout="row">
+							<md-input-container flex>
+								<label>Clickbait</label>
+								<input ng-model="page.clickbait" md-maxlength="200">
+							</md-input-container>
+							<md-button class="md-icon-button intrasite-link editor-input-container-help-button" target="_blank"
+								href="https://arbital.com/p/Arbital_clickbait" page-id="597">
+								<md-icon>live_help</md-icon>
+							</md-button>
+						</div>
+						<div layout="row">
+							<md-input-container flex ng-if="showAdvancedMode()">
+								<label>Alias</label>
+								<input ng-model="page.alias" md-maxlength="50">
+							</md-input-container>
+							<md-button class="md-icon-button intrasite-link editor-input-container-help-button" target="_blank"
+								href="https://arbital.com/p/Arbital_alias" page-id="595">
+								<md-icon>live_help</md-icon>
+							</md-button>
+						</div>
 					</div>
 
 					<!-- Related pages -->
@@ -310,7 +328,7 @@
 									readonly="::!(page.isWiki() || page.isQuestion())"></div>
 
 							<!-- Requirements -->
-							<div arb-relationships
+							<div arb-req-relationships
 									class="edit-relationship-div"
 									page-id="{{::page.pageId}}"
 									type="requirement"
@@ -318,7 +336,7 @@
 									readonly="::!(page.isWiki() || page.isQuestion())"></div>
 
 							<!-- Teaches -->
-							<div arb-relationships
+							<div arb-req-relationships
 									class="edit-relationship-div"
 									page-id="{{::page.pageId}}"
 									type="subject"
@@ -326,10 +344,9 @@
 									readonly="::!(page.isWiki())"></div>
 
 							<!-- Children and lenses -->
-							<div arb-relationships
+							<div arb-child-relationships
 									class="edit-relationship-div"
 									page-id="{{::page.pageId}}"
-									type="child"
 									force-edit-mode="true"
 									readonly="::!(page.isWiki())"></div>
 
@@ -460,7 +477,7 @@
 							</div>-->
 
 							<!-- Edit group id -->
-							<div layout="row" ng-if="arb.userService.user.isAdmin || arb.userService.user.isTrusted">
+							<div layout="row" ng-if="arb.userService.user.isAdmin">
 								<md-input-container flex>
 									<label>Edit group</label>
 									<md-select ng-model="page.editGroupId">

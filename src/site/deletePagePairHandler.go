@@ -50,7 +50,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Load the page pair
 	var pagePair *core.PagePair
-	queryPart := database.NewQuery(`WHERE parentId=? AND childId=? AND type=?`, data.ParentId, data.ChildId, data.Type)
+	queryPart := database.NewQuery(`WHERE pp.parentId=? AND pp.childId=? AND pp.type=?`, data.ParentId, data.ChildId, data.Type)
 	err = core.LoadPagePairs(db, queryPart, func(db *database.DB, pp *core.PagePair) error {
 		pagePair = pp
 		return nil

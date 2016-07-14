@@ -70,17 +70,17 @@
 
 		<div layout-gt-xs="row" layout-align="start end">
 			<!-- Subjects taught -->
-			<div flex ng-if="(!isSimpleEmbed && subjectIds.length > 0 && showLearnedPanel)">
+			<div flex ng-if="(!isSimpleEmbed && subject.length > 0 && showLearnedPanel)">
 				<span class="md-subhead">
 					<md-icon>assignment</md-icon>
 					Did you learn
-					<span ng-bind="::(subjectIds.length > 1 ? 'these concepts' : 'this concept')"></span>
+					<span ng-bind="::(subject.length > 1 ? 'these concepts' : 'this concept')"></span>
 					from "<span ng-bind="::page.title"></span>"?
 				</span>
-				<div arb-mastery-list
-						ids-source="::subjectIds"
+				<!--<div arb-mastery-list
+						ids-source="::subjects"
 						show-clickbait="::true"
-						unlocked-fn="pagesUnlocked(result)"></div>
+						unlocked-fn="pagesUnlocked(result)"></div>-->
 
 				<!-- Mark as done button -->
 				<md-button class="special md-raised"

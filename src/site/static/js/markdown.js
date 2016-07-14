@@ -62,6 +62,10 @@ app.directive('arbMarkdown', function($compile, $timeout, arb) {
 								scope.mark.anchorOffset + scope.mark.anchorText.length, highlightClass);
 						}
 					});
+					// In case Mathjax fails or something, remove the invisible class after a delay
+					$timeout(function() {
+						element.removeClass('invisible');
+					}, 1500);
 				});
 			});
 		},

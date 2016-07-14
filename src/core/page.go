@@ -183,16 +183,18 @@ type Page struct {
 	CreatorIds []string `json:"creatorIds"`
 
 	// Relevant ids.
-	CommentIds     []string `json:"commentIds"`
-	QuestionIds    []string `json:"questionIds"`
-	TaggedAsIds    []string `json:"taggedAsIds"`
-	RelatedIds     []string `json:"relatedIds"`
-	RequirementIds []string `json:"requirementIds"`
-	SubjectIds     []string `json:"subjectIds"`
-	DomainIds      []string `json:"domainIds"`
-	ChildIds       []string `json:"childIds"`
-	ParentIds      []string `json:"parentIds"`
-	MarkIds        []string `json:"markIds"`
+	ChildIds    []string `json:"childIds"`
+	ParentIds   []string `json:"parentIds"`
+	CommentIds  []string `json:"commentIds"`
+	QuestionIds []string `json:"questionIds"`
+	TaggedAsIds []string `json:"taggedAsIds"`
+	RelatedIds  []string `json:"relatedIds"`
+	DomainIds   []string `json:"domainIds"`
+	MarkIds     []string `json:"markIds"`
+
+	// Requisite sstuff
+	Requirements []*PagePair `json:"requirements"`
+	Subjects     []*PagePair `json:"subjects"`
 
 	// Lens stuff
 	Lenses       LensList `json:"lenses"`
@@ -203,8 +205,8 @@ type Page struct {
 
 	// TODO: eventually move this to the user object (once we have load
 	// options + pipeline for users)
-	// For user pages, this is the domains user has access to
-	DomainMembershipIds []string `json:"domainMembershipIds"`
+	// For user pages, this is the trust map
+	TrustMap map[string]*Trust `json:"trustMap"`
 
 	// Edit history for when we need to know which edits are based on which edits (key is 'edit' number)
 	EditHistory map[string]*EditInfo `json:"editHistory"`
@@ -256,14 +258,14 @@ func NewPage(pageId string) *Page {
 	p.QuestionIds = make([]string, 0)
 	p.TaggedAsIds = make([]string, 0)
 	p.RelatedIds = make([]string, 0)
-	p.RequirementIds = make([]string, 0)
-	p.SubjectIds = make([]string, 0)
+	p.Requirements = make([]*PagePair, 0)
+	p.Subjects = make([]*PagePair, 0)
 	p.DomainIds = make([]string, 0)
 	p.ChangeLogs = make([]*ChangeLog, 0)
 	p.ChildIds = make([]string, 0)
 	p.ParentIds = make([]string, 0)
 	p.MarkIds = make([]string, 0)
-	p.DomainMembershipIds = make([]string, 0)
+	p.TrustMap = make(map[string]*Trust)
 	p.Lenses = make(LensList, 0)
 	p.PathPages = make(Path, 0)
 	p.DomainSubmissions = make(map[string]*PageToDomainSubmission)
@@ -542,6 +544,14 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	pageObjectMap := data.PageObjectMap
 	markMap := data.MarkMap
 
+	// For fresh data, make sure that various things are definitely loaded
+	if data.ResetEverything {
+		_, err := LoadAllDomainIds(db, pageMap)
+		if err != nil {
+			return fmt.Errorf("LoadAllDomainIds for failed: %v", err)
+		}
+	}
+
 	// Load comments
 	filteredPageMap := filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Comments })
 	err := LoadCommentIds(db, u, pageMap, &LoadDataOptions{ForPages: filteredPageMap})
@@ -625,28 +635,14 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		return fmt.Errorf("LoadPathForPages failed: %v", err)
 	}
 
-	// Load requirements
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Requirements })
-	err = LoadParentIds(db, pageMap, u, &LoadParentIdsOptions{
-		ForPages:     filteredPageMap,
-		PagePairType: RequirementPagePairType,
-		LoadOptions:  TitlePlusLoadOptions,
-		MasteryMap:   masteryMap,
+	// Load requisites
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Requisites })
+	err = LoadRequisites(db, pageMap, u, &LoadReqsOptions{
+		ForPages:   filteredPageMap,
+		MasteryMap: masteryMap,
 	})
 	if err != nil {
-		return fmt.Errorf("LoadParentIds for requirements failed: %v", err)
-	}
-
-	// Load subjects
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Subjects })
-	err = LoadParentIds(db, pageMap, u, &LoadParentIdsOptions{
-		ForPages:     filteredPageMap,
-		PagePairType: SubjectPagePairType,
-		LoadOptions:  TitlePlusLoadOptions,
-		MasteryMap:   masteryMap,
-	})
-	if err != nil {
-		return fmt.Errorf("LoadParentIds for subjects failed: %v", err)
+		return fmt.Errorf("LoadRequisites failed: %v", err)
 	}
 
 	// Load domains the pages have been submitted to
@@ -705,13 +701,11 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		return fmt.Errorf("LoadMarkData failed: %v", err)
 	}
 
-	// Load what domains these users belong to
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.DomainMembership })
-	err = LoadDomainMemberships(db, pageMap, &LoadDataOptions{
-		ForPages: filteredPageMap,
-	})
+	// Load the trust map for users
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.TrustMap })
+	err = LoadTrustMapForUsers(db, filteredPageMap)
 	if err != nil {
-		return fmt.Errorf("LoadDomainMemberships failed: %v", err)
+		return fmt.Errorf("LoadTrustMapForUsers failed: %v", err)
 	}
 
 	// Load links
@@ -2318,30 +2312,19 @@ func LoadDomainIdsForPage(db *database.DB, page *Page) error {
 	})
 }
 
-// LoadDomainMemberships loads which domains the users belong to
-func LoadDomainMemberships(db *database.DB, pageMap map[string]*Page, options *LoadDataOptions) error {
-	sourcePageMap := options.ForPages
-	if len(sourcePageMap) <= 0 {
-		return nil
+// LoadTrustMapForUsers loads trust maps for given users
+func LoadTrustMapForUsers(db *database.DB, pageMap map[string]*Page) error {
+	var err error
+	if len(pageMap) > 1 {
+		db.C.Warningf("Loading more than one trust map. Inefficient!")
 	}
-	pageIds := PageIdsListFromMap(sourcePageMap)
-	rows := database.NewQuery(`
-		SELECT toUserId,domainId
-		FROM invites
-		WHERE toUserId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var userId, domainId string
-		err := rows.Scan(&userId, &domainId)
+	for pageId, page := range pageMap {
+		page.TrustMap, err = LoadUserTrust(db, pageId)
 		if err != nil {
-			return fmt.Errorf("failed to scan: %v", err)
+			return err
 		}
-		sourcePageMap[userId].DomainMembershipIds = append(sourcePageMap[userId].DomainMembershipIds, domainId)
-		if pageMap != nil {
-			AddPageToMap(domainId, pageMap, TitlePlusLoadOptions)
-		}
-		return nil
-	})
-	return err
+	}
+	return nil
 }
 
 // LoadAliasToPageIdMap loads the mapping from aliases to page ids.

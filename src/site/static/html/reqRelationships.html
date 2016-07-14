@@ -1,0 +1,95 @@
+<div layout="column">
+	<!-- Title -->
+	<div class="md-headline">
+		<arb-page-title page-id="1ln"
+				is-link="true"
+				custom-page-title="Requirements"
+				ng-if="::isRequirementType"></arb-page-title>
+		<arb-page-title page-id="1ln"
+				is-link="true"
+				custom-page-title="Topics"
+				ng-if="::isSubjectType"></arb-page-title>
+	</div>
+
+	<div class="md-caption" ng-if="::readonly">
+		You can't edit this field for this type of page.
+	</div>
+
+	<!-- List of relationships -->
+	<div class="list"
+			layout="row"
+			layout-align="start center"
+			ng-repeat="relationship in source">
+
+		<!-- Delete button -->
+		<md-button class="md-icon-button"
+				ng-click="deleteRelationship(relationship.parentId)"
+				ng-if="::!readonly">
+			<md-icon>clear</md-icon>
+		</md-button>
+
+		<div flex>
+			<div layout="row" layout-align="start center" ng-if="::isRequirementType">
+				<md-input-container class="no-margins" flex>
+					<md-select ng-model="relationship.isStrong"
+							md-on-close="updateRelationship(relationship)"
+							aria-label="Strength">
+						<md-option value="true">Strongly requires</md-option>
+						<md-option value="false">Weakly requires</md-option>
+					</md-select>
+				</md-input-container>
+				<md-input-container class="no-margins" flex>
+					<md-select ng-model="relationship.level"
+							md-on-close="updateRelationship(relationship)"
+							aria-label="Level">
+						<md-option value="0">loose acquaintance with</md-option>
+						<md-option value="1">basic understanding of</md-option>
+						<md-option value="2">basic proficiency with</md-option>
+						<md-option value="3">technical understanding of</md-option>
+						<md-option value="4">technical proficiency with</md-option>
+						<md-option value="5">research-level understanding of</md-option>
+					</md-select>
+				</md-input-container>
+			</div>
+
+			<div layout="row" layout-align="start center" ng-if="::isSubjectType">
+				<md-input-container class="no-margins" flex>
+					<md-select ng-model="relationship.level"
+							md-on-close="updateRelationship(relationship)"
+							aria-label="Level">
+						<md-option value="0">Gives acquaintance with</md-option>
+						<md-option value="1">Gives basic understanding of</md-option>
+						<md-option value="2">Gives basic proficiency with</md-option>
+						<md-option value="3">Gives technical understanding of</md-option>
+						<md-option value="4">Gives technical proficiency with</md-option>
+						<md-option value="5">Gives research-level understanding of</md-option>
+					</md-select>
+				</md-input-container>
+			</div>
+
+			<div>
+				<!-- Relationship page title -->
+				<arb-page-title page-id="{{::relationship.parentId}}"
+						is-link="true"
+						show-clickbait="true"
+						ng-if="!(relationship.parentId === pageId && isSubjectType && !page.wasPublished)"></arb-page-title>
+
+				<span ng-bind="arb.stateService.editMap[pageId].title ? arb.stateService.editMap[pageId].title : '*Untitled*'"
+						ng-if="relationship.parentId === pageId && isSubjectType && !page.wasPublished"></span>
+			</div>
+		</div>
+	</div>
+
+	<!-- Add a relationship -->
+	<arb-autocomplete placeholder="Add a {{::type}}"
+			on-select="searchResultSelected(result)"
+			ng-if="::!readonly"></arb-autocomplete>
+
+	<!-- Quick teach itself button -->
+	<div ng-if="!relatesToItself && isSubjectType && !readonly">
+		<md-button ng-click="teachItself()">
+			<md-icon>add</md-icon>
+			Teaches itself
+		</md-button>
+	</div>
+</div>

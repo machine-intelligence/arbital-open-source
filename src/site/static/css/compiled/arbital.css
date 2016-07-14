@@ -1148,6 +1148,8 @@ textarea {
 
 .editor-tab {
   padding: 10px 20px 0px 20px; }
+  .editor-tab .editor-input-container-help-button {
+    margin-top: 10px; }
 
 .publishing-options-panel {
   padding: 10px 20px 0px 20px;

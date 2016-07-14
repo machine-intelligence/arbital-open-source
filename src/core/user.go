@@ -13,6 +13,8 @@ type User struct {
 	FirstName        string `json:"firstName"`
 	LastName         string `json:"lastName"`
 	LastWebsiteVisit string `json:"lastWebsiteVisit"`
+
+	// Computed variables
 	// True if the currently logged in user is subscribed to this user
 	IsSubscribed bool `json:"isSubscribed"`
 }
@@ -89,4 +91,43 @@ func LoadUser(db *database.DB, userId string, currentUserId string) (*User, erro
 	userMap := map[string]*User{userId: user}
 	err := LoadUsers(db, userMap, currentUserId)
 	return user, err
+}
+
+// LoadUserTrust returns the trust that the user has in all domains.
+func LoadUserTrust(db *database.DB, userId string) (map[string]*Trust, error) {
+	trustMap := make(map[string]*Trust)
+	rows := database.NewQuery(`
+		SELECT domainId,max(generalTrust),max(editTrust)
+		FROM (
+			SELECT ut.domainId AS domainId,ut.generalTrust AS generalTrust,ut.editTrust AS editTrust
+			FROM userTrust AS ut
+			WHERE ut.userId=?`, userId).Add(`
+			UNION ALL
+			SELECT pi.pageId AS domainId,0 AS generalTrust,0 AS editTrust
+			FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
+			WHERE pi.type=?`, DomainPageType).Add(`
+		) AS u
+		GROUP BY 1`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var trust Trust
+		var domainId string
+		err := rows.Scan(&domainId, &trust.GeneralTrust, &trust.EditTrust)
+		if err != nil {
+			return fmt.Errorf("Failed to scan: %v", err)
+		}
+		trustMap[domainId] = &trust
+		if trust.EditTrust >= ArbiterKarmaLevel {
+			trust.Level = ArbiterTrustLevel
+		} else if trust.EditTrust >= ReviewerKarmaLevel {
+			trust.Level = ReviewerTrustLevel
+		} else if trust.EditTrust >= BasicKarmaLevel {
+			trust.Level = BasicTrustLevel
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("Error while loading userTrust: %v", err)
+	}
+
+	return trustMap, nil
 }

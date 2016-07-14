@@ -38,7 +38,7 @@ func startPathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load path pages
-	pathPageIds := make([]string, 0)
+	pathPageIds := []string{data.GuideId}
 	queryPart := database.NewQuery(`
 		WHERE pathp.guideId=?`, data.GuideId).Add(`
 		ORDER BY pathp.pathIndex`)
@@ -67,6 +67,7 @@ func startPathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["guideId"] = data.GuideId
 		hashmap["pageIds"] = strings.Join(pathPageIds, ",")
 		hashmap["sourcePageIds"] = strings.Join(sourcePageIds, ",")
+		hashmap["progress"] = 1
 		hashmap["createdAt"] = database.Now()
 		hashmap["updatedAt"] = database.Now()
 		statement := db.NewInsertStatement("pathInstances", hashmap).WithTx(tx)

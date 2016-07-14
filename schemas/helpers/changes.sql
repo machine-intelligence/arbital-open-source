@@ -52,3 +52,21 @@ CREATE TABLE pathInstances (
 alter table users add column isSlackMember boolean not null;
 alter table pathInstances add column sourcePageIds text not null;
 alter table invites add column bonusEditTrust int not null;
+
+alter table pagePairs add column level int not null;
+alter table pagePairs add column isStrong boolean not null;
+
+CREATE TABLE userTrust (
+	/* The user this trust corresponds to. FK into users. */
+	userId varchar(32) NOT NULL,
+	/* The domain that these trust scores belong to. */
+	domainId varchar(32) NOT NULL,
+	/* The user's trust for general actions */
+	generalTrust INT NOT NULL,
+	/* The user's trust for editing actions */
+	editTrust INT NOT NULL,
+
+	UNIQUE(userId,domainId)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+insert into userTrust (userId,domainId,editTrust) select toUserId,domainId,200+bonusEditTrust from invites;
+alter table invites drop column bonusEditTrust;

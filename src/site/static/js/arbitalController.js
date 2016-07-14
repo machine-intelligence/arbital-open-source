@@ -13,7 +13,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 	};
 	refreshAutoupdates();
 
-	// Don't allow the body to scroll when scrolling a popover tab body
+	// Don't allow the body to scroll when scrolling over some elements
 	// http://stackoverflow.com/questions/5802467/prevent-scrolling-of-parent-element
 	if (!arb.isTouchDevice) {
 		$(document).on('DOMMouseScroll mousewheel', '.prevent-scroll-leak', function(ev) {
@@ -46,11 +46,6 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 			}
 		});
 	}
-
-	// Check to see if we should show the popup.
-	$scope.closePopup = function() {
-		arb.popupService.hideNonpersistentPopup();
-	};
 
 	var $fixedOverlay = $('#fixed-overlay');
 	$scope.$watch(function() {
@@ -214,7 +209,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 				var handled = rule.handler(args, $scope);
 				if (!handled) {
 					$('[ng-view]').empty();
-					$scope.closePopup();
+					arb.popupService.hideNonpersistentPopup();
 				}
 				currentLocation = {subdomain: $scope.subdomain, rule: rule, args: args};
 				return;

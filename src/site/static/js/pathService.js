@@ -129,6 +129,10 @@ app.service('pathService', function($http, $compile, $location, $mdToast, $rootS
 	// Called when the primary page changes.
 	this.primaryPageChanged = function() {
 		if (!stateService.path) return;
+		if (stateService.path.guideId == pageService.getCurrentPageId()) {
+			stateService.path = undefined;
+			return;
+		}
 
 		// Remove all pages that were added by the page we are currently on
 		for (var n = 0; n < stateService.path.pages.length; n++) {

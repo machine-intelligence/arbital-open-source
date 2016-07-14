@@ -21,6 +21,9 @@ const (
 	AliasRegexpStr          = "[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*"
 	SubdomainAliasRegexpStr = "[A-Za-z0-9_]*"
 	ReplaceRegexpStr        = "[^A-Za-z0-9_]" // used for replacing non-alias characters
+
+	Base31Chars             = "0123456789bcdfghjklmnpqrstvwxyz"
+	Base31CharsForFirstChar = "0123456789"
 )
 
 // AddPageToMap adds a new page with the given page id to the map if it's not

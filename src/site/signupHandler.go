@@ -225,6 +225,17 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return sessions.NewError("Couldn't delete existing page summaries", err)
 		}
 
+		// For each existing invite, update user's trust
+		statement = database.NewQuery(`
+			INSERT INTO userTrust
+				(userId,domainId,editTrust)
+			SELECT toUserId,domainId,?`, core.BasicKarmaLevel).Add(`
+			FROM invites
+			WHERE toUserId=?`, u.Id).ToTxStatement(tx)
+		if _, err := statement.Exec(); err != nil {
+			return sessions.NewError("Couldn't update user trust", err)
+		}
+
 		return nil
 	})
 	if err2 != nil {
