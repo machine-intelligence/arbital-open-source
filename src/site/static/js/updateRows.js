@@ -207,3 +207,16 @@ app.directive('arbInviteReceivedModeRow', function(arb) {
 	};
 });
 
+// arb-user-trust-mode-row is the directive for showing that the user trust has changed
+app.directive('arbUserTrustModeRow', function(arb) {
+	return {
+		templateUrl: versionUrl('static/html/rows/userTrustModeRow.html'),
+		scope: {
+			modeRow: '=',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+			$scope.update = $scope.modeRow.update;
+		},
+	};
+});

@@ -22,8 +22,7 @@ var newInviteHandler = siteHandler{
 	URI:         "/newInvite/",
 	HandlerFunc: newInviteHandlerFunc,
 	Options: pages.PageOptions{
-		RequireLogin:   true,
-		RequireTrusted: true,
+		RequireLogin: true,
 	},
 }
 
@@ -46,6 +45,13 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 	if data.ToEmail == "" {
 		return pages.Fail("No invite email given", nil).Status(http.StatusBadRequest)
+	}
+
+	// Check to make sure user has permissions for all the domains
+	for _, domainId := range data.DomainIds {
+		if u.TrustMap[domainId].Level < core.ArbiterTrustLevel {
+			return pages.Fail("Don't have permissions to invite to one of the domains", nil).Status(http.StatusBadRequest)
+		}
 	}
 
 	// Check to see if the invitee is already a user in our DB
@@ -126,6 +132,8 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 					return sessions.NewError("Couldn't add a new update for the invitee", err)
 				}
 			}
+
+			// Update user trust
 		}
 
 		// If the user doesn't exist, send them an invite

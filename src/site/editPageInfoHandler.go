@@ -170,7 +170,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	isEditorComment := oldPage.IsEditorComment
 	if oldPage.Type == core.CommentPageType {
 		// See if the user can affect isEditorComment's value
-		if oldPage.Permissions.DomainAccess.Has {
+		if oldPage.Permissions.Comment.Has {
 			isEditorComment = data.IsEditorCommentIntention
 		}
 	}

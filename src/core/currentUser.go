@@ -13,24 +13,29 @@ import (
 )
 
 const (
+	DefaultTrustLevel  = iota // 0
+	BasicTrustLevel    = iota
+	ReviewerTrustLevel = iota
+	ArbiterTrustLevel  = iota
+)
+
+const (
 	DailyEmailFrequency       = "daily"
 	WeeklyEmailFrequency      = "weekly"
 	NeverEmailFrequency       = "never"
 	ImmediatelyEmailFrequency = "immediately"
-
-	Base31Chars             = "0123456789bcdfghjklmnpqrstvwxyz"
-	Base31CharsForFirstChar = "0123456789"
 )
 
 const (
 	// Karma requirements to perform various actions
 	// NOTE: all the numbers are made up right now. The only real number is 200
-	CommentKarmaReq             = 200
-	EditPageKarmaReq            = 200
-	DeletePageKarmaReq          = 200
-	ApprovePageToDomainKarmaReq = 300
+	CommentKarmaReq    = 200
+	EditPageKarmaReq   = 200
+	DeletePageKarmaReq = 200
 
-	DefaultInviteKarma = 200
+	BasicKarmaLevel    = 200
+	ReviewerKarmaLevel = 300
+	ArbiterKarmaLevel  = 400
 )
 
 var (
@@ -53,7 +58,6 @@ type CurrentUser struct {
 	FirstName              string `json:"firstName"`
 	LastName               string `json:"lastName"`
 	IsAdmin                bool   `json:"isAdmin"`
-	IsTrusted              bool   `json:"isTrusted"`
 	EmailFrequency         string `json:"emailFrequency"`
 	EmailThreshold         int    `json:"emailThreshold"`
 	IgnoreMathjax          bool   `json:"ignoreMathjax"`
@@ -64,8 +68,7 @@ type CurrentUser struct {
 	SessionId string `json:"-"`
 
 	// Computed variables
-	// Set to true if the user is a member of at least one domain
-	IsDomainMember                bool              `json:"isDomainMember"`
+	MaxTrustLevel                 int               `json:"maxTrustLevel"`
 	HasReceivedMaintenanceUpdates bool              `json:"hasReceivedMaintenanceUpdates"`
 	HasReceivedNotifications      bool              `json:"hasReceivedNotifications"`
 	UpdateCount                   int               `json:"updateCount"`
@@ -88,17 +91,15 @@ type Invite struct {
 	ToUserId    string `json:"toUserId"`
 	ClaimedAt   string `json:"claimedAt"`
 	EmailSentAt string `json:"emailSentAt"`
-
-	BonusEditTrust int `json:"-"`
 }
 
 // Trust has the different scores for how much we trust a user.
 type Trust struct {
-	Permissions Permissions `json:"permissions"`
+	Level int `json:"level"`
 
-	// Note that we don't want to send the trust numbers to the FE.
-	GeneralTrust int `json:"-"`
-	EditTrust    int `json:"-"`
+	// TODO: Note that we don't want to send the trust numbers to the FE.
+	GeneralTrust int `json:"generalTrust"`
+	EditTrust    int `json:"editTrust"`
 }
 
 type CookieSession struct {
@@ -171,12 +172,12 @@ func LoadCurrentUserFromDb(db *database.DB, userId string, u *CurrentUser) (*Cur
 		u = NewCurrentUser()
 	}
 	row := db.NewStatement(`
-		SELECT id,fbUserId,email,firstName,lastName,isAdmin,isTrusted,isSlackMember,
+		SELECT id,fbUserId,email,firstName,lastName,isAdmin,isSlackMember,
 			emailFrequency,emailThreshold,ignoreMathjax,showAdvancedEditorMode
 		FROM users
 		WHERE id=?`).QueryRow(userId)
 	exists, err := row.Scan(&u.Id, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
-		&u.IsAdmin, &u.IsTrusted, &u.IsSlackMember, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
+		&u.IsAdmin, &u.IsSlackMember, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
 		&u.ShowAdvancedEditorMode)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load user: %v", err)
@@ -210,12 +211,12 @@ func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (u
 
 	var pretendToBeUserId string
 	row := db.NewStatement(`
-		SELECT id,pretendToBeUserId,fbUserId,email,firstName,lastName,isAdmin,isTrusted,
+		SELECT id,pretendToBeUserId,fbUserId,email,firstName,lastName,isAdmin,
 			isSlackMember,emailFrequency,emailThreshold,ignoreMathjax,showAdvancedEditorMode
 		FROM users
 		WHERE email=?`).QueryRow(cookie.Email)
 	exists, err := row.Scan(&u.Id, &pretendToBeUserId, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
-		&u.IsAdmin, &u.IsTrusted, &u.IsSlackMember, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
+		&u.IsAdmin, &u.IsSlackMember, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
 		&u.ShowAdvancedEditorMode)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a user: %v", err)
@@ -374,26 +375,41 @@ func LoadUserTrust(db *database.DB, u *CurrentUser, domainIds []string) error {
 	}
 
 	if u.Id != "" {
-		// TODO: load all sources of trust
-
 		// NOTE: this should come last in computing trust, so that the bonus trust from
 		// an invite slowly goes away as the user accumulates real trust.
 		// Compute trust from invites
-		wherePart := database.NewQuery(`WHERE toUserId=?`, u.Id)
-		invites, err := LoadInvitesWhere(db, wherePart)
-		if err != nil {
-			return fmt.Errorf("Couldn't process existing invites: %v", err)
-		}
-		for _, invite := range invites {
-			trust := u.TrustMap[invite.DomainId]
-			if trust.EditTrust < DefaultInviteKarma {
-				trust.EditTrust = DefaultInviteKarma
-				// NOTE: there might be multiple invites for the same domain and for now we
-				// set bonusEditTrust for all of them
-				trust.EditTrust += invite.BonusEditTrust
+		rows := database.NewQuery(`
+			SELECT domainId,generalTrust,editTrust
+			FROM userTrust
+			WHERE userId=?`, u.Id).Add(`
+				AND domainId IN`).AddArgsGroupStr(domainIds).ToStatement(db).Query()
+		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+			var domainId string
+			var generalTrust, editTrust int
+			err := rows.Scan(&domainId, &generalTrust, &editTrust)
+			if err != nil {
+				return fmt.Errorf("Failed to scan: %v", err)
 			}
-			trust.Permissions.DomainAccess.Has = true
-			u.IsDomainMember = true
+			u.TrustMap[domainId].GeneralTrust = generalTrust
+			u.TrustMap[domainId].EditTrust = editTrust
+			// NOTE: we are not doing "else if" because there might be things
+			// we want to do for all levels >= X
+			if editTrust >= BasicKarmaLevel {
+				u.TrustMap[domainId].Level = BasicTrustLevel
+			}
+			if editTrust >= ReviewerKarmaLevel {
+				u.TrustMap[domainId].Level = ReviewerTrustLevel
+			}
+			if editTrust >= ArbiterKarmaLevel {
+				u.TrustMap[domainId].Level = ArbiterTrustLevel
+			}
+			if u.MaxTrustLevel < u.TrustMap[domainId].Level {
+				u.MaxTrustLevel = u.TrustMap[domainId].Level
+			}
+			return nil
+		})
+		if err != nil {
+			return fmt.Errorf("Error while loading userTrust: %v", err)
 		}
 
 		// Load whether the user has ever had any maintenance updates
@@ -412,7 +428,7 @@ func LoadUserTrust(db *database.DB, u *CurrentUser, domainIds []string) error {
 	}
 
 	// Now compute permissions
-	for _, trust := range u.TrustMap {
+	/*for _, trust := range u.TrustMap {
 		if !trust.Permissions.DomainAccess.Has {
 			trust.Permissions.DomainAccess.Reason = "You don't have access to this domain"
 		}
@@ -432,7 +448,7 @@ func LoadUserTrust(db *database.DB, u *CurrentUser, domainIds []string) error {
 		if !trust.Permissions.Comment.Has {
 			trust.Permissions.Comment.Reason = "Not enough reputation"
 		}
-	}
+	}*/
 
 	return nil
 }
@@ -441,13 +457,12 @@ func LoadUserTrust(db *database.DB, u *CurrentUser, domainIds []string) error {
 func LoadInvitesWhere(db *database.DB, wherePart *database.QueryPart) ([]*Invite, error) {
 	invites := make([]*Invite, 0)
 	rows := database.NewQuery(`
-		SELECT fromUserId,domainId,toEmail,createdAt,toUserId,claimedAt,emailSentAt,bonusEditTrust
+		SELECT fromUserId,domainId,toEmail,createdAt,toUserId,claimedAt,emailSentAt
 		FROM invites`).AddPart(wherePart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		invite := &Invite{}
 		err := rows.Scan(&invite.FromUserId, &invite.DomainId, &invite.ToEmail,
-			&invite.CreatedAt, &invite.ToUserId, &invite.ClaimedAt, &invite.EmailSentAt,
-			&invite.BonusEditTrust)
+			&invite.CreatedAt, &invite.ToUserId, &invite.ClaimedAt, &invite.EmailSentAt)
 		if err != nil {
 			return fmt.Errorf("failed to scan an invite: %v", err)
 		}

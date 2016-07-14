@@ -94,10 +94,6 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			fail(http.StatusInternalServerError, "Have to be logged in", nil)
 			return
 		}
-		if h.Options.RequireTrusted && !u.IsTrusted {
-			fail(http.StatusInternalServerError, "Have to be a trusted user", nil)
-			return
-		}
 		if h.Options.AdminOnly && !u.IsAdmin {
 			fail(http.StatusInternalServerError, "Have to be an admin", nil)
 			return

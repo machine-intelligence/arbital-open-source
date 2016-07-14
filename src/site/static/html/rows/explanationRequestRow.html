@@ -40,7 +40,7 @@
 			</span>
 		</div>
 		<md-button ng-click="stopSuggesting()"
-				ng-if="::arb.userService.user.trustMap['1lw'].permissions.domainTrust.has">
+				ng-if="::arb.userService.user.trustMap['1lw'].level >= 2">
 			Don't suggest this alias
 		</md-button>
 	</div>

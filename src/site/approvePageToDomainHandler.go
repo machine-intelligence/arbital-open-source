@@ -52,8 +52,8 @@ func approvePageToDomainHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check permissions
-	if !u.TrustMap[data.DomainId].Permissions.DomainTrust.Has {
-		return pages.Fail(u.TrustMap[data.DomainId].Permissions.DomainTrust.Reason, nil)
+	if u.TrustMap[data.DomainId].Level < core.ReviewerTrustLevel {
+		return pages.Fail("You don't have permission to do this", nil)
 	}
 
 	// Load the submission info

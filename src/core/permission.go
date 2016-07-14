@@ -9,11 +9,11 @@ import (
 )
 
 type Permissions struct {
-	DomainAccess Permission `json:"domainAccess"`
-	DomainTrust  Permission `json:"domainTrust"`
-	Edit         Permission `json:"edit"`
-	ProposeEdit  Permission `json:"proposeEdit"`
-	Delete       Permission `json:"delete"`
+	//DomainAccess Permission `json:"domainAccess"`
+	//DomainTrust  Permission `json:"domainTrust"`
+	Edit        Permission `json:"edit"`
+	ProposeEdit Permission `json:"proposeEdit"`
+	Delete      Permission `json:"delete"`
 
 	// Note that for comments, this means "can reply to this comment"
 	// Note that all users can always leave an editor-only comment
@@ -27,19 +27,6 @@ type Permission struct {
 	Has bool `json:"has"`
 	// Reason why this action is not allowed.
 	Reason string `json:"reason"`
-}
-
-func (p *Page) computeDomainPermissions(c sessions.Context, u *CurrentUser) {
-	if len(p.DomainIds) <= 0 {
-		p.Permissions.DomainAccess.Has = true
-		return
-	}
-	for _, domainId := range p.DomainIds {
-		if u.TrustMap[domainId].Permissions.DomainAccess.Has {
-			p.Permissions.DomainAccess.Has = true
-		}
-	}
-	p.Permissions.DomainAccess.Reason = "You are not a member of the domain(s) this page belongs to"
 }
 
 func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
@@ -96,7 +83,7 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 	// If the page is part of the general domain, only the creator and domain members
 	// can edit it.
 	if len(p.DomainIds) <= 0 {
-		p.Permissions.Edit.Has = u.IsDomainMember
+		p.Permissions.Edit.Has = u.MaxTrustLevel >= BasicTrustLevel
 		if !p.Permissions.Edit.Has {
 			p.Permissions.Edit.Reason = "Only the creator and domain members can edit an unlisted page, but you can still propose edits"
 			p.Permissions.ProposeEdit.Has = true
@@ -105,13 +92,13 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 	}
 	// Compute whether the user can edit via any of the domains
 	for _, domainId := range p.DomainIds {
-		if u.TrustMap[domainId].Permissions.Edit.Has {
+		if u.TrustMap[domainId].Level >= BasicTrustLevel {
 			p.Permissions.Edit.Has = true
 			return
 		}
 	}
 	if !p.Permissions.Edit.Has {
-		p.Permissions.Edit.Reason = "Not enough reputation to edit this page, but you can still propose edits"
+		p.Permissions.Edit.Reason = "You don't have the permissions to edit this page, but you can still propose edits"
 		p.Permissions.ProposeEdit.Has = true
 	}
 }
@@ -133,10 +120,10 @@ func (p *Page) computeDeletePermissions(c sessions.Context, u *CurrentUser) {
 		}
 		return
 	}
-	// If the page is part of the general domain, only the creator and domain members
+	// If the page is part of the general domain, only the creator and domain reviewers
 	// can edit it.
 	if len(p.DomainIds) <= 0 {
-		p.Permissions.Delete.Has = p.PageCreatorId == u.Id || u.IsDomainMember
+		p.Permissions.Delete.Has = p.PageCreatorId == u.Id || u.MaxTrustLevel >= ReviewerTrustLevel
 		if !p.Permissions.Delete.Has {
 			p.Permissions.Delete.Reason = "Only the creator and domain members can delete an unlisted page"
 		}
@@ -144,13 +131,13 @@ func (p *Page) computeDeletePermissions(c sessions.Context, u *CurrentUser) {
 	}
 	// Compute whether the user can delete via any of the domains
 	for _, domainId := range p.DomainIds {
-		if u.TrustMap[domainId].Permissions.Delete.Has {
+		if u.TrustMap[domainId].Level >= ReviewerTrustLevel {
 			p.Permissions.Delete.Has = true
 			return
 		}
 	}
 	if !p.Permissions.Delete.Has {
-		p.Permissions.Delete.Reason = "Not enough reputation to delete this page"
+		p.Permissions.Delete.Reason = "You don't have the permissions to delete this page"
 	}
 }
 
@@ -166,13 +153,13 @@ func (p *Page) computeCommentPermissions(c sessions.Context, u *CurrentUser) {
 	}
 	// Compute whether the user can comment via any of the domains
 	for _, domainId := range p.DomainIds {
-		if u.TrustMap[domainId].Permissions.Comment.Has {
+		if u.TrustMap[domainId].Level >= BasicTrustLevel {
 			p.Permissions.Comment.Has = true
 			return
 		}
 	}
 	if !p.Permissions.Comment.Has {
-		p.Permissions.Comment.Reason = "Not enough reputation to comment"
+		p.Permissions.Comment.Reason = "You don't have the permissions to comment"
 	}
 }
 

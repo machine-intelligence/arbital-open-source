@@ -158,8 +158,9 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Load data
 	returnData.ResultMap["primaryPageId"] = pageId
 	core.AddPageIdToMap("14z", returnData.PageMap)
-	core.AddPageIdToMap("4yg", returnData.PageMap) // 'Arbital quality'
-	core.AddPageIdToMap("3hs", returnData.PageMap) // 'Author's guide'
+	core.AddPageIdToMap("4yg", returnData.PageMap) // "Arbital quality"
+	core.AddPageIdToMap("3hs", returnData.PageMap) // "Author's guide"
+	core.AddPageIdToMap("58l", returnData.PageMap) // "Arbital user groups"
 	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryPageLoadOptions)
 	if data.LensId != "" {
 		returnData.ResultMap["lensId"] = data.LensId

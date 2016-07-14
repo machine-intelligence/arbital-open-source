@@ -82,8 +82,8 @@
 				<div arb-settings-invite-tab
 						domains="domains"
 						invites-sent="invitesSent"
-						ng-if="::arb.userService.user.isTrusted"></div>
-				<div layout-padding ng-if="::!arb.userService.user.isTrusted">
+						ng-if="::arb.userService.user.maxTrustLevel >= 2"></div>
+				<div layout-padding ng-if="::arb.userService.user.maxTrustLevel < 2">
 					You haven't unlocked this feature yet.
 				</div>
 			</md-tab>
