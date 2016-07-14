@@ -157,6 +157,10 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				$scope.canQuickContinue = false;
 				$scope.unlockedIds = data && data.result && data.result.unlockedIds;
 			};
+
+			$scope.showTagsPanel = function() {
+				$scope.$emit('showTagsPanel');
+			};
 		},
 		link: function(scope, element, attrs) {
 			if (scope.isSimpleEmbed) return;

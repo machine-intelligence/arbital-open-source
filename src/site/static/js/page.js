@@ -85,9 +85,9 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 
 			// Show the panel to add tags
 			$scope.isTagsPanelVisible = false;
-			$scope.showTagsPanel = function() {
+			$scope.$on('showTagsPanel', function() {
 				$scope.isTagsPanelVisible = true;
-			};
+			});
 
 			// Toggle between show delete answer buttons
 			$scope.showDeleteAnswer = false;

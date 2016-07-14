@@ -31,7 +31,8 @@
 
 	<!-- Menu with all the other stuff -->
 	<!-- TODO(alexei): figure out a better way than hardcoding these numbers -->
-	<md-menu md-offset="0 -145">
+	<!-- -145 for 4 items -->
+	<md-menu md-offset="0 -105">
 		<!-- Trigger element is a md-button with an icon -->
 		<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button icon-last" aria-label="More page actions">
 			<md-icon>more_vert</md-icon>
@@ -65,11 +66,11 @@
 			</md-menu-item>
 
 			<!-- Show requirements -->
-			<md-menu-item ng-if="!showRequirementsPanel">
+			<!--<md-menu-item ng-if="!showRequirementsPanel">
 				<md-button ng-click="showRequisites()">
 					Show page's requisites
 				</md-button>
-			</md-menu-item>
+			</md-menu-item>-->
 
 			<!-- Show unresolved marks -->
 			<!--<md-menu-item ng-if="!loadedMarks && arb.userService.userIsLoggedIn()">
