@@ -8,11 +8,11 @@
 					'slow-down-button-collapsed': haveScrolled && !isHovered,
 				}">
 		<md-icon>slow_motion_video</md-icon>
-		<span>Slow down</span>
+		<span ng-if="!haveScrolled || isHovered">Slow down</span>
 	</div>
 	<div class="slow-down-tray md-body-1">
 		<span ng-if="isHovered">
-			Coming soon!
+			{{altPages}}
 		</span>
 	</div>
 </div>

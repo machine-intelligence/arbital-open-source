@@ -29,7 +29,12 @@ app.directive('arbSlowDownButton', function(arb, $window) {
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.page = arb.stateService.pageMap[$scope.pageId];
-		},
+
+			arb.stateService.postData('/json/alternatePages/', {},
+				function(data) {
+					$scope.altPages = data.alternate_teachers;
+				});
+	},
 	}
 });
 
