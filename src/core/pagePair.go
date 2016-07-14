@@ -331,6 +331,28 @@ func _getParents(db *database.DB, pageId string) ([]string, error) {
 	return parents, err
 }
 
+// Returns the ids of all the subjects taught by the given page (does *not* include deleted and unpublished subjects)
+func GetSubjects(db *database.DB, pageId string) ([]string, error) {
+	subjects := make([]string, 0)
+
+	rows := database.NewQuery(`
+		SELECT parentId
+		FROM pagePairs AS pp
+		JOIN`).AddPart(PageInfosTable(nil)).Add(`AS pi
+		ON pp.parentId=pi.pageId
+		WHERE pp.childId=?`, pageId).Add(`AND pp.type=?`, SubjectPagePairType).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var subjectId string
+		if err := rows.Scan(&subjectId); err != nil {
+			return fmt.Errorf("failed to scan for subjectId: %v", err)
+		}
+
+		subjects = append(subjects, subjectId)
+		return nil
+	})
+	return subjects, err
+}
+
 type GetRelatedFunc func(db *database.DB, pageId string) ([]string, error)
 
 // Finds all pages reachable from the source page by recursively following the given getRelated function
