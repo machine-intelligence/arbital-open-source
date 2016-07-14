@@ -29,6 +29,8 @@
 
 	<!-- Page's text. Populated by markdown. -->
 	<div class="lens-text-container">
+		<arb-slow-down-button page-id="{{::page.pageId}}"></arb-slow-down-button>
+
 		<!-- Page title -->
 		<h1>
 			<md-icon class="page-title-icon" ng-if="::isUser">person</md-icon>

@@ -1,0 +1,18 @@
+<div layout="column"
+		ng-mouseover="isHovered = true"
+		ng-mouseleave="isHovered = false"
+		class="slow-down-container"
+		ng-class="{'slow-down-container-expanded': isHovered}">
+	<div class="slow-down-button md-body-2"
+			ng-class="{
+					'slow-down-button-collapsed': haveScrolled && !isHovered,
+				}">
+		<md-icon>slow_motion_video</md-icon>
+		<span>Slow down</span>
+	</div>
+	<div class="slow-down-tray md-body-1">
+		<span ng-if="isHovered">
+			Coming soon!
+		</span>
+	</div>
+</div>
