@@ -26,20 +26,22 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 					convertPageIdsToAliases: true,
 					success: function(data) {
 						var thisEdit = data.edits[pageId];
-
-						// Load prevEdit.
-						arb.pageService.loadEdit({
-							pageAlias: pageId,
-							specificEdit: thisEdit.prevEdit,
-							skipProcessDataStep: true,
-							convertPageIdsToAliases: true,
-							success: function(data) {
-								var prevEdit = data.edits[pageId];
-
-								// Make the diff
-								$scope.diffHtml = arb.diffService.getDiffHtml(prevEdit, thisEdit);
-							},
-						});
+						if (thisEdit.prevEdit == 0) {
+							var prevEdit = {title: '', clickbait: '', text: ''};
+							$scope.diffHtml = arb.diffService.getDiffHtml(prevEdit, thisEdit);
+						} else {
+							// Load prevEdit.
+							arb.pageService.loadEdit({
+								pageAlias: pageId,
+								specificEdit: thisEdit.prevEdit,
+								skipProcessDataStep: true,
+								convertPageIdsToAliases: true,
+								success: function(data) {
+									var prevEdit = data.edits[pageId];
+									$scope.diffHtml = arb.diffService.getDiffHtml(prevEdit, thisEdit);
+								},
+							});
+						}
 					},
 				});
 			};
