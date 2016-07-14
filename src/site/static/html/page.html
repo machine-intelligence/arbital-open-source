@@ -12,8 +12,19 @@
 		<!-- For user page display some additional info -->
 		<div ng-if="::(page.isUser() && page.domainMembershipIds.length > 0 && !isSimpleEmbed)">
 
+			<!-- Display what domains this user has access to -->
+			<div ng-if="::page.domainMembershipIds.length > 0">
+				<span>Domains this user has access to:</span>
+				<span ng-repeat="(index, domainId) in ::page.domainMembershipIds">
+					<span class="comma" ng-if="index > 0">,</span>
+					<arb-page-title page-id="{{::domainId}}" is-link="true" ng-if="::domainId"></arb-page-title>
+					<span ng-if="::!domainId">General</span>
+				</span>
+			</div>
+
 			<!-- Display user trust levels for all domains -->
-			<div ng-repeat="(domainId, trust) in ::arb.userService.user.trustMap">
+			<div ng-repeat="(domainId, trust) in ::arb.userService.user.trustMap"
+					ng-if="::page.pageId == arb.userService.user.id">
 				<!-- Admins can edit the level of the user -->
 				<div layout="row" ng-if="::arb.userService.user.isAdmin">
 					<md-input-container flex>

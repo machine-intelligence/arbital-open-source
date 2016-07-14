@@ -20,22 +20,17 @@ const (
 )
 
 const (
+	// Made up karma numbers. These correspond one-to-one with trust levels for now.
+	BasicKarmaLevel    = 200
+	ReviewerKarmaLevel = 300
+	ArbiterKarmaLevel  = 400
+)
+
+const (
 	DailyEmailFrequency       = "daily"
 	WeeklyEmailFrequency      = "weekly"
 	NeverEmailFrequency       = "never"
 	ImmediatelyEmailFrequency = "immediately"
-)
-
-const (
-	// Karma requirements to perform various actions
-	// NOTE: all the numbers are made up right now. The only real number is 200
-	CommentKarmaReq    = 200
-	EditPageKarmaReq   = 200
-	DeletePageKarmaReq = 200
-
-	BasicKarmaLevel    = 200
-	ReviewerKarmaLevel = 300
-	ArbiterKarmaLevel  = 400
 )
 
 var (
@@ -97,7 +92,8 @@ type Invite struct {
 type Trust struct {
 	Level int `json:"level"`
 
-	// TODO: Note that we don't want to send the trust numbers to the FE.
+	// TODO(when admins no longer have to edit trust directly):
+	// Note that we don't want to send the trust numbers to the FE.
 	GeneralTrust int `json:"generalTrust"`
 	EditTrust    int `json:"editTrust"`
 }
@@ -392,16 +388,12 @@ func LoadUserTrust(db *database.DB, u *CurrentUser, domainIds []string) error {
 			}
 			u.TrustMap[domainId].GeneralTrust = generalTrust
 			u.TrustMap[domainId].EditTrust = editTrust
-			// NOTE: we are not doing "else if" because there might be things
-			// we want to do for all levels >= X
-			if editTrust >= BasicKarmaLevel {
-				u.TrustMap[domainId].Level = BasicTrustLevel
-			}
-			if editTrust >= ReviewerKarmaLevel {
-				u.TrustMap[domainId].Level = ReviewerTrustLevel
-			}
 			if editTrust >= ArbiterKarmaLevel {
 				u.TrustMap[domainId].Level = ArbiterTrustLevel
+			} else if editTrust >= ReviewerKarmaLevel {
+				u.TrustMap[domainId].Level = ReviewerTrustLevel
+			} else if editTrust >= BasicKarmaLevel {
+				u.TrustMap[domainId].Level = BasicTrustLevel
 			}
 			if u.MaxTrustLevel < u.TrustMap[domainId].Level {
 				u.MaxTrustLevel = u.TrustMap[domainId].Level
@@ -426,29 +418,6 @@ func LoadUserTrust(db *database.DB, u *CurrentUser, domainIds []string) error {
 		}
 		u.HasReceivedNotifications = hasReceivedNotifications
 	}
-
-	// Now compute permissions
-	/*for _, trust := range u.TrustMap {
-		if !trust.Permissions.DomainAccess.Has {
-			trust.Permissions.DomainAccess.Reason = "You don't have access to this domain"
-		}
-		trust.Permissions.DomainTrust.Has = trust.EditTrust >= ApprovePageToDomainKarmaReq
-		if !trust.Permissions.DomainTrust.Has {
-			trust.Permissions.DomainTrust.Reason = "You don't have full trust for this domain"
-		}
-		trust.Permissions.Edit.Has = trust.EditTrust >= EditPageKarmaReq
-		if !trust.Permissions.Edit.Has {
-			trust.Permissions.Edit.Reason = "Not enough reputation"
-		}
-		trust.Permissions.Delete.Has = trust.EditTrust >= DeletePageKarmaReq
-		if !trust.Permissions.Delete.Has {
-			trust.Permissions.Delete.Reason = "Not enough reputation"
-		}
-		trust.Permissions.Comment.Has = trust.EditTrust >= CommentKarmaReq
-		if !trust.Permissions.Comment.Has {
-			trust.Permissions.Comment.Reason = "Not enough reputation"
-		}
-	}*/
 
 	return nil
 }

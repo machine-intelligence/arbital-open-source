@@ -131,9 +131,17 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				if _, err = statement.Exec(); err != nil {
 					return sessions.NewError("Couldn't add a new update for the invitee", err)
 				}
-			}
 
-			// Update user trust
+				// Create/update user trust
+				hashmap = make(map[string]interface{})
+				hashmap["userId"] = inviteeUserId
+				hashmap["domainId"] = domainId
+				hashmap["editTrust"] = core.BasicKarmaLevel
+				statement = db.NewInsertStatement("userTrust", hashmap, "editTrust")
+				if _, err := statement.WithTx(tx).Exec(); err != nil {
+					return sessions.NewError("Couldn't update/create userTrust row", err)
+				}
+			}
 		}
 
 		// If the user doesn't exist, send them an invite

@@ -39,7 +39,7 @@ func updateUserTrustHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Begin the transaction.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		// Create/update the like.
+		// Create/update user trust.
 		hashmap := make(map[string]interface{})
 		hashmap["userId"] = data.UserId
 		hashmap["domainId"] = data.DomainId
