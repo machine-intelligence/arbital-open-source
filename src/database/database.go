@@ -120,6 +120,7 @@ func GetDB(c sessions.Context) (*DB, error) {
 	}
 	db.C = c
 	db.PrintInfo = sessions.Live
+	db.db.SetMaxOpenConns(12)
 	return &db, nil
 }
 
