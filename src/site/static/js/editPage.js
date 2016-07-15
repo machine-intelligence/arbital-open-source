@@ -30,6 +30,9 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// we notice that a new edit has been published.)
 			$scope.freezeEdit = false;
 			$scope.maxQuestionTextLength = 1000;
+			$scope.publishOptions = {
+				isProposal: false,
+			};
 
 			// Extract parentId from URL
 			$scope.quickParentId = $location.search().parentId;
@@ -40,12 +43,14 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			$scope.getPublishText = function() {
 				if ($scope.page.isDeleted) return 'Republish';
+				if ($scope.publishOptions.isProposal) return 'Propose';
 				if ($scope.page.permissions.edit.has) return 'Publish';
 				if ($scope.page.permissions.proposeEdit.has) return 'Propose';
 				return '';
 			};
 			$scope.getPublishTooltipText = function() {
 				if ($scope.page.isDeleted) return 'Republish this page';
+				if ($scope.publishOptions.isProposal) return 'Propose an edit to this page';
 				if ($scope.page.permissions.edit.has) return 'Make this version live';
 				if ($scope.page.permissions.proposeEdit.has) return 'Propose an edit to this page';
 				return '';
@@ -305,7 +310,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					prevEditPageData = $.extend({}, data);
 					data.isAutosave = isAutosave;
 					data.isSnapshot = isSnapshot;
-					data.isProposal = !$scope.page.permissions.edit.has;
+					data.isProposal = !$scope.page.permissions.edit.has || $scope.publishOptions.isProposal;
 					// Send the data to the server.
 					// TODO: if the call takes too long, we should show a warning.
 					$http({method: 'POST', url: '/editPage/', data: JSON.stringify(data)})
@@ -335,7 +340,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			// Call the doneFn callback after the page has been fully published.
 			var publishPageDone = function() {
-				if (!$scope.page.permissions.edit.has) {
+				if (!$scope.page.permissions.edit.has || $scope.publishOptions.isProposal) {
 					arb.popupService.showToast({text: 'Your proposal has been submitted.'});
 				}
 				// Report to analytics
