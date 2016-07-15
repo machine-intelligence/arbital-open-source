@@ -794,6 +794,7 @@ md-toast {
 	min-width: 0;
 	padding: 4px 6px 4px 4px;
 	width: auto;
+	opacity: 1;
 	white-space: nowrap;
 
 	md-icon {
@@ -807,6 +808,7 @@ md-toast {
 	width: 0px;
 	height: 0px;
 	padding: 0;
+	max-width: 400px;
 	background-color: white;
 }
 

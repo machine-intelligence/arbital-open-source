@@ -15,7 +15,7 @@ app.directive('arbUserName', function(arb) {
 });
 
 // arb-slow-down-button
-app.directive('arbSlowDownButton', function(arb, $window) {
+app.directive('arbSlowDownButton', function(arb, $window, $timeout) {
 	return {
 		templateUrl: versionUrl('static/html/slowDown.html'),
 		scope: {
@@ -30,11 +30,11 @@ app.directive('arbSlowDownButton', function(arb, $window) {
 			$scope.arb = arb;
 			$scope.page = arb.stateService.pageMap[$scope.pageId];
 
-			arb.stateService.postData('/json/alternatePages/', {},
+			arb.stateService.postData('/json/alternatePages/', {pageId: $scope.pageId},
 				function(data) {
-					$scope.altPages = data.alternate_teachers;
-				});
-	},
+					$scope.altTeachers = data.result.alternate_teachers;
+				})
+		},
 	}
 });
 

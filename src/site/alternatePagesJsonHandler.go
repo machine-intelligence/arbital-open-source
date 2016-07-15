@@ -24,7 +24,7 @@ var alternatePagesHandler = siteHandler{
 func alternatePagesJsonHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
-	returnData := core.NewHandlerData(u).SetResetEverything()
+	returnData := core.NewHandlerData(u)
 
 	decoder := json.NewDecoder(params.R.Body)
 	var data alternatePagesData
@@ -38,19 +38,24 @@ func alternatePagesJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't get subjects taught by the page", err)
 	}
 
-	// load title and requisite info for pages that also teach any of the subjects taught by this page
-	loadOptions := (&core.PageLoadOptions{Requisites: true}).Add(core.TitlePlusLoadOptions)
+	alternateTeachers := make([]string, 0)
 
-	rows := database.NewQuery(`
-		SELECT childId
-		FROM pagePairs AS pp
-		JOIN`).AddPart(core.PageInfosTable(nil)).Add(`AS pi
-		ON pp.childId=pi.pageId
-		WHERE pp.parentId IN`).AddArgsGroupStr(subjectsTaughtByThisPage).Add(`
-			AND pp.type=?`, core.SubjectPagePairType).ToStatement(db).Query()
-	alternateTeachers, err := core.LoadPageIds(rows, returnData.PageMap, loadOptions)
-	if err != nil {
-		return pages.Fail("Error while loading alternate pages", err)
+	if len(subjectsTaughtByThisPage) > 0 {
+		// load title and requisite info for pages that also teach any of the subjects taught by this page
+		loadOptions := (&core.PageLoadOptions{Requisites: true}).Add(core.TitlePlusLoadOptions)
+
+		rows := database.NewQuery(`
+			SELECT DISTINCT childId
+			FROM pagePairs AS pp
+			JOIN`).AddPart(core.PageInfosTable(nil)).Add(`AS pi
+			ON pp.childId=pi.pageId
+			WHERE pp.parentId IN`).AddArgsGroupStr(subjectsTaughtByThisPage).Add(`
+				AND pp.type=?`, core.SubjectPagePairType).Add(`
+				AND childId!=?`, data.PageId).ToStatement(db).Query()
+		alternateTeachers, err = core.LoadPageIds(rows, returnData.PageMap, loadOptions)
+		if err != nil {
+			return pages.Fail("Error while loading alternate pages", err)
+		}
 	}
 
 	returnData.ResultMap["alternate_teachers"] = alternateTeachers
