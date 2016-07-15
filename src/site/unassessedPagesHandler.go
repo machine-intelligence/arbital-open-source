@@ -47,11 +47,12 @@ func unassessedPagesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			WHERE pdp.domainId=?`, core.MathDomainId).Add(`
 				/* Check that this page doesn't have a quality tag */
 				AND pp.type=?`, core.TagPagePairType).Add(`
-				AND NOT pp.parentId IN (
+			GROUP BY 1
+			HAVING SUM(pp.parentId IN (
 					SELECT pp2.childId
 					FROM pagePairs AS pp2
 					WHERE pp2.type=? AND pp2.parentId=?`, core.ParentPagePairType, core.QualityMetaTagsPageId).Add(`
-				)
+				)) <= 0
 		) AS t
 		JOIN visits AS v
 		ON (t.pageId=v.pageId)
