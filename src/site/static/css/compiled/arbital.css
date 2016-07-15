@@ -113,7 +113,8 @@ span.md-warn {
   font-size: 2.5rem;
   line-height: 3rem;
   font-weight: 400;
-  margin: 0.5rem 0; }
+  margin: 0.5rem 0;
+  text-align: left; }
   .md-display-3 md-icon {
     font-size: 2.5rem;
     width: 2.5rem;
@@ -125,14 +126,16 @@ span.md-warn {
   line-height: 2.2rem;
   font-weight: 700;
   margin-top: 2rem;
-  margin-bottom: 0.75rem; }
+  margin-bottom: 0.75rem;
+  text-align: left; }
 
 .md-display-1, .preview-area h2, arb-markdown h2 {
   font-size: 1.8rem;
   line-height: 1.7rem;
   font-weight: 300;
   margin-top: 2rem;
-  margin-bottom: 0.75rem; }
+  margin-bottom: 0.75rem;
+  text-align: left; }
 
 .md-headline, .preview-area h3, arb-markdown h3 {
   font-size: 1.5rem;
@@ -140,7 +143,8 @@ span.md-warn {
   font-weight: 700;
   margin-top: 1.5rem;
   margin-bottom: 0.5rem;
-  color: rgba(0, 0, 0, 0.9); }
+  color: rgba(0, 0, 0, 0.9);
+  text-align: left; }
 
 .md-subhead {
   font-weight: 700; }
