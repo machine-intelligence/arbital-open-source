@@ -48,9 +48,15 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 
 			// Determine which lens is selected
 			$scope.computeSelectedLensId = function() {
-				if ($location.search().l) {
-					// Lens is explicitly specified in the URL
-					return $location.search().l;
+				var lensId = $location.search().l;
+				// Check if lens is explicitly specified in the URL
+				if (lensId) {
+					// Check if this lens actually exists
+					if ($scope.page.lenses.some(function(lens) { return lens.lensId == lensId; })) {
+						return lensId;
+					} else {
+						$location.search('l', undefined);
+					}
 				}
 				return $scope.page.pageId;
 			};
