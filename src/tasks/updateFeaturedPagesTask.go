@@ -9,9 +9,7 @@ import (
 )
 
 const (
-	updateFeaturedPagesPeriod   = 1 * 60 * 60 // 1 hour
-	minLengthToBeFeatured       = 2000        // characters
-	suppressingTagsParentPageId = "3zb"
+	updateFeaturedPagesPeriod = 1 * 60 * 60 // 1 hour
 )
 
 // UpdateFeaturedPagesTask is the object that's put into the daemon queue.
@@ -40,12 +38,6 @@ func (task UpdateFeaturedPagesTask) Execute(db *database.DB) (delay int, err err
 	c.Infof("==== UPDATE FEATURED PAGES START ====")
 	defer c.Infof("==== UPDATE FEATURED PAGES COMPLETED ====")
 
-	// Load which tags suppress a page from being featured
-	suppressingTagIds, err := core.LoadMetaTags(db, suppressingTagsParentPageId)
-	if err != nil {
-		return 0, fmt.Errorf("Couldn't load meta tags: %v", err)
-	}
-
 	// Which pages should be featured
 	featuredPageIds := make([]string, 0)
 
@@ -53,18 +45,14 @@ func (task UpdateFeaturedPagesTask) Execute(db *database.DB) (delay int, err err
 	rows := database.NewQuery(`
 		SELECT pi.pageId
 		FROM`).AddPart(core.PageInfosTable(nil)).Add(`AS pi
-		JOIN pages AS p
-		ON (pi.pageId=p.pageId)
 		JOIN pageDomainPairs AS pdp /*Has to be part of a domain*/
 		ON (pi.pageId=pdp.pageId)
 		LEFT JOIN pagePairs AS pp
 		ON (pi.pageId=pp.childId)
-		WHERE p.isLiveEdit AND length(p.text)>=?`, minLengthToBeFeatured).Add(`
-			AND pi.seeGroupId="" AND pi.featuredAt=0 AND pi.type!=?`, core.CommentPageType).Add(`
-		GROUP BY 1
-		HAVING IFNULL(SUM(pp.type=?`, core.TagPagePairType).Add(`
-				AND pp.parentId IN`).AddArgsGroupStr(suppressingTagIds).Add(`
-			),0) <= 0`).ToStatement(db).Query()
+		WHERE pi.seeGroupId="" AND pi.featuredAt=0 AND pi.type!=?`, core.CommentPageType).Add(`
+			AND pp.type=?`, core.TagPagePairType).Add(`
+			AND pp.parentId IN (?,?)`, core.AClassPageId, core.BClassPageId).Add(`
+		GROUP BY 1`).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId string
 		if err := rows.Scan(&pageId); err != nil {

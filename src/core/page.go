@@ -75,6 +75,8 @@ const (
 	RequestForEditTagParentPageId = "3zj"
 	QualityMetaTagsPageId         = "5dg"
 	MathDomainId                  = "1lw"
+	AClassPageId                  = "4yf"
+	BClassPageId                  = "4yd"
 )
 
 var (
