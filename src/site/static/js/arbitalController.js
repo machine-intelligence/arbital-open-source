@@ -1,7 +1,7 @@
 'use strict';
 
 // ArbitalCtrl is the top level controller. It never gets unloaded.
-app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, $interval, $http, $compile, $anchorScroll, $mdDialog, arb) {
+app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, $interval, $http, $compile, $anchorScroll, arb) {
 	$scope.arb = arb;
 
 	// Refresh all the fields that need to be updated every so often.

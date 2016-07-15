@@ -1,7 +1,7 @@
 // The code for the signup flow
 'use strict';
 
-app.service('signupService', function($mdDialog, analyticsService, userService, stateService) {
+app.service('signupService', function($mdDialog, $timeout, analyticsService, userService, stateService) {
 	var that = this;
 
 	// The function that we call when the signup is finished.
@@ -28,6 +28,9 @@ app.service('signupService', function($mdDialog, analyticsService, userService, 
 		$mdDialog.show({
 			template: '<arb-signup></arb-signup>',
 			clickOutsideToClose: true,
+		});
+		$timeout(function() {
+			$('body').removeClass('md-dialog-is-showing');
 		});
 		analyticsService.reportSignupAction('view signup form', that.attemptedAction);
 	};
