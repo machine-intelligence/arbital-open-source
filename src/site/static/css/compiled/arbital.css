@@ -215,11 +215,6 @@ md-autocomplete input {
 .md-input::-ms-clear {
   display: none; }
 
-md-icon.on {
-  color: #009688; }
-md-icon.off {
-  color: gray; }
-
 md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
   height: 100%; }
 
@@ -772,6 +767,7 @@ arb-likes, .likes-in-autocomplete {
   arb-likes .short-button .like-count, arb-likes .icon-likes .like-count, .likes-in-autocomplete .short-button .like-count, .likes-in-autocomplete .icon-likes .like-count {
     color: #666;
     font-weight: normal;
+    font-size: 16px;
     min-width: 16px; }
 
 [arb-page-list], .arb-page-list {

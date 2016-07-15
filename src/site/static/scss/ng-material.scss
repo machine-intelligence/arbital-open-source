@@ -264,11 +264,11 @@ md-autocomplete {
 // Style all md-icons to have size proportionate to the font size
 md-icon {
 	&.on {
-		color: $primary-color;
+		//color: $primary-color;
 	}
 
 	&.off {
-		color: gray;
+		//color: gray;
 	}
 }
 
