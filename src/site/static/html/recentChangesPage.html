@@ -2,24 +2,45 @@
 	<!-- Left half -->
 	<div class="full-page-panel" flex>
 		<div class="tab-panel-header" layout="row" layout-align="start end">
-			<div class="tab-panel-title">Edits</div>
+			<div class="tab-panel-title">Events</div>
+			<div flex></div>
+			<md-button class="tab-panel-tab"
+					ng-class="{'active-tab': changesTab==0}"
+					ng-click="selectChangesTab(0)">
+				Edits
+			</md-button>
+			<md-button class="tab-panel-tab"
+					ng-class="{'active-tab': changesTab==1}"
+					ng-click="selectChangesTab(1)">
+				Relationships
+			</md-button>
 		</div>
 		<div arb-recent-changes
 				class="support-visited-links"
 				type="edits"
 				is-full-page="::true"
-				num-to-display="50"></div>
+				num-to-display="50"
+				ng-if="changesTab==0"></div>
+		<div arb-recent-changes
+				class="support-visited-links"
+				type="relationships"
+				is-full-page="::true"
+				num-to-display="50"
+				ng-if="changesTab==1"></div>
 	</div>
 
 	<!-- Right half -->
 	<div class="full-page-panel" flex>
 		<div class="tab-panel-header" layout="row" layout-align="start end">
-			<div class="tab-panel-title">Relationships</div>
+			<div class="tab-panel-title">TODOs</div>
+			<div flex></div>
+			<md-button class="tab-panel-tab"
+					ng-class="{'active-tab': todoTab==0}"
+					ng-click="selectTodoTab(0)">
+				Unassessed
+			</md-button>
 		</div>
-		<div arb-recent-changes
-				class="support-visited-links"
-				type="relationships"
-				is-full-page="::true"
-				num-to-display="50"></div>
+		<div arb-page-list source-url="/json/unassessedPages/" ng-if="todoTab==0">
+		</div>
 	</div>
 </div>

@@ -33,9 +33,9 @@ app.directive('arbRecentChanges', function($http, arb) {
 							// Remove duplicates
 							$scope.modeRows = allModeRows.filter(function(i, index) {
 							    return index == allModeRows.findIndex(function(j) {
-									if (i.changeLog && j.changeLog) {
-										return i.changeLog.id == j.changeLog.id;
-									}
+										if (i.changeLog && j.changeLog) {
+											return i.changeLog.id == j.changeLog.id;
+										}
 									return false;
 							    });
 							});
@@ -51,7 +51,6 @@ app.directive('arbRecentChanges', function($http, arb) {
 	};
 });
 
-
 // arb-recent-changes displays a list of recent changes
 app.directive('arbRecentChangesPage', function($http, arb) {
 	return {
@@ -59,6 +58,16 @@ app.directive('arbRecentChangesPage', function($http, arb) {
 		scope: {},
 		controller: function($scope) {
 			$scope.arb = arb;
+			$scope.changesTab = 0;
+			$scope.todoTab = 0;
+
+			$scope.selectChangesTab = function(tab) {
+				$scope.changesTab = tab;
+			};
+
+			$scope.selectTodoTab = function(tab) {
+				$scope.todoTab = tab;
+			};
 		},
 	};
 });

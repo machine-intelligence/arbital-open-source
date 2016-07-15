@@ -73,6 +73,7 @@ const (
 
 	StubPageId                    = "72"
 	RequestForEditTagParentPageId = "3zj"
+	QualityMetaTagsPageId         = "5dg"
 	MathDomainId                  = "1lw"
 )
 
