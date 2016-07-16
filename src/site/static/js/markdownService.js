@@ -608,9 +608,8 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 					if (cachedValue) {
 						$timeout(function() {
 							$element.html(cachedValue.html);
-							$element.removeAttr('style');
 						});
-					} else {
+					} else if ($element.text().length <= 1) {
 						$element.text('$~' + decodeURIComponent(encodedMathjaxText) + '~$');
 						elements.push({'$element': $element, encodedMathjaxText: encodedMathjaxText});
 					}

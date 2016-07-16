@@ -101,8 +101,10 @@ app.directive('arbCheckbox', function($timeout, $http, $compile, arb) {
 			element.find('ng-transclude').append($compile(addedPagesHtml)(scope));
 
 			$timeout(function() {
-				// Process all math.
-				arb.markdownService.compileChildren(scope, element, {skipCompile: true});
+				if (element.closest('arb-markdown').length > 0) {
+					// Process all math.
+					arb.markdownService.compileChildren(scope, element, {skipCompile: true});
+				}
 
 				// Restore the choice value set last time, or set the default
 				var pageObject = arb.masteryService.getPageObject(scope.pageId, scope.objectAlias);
