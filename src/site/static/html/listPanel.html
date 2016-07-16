@@ -184,7 +184,7 @@
 			<md-divider ng-if="!$last"></md-divider>
 		</md-list-item>
 		<md-divider></md-divider>
-		<md-list-item ng-if="modeRows && fetchMore">
+		<md-list-item ng-if="modeRows && fetchMore && !moreLink">
 			<md-progress-circular md-mode="indeterminate" ng-if="fetchingMore"></md-progress-circular>
 			<md-button ng-click="fetchMore()" ng-if="!fetchingMore">See more</md-button>
 		</md-list-item>

@@ -8,6 +8,7 @@ app.directive('arbRecentChanges', function($http, arb) {
 			numToDisplay: '=',
 			isFullPage: '=',
 			type: '@',
+			moreLink: '@',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
