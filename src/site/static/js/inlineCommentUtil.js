@@ -174,7 +174,8 @@ var getStartEndSelection = function() {
 
 	var r = document.createRange();
 	var position = selection.anchorNode.compareDocumentPosition(selection.focusNode);
-	if (position & Node.DOCUMENT_POSITION_PRECEDING) {
+	if (position & Node.DOCUMENT_POSITION_PRECEDING ||
+			(selection.focusNode === selection.anchorNode && selection.focusOffset < selection.anchorOffset)) {
 		// If text is selected right to left, swap the nodes.
 		r.setStart(selection.focusNode, selection.focusOffset);
 		r.setEnd(selection.anchorNode, selection.anchorOffset);
