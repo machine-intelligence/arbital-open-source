@@ -450,7 +450,7 @@ app.run(function($http, $location, arb) {
 				} else if (arb.stateService.path && !$location.search().pathId) {
 					// We are off the path. Forget the path if it was finished.
 					var isFinished = arb.stateService.path.isFinished ||
-						arb.stateService.path.progress >= arb.stateService.path.pageIds.length-1;
+						arb.stateService.path.progress >= arb.stateService.path.pages.length-1;
 					if (isFinished) {
 						arb.stateService.path = undefined;
 					}
