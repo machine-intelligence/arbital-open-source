@@ -52,41 +52,47 @@ func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		if data.LikeableId == 0 {
-			// Get the likeableId of this likeable.
-			data.LikeableId, err = core.GetOrCreateLikeableId(tx, data.LikeableType, data.ObjectId)
-			if err != nil {
-				return sessions.NewError("Couldn't get the likeableId", err)
-			}
-		}
-
-		// Snapshot the state of the user's trust.
-		var snapshotId int64
-		if data.LikeableType == core.ChangeLogLikeableType || data.LikeableType == core.PageLikeableType {
-			snapshotId, err = InsertUserTrustSnapshots(tx, u)
-			if err != nil {
-				return sessions.NewError("Couldn't insert userTrustSnapshot", err)
-			}
-		}
-
-		// Create/update the like.
-		hashmap := make(map[string]interface{})
-		hashmap["userId"] = u.Id
-		hashmap["likeableId"] = data.LikeableId
-		hashmap["value"] = data.Value
-		hashmap["createdAt"] = database.Now()
-		hashmap["updatedAt"] = database.Now()
-		hashmap["userTrustSnapshotId"] = snapshotId
-		statement := db.NewInsertStatement("likes", hashmap, "value", "updatedAt", "userTrustSnapshotId")
-		if _, err := statement.WithTx(tx).Exec(); err != nil {
-			return sessions.NewError("Couldn't update/create a like", err)
-		}
-
-		return nil
+		return addNewLike(tx, u, data.LikeableId, data.ObjectId, data.LikeableType, data.Value)
 	})
 	if err2 != nil {
 		return pages.FailWith(err2)
 	}
 
 	return pages.Success(nil)
+}
+
+func addNewLike(tx *database.Tx, u *core.CurrentUser, likeableId int64, objectId string, likeableType string, value int) sessions.Error {
+	var err error
+
+	if likeableId == 0 {
+		// Get the likeableId of this likeable.
+		likeableId, err = core.GetOrCreateLikeableId(tx, likeableType, objectId)
+		if err != nil {
+			return sessions.NewError("Couldn't get the likeableId", err)
+		}
+	}
+
+	// Snapshot the state of the user's trust.
+	var snapshotId int64
+	if likeableType == core.ChangeLogLikeableType || likeableType == core.PageLikeableType {
+		snapshotId, err = InsertUserTrustSnapshots(tx, u)
+		if err != nil {
+			return sessions.NewError("Couldn't insert userTrustSnapshot", err)
+		}
+	}
+
+	// Create/update the like.
+	hashmap := make(map[string]interface{})
+	hashmap["userId"] = u.Id
+	hashmap["likeableId"] = likeableId
+	hashmap["value"] = value
+	hashmap["createdAt"] = database.Now()
+	hashmap["updatedAt"] = database.Now()
+	hashmap["userTrustSnapshotId"] = snapshotId
+	statement := tx.DB.NewInsertStatement("likes", hashmap, "value", "updatedAt", "userTrustSnapshotId")
+	if _, err = statement.WithTx(tx).Exec(); err != nil {
+		return sessions.NewError("Couldn't update/create a like", err)
+	}
+
+	return nil
 }

@@ -36,8 +36,11 @@ func newVoteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	var task newVoteData
 	err := decoder.Decode(&task)
-	if err != nil || !core.IsIdValid(task.PageId) {
+	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
+	}
+	if !core.IsIdValid(task.PageId) {
+		return pages.Fail("Missing or invalid page id", nil).Status(http.StatusBadRequest)
 	}
 	if task.Value < 0 || task.Value > 100 {
 		return pages.Fail("Value has to be [0, 100]", nil).Status(http.StatusBadRequest)
