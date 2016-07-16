@@ -22,8 +22,15 @@ app.directive('arbSlowDownButton', function(arb, $window, $timeout) {
 			pageId: '@',
 		},
 		link: function(scope, element) {
+			var parent = element.parent();
+			var slowDownContainer = angular.element(element.find('.slow-down-container'));
+
 			angular.element($window).bind('scroll', function() {
 				scope.haveScrolled = true;
+
+				// Make the button not go past the bottom of the parent
+				var bottomOfParent = parent[0].getBoundingClientRect().bottom + 20;
+				slowDownContainer.css('top', Math.min(bottomOfParent, 180));
 			});
 		},
 		controller: function($scope) {
