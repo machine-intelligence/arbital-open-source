@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	tickPeriod = 3600
+	tickPeriod = 5 * 60 // 5 minutes
 )
 
 // TickTask is the object that's put into the daemon queue.
@@ -33,6 +33,17 @@ func (task TickTask) Execute(db *database.DB) (delay int, err error) {
 
 	if err = task.IsValid(); err != nil {
 		return
+	}
+
+	query := database.NewQuery(`
+		UPDATE pageInfos AS pi
+		SET pi.viewCount=(
+			SELECT COUNT(DISTINCT userId)
+			FROM visits AS v
+			WHERE v.pageId=pi.pageId
+		)`).ToStatement(db)
+	if _, err := query.Exec(); err != nil {
+		c.Errorf("Failed to update view count: %v", err)
 	}
 
 	c.Infof("==== TICK START ====")

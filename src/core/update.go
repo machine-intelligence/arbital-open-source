@@ -66,10 +66,8 @@ type UpdateEntry struct {
 	MarkId          string `json:"markId"`
 	// Optional changeLog associated with this update
 	ChangeLog *ChangeLog `json:"changeLog"`
-	// True if the user has gone to the GoToPage
-	IsVisited bool   `json:"isVisited"`
-	CreatedAt string `json:"createdAt"`
-	Seen      bool   `json:"seen"`
+	CreatedAt string     `json:"createdAt"`
+	Seen      bool       `json:"seen"`
 }
 
 // UpdateData is all the data collected by LoadUpdateEmail()

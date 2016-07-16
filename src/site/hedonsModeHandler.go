@@ -73,11 +73,6 @@ func hedonsModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error updating last achievements view", err)
 	}
 
-	// Set IsVisited on update rows (now that we've had a chance to load last visit times for pages)
-	for _, row := range updateRows {
-		setUpdateModeRowIsVisited(row.(*updateModeRow), returnData.PageMap)
-	}
-
 	// Mark updates as seen.
 	updateIds := make([]string, 0)
 	for _, row := range updateRows {

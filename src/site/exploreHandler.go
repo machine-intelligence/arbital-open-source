@@ -53,7 +53,6 @@ func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 		HasGrandChildren: true,
 		Tags:             true,
 		Lenses:           true,
-		ViewCount:        true,
 		IsSubscribed:     true,
 		RedLinkCount:     true,
 	}).Add(core.TitlePlusLoadOptions)

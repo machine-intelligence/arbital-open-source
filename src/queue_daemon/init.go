@@ -111,13 +111,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	// Insert multiple tasks that need to be always running.
 	// TODO: catch errors, but ignore "already added" error
-	/*var tickTask tasks.TickTask
-	err := tasks.EnqueueWithName(c, &tickTask, "tick", "tick")
+	var tickTask tasks.TickTask
+	err := tasks.Enqueue(c, &tickTask, &tasks.TaskOptions{Name: tickTask.Tag()})
 	if err != nil {
 		c.Debugf("TickTask enqueue error: %v", err)
-	}*/
+	}
 	var emailUpdatesTask tasks.EmailUpdatesTask
-	err := tasks.Enqueue(c, &emailUpdatesTask, &tasks.TaskOptions{Name: emailUpdatesTask.Tag()})
+	err = tasks.Enqueue(c, &emailUpdatesTask, &tasks.TaskOptions{Name: emailUpdatesTask.Tag()})
 	if err != nil {
 		c.Debugf("EmailUpdatesTask enqueue error: %v", err)
 	}

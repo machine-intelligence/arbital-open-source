@@ -553,10 +553,6 @@ func getUpdateEntryFromUpdateRow(row *core.UpdateRow) *core.UpdateEntry {
 	return entry
 }
 
-func setUpdateModeRowIsVisited(modeRow *updateModeRow, pageMap map[string]*core.Page) {
-	modeRow.Update.IsVisited = pageMap != nil && modeRow.Update.CreatedAt < pageMap[modeRow.Update.GoToPageId].LastVisit
-}
-
 // Load pages that have been submitted to a domain, but haven't been approved yet
 func loadPageToDomainSubmissionModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
 	submissions, err := loadPageToDomainSubmissionRows(db, returnData, limit)

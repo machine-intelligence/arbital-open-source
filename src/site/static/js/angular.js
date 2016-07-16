@@ -165,27 +165,6 @@ app.run(function($http, $location, arb) {
 			.error($scope.getErrorFunc('default'));
 		},
 	});
-	arb.urlService.addUrlHandler('/domains/:alias', {
-		name: 'DomainPageController',
-		handler: function(args, $scope) {
-			arb.pageService.domainAlias = args.alias;
-			var postData = {
-				domainAlias: arb.pageService.domainAlias,
-			};
-			// Get the domain index page data
-			$http({method: 'POST', url: '/json/domainPage/', data: JSON.stringify(postData)})
-			.success($scope.getSuccessFunc(function(data) {
-				$scope.indexPageIdsMap = data.result;
-				var groupId = arb.stateService.pageMap[arb.pageService.domainAlias].pageId;
-				return {
-					title: arb.stateService.pageMap[groupId].title,
-					content: $scope.newElement('<arb-group-index group-id=\'' + groupId +
-						'\' ids-map=\'::indexPageIdsMap\'></arb-group-index>'),
-				};
-			}))
-			.error($scope.getErrorFunc('domainPage'));
-		},
-	});
 	arb.urlService.addUrlHandler('/edit/:alias?/:alias2?', {
 		name: 'EditPage',
 		handler: function(args, $scope) {

@@ -36,6 +36,8 @@ CREATE TABLE pageInfos (
 	isDeleted BOOLEAN NOT NULL,
 	/* If set, this page has been merged into the mergedInto page id. FK into pageInfos. */
 	mergedInto VARCHAR(32) NOT NULL,
+	/* Number of different users who looked at this page. */
+	viewCount BIGINT NOT NULL,
 
 	/* When this page has been added to the Featured section */
 	featuredAt DATETIME NOT NULL,

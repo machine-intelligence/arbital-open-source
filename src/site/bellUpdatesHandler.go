@@ -55,11 +55,6 @@ func bellUpdatesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Pipeline error", err)
 	}
 
-	// Set IsVisited on update rows (now that we've had a chance to load last visit times for pages)
-	for _, row := range rows {
-		setUpdateModeRowIsVisited(row.(*updateModeRow), returnData.PageMap)
-	}
-
 	// Mark updates as seen.
 	updateIds := make([]string, 0)
 	for _, row := range rows {

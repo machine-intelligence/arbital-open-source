@@ -48,7 +48,6 @@ type PageLoadOptions struct {
 	HasDraft        bool
 	Likes           bool
 	IndividualLikes bool // load each user who liked
-	ViewCount       bool
 	Votes           bool
 	LastVisit       bool
 	IsSubscribed    bool
@@ -90,7 +89,6 @@ var (
 		UnresolvedMarks: true,
 		TrustMap:        true,
 		Answers:         true,
-		ViewCount:       true,
 		LinkedMarkCount: true,
 		Mastery:         true,
 		UsedAsMastery:   true,
@@ -126,7 +124,6 @@ var (
 		SubmittedTo:     true,
 		UserMarks:       true,
 		UnresolvedMarks: true,
-		ViewCount:       true,
 		Mastery:         true,
 		Creators:        true,
 		UsedAsMastery:   true,

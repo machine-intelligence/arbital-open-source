@@ -70,3 +70,6 @@ CREATE TABLE userTrust (
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 insert into userTrust (userId,domainId,editTrust) select toUserId,domainId,200+bonusEditTrust from invites;
 alter table invites drop column bonusEditTrust;
+
+alter table pageInfos add column viewCount BIGINT NOT NULL;
+update pageInfos as pi set pi.viewCount=(select count(distinct userId) from visits as v where v.pageId=pi.pageId);

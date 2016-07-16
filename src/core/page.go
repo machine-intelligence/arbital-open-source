@@ -70,13 +70,6 @@ const (
 	// How long the page lock lasts
 	PageQuickLockDuration = 5 * 60  // in seconds
 	PageLockDuration      = 30 * 60 // in seconds
-
-	StubPageId                    = "72"
-	RequestForEditTagParentPageId = "3zj"
-	QualityMetaTagsPageId         = "5dg"
-	MathDomainId                  = "1lw"
-	AClassPageId                  = "4yf"
-	BClassPageId                  = "4yd"
 )
 
 var (
@@ -126,6 +119,7 @@ type corePageData struct {
 	AnchorOffset             int    `json:"anchorOffset"`
 	MergedInto               string `json:"mergedInto"`
 	IsDeleted                bool   `json:"isDeleted"`
+	ViewCount                int    `json:"viewCount"`
 
 	// The following data is filled on demand.
 	Text     string `json:"text"`
@@ -150,7 +144,6 @@ type Page struct {
 	IsSubscribedAsMaintainer bool `json:"isSubscribedAsMaintainer"`
 	SubscriberCount          int  `json:"subscriberCount"`
 	MaintainerCount          int  `json:"maintainerCount"`
-	ViewCount                int  `json:"viewCount"`
 	// Last time the user visited this page.
 	LastVisit string `json:"lastVisit"`
 	// True iff the user has a work-in-progress draft for this page
@@ -763,13 +756,6 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		return fmt.Errorf("LoadDraftExistence failed: %v", err)
 	}
 
-	// Load views
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.ViewCount })
-	err = LoadViewCounts(db, filteredPageMap)
-	if err != nil {
-		return fmt.Errorf("LoadViewCounts failed: %v", err)
-	}
-
 	// Load votes
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Votes })
 	err = LoadVotes(db, u.Id, filteredPageMap, userMap)
@@ -1035,8 +1021,8 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 			length(p.text),p.metaText,pi.type,pi.hasVote,pi.voteType,
 			pi.alias,pi.createdAt,pi.createdBy,pi.sortChildrenBy,pi.seeGroupId,pi.editGroupId,
 			pi.isEditorComment,pi.isEditorCommentIntention,pi.isResolved,
-			pi.isRequisite,pi.indirectTeacher,pi.currentEdit,pi.likeableId,p.isAutosave,p.isSnapshot,
-			p.isLiveEdit,p.isMinorEdit,p.editSummary,pi.isDeleted,pi.mergedInto,
+			pi.isRequisite,pi.indirectTeacher,pi.currentEdit,pi.likeableId,pi.viewCount,
+			p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,p.editSummary,pi.isDeleted,pi.mergedInto,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset
 		FROM pages AS p
 		JOIN`).AddPart(pageInfosTable).Add(`AS pi
@@ -1049,7 +1035,7 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.HasVote,
 			&p.VoteType, &p.Alias, &p.PageCreatedAt, &p.PageCreatorId, &p.SortChildrenBy,
 			&p.SeeGroupId, &p.EditGroupId, &p.IsEditorComment, &p.IsEditorCommentIntention,
-			&p.IsResolved, &p.IsRequisite, &p.IndirectTeacher, &p.CurrentEdit, &p.LikeableId,
+			&p.IsResolved, &p.IsRequisite, &p.IndirectTeacher, &p.CurrentEdit, &p.LikeableId, &p.ViewCount,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.EditSummary, &p.IsDeleted, &p.MergedInto,
 			&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
@@ -1300,7 +1286,7 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 			pi.isResolved,pi.likeableId,p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,p.editSummary,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset,
 			pi.currentEdit>0,pi.isDeleted,pi.mergedInto,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
-			pi.voteType,pi.isRequisite,pi.indirectTeacher
+			pi.viewCount,pi.voteType,pi.isRequisite,pi.indirectTeacher
 		FROM pages AS p
 		JOIN`).AddPart(PageInfosTableAll(u)).Add(`AS pi
 		ON (p.pageId=pi.pageId AND p.pageId=?)`, pageId).Add(`
@@ -1313,8 +1299,8 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 		&p.IsEditorComment, &p.IsEditorCommentIntention, &p.IsResolved, &p.LikeableId,
 		&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.EditSummary,
 		&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
-		&p.IsDeleted, &p.MergedInto, &p.CurrentEdit, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType,
-		&p.IsRequisite, &p.IndirectTeacher)
+		&p.IsDeleted, &p.MergedInto, &p.CurrentEdit, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil,
+		&p.ViewCount, &p.LockedVoteType, &p.IsRequisite, &p.IndirectTeacher)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if !exists {
@@ -1460,30 +1446,6 @@ func LoadSearchString(db *database.DB, id string) (*SearchString, error) {
 		return nil
 	})
 	return &searchString, err
-}
-
-// LoadViewCounts loads view counts for the pages
-func LoadViewCounts(db *database.DB, pageMap map[string]*Page) error {
-	if len(pageMap) <= 0 {
-		return nil
-	}
-	pageIds := PageIdsListFromMap(pageMap)
-	rows := db.NewStatement(`
-		SELECT pageId,count(distinct userId)
-		FROM visits
-		WHERE pageId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
-		GROUP BY 1`).Query(pageIds...)
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId string
-		var count int
-		err := rows.Scan(&pageId, &count)
-		if err != nil {
-			return fmt.Errorf("failed to scan: %v", err)
-		}
-		pageMap[pageId].ViewCount = count
-		return nil
-	})
-	return err
 }
 
 // LoadVotes loads probability votes corresponding to the given pages and updates the pages.
@@ -2210,7 +2172,9 @@ func LoadDraftExistence(db *database.DB, userId string, options *LoadDataOptions
 
 // LoadLastVisits loads lastVisit variable for each page.
 func LoadLastVisits(db *database.DB, currentUserId string, pageMap map[string]*Page) error {
-	if len(pageMap) <= 0 {
+	// NOTE: Loading last visits is expensive; let's try to avoid it
+	return nil
+	/*if len(pageMap) <= 0 {
 		return nil
 	}
 	pageIds := PageIdsListFromMap(pageMap)
@@ -2229,7 +2193,7 @@ func LoadLastVisits(db *database.DB, currentUserId string, pageMap map[string]*P
 		pageMap[pageId].LastVisit = createdAt
 		return nil
 	})
-	return err
+	return err*/
 }
 
 // LoadSubscriptions loads subscription statuses corresponding to the given

@@ -24,6 +24,14 @@ const (
 
 	Base31Chars             = "0123456789bcdfghjklmnpqrstvwxyz"
 	Base31CharsForFirstChar = "0123456789"
+
+	StubPageId                    = "72"
+	RequestForEditTagParentPageId = "3zj"
+	QualityMetaTagsPageId         = "5dg"
+	MathDomainId                  = "1lw"
+	AClassPageId                  = "4yf"
+	BClassPageId                  = "4yd"
+	FeaturedClassPageId           = "4yl"
 )
 
 // AddPageToMap adds a new page with the given page id to the map if it's not
