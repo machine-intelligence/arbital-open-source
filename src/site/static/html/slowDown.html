@@ -65,6 +65,18 @@
 			<!-- TODO: Request a slower or faster explanation -->
 
 			<!-- TODO: Free-form feedback -->
+			<div layout="column">
+				<div>
+					<span>If you could wave a magic wand to create an alternate version of this page, how would it be different?</span>
+					<md-input-container flex>
+						<input ng-model="request.freeformText"
+								md-maxlength="200"
+								aria-label="Alternate page request"
+								autofocus>
+					</md-input-container>
+					<md-button ng-click="submitFreeformExplanationRequest()">submit request</md-button>
+				</div>
+			</div>
 
 			<!-- If none of the other things are shown -->
 			<div ng-if="!(page.subjects.length > 0 || page.requirements.length > 0)">
