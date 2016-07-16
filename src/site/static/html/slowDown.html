@@ -1,0 +1,66 @@
+<div layout="column"
+		ng-mouseover="isHovered = true"
+		ng-mouseleave="isHovered = false"
+		class="slow-down-container"
+		ng-class="{'slow-down-container-expanded': isHovered}">
+	<div class="slow-down-button md-body-2"
+			ng-class="{
+					'slow-down-button-collapsed': haveScrolled && !isHovered,
+				}">
+		<md-icon>slow_motion_video</md-icon>
+		<span ng-if="!haveScrolled || isHovered">Say what?</span>
+	</div>
+	<div class="slow-down-tray md-body-1">
+		<span ng-if="isHovered">
+			<!-- What the page teaches -->
+			<div ng-if="page.subjects.length > 0">
+				This page teaches
+				<span ng-repeat="subjectRelationship in page.subjects">
+					<span ng-if="$last">and</span>
+					<arb-page-title page-id="{{subjectRelationship.parentId}}"
+							is-link="true"></arb-page-title>
+					<span ng-if="!$last && page.subjects.length != 2" class="comma">,</span>
+				</span>
+
+				<span class="comma">.</span>
+			</div>
+
+			<!-- What this page requires -->
+			<div ng-if="page.requirements.length > 0">
+				This page requires
+				<span ng-repeat="reqRelationship in page.requirements">
+					<span ng-if="$last">and</span>
+					<arb-page-title page-id="{{reqRelationship.parentId}}"
+							is-link="true"></arb-page-title>
+					<span ng-if="!$last && page.subjects.length != 2" class="comma">,</span>
+				</span>
+
+				<span class="comma">.</span>
+			</div>
+
+			<!-- List other pages that teach things this page teaches -->
+			<!-- <div ng-if="altTeachers">
+				<div ng-repeat="altTeacher in altTeachers">
+					<arb-page-title page-id="{{altTeacher}}"
+							is-link="true"></arb-page-title>
+							{{arb.stateService.pageMap['1x7'].requirements}}
+					teaches
+					<span arb-mastery-list ids-source="arb.stateService.getPage(altTeacher).subjects" is-span="true"></span>
+					and requires
+					<span arb-mastery-list ids-source="arb.stateService.getPage(altTeacher).requirements" is-span="true"></span>
+				</div>
+			</div> -->
+
+			<!-- TODO: Request explanations without this pages reqs -->
+
+			<!-- TODO: Request a slower or faster explanation -->
+
+			<!-- TODO: Free-form feedback -->
+
+			<!-- If none of the other things are shown -->
+			<div ng-if="!(page.subjects.length > 0 || page.requirements.length > 0)">
+				Coming soon!
+			</div>
+		</span>
+	</div>
+</div>

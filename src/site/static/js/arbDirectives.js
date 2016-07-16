@@ -14,6 +14,30 @@ app.directive('arbUserName', function(arb) {
 	};
 });
 
+// arb-slow-down-button
+app.directive('arbSlowDownButton', function(arb, $window, $timeout) {
+	return {
+		templateUrl: versionUrl('static/html/slowDown.html'),
+		scope: {
+			pageId: '@',
+		},
+		link: function(scope, element) {
+			angular.element($window).bind('scroll', function() {
+				scope.haveScrolled = true;
+			});
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+			$scope.page = arb.stateService.pageMap[$scope.pageId];
+
+			arb.stateService.postData('/json/alternatePages/', {pageId: $scope.pageId},
+				function(data) {
+					$scope.altTeachers = data.result.alternateTeachers;
+				})
+		},
+	}
+});
+
 // arb-edit-button shows an edit button for a page, and handles users not being logged in
 app.directive('arbEditButton', function(arb) {
 	return {
