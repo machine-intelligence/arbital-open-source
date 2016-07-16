@@ -32,7 +32,7 @@ app.directive('arbSlowDownButton', function(arb, $window, $timeout) {
 
 			arb.stateService.postData('/json/alternatePages/', {pageId: $scope.pageId},
 				function(data) {
-					$scope.altTeachers = data.result.alternate_teachers;
+					$scope.altTeachers = data.result.alternateTeachers;
 				})
 		},
 	}

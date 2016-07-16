@@ -58,7 +58,7 @@ func alternatePagesJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	returnData.ResultMap["alternate_teachers"] = alternateTeachers
+	returnData.ResultMap["alternateTeachers"] = alternateTeachers
 
 	// Load pages.
 	err = core.ExecuteLoadPipeline(db, returnData)
