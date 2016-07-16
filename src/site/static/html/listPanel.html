@@ -21,13 +21,14 @@
 			<div ng-switch="::modeRow.rowType" flex>
 				<!-- page rows -->
 				<arb-page-row page-id="{{::modeRow.pageId}}"
-						show-created-at="true"
+						show-created-at="::true"
+						show-created-by="::true"
 						ng-switch-when="page"
 						ng-if="type != 'featured'"></arb-page-row>
 
 				<!-- featured page rows -->
 				<arb-page-row page-id="{{::modeRow.pageId}}"
-						show-other-date-time="true"
+						show-other-date-time="::true"
 						other-date-time="modeRow.activityDate"
 						ng-switch-when="page"
 						ng-if="type == 'featured'"></arb-page-row>
