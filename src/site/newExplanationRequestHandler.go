@@ -72,7 +72,7 @@ func addNewExplanationRequest(tx *database.Tx, u *core.CurrentUser, pageId strin
 	}
 
 	// finally, add a like for the request
-	return addNewLike(tx, u, 0, id, core.ExplanationRequestLikeableType, 1)
+	return addNewLike(tx, u, 0, id, core.ContentRequestLikeableType, 1)
 }
 
 // Find the id of the explanation request for the given (page, type) pair.
@@ -81,7 +81,7 @@ func _lookupExplanationRequest(db *database.DB, u *core.CurrentUser, pageId stri
 
 	rows := database.NewQuery(`
 		SELECT id
-		FROM explanationRequests AS er
+		FROM contentRequests AS er
 		WHERE er.pageId=? AND er.type=?`,
 		pageId, erType).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -101,7 +101,7 @@ func _createExplanationRequest(tx *database.Tx, u *core.CurrentUser, pageId stri
 	hashmap["pageId"] = pageId
 	hashmap["type"] = erType
 	hashmap["createdAt"] = database.Now()
-	statement := tx.DB.NewInsertStatement("explanationRequests", hashmap)
+	statement := tx.DB.NewInsertStatement("contentRequests", hashmap)
 	result, err := statement.WithTx(tx).Exec()
 	if err != nil {
 		return 0, fmt.Errorf("Couldn't insert new explanation request", err)

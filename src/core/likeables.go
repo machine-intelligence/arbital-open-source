@@ -9,10 +9,10 @@ import (
 
 const (
 	// Possible likeable types
-	ChangeLogLikeableType          = "changeLog"
-	PageLikeableType               = "page"
-	RedLinkLikeableType            = "redLink"
-	ExplanationRequestLikeableType = "explanationRequest"
+	ChangeLogLikeableType      = "changeLog"
+	PageLikeableType           = "page"
+	RedLinkLikeableType        = "redLink"
+	ContentRequestLikeableType = "contentRequest"
 )
 
 // Get the likeableId of the given likeable. If it doesn't have one, create one for it.
@@ -71,8 +71,8 @@ func GetTableAndIdFieldForLikeable(likeableType string) (string, string, error) 
 		return "changeLogs", "id", nil
 	case RedLinkLikeableType:
 		return "redLinks", "alias", nil
-	case ExplanationRequestLikeableType:
-		return "explanationRequests", "id", nil
+	case ContentRequestLikeableType:
+		return "contentRequests", "id", nil
 	default:
 		return "", "", fmt.Errorf("invalid likeableType")
 	}
@@ -81,7 +81,7 @@ func GetTableAndIdFieldForLikeable(likeableType string) (string, string, error) 
 // Check if the given likeableType is valid.
 func IsValidLikeableType(likeableType string) bool {
 	switch likeableType {
-	case PageLikeableType, ChangeLogLikeableType, RedLinkLikeableType, ExplanationRequestLikeableType:
+	case PageLikeableType, ChangeLogLikeableType, RedLinkLikeableType, ContentRequestLikeableType:
 		return true
 	default:
 		return false

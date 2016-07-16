@@ -74,13 +74,13 @@ alter table invites drop column bonusEditTrust;
 alter table pageInfos add column viewCount BIGINT NOT NULL;
 update pageInfos as pi set pi.viewCount=(select count(distinct userId) from visits as v where v.pageId=pi.pageId);
 
-/* An entry for every explanation request pair (page and type) */
-CREATE TABLE explanationRequests (
+/* An entry for every content request pair (page and type) */
+CREATE TABLE contentRequests (
 
 	/* Id of the request. */
 	id BIGINT NOT NULL AUTO_INCREMENT,
 
-	/* FK into pages. */
+	/* The page the request was made for. FK into pages. */
 	pageId VARCHAR(32) NOT NULL,
 
 	/* Type of request. Either slowDown or speedUp */
