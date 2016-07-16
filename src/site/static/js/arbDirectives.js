@@ -41,6 +41,21 @@ app.directive('arbSlowDownButton', function(arb, $window, $timeout) {
 				function(data) {
 					$scope.altTeachers = data.result.alternateTeachers;
 				})
+
+			$scope.request = {};
+			$scope.submitFreeformExplanationRequest = function() {
+				arb.stateService.postData(
+					'/feedback/',
+					{
+						text: 'Explanation request for page ' + $scope.page.pageId + ':\n' + $scope.request.freeformText
+					},
+					function(data) {
+						// ROGTODO: is this callback needed?
+						console.log('posted successfully');
+					}
+				)
+				$scope.request.freeformText = '';
+			}
 		},
 	}
 });

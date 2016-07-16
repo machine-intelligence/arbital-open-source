@@ -65,6 +65,7 @@ func (task SendFeedbackEmailTask) Execute(db *database.DB) (delay int, err error
 		}
 	} else {
 		// If not live, then do nothing, for now
+		db.C.Debugf("feedback from %v (user #%v):\n%v", task.UserEmail, task.UserId, task.Text)
 	}
 
 	c.Inc("feedback_send_success")
