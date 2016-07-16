@@ -25,12 +25,15 @@ app.directive('arbSlowDownButton', function(arb, $window, $timeout) {
 			var parent = element.parent();
 			var slowDownContainer = angular.element(element.find('.slow-down-container'));
 
+			var topOfParent = parent[0].getBoundingClientRect().top + 10;
+			slowDownContainer.css('top', topOfParent);
+
 			angular.element($window).bind('scroll', function() {
 				scope.haveScrolled = true;
 
 				// Make the button not go past the bottom of the parent
 				var bottomOfParent = parent[0].getBoundingClientRect().bottom + 20;
-				slowDownContainer.css('top', Math.min(bottomOfParent, 180));
+				slowDownContainer.css('top', Math.min(bottomOfParent, topOfParent));
 			});
 		},
 		controller: function($scope) {
@@ -39,7 +42,9 @@ app.directive('arbSlowDownButton', function(arb, $window, $timeout) {
 
 			arb.stateService.postData('/json/alternatePages/', {pageId: $scope.pageId},
 				function(data) {
-					$scope.altTeachers = data.result.alternateTeachers;
+					$scope.altTeachers = data.result.alternateTeachers.map(function(altTeacherId) {
+						return arb.stateService.getPage(altTeacherId);
+					});
 				})
 
 			$scope.request = {};

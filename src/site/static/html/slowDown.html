@@ -41,13 +41,22 @@
 			<!-- List other pages that teach things this page teaches -->
 			<!-- <div ng-if="altTeachers">
 				<div ng-repeat="altTeacher in altTeachers">
-					<arb-page-title page-id="{{altTeacher}}"
+					<arb-page-title page-id="{{altTeacher.pageId}}"
 							is-link="true"></arb-page-title>
-							{{arb.stateService.pageMap['1x7'].requirements}}
 					teaches
-					<span arb-mastery-list ids-source="arb.stateService.getPage(altTeacher).subjects" is-span="true"></span>
+					<span ng-repeat="subjectRelationship in altTeacher.subjects">
+						<span ng-if="$last">and</span>
+						<arb-page-title page-id="{{subjectRelationship.parentId}}"
+								is-link="true"></arb-page-title>
+						<span ng-if="!$last && altTeacher.subjects.length != 2" class="comma">,</span>
+					</span>
 					and requires
-					<span arb-mastery-list ids-source="arb.stateService.getPage(altTeacher).requirements" is-span="true"></span>
+					<span ng-repeat="reqRelationship in altTeacher.requirements">
+						<span ng-if="$last">and</span>
+						<arb-page-title page-id="{{reqRelationship.parentId}}"
+								is-link="true"></arb-page-title>
+						<span ng-if="!$last && altTeacher.subjects.length != 2" class="comma">,</span>
+					</span>
 				</div>
 			</div> -->
 
