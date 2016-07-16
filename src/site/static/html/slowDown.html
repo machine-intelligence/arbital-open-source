@@ -16,7 +16,7 @@
 			<div ng-if="page.subjects.length > 0">
 				This page teaches
 				<span ng-repeat="subjectRelationship in page.subjects">
-					<span ng-if="$last">and</span>
+					<span ng-if="$last && !$first">and</span>
 					<arb-page-title page-id="{{subjectRelationship.parentId}}"
 							is-link="true"></arb-page-title>
 					<span ng-if="!$last && page.subjects.length != 2" class="comma">,</span>
@@ -29,7 +29,7 @@
 			<div ng-if="page.requirements.length > 0">
 				This page requires
 				<span ng-repeat="reqRelationship in page.requirements">
-					<span ng-if="$last">and</span>
+					<span ng-if="$last && !$first">and</span>
 					<arb-page-title page-id="{{reqRelationship.parentId}}"
 							is-link="true"></arb-page-title>
 					<span ng-if="!$last && page.subjects.length != 2" class="comma">,</span>
