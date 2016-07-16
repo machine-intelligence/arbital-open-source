@@ -33,8 +33,11 @@ func explanationRequestJsonHandler(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	var data explanationRequestData
 	err := decoder.Decode(&data)
-	if err != nil || !core.IsIdValid(data.PageId) {
+	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
+	}
+	if !core.IsIdValid(data.PageId) {
+		return pages.Fail("Missing or invalid page id", nil).Status(http.StatusBadRequest)
 	}
 
 	// Add the request.
