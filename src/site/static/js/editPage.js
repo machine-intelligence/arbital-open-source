@@ -534,6 +534,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			if ($scope.page.proposalEditNum > 0) {
 				$timeout(function() {
 					$scope.showDiff($scope.page.prevEdit);
+					arb.popupService.showToast({text: 'There is a pending edit proposal. Please review.'});
 				});
 			}
 
