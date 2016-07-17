@@ -129,7 +129,7 @@ type Config struct {
 		}
 	}
 	Stormpath struct {
-		Id                         string
+		ID                         string
 		Secret                     string
 		Tenant                     string
 		AccountStoreMappings       string
@@ -148,13 +148,13 @@ type Config struct {
 		VerificationEmails         string
 	}
 	Facebook struct {
-		Id         string
+		ID         string
 		Secret     string
 		TestId     string `yaml:"testId"`
 		TestSecret string `yaml:"testSecret"`
 	}
 	Mailchimp struct {
-		Id         string
+		ID         string
 		Secret     string
 		Apikey     string
 		Production string
@@ -168,7 +168,7 @@ type Config struct {
 			User, Password string
 		}
 		Service struct {
-			Id, Secret string
+			ID, Secret string
 		}
 		Influx struct {
 			Database struct {

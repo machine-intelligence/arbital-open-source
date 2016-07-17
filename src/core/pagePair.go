@@ -16,7 +16,7 @@ const (
 )
 
 type PagePair struct {
-	Id            string `json:"id"`
+	ID            string `json:"id"`
 	ParentId      string `json:"parentId"`
 	ChildId       string `json:"childId"`
 	Type          string `json:"type"`
@@ -63,7 +63,7 @@ func LoadPagePairs(db *database.DB, queryPart *database.QueryPart, callback Proc
 		FROM pagePairs AS pp`).AddPart(queryPart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pagePair PagePair
-		err := rows.Scan(&pagePair.Id, &pagePair.Type, &pagePair.ChildId, &pagePair.ParentId,
+		err := rows.Scan(&pagePair.ID, &pagePair.Type, &pagePair.ChildId, &pagePair.ParentId,
 			&pagePair.CreatorId, &pagePair.CreatedAt, &pagePair.EverPublished, &pagePair.Level,
 			&pagePair.IsStrong)
 		if err != nil {

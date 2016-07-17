@@ -122,8 +122,8 @@ func loadCommentModeRows(db *database.DB, returnData *core.CommonHandlerData, li
 		ON (pp.childId=pi.pageId)
 		JOIN subscriptions AS s
 		ON (pp.parentId=s.toId)
-		WHERE s.userId=?`, returnData.User.Id).Add(`
-			AND pi.createdBy!=?`, returnData.User.Id).Add(`
+		WHERE s.userId=?`, returnData.User.ID).Add(`
+			AND pi.createdBy!=?`, returnData.User.ID).Add(`
 			AND pi.type=?`, core.CommentPageType).Add(`
 			AND NOT pi.isEditorComment
 		GROUP BY pp.childId
@@ -156,7 +156,7 @@ func loadMarkModeRows(db *database.DB, returnData *core.CommonHandlerData, limit
 	rows := database.NewQuery(`
 		SELECT id,type,IF(answered,answeredAt,resolvedAt)
 		FROM marks
-		WHERE creatorId=?`, returnData.User.Id).Add(`
+		WHERE creatorId=?`, returnData.User.ID).Add(`
 			AND resolvedAt!=""
 		ORDER BY 3 DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
@@ -174,7 +174,7 @@ func loadMarkModeRows(db *database.DB, returnData *core.CommonHandlerData, limit
 			modeRowData: modeRowData{RowType: modeRowType, ActivityDate: activityDate},
 			MarkId:      markId,
 		})
-		returnData.MarkMap[markId] = &core.Mark{Id: markId}
+		returnData.MarkMap[markId] = &core.Mark{ID: markId}
 		return nil
 	})
 	if err != nil {
@@ -194,8 +194,8 @@ func loadLikesModeRows(db *database.DB, returnData *core.CommonHandlerData, limi
 		ON pi.likeableId=l.likeableId
 		JOIN users AS u
 		ON l.userId=u.id
-		WHERE pi.createdBy=?`, returnData.User.Id).Add(`
-			AND l.userId!=?`, returnData.User.Id).Add(`
+		WHERE pi.createdBy=?`, returnData.User.ID).Add(`
+			AND l.userId!=?`, returnData.User.ID).Add(`
 			AND l.value=1
 		ORDER BY l.updatedAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
@@ -247,8 +247,8 @@ func loadChangeLikesModeRows(db *database.DB, returnData *core.CommonHandlerData
 		FROM likes as l
 		JOIN changeLogs as cl
 		ON cl.likeableId=l.likeableId
-		WHERE cl.userId=?`, returnData.User.Id).Add(`
-			AND l.value=1 AND l.userId!=?`, returnData.User.Id).Add(`
+		WHERE cl.userId=?`, returnData.User.ID).Add(`
+			AND l.value=1 AND l.userId!=?`, returnData.User.ID).Add(`
 			AND cl.type=?`, core.NewEditChangeLog).Add(`
 		ORDER BY l.updatedAt DESC`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -256,13 +256,13 @@ func loadChangeLikesModeRows(db *database.DB, returnData *core.CommonHandlerData
 		var changeLog core.ChangeLog
 
 		err := rows.Scan(&likerId, &pageId, &updatedAt,
-			&changeLog.Id, &changeLog.PageId, &changeLog.Type, &changeLog.OldSettingsValue,
+			&changeLog.ID, &changeLog.PageId, &changeLog.Type, &changeLog.OldSettingsValue,
 			&changeLog.NewSettingsValue, &changeLog.Edit)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
 
-		row, ok := hedonsRowMap[changeLog.Id]
+		row, ok := hedonsRowMap[changeLog.ID]
 		if !ok {
 			row = &likesModeRow{
 				modeRowData: modeRowData{RowType: LikesModeRowType, ActivityDate: updatedAt},
@@ -270,7 +270,7 @@ func loadChangeLikesModeRows(db *database.DB, returnData *core.CommonHandlerData
 				ChangeLog:   &changeLog,
 				UserIds:     make([]string, 0),
 			}
-			hedonsRowMap[changeLog.Id] = row
+			hedonsRowMap[changeLog.ID] = row
 		}
 
 		core.AddPageToMap(pageId, returnData.PageMap, core.TitlePlusLoadOptions)
@@ -301,8 +301,8 @@ func loadReqsTaughtModeRows(db *database.DB, returnData *core.CommonHandlerData,
 		ON ump.taughtBy=pi.pageId
 		JOIN users AS u
 		ON ump.userId=u.id
-		WHERE pi.createdBy=?`, returnData.User.Id).Add(`
-			AND ump.has=1 AND ump.userId!=?`, returnData.User.Id).Add(`
+		WHERE pi.createdBy=?`, returnData.User.ID).Add(`
+			AND ump.has=1 AND ump.userId!=?`, returnData.User.ID).Add(`
 		ORDER BY ump.updatedAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -362,7 +362,7 @@ func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 		FROM subscriptions AS subs
 		JOIN pageInfos AS pi
 		ON subs.toId=pi.pageId
-		WHERE subs.userId=?`, returnData.User.Id).Add(`
+		WHERE subs.userId=?`, returnData.User.ID).Add(`
 		AND pi.type=?`, core.DomainPageType)
 
 	rows := database.NewQuery(`
@@ -415,7 +415,7 @@ func loadDraftRows(db *database.DB, returnData *core.CommonHandlerData, limit in
 		FROM pages AS p
 		JOIN`).AddPart(core.PageInfosTableAll(returnData.User)).Add(`AS pi
 		ON (p.pageId = pi.pageId)
-		WHERE p.creatorId=?`, returnData.User.Id).Add(`
+		WHERE p.creatorId=?`, returnData.User.ID).Add(`
 			AND pi.type!=?`, core.CommentPageType).Add(`
 			AND p.edit>pi.currentEdit AND (p.text!="" OR p.title!="")
 		GROUP BY p.pageId
@@ -475,7 +475,7 @@ func loadTaggedForEditRows(db *database.DB, returnData *core.CommonHandlerData, 
 		ON (p.pageId = pi.pageId AND p.edit = pi.currentEdit)
 		WHERE pp.type=?`, core.TagPagePairType).Add(`
 			AND pp.parentId IN`).AddArgsGroupStr(tagsForEdit).Add(`
-			AND pi.createdBy=?`, returnData.User.Id).Add(`
+			AND pi.createdBy=?`, returnData.User.ID).Add(`
 		GROUP BY pi.pageId
 		ORDER BY p.createdAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
@@ -534,7 +534,7 @@ func getUpdateModeRowFromUpdateRow(updateRow *core.UpdateRow) *updateModeRow {
 
 func getUpdateEntryFromUpdateRow(row *core.UpdateRow) *core.UpdateEntry {
 	entry := &core.UpdateEntry{
-		Id:              row.Id,
+		ID:              row.ID,
 		UserId:          row.UserId,
 		ByUserId:        row.ByUserId,
 		Type:            row.Type,

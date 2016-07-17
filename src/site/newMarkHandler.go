@@ -91,7 +91,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["type"] = data.Type
 		hashmap["edit"] = data.Edit
 		hashmap["text"] = data.Text
-		hashmap["creatorId"] = u.Id
+		hashmap["creatorId"] = u.ID
 		hashmap["createdAt"] = now
 		hashmap["anchorContext"] = data.AnchorContext
 		hashmap["anchorText"] = data.AnchorText
@@ -115,7 +115,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				if req.Has || req.Wants {
 					hashmap := make(database.InsertMap)
 					hashmap["id"] = requisiteSnapshotId
-					hashmap["userId"] = u.Id
+					hashmap["userId"] = u.ID
 					hashmap["requisiteId"] = req.PageId
 					hashmap["has"] = req.Has
 					hashmap["wants"] = req.Wants
@@ -160,7 +160,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 func EnqueueNewMarkUpdateTask(params *pages.HandlerParams, markId string, pageId string, delay int) error {
 	var updateTask tasks.NewUpdateTask
-	updateTask.UserId = params.U.Id
+	updateTask.UserId = params.U.ID
 	updateTask.GoToPageId = pageId
 	updateTask.SubscribedToId = pageId
 	updateTask.UpdateType = core.NewMarkUpdateType

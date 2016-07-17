@@ -49,7 +49,7 @@ func newPageToDomainSubmissionHandlerFunc(params *pages.HandlerParams) *pages.Re
 		hashmap := make(map[string]interface{})
 		hashmap["pageId"] = data.PageId
 		hashmap["domainId"] = data.DomainId
-		hashmap["submitterId"] = u.Id
+		hashmap["submitterId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		statement := db.NewInsertStatement("pageToDomainSubmissions", hashmap).WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
@@ -58,7 +58,7 @@ func newPageToDomainSubmissionHandlerFunc(params *pages.HandlerParams) *pages.Re
 
 		// Notify all domain owners about this new submission
 		var task tasks.DomainWideNewUpdateTask
-		task.UserId = u.Id
+		task.UserId = u.ID
 		task.UpdateType = core.PageToDomainSubmissionUpdateType
 		task.DomainId = data.DomainId
 		task.GoToPageId = data.PageId

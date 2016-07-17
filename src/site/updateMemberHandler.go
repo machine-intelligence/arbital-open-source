@@ -45,7 +45,7 @@ func updateMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		SELECT canAdmin
 		FROM groupMembers
 		WHERE userId=? AND groupId=? AND canAddMembers
-		`).QueryRow(u.Id, data.GroupId)
+		`).QueryRow(u.ID, data.GroupId)
 	found, err := row.Scan(&canAdmin)
 	if err != nil {
 		return pages.Fail("Couldn't check for a group member", err)

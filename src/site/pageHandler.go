@@ -108,7 +108,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		}
 
 		// When in a subdomain, we always have to be logged in
-		if core.IsIdValid(params.PrivateGroupId) && !core.IsIdValid(u.Id) {
+		if core.IsIdValid(params.PrivateGroupId) && !core.IsIdValid(u.ID) {
 			if r.URL.Path != "/login/" {
 				http.Redirect(w, r, fmt.Sprintf("/login/?continueUrl=%s", url.QueryEscape(r.URL.String())), http.StatusSeeOther)
 			}
@@ -131,7 +131,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 				return
 			}
 			// We don't allow personal private groups for now
-			if params.PrivateGroupId == u.Id {
+			if params.PrivateGroupId == u.ID {
 				fail(http.StatusForbidden, "Arbital no longer supports personal private groups", nil)
 			}
 		}

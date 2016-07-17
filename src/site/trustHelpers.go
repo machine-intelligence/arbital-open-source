@@ -28,7 +28,7 @@ func InsertUserTrustSnapshots(tx *database.Tx, u *core.CurrentUser) (int64, erro
 		}
 		hashmap := make(database.InsertMap)
 		hashmap["id"] = snapshotId
-		hashmap["userId"] = u.Id
+		hashmap["userId"] = u.ID
 		hashmap["domainId"] = domainId
 		hashmap["generalTrust"] = trust.GeneralTrust
 		hashmap["editTrust"] = trust.EditTrust

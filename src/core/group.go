@@ -21,7 +21,7 @@ func LoadUserGroupIds(db *database.DB, u *CurrentUser) error {
 	rows := db.NewStatement(`
 		SELECT groupId
 		FROM groupMembers
-		WHERE userId=?`).Query(u.Id)
+		WHERE userId=?`).Query(u.ID)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var groupId string
 		err := rows.Scan(&groupId)

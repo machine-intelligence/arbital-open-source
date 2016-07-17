@@ -43,7 +43,7 @@ func discardPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	statement := db.NewStatement(`
 		DELETE FROM pages
 		WHERE pageId=? AND creatorId=? AND isAutosave`)
-	if _, err = statement.Exec(data.PageId, u.Id); err != nil {
+	if _, err = statement.Exec(data.PageId, u.ID); err != nil {
 		return pages.Fail("Couldn't discard a page", err)
 	}
 

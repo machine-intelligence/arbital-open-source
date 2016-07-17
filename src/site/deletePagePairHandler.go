@@ -79,7 +79,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Delete the pair
 		query := tx.DB.NewStatement(`DELETE FROM pagePairs WHERE id=?`).WithTx(tx)
-		if _, err := query.Exec(pagePair.Id); err != nil {
+		if _, err := query.Exec(pagePair.ID); err != nil {
 			return sessions.NewError("Couldn't delete the page pair", err)
 		}
 
@@ -92,7 +92,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = parent.PageId
 		hashmap["auxPageId"] = child.PageId
-		hashmap["userId"] = u.Id
+		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = map[string]string{
 			core.ParentPagePairType:      core.DeleteChildChangeLog,
@@ -113,7 +113,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap = make(database.InsertMap)
 		hashmap["pageId"] = child.PageId
 		hashmap["auxPageId"] = parent.PageId
-		hashmap["userId"] = u.Id
+		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = map[string]string{
 			core.ParentPagePairType:      core.DeleteParentChangeLog,
@@ -141,12 +141,12 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Send updates for users subscribed to the parent.
-		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, u.Id, deletedChildChangeLogId, false)
+		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, u.ID, deletedChildChangeLogId, false)
 		if err != nil {
 			return sessions.NewError("Couldn't enqueue child updates", err)
 		}
 		// Send updates for users subscribed to the child.
-		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, u.Id, deletedParentChangeLogId, true)
+		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, u.ID, deletedParentChangeLogId, true)
 		if err != nil {
 			return sessions.NewError("Couldn't enqueue parent updates", err)
 		}

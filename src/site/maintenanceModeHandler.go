@@ -58,9 +58,9 @@ func maintenanceModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Mark updates as seen.
 	updateIds := make([]string, 0)
 	for _, row := range rows {
-		updateIds = append(updateIds, row.(*updateModeRow).Update.Id)
+		updateIds = append(updateIds, row.(*updateModeRow).Update.ID)
 	}
-	err = core.MarkUpdatesAsSeen(db, u.Id, core.GetMaintenanceUpdateTypes())
+	err = core.MarkUpdatesAsSeen(db, u.ID, core.GetMaintenanceUpdateTypes())
 	if err != nil {
 		return pages.Fail("Couldn't mark updates seen", err)
 	}

@@ -152,7 +152,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			return pages.Fail("error while loading recently edited by me page ids", err)
 		}
 
-		returnData.UserMap[pageId] = &core.User{Id: pageId}
+		returnData.UserMap[pageId] = &core.User{ID: pageId}
 	}
 
 	// Load data

@@ -50,7 +50,7 @@ type Hits struct {
 }
 
 type Hit struct {
-	Id     string    `json:"_id"`
+	ID     string    `json:"_id"`
 	Score  float32   `json:"_score"`
 	Source *Document `json:"_source"`
 }

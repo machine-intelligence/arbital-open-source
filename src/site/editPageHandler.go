@@ -105,7 +105,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		SELECT max(edit)
 		FROM pages
 		WHERE pageId=? AND creatorId=? AND isAutosave
-		`).QueryRow(data.PageId, u.Id)
+		`).QueryRow(data.PageId, u.ID)
 	_, err = row.Scan(&myLastAutosaveEdit)
 	if err != nil {
 		return pages.Fail("Couldn't load additional page info", err)
@@ -234,7 +234,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["pageId"] = data.PageId
 		hashmap["edit"] = newEditNum
 		hashmap["prevEdit"] = data.PrevEdit
-		hashmap["creatorId"] = u.Id
+		hashmap["creatorId"] = u.ID
 		hashmap["title"] = data.Title
 		hashmap["clickbait"] = data.Clickbait
 		hashmap["text"] = data.Text
@@ -283,7 +283,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 		if !oldPage.WasPublished && isNewCurrentEdit {
 			hashmap["createdAt"] = database.Now()
-			hashmap["createdBy"] = u.Id
+			hashmap["createdBy"] = u.ID
 		}
 		hashmap["maxEdit"] = oldPage.MaxEditEver
 		if oldPage.MaxEditEver < newEditNum {
@@ -295,7 +295,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if isPublicEdit {
 			hashmap["lockedUntil"] = database.Now()
 		} else if data.IsAutosave {
-			hashmap["lockedBy"] = u.Id
+			hashmap["lockedBy"] = u.ID
 			hashmap["lockedUntil"] = core.GetPageLockedUntilTime()
 		}
 		statement = tx.DB.NewInsertStatement("pageInfos", hashmap, hashmap.GetKeys()...).WithTx(tx)
@@ -308,7 +308,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap = make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
 		hashmap["edit"] = newEditNum
-		hashmap["userId"] = u.Id
+		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		if oldPage.IsDeleted {
 			hashmap["type"] = core.UndeletePageChangeLog
@@ -344,7 +344,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			if oldPage.Type == core.CommentPageType && core.IsIdValid(commentParentId) {
 				toId = commentParentId // subscribe to the parent comment
 			}
-			err2 := addSubscription(tx, u.Id, toId, true)
+			err2 := addSubscription(tx, u.ID, toId, true)
 			if err2 != nil {
 				return err2
 			}
@@ -370,7 +370,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// Generate "edit" update for users who are subscribed to this page.
 		if oldPage.WasPublished && !data.IsMinorEdit && createEditChangeLog && oldPage.Type != core.CommentPageType {
 			var task tasks.NewUpdateTask
-			task.UserId = u.Id
+			task.UserId = u.ID
 			task.GoToPageId = data.PageId
 			task.SubscribedToId = data.PageId
 			task.ChangeLogId = editChangeLogId
@@ -396,9 +396,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// Generate updates for users who are subscribed to the author.
 		if !oldPage.WasPublished && oldPage.Type != core.CommentPageType && !data.IsMinorEdit {
 			var task tasks.NewUpdateTask
-			task.UserId = u.Id
+			task.UserId = u.ID
 			task.UpdateType = core.NewPageByUserUpdateType
-			task.SubscribedToId = u.Id
+			task.SubscribedToId = u.ID
 			task.GoToPageId = data.PageId
 			if createEditChangeLog {
 				task.ChangeLogId = editChangeLogId
@@ -413,7 +413,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			// Send "new comment" updates.
 			if !data.IsMinorEdit {
 				var task tasks.NewUpdateTask
-				task.UserId = u.Id
+				task.UserId = u.ID
 				task.GoToPageId = data.PageId
 				task.ForceMaintainersOnly = oldPage.IsEditorComment
 				if createEditChangeLog {
@@ -439,7 +439,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			submatches := exp.FindAllStringSubmatch(data.Text, -1)
 			for _, submatch := range submatches {
 				var task tasks.AtMentionUpdateTask
-				task.UserId = u.Id
+				task.UserId = u.ID
 				task.MentionedUserId = submatch[1]
 				task.GoToPageId = data.PageId
 				if err := tasks.Enqueue(c, &task, nil); err != nil {

@@ -43,7 +43,7 @@ func updateMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the mark
-	mark := &core.Mark{Id: data.MarkId}
+	mark := &core.Mark{ID: data.MarkId}
 	loadData.MarkMap[data.MarkId] = mark
 	err = core.LoadMarkData(db, loadData.PageMap, loadData.UserMap, loadData.MarkMap, u)
 	if err != nil {
@@ -62,7 +62,7 @@ func updateMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["isSubmitted"] = true
 	}
 	if data.Dismiss {
-		hashmap["resolvedBy"] = u.Id
+		hashmap["resolvedBy"] = u.ID
 	}
 	statement := db.NewInsertStatement("marks", hashmap, hashmap.GetKeys()...)
 	_, err = statement.Exec()

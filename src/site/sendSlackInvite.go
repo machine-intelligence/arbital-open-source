@@ -41,7 +41,7 @@ func sendSlackInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Update user
 	hashmap := make(map[string]interface{})
-	hashmap["id"] = u.Id
+	hashmap["id"] = u.ID
 	hashmap["isSlackMember"] = true
 	statement := db.NewInsertStatement("users", hashmap, "isSlackMember")
 	if _, err := statement.Exec(); err != nil {
@@ -54,7 +54,7 @@ func sendSlackInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			Sender:  "alexei@arbital.com",
 			To:      []string{"trigger@recipe.ifttt.com"},
 			Subject: fmt.Sprintf("#slackbot", data.Email),
-			Body:    fmt.Sprintf("%s (id: %s) wants to join Slack. Someone should invite them via: https://arbital.slack.com/admin", data.Email, u.Id),
+			Body:    fmt.Sprintf("%s (id: %s) wants to join Slack. Someone should invite them via: https://arbital.slack.com/admin", data.Email, u.ID),
 		}
 
 		err = mail.Send(c, msg)

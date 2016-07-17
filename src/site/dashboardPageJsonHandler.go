@@ -51,7 +51,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		FROM pages AS p
 		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
-		WHERE p.creatorId=?`, u.Id).Add(`
+		WHERE p.creatorId=?`, u.ID).Add(`
 			AND pi.seeGroupId=?`, params.PrivateGroupId).Add(`
 			AND pi.type=?`, core.CommentPageType).Add(`
 		ORDER BY pi.createdAt DESC
@@ -68,7 +68,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		FROM pages AS p
 		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		ON (p.pageId=pi.pageId)
-		WHERE p.creatorId=?`, u.Id).Add(`
+		WHERE p.creatorId=?`, u.ID).Add(`
 			AND pi.seeGroupId=?`, params.PrivateGroupId).Add(`
 			AND pi.type!=?`, core.CommentPageType).Add(`
 		GROUP BY 1
@@ -86,7 +86,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			FROM pages AS p
 			JOIN`).AddPart(core.PageInfosTableAll(u)).Add(`AS pi
 			ON (p.pageId = pi.pageId)
-			WHERE p.creatorId=?`, u.Id).Add(`
+			WHERE p.creatorId=?`, u.ID).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
 				AND pi.seeGroupId=?`, params.PrivateGroupId).Add(`
 				AND p.edit>pi.currentEdit AND (p.text!="" OR p.title!="")
@@ -127,7 +127,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			FROM links AS l
 			JOIN pages AS p
 			ON (l.parentId=p.pageId)
-			WHERE p.isLiveEdit AND p.creatorId=?`, u.Id).Add(`
+			WHERE p.isLiveEdit AND p.creatorId=?`, u.ID).Add(`
 		) AS l
 		LEFT JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		ON (l.childAlias=pi.alias OR l.childAlias=pi.pageId)
@@ -162,7 +162,7 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 		SELECT pi.type,COUNT(*)
 		FROM `).AddPart(core.PageInfosTable(u)).Add(` AS pi
 		WHERE pi.createdBy=?
-		GROUP BY pi.type`, u.Id).ToStatement(db).Query()
+		GROUP BY pi.type`, u.ID).ToStatement(db).Query()
 	resultMap["numWikiPages"] = 0
 	resultMap["numComments"] = 0
 	resultMap["numQuestions"] = 0
@@ -194,7 +194,7 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 		JOIN likes AS l
 	    ON pi.likeableId=l.likeableId
 		WHERE pi.createdBy=?
-		GROUP BY pi.type`, u.Id).ToStatement(db).Query()
+		GROUP BY pi.type`, u.ID).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageType string
 		var count int
@@ -223,7 +223,7 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 		FROM userMasteryPairs AS ump
 	    JOIN `).AddPart(core.PageInfosTable(u)).Add(` AS pi
 	    ON ump.taughtBy=pi.pageId
-	    WHERE pi.createdBy=?`, u.Id).ToStatement(db).QueryRow()
+	    WHERE pi.createdBy=?`, u.ID).ToStatement(db).QueryRow()
 	_, err = row.Scan(&numUsersTaught)
 	if err != nil {
 		return err
@@ -237,7 +237,7 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 	    FROM userMasteryPairs AS ump
 	    JOIN `).AddPart(core.PageInfosTable(u)).Add(` AS pi
 	    ON ump.taughtBy=pi.pageId
-	    WHERE pi.createdBy=?`, u.Id).ToStatement(db).QueryRow()
+	    WHERE pi.createdBy=?`, u.ID).ToStatement(db).QueryRow()
 	_, err = row.Scan(&numReqsTaught)
 	if err != nil {
 		return err
@@ -254,7 +254,7 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 				SELECT  pageId
 				FROM `).AddPart(core.PageInfosTable(u)).Add(` AS pi
 				WHERE pi.createdBy=?
-					AND NOT pi.type=?)`, u.Id, core.CommentPageType).ToStatement(db).QueryRow()
+					AND NOT pi.type=?)`, u.ID, core.CommentPageType).ToStatement(db).QueryRow()
 	_, err = row.Scan(&numCommentThreads)
 	if err != nil {
 		return err
@@ -271,7 +271,7 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 				SELECT  pageId
 				FROM `).AddPart(core.PageInfosTable(u)).Add(` AS pi
 				WHERE pi.createdBy=?
-					AND pi.type=?)`, u.Id, core.CommentPageType).ToStatement(db).QueryRow()
+					AND pi.type=?)`, u.ID, core.CommentPageType).ToStatement(db).QueryRow()
 	_, err = row.Scan(&numReplies)
 	if err != nil {
 		return err
@@ -283,7 +283,7 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 	row = database.NewQuery(`
 	    SELECT COUNT(*)
 	    FROM pages
-	    WHERE creatorId=?`, u.Id).ToStatement(db).QueryRow()
+	    WHERE creatorId=?`, u.ID).ToStatement(db).QueryRow()
 	_, err = row.Scan(&numEdits)
 	if err != nil {
 		return err
@@ -298,7 +298,7 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 		JOIN pages AS p
 		ON p.pageId=pi.pageId
 		WHERE p.creatorId=?
-			AND NOT pi.type=?`, u.Id, core.CommentPageType).ToStatement(db).QueryRow()
+			AND NOT pi.type=?`, u.ID, core.CommentPageType).ToStatement(db).QueryRow()
 	_, err = row.Scan(&numPagesEdited)
 	if err != nil {
 		return err
@@ -314,7 +314,7 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 	    ON l.likeableId=cl.likeableId
 	    JOIN pages AS p
 	    ON cl.edit=p.edit AND cl.pageId=p.pageId
-	    WHERE p.creatorId=?`, u.Id).ToStatement(db).QueryRow()
+	    WHERE p.creatorId=?`, u.ID).ToStatement(db).QueryRow()
 	_, err = row.Scan(&editLikes)
 	if err != nil {
 		return err
@@ -326,7 +326,7 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 	row = database.NewQuery(`
 	    SELECT COUNT(*)
 	    FROM answers
-	    WHERE userId=?`, u.Id).ToStatement(db).QueryRow()
+	    WHERE userId=?`, u.ID).ToStatement(db).QueryRow()
 	_, err = row.Scan(&numAnswers)
 	if err != nil {
 		return err

@@ -90,7 +90,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		}
 
 		// Check permissions
-		if h.Options.RequireLogin && !core.IsIdValid(u.Id) {
+		if h.Options.RequireLogin && !core.IsIdValid(u.ID) {
 			fail(http.StatusInternalServerError, "Have to be logged in", nil)
 			return
 		}
@@ -106,7 +106,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 				return
 			}
 			// We don't allow personal private groups for now
-			if params.PrivateGroupId == u.Id {
+			if params.PrivateGroupId == u.ID {
 				fail(http.StatusForbidden, "Arbital no longer supports personal private groups", nil)
 			}
 		}
@@ -128,9 +128,9 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 					return
 				}
 
-				if core.IsIdValid(u.Id) {
+				if core.IsIdValid(u.ID) {
 					// Load updates counts. (Loading it afterwards since it could be affected by the page)
-					u.NewNotificationCount, err = core.LoadNotificationCount(db, u.Id, false)
+					u.NewNotificationCount, err = core.LoadNotificationCount(db, u.ID, false)
 					if err != nil {
 						fail(http.StatusInternalServerError, "Couldn't retrieve notification updates count", err)
 						return
@@ -140,7 +140,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 						fail(http.StatusInternalServerError, "Couldn't retrieve achievement updates count", err)
 						return
 					}
-					u.MaintenanceUpdateCount, err = core.LoadMaintenanceUpdateCount(db, u.Id, false)
+					u.MaintenanceUpdateCount, err = core.LoadMaintenanceUpdateCount(db, u.ID, false)
 					if err != nil {
 						fail(http.StatusInternalServerError, "Couldn't retrieve maintainance updates count", err)
 						return

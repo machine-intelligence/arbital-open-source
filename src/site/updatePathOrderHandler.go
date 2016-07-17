@@ -70,9 +70,9 @@ func updatePathOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	hashmaps := make(database.InsertMaps, 0)
 	for _, pathPage := range pathPages {
 		hashmap := make(database.InsertMap)
-		hashmap["id"] = pathPage.Id
-		hashmap["pathIndex"] = data.PageOrder[fmt.Sprintf("%d", pathPage.Id)]
-		hashmap["updatedBy"] = u.Id
+		hashmap["id"] = pathPage.ID
+		hashmap["pathIndex"] = data.PageOrder[fmt.Sprintf("%d", pathPage.ID)]
+		hashmap["updatedBy"] = u.ID
 		hashmap["updatedAt"] = database.Now()
 		hashmaps = append(hashmaps, hashmap)
 	}
@@ -89,7 +89,7 @@ func updatePathOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Create changelogs entry
 		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = data.GuideId
-		hashmap["userId"] = u.Id
+		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = core.PathOrderChangedChangeLog
 		statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
@@ -105,7 +105,7 @@ func updatePathOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Generate updates for users who are subscribed to the primary page
 		var task tasks.NewUpdateTask
 		task.UpdateType = core.ChangeLogUpdateType
-		task.UserId = u.Id
+		task.UserId = u.ID
 		task.ChangeLogId = changeLogId
 		task.SubscribedToId = data.GuideId
 		task.GoToPageId = data.GuideId

@@ -62,7 +62,7 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap := make(database.InsertMap)
 		hashmap["questionId"] = data.QuestionId
 		hashmap["answerPageId"] = data.AnswerPageId
-		hashmap["userId"] = u.Id
+		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = now
 		statement := db.NewInsertStatement("answers", hashmap).WithTx(tx)
 		resp, err := statement.Exec()
@@ -78,7 +78,7 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Update change logs
 		hashmap = make(database.InsertMap)
 		hashmap["pageId"] = data.QuestionId
-		hashmap["userId"] = u.Id
+		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = core.AnswerChangeChangeLog
 		hashmap["auxPageId"] = data.AnswerPageId
@@ -95,7 +95,7 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Insert updates
 		var task tasks.NewUpdateTask
-		task.UserId = u.Id
+		task.UserId = u.ID
 		task.GoToPageId = data.AnswerPageId
 		task.SubscribedToId = data.QuestionId
 		task.UpdateType = core.ChangeLogUpdateType

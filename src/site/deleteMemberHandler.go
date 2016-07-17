@@ -45,7 +45,7 @@ func deleteMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		SELECT canAdmin
 		FROM groupMembers
 		WHERE userId=? AND groupId=? AND canAddMembers
-		`).QueryRow(u.Id, data.GroupId)
+		`).QueryRow(u.ID, data.GroupId)
 	found, err := row.Scan(&canAdmin)
 	if err != nil {
 		return pages.Fail("Couldn't check for a group member", err)
@@ -82,7 +82,7 @@ func deleteMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Create a task to do further processing
 	var task tasks.MemberUpdateTask
-	task.UserId = u.Id
+	task.UserId = u.ID
 	task.UpdateType = core.RemovedFromGroupUpdateType
 	task.MemberId = data.UserId
 	task.GroupId = data.GroupId

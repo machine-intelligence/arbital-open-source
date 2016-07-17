@@ -13,7 +13,7 @@ import (
 
 // deleteLensData contains the data we get in the request
 type deleteLensData struct {
-	Id string
+	ID string
 }
 
 var deleteLensHandler = siteHandler{
@@ -36,7 +36,7 @@ func deleteLensHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check if this lens exists
-	lens, err := core.LoadLens(db, data.Id)
+	lens, err := core.LoadLens(db, data.ID)
 	if err != nil {
 		return pages.Fail("Couldn't load the lens: %v", err)
 	} else if lens == nil {
@@ -55,7 +55,7 @@ func deleteLensHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Begin the transaction.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		statement := database.NewQuery(`
-			DELETE FROM lenses WHERE id=?`, data.Id).ToTxStatement(tx)
+			DELETE FROM lenses WHERE id=?`, data.ID).ToTxStatement(tx)
 		if _, err := statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't delete the lens", err)
 		}

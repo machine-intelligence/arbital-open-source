@@ -76,9 +76,9 @@ func hedonsModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Mark updates as seen.
 	updateIds := make([]string, 0)
 	for _, row := range updateRows {
-		updateIds = append(updateIds, row.(*updateModeRow).Update.Id)
+		updateIds = append(updateIds, row.(*updateModeRow).Update.ID)
 	}
-	err = core.MarkUpdatesAsSeen(db, u.Id, core.GetAchievementUpdateTypes())
+	err = core.MarkUpdatesAsSeen(db, u.ID, core.GetAchievementUpdateTypes())
 	if err != nil {
 		return pages.Fail("Couldn't mark updates seen", err)
 	}

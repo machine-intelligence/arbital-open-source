@@ -70,7 +70,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Fix some data.
 	if data.Type == core.CommentPageType {
-		data.EditGroupId = u.Id
+		data.EditGroupId = u.ID
 	}
 	if oldPage.WasPublished {
 		if (data.Type == core.WikiPageType || data.Type == core.QuestionPageType) &&
@@ -228,7 +228,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 				hashmap = make(database.InsertMap)
 				hashmap["pageId"] = data.PageId
-				hashmap["userId"] = u.Id
+				hashmap["userId"] = u.ID
 				hashmap["createdAt"] = database.Now()
 				hashmap["type"] = changeType
 				hashmap["auxPageId"] = auxPageId
@@ -310,7 +310,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if oldPage.WasPublished {
 		for _, changeLogId := range changeLogIds {
 			var task tasks.NewUpdateTask
-			task.UserId = u.Id
+			task.UserId = u.ID
 			task.GoToPageId = data.PageId
 			task.SubscribedToId = data.PageId
 			task.UpdateType = core.ChangeLogUpdateType

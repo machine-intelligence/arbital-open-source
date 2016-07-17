@@ -93,7 +93,7 @@ func resolveThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Notify the comment owner
 		var updateTask tasks.NewUpdateTask
 		updateTask.UpdateType = core.ResolvedThreadUpdateType
-		updateTask.UserId = u.Id
+		updateTask.UserId = u.ID
 		updateTask.GoToPageId = data.PageId
 		updateTask.SubscribedToId = data.PageId
 		updateTask.ForceMaintainersOnly = true

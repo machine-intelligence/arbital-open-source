@@ -64,7 +64,7 @@ func AddUserToMap(userId string, userMap map[string]*User) *User {
 	if u, ok := userMap[userId]; ok {
 		return u
 	}
-	u := &User{Id: userId}
+	u := &User{ID: userId}
 	userMap[userId] = u
 	return u
 }
@@ -73,7 +73,7 @@ func AddUserToMap(userId string, userMap map[string]*User) *User {
 func AddMarkToMap(markId string, markMap map[string]*Mark) *Mark {
 	mark, ok := markMap[markId]
 	if !ok {
-		mark = &Mark{Id: markId}
+		mark = &Mark{ID: markId}
 		markMap[markId] = mark
 	}
 	return mark

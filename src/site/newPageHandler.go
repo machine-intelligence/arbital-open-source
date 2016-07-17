@@ -73,10 +73,10 @@ func newPageInternalHandler(params *pages.HandlerParams, data *newPageData) *pag
 		hashmap["sortChildrenBy"] = core.LikesChildSortingOption
 		hashmap["type"] = data.Type
 		hashmap["maxEdit"] = 1
-		hashmap["createdBy"] = u.Id
+		hashmap["createdBy"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		hashmap["seeGroupId"] = params.PrivateGroupId
-		hashmap["lockedBy"] = u.Id
+		hashmap["lockedBy"] = u.ID
 		hashmap["lockedUntil"] = core.GetPageQuickLockedUntilTime()
 		if data.IsEditorComment {
 			hashmap["isEditorComment"] = true
@@ -93,7 +93,7 @@ func newPageInternalHandler(params *pages.HandlerParams, data *newPageData) *pag
 		hashmap["edit"] = 1
 		hashmap["prevEdit"] = 0
 		hashmap["isAutosave"] = true
-		hashmap["creatorId"] = u.Id
+		hashmap["creatorId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		statement = db.NewInsertStatement("pages", hashmap)
 		if _, err := statement.Exec(); err != nil {

@@ -51,7 +51,7 @@ func updateSettingsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Begin the transaction.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		hashmap := make(database.InsertMap)
-		hashmap["id"] = u.Id
+		hashmap["id"] = u.ID
 		hashmap["emailFrequency"] = data.EmailFrequency
 		hashmap["emailThreshold"] = data.EmailThreshold
 		hashmap["showAdvancedEditorMode"] = data.ShowAdvancedEditorMode

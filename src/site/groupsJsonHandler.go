@@ -46,7 +46,7 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 		// Add member
 		curGroup.Members[m.UserId] = &m
-		returnData.UserMap[m.UserId] = &core.User{Id: m.UserId}
+		returnData.UserMap[m.UserId] = &core.User{ID: m.UserId}
 		return nil
 	})
 	if err != nil {

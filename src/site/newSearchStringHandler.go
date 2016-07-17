@@ -53,7 +53,7 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap := make(map[string]interface{})
 		hashmap["pageId"] = data.PageId
 		hashmap["text"] = data.Text
-		hashmap["userId"] = u.Id
+		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		statement := db.NewInsertStatement("searchStrings", hashmap).WithTx(tx)
 		resp, err := statement.Exec()
@@ -68,7 +68,7 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Update change logs
 		hashmap = make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
-		hashmap["userId"] = u.Id
+		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = core.SearchStringChangeChangeLog
 		hashmap["newSettingsValue"] = data.Text
@@ -84,7 +84,7 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Insert updates
 		var task tasks.NewUpdateTask
-		task.UserId = u.Id
+		task.UserId = u.ID
 		task.GoToPageId = data.PageId
 		task.SubscribedToId = data.PageId
 		task.UpdateType = core.ChangeLogUpdateType

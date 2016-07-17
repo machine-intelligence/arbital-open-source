@@ -14,7 +14,7 @@ import (
 
 // updatePagePairData contains the data we get in the request.
 type updatePagePairData struct {
-	Id       string
+	ID       string
 	Level    int
 	IsStrong bool
 }
@@ -45,7 +45,7 @@ func updatePagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *u
 
 	// Load the existing page pair
 	var pagePair *core.PagePair
-	queryPart := database.NewQuery(`WHERE pp.id=?`, data.Id)
+	queryPart := database.NewQuery(`WHERE pp.id=?`, data.ID)
 	err = core.LoadPagePairs(db, queryPart, func(db *database.DB, pp *core.PagePair) error {
 		pagePair = pp
 		return nil
@@ -80,7 +80,7 @@ func updatePagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *u
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Update page pair
 		hashmap := make(database.InsertMap)
-		hashmap["id"] = data.Id
+		hashmap["id"] = data.ID
 		hashmap["level"] = data.Level
 		hashmap["isStrong"] = data.IsStrong
 		statement := tx.DB.NewInsertStatement("pagePairs", hashmap, "level", "isStrong").WithTx(tx)

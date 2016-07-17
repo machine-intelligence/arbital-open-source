@@ -18,7 +18,7 @@ var updatePathHandler = siteHandler{
 }
 
 type updatePathData struct {
-	Id         string
+	ID         string
 	Progress   int
 	IsFinished bool
 
@@ -38,7 +38,7 @@ func updatePathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the path instance
-	instance, err := core.LoadPathInstance(db, data.Id, u)
+	instance, err := core.LoadPathInstance(db, data.ID, u)
 	if err != nil {
 		return pages.Fail("Couldn't load the path instance: %v", err)
 	} else if instance == nil {
@@ -65,8 +65,8 @@ func updatePathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Update the path
 		hashmap := make(database.InsertMap)
-		hashmap["id"] = data.Id
-		hashmap["userId"] = u.Id
+		hashmap["id"] = data.ID
+		hashmap["userId"] = u.ID
 		hashmap["progress"] = instance.Progress
 		hashmap["pageIds"] = strings.Join(pageIds, ",")
 		hashmap["sourcePageIds"] = strings.Join(sourceIds, ",")

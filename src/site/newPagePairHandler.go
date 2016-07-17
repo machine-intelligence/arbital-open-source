@@ -113,7 +113,7 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 		hashmap["type"] = data.Type
 		hashmap["level"] = data.Level
 		hashmap["isStrong"] = data.IsStrong
-		hashmap["creatorId"] = u.Id
+		hashmap["creatorId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		statement := tx.DB.NewInsertStatement("pagePairs", hashmap).WithTx(tx)
 		resp, err := statement.Exec()
@@ -151,7 +151,7 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 		}
 
 		var task tasks.PublishPagePairTask
-		task.UserId = u.Id
+		task.UserId = u.ID
 		task.PagePairId = fmt.Sprintf("%d", pagePairId)
 		err = tasks.Enqueue(c, &task, nil)
 		if err != nil {

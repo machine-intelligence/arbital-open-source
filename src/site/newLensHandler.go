@@ -81,9 +81,9 @@ func newLensHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["lensId"] = data.LensId
 		hashmap["lensIndex"] = lensIndex
 		hashmap["lensName"] = fmt.Sprintf("Lens %d", lensIndex)
-		hashmap["createdBy"] = u.Id
+		hashmap["createdBy"] = u.ID
 		hashmap["createdAt"] = database.Now()
-		hashmap["updatedBy"] = u.Id
+		hashmap["updatedBy"] = u.ID
 		hashmap["updatedAt"] = database.Now()
 		statement := db.NewInsertStatement("lenses", hashmap).WithTx(tx)
 		result, err := statement.Exec()

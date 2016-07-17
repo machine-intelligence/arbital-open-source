@@ -51,7 +51,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		SELECT 1
 		FROM groupMembers
 		WHERE userId=? AND groupId=? AND canAddMembers
-		`).QueryRow(u.Id, data.GroupId)
+		`).QueryRow(u.ID, data.GroupId)
 	found, err = row.Scan(&blank)
 	if err != nil {
 		return pages.Fail("Couldn't check for a group member", err)
@@ -97,7 +97,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Create a task to do further processing
 	var task tasks.MemberUpdateTask
-	task.UserId = u.Id
+	task.UserId = u.ID
 	task.UpdateType = core.AddedToGroupUpdateType
 	task.MemberId = newMemberId
 	task.GroupId = data.GroupId

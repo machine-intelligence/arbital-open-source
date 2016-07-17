@@ -118,7 +118,7 @@ func approvePageToDomainTx(tx *database.Tx, approver *core.CurrentUser, submissi
 	hashmap := make(map[string]interface{})
 	hashmap["pageId"] = submission.PageId
 	hashmap["domainId"] = submission.DomainId
-	hashmap["approverId"] = approver.Id
+	hashmap["approverId"] = approver.ID
 	hashmap["approvedAt"] = database.Now()
 	statement := tx.DB.NewInsertStatement("pageToDomainSubmissions", hashmap, "approvedAt", "approverId").WithTx(tx)
 	if _, err := statement.Exec(); err != nil {
@@ -126,19 +126,19 @@ func approvePageToDomainTx(tx *database.Tx, approver *core.CurrentUser, submissi
 	}
 
 	// Notify page creator and the person who submitted the page to domain
-	err := insertPageToDomainAcceptedUpdate(tx, approver.Id, submission.SubmitterId, submission.PageId, submission.DomainId)
+	err := insertPageToDomainAcceptedUpdate(tx, approver.ID, submission.SubmitterId, submission.PageId, submission.DomainId)
 	if err != nil {
 		return sessions.NewError("Couldn't insert update for submitter", err)
 	}
 	if submission.SubmitterId != pageCreatorId {
-		err = insertPageToDomainAcceptedUpdate(tx, approver.Id, pageCreatorId, submission.PageId, submission.DomainId)
+		err = insertPageToDomainAcceptedUpdate(tx, approver.ID, pageCreatorId, submission.PageId, submission.DomainId)
 		if err != nil {
 			return sessions.NewError("Couldn't insert update for creator", err)
 		}
 	}
 
 	// Subscribe the approver as a maintainer
-	serr := addSubscription(tx, approver.Id, submission.PageId, true)
+	serr := addSubscription(tx, approver.ID, submission.PageId, true)
 	if serr != nil {
 		return serr
 	}

@@ -44,7 +44,7 @@ func (task UpdatePagePairsTask) Execute(db *database.DB) (delay int, err error) 
 	err = core.LoadPagePairs(db, queryPart, func(db *database.DB, pagePair *core.PagePair) error {
 		var task PublishPagePairTask
 		task.UserId = pagePair.CreatorId
-		task.PagePairId = pagePair.Id
+		task.PagePairId = pagePair.ID
 		return Enqueue(c, &task, nil)
 	})
 	if err != nil {

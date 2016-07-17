@@ -95,7 +95,7 @@ func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Generate "merge" update for users who are subscribed to either of the questions
 	var updateTask tasks.NewUpdateTask
-	updateTask.UserId = u.Id
+	updateTask.UserId = u.ID
 	updateTask.GoToPageId = data.IntoQuestionId
 	updateTask.SubscribedToId = data.QuestionId
 	updateTask.UpdateType = core.QuestionMergedUpdateType

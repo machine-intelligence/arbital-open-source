@@ -99,10 +99,10 @@ func approvePageEditProposalHandlerFunc(params *pages.HandlerParams) *pages.Resu
 		}
 
 		// Add an update for the user who submitted the edit
-		if changeLog.UserId != u.Id {
+		if changeLog.UserId != u.ID {
 			hashmap = make(map[string]interface{})
 			hashmap["userId"] = changeLog.UserId
-			hashmap["byUserId"] = u.Id
+			hashmap["byUserId"] = u.ID
 			hashmap["type"] = core.EditProposalAcceptedUpdateType
 			hashmap["subscribedToId"] = proposedEdit.PageId
 			hashmap["goToPageId"] = proposedEdit.PageId

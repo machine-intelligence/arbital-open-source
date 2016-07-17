@@ -23,7 +23,7 @@ import (
 // config is the configuration specification supplied to the OAuth package.
 var (
 	xc           = config.Load()
-	clientId     = xc.Monitoring.Service.Id
+	clientId     = xc.Monitoring.Service.ID
 	clientSecret = xc.Monitoring.Service.Secret
 	oauthConfig  = &oauth.Config{
 		ClientId:     clientId,

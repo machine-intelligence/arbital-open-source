@@ -76,7 +76,7 @@ func (task PublishPagePairTask) Execute(db *database.DB) (delay int, err error) 
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Mark page pair as published
 		hashmap := make(database.InsertMap)
-		hashmap["id"] = pagePair.Id
+		hashmap["id"] = pagePair.ID
 		hashmap["everPublished"] = true
 		_, err := tx.DB.NewInsertStatement("pagePairs", hashmap, "everPublished").WithTx(tx).Exec()
 		if err != nil {

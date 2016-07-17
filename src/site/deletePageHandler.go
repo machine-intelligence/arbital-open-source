@@ -61,7 +61,7 @@ func deletePageInternalHandlerFunc(params *pages.HandlerParams, data *deletePage
 			return pages.Fail("Have to be an admin to delete a group/domain", nil).Status(http.StatusForbidden)
 		}
 	}
-	if page.Type == core.CommentPageType && u.Id != page.PageCreatorId {
+	if page.Type == core.CommentPageType && u.ID != page.PageCreatorId {
 		if !u.IsAdmin {
 			return pages.Fail("Have to be an admin to delete someone else's comment", nil).Status(http.StatusForbidden)
 		}
@@ -101,7 +101,7 @@ func deletePageTx(tx *database.Tx, params *pages.HandlerParams, data *deletePage
 	// Update change log
 	hashmap := make(database.InsertMap)
 	hashmap["pageId"] = data.PageId
-	hashmap["userId"] = params.U.Id
+	hashmap["userId"] = params.U.ID
 	hashmap["createdAt"] = database.Now()
 	hashmap["type"] = core.DeletePageChangeLog
 	statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
@@ -117,7 +117,7 @@ func deletePageTx(tx *database.Tx, params *pages.HandlerParams, data *deletePage
 	if data.GenerateUpdate && page.Type != core.CommentPageType {
 		// Generate "delete" update for users who are subscribed to this page.
 		var updateTask tasks.NewUpdateTask
-		updateTask.UserId = params.U.Id
+		updateTask.UserId = params.U.ID
 		updateTask.GoToPageId = data.PageId
 		updateTask.SubscribedToId = data.PageId
 		updateTask.UpdateType = core.ChangeLogUpdateType

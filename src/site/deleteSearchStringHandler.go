@@ -15,7 +15,7 @@ import (
 
 // deleteSearchStringData contains data given to us in the request.
 type deleteSearchStringData struct {
-	Id string
+	ID string
 }
 
 var deleteSearchStringHandler = siteHandler{
@@ -39,12 +39,12 @@ func deleteSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 
-	id, err := strconv.ParseInt(data.Id, 10, 64)
+	id, err := strconv.ParseInt(data.ID, 10, 64)
 	if err != nil {
 		return pages.Fail("Invalid id", err).Status(http.StatusBadRequest)
 	}
 
-	searchString, err := core.LoadSearchString(db, data.Id)
+	searchString, err := core.LoadSearchString(db, data.ID)
 	if err != nil {
 		return pages.Fail("Couldn't load the search string", err)
 	}
@@ -60,7 +60,7 @@ func deleteSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Update change logs
 		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = searchString.PageId
-		hashmap["userId"] = u.Id
+		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = core.SearchStringChangeChangeLog
 		hashmap["oldSettingsValue"] = searchString.Text
@@ -76,7 +76,7 @@ func deleteSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Insert updates
 		var task tasks.NewUpdateTask
-		task.UserId = u.Id
+		task.UserId = u.ID
 		task.GoToPageId = searchString.PageId
 		task.SubscribedToId = searchString.PageId
 		task.UpdateType = core.ChangeLogUpdateType

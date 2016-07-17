@@ -39,7 +39,7 @@ func CreateNewUser(c sessions.Context, givenName, surname, email, password strin
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}
-	request.SetBasicAuth(config.XC.Stormpath.Id, config.XC.Stormpath.Secret)
+	request.SetBasicAuth(config.XC.Stormpath.ID, config.XC.Stormpath.Secret)
 	request.Header.Set("Content-Type", "application/json")
 
 	// Execute request
@@ -61,7 +61,7 @@ func CreateNewFbUser(c sessions.Context, accessToken string) (*Account, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't create request: %v", err)
 	}
-	request.SetBasicAuth(config.XC.Stormpath.Id, config.XC.Stormpath.Secret)
+	request.SetBasicAuth(config.XC.Stormpath.ID, config.XC.Stormpath.Secret)
 	request.Header.Set("Accept", "application/json")
 	request.Header.Set("Content-Type", "application/json")
 
@@ -107,7 +107,7 @@ func AuthenticateUser(c sessions.Context, email, password string) error {
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}
-	request.SetBasicAuth(config.XC.Stormpath.Id, config.XC.Stormpath.Secret)
+	request.SetBasicAuth(config.XC.Stormpath.ID, config.XC.Stormpath.Secret)
 	request.Header.Set("Content-Type", "application/json")
 
 	// Execute request
@@ -126,7 +126,7 @@ func ForgotPassword(c sessions.Context, email string) error {
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}
-	request.SetBasicAuth(config.XC.Stormpath.Id, config.XC.Stormpath.Secret)
+	request.SetBasicAuth(config.XC.Stormpath.ID, config.XC.Stormpath.Secret)
 	request.Header.Set("Content-Type", "application/json")
 
 	// Execute request
@@ -142,7 +142,7 @@ func VerifyEmail(c sessions.Context, spToken string) error {
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}
-	request.SetBasicAuth(config.XC.Stormpath.Id, config.XC.Stormpath.Secret)
+	request.SetBasicAuth(config.XC.Stormpath.ID, config.XC.Stormpath.Secret)
 	request.Header.Set("Content-Type", "application/json")
 
 	// Execute request

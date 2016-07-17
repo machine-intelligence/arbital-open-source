@@ -73,9 +73,9 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	hashmaps := make(database.InsertMaps, 0)
 	for _, lens := range lenses {
 		hashmap := make(database.InsertMap)
-		hashmap["id"] = lens.Id
-		hashmap["lensIndex"] = data.LensOrder[fmt.Sprintf("%d", lens.Id)]
-		hashmap["updatedBy"] = u.Id
+		hashmap["id"] = lens.ID
+		hashmap["lensIndex"] = data.LensOrder[fmt.Sprintf("%d", lens.ID)]
+		hashmap["updatedBy"] = u.ID
 		hashmap["updatedAt"] = database.Now()
 		hashmaps = append(hashmaps, hashmap)
 	}
@@ -92,7 +92,7 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Create changelogs entry
 		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
-		hashmap["userId"] = u.Id
+		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = core.LensOrderChangedChangeLog
 		statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
@@ -108,7 +108,7 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Generate updates for users who are subscribed to the primary page
 		var task tasks.NewUpdateTask
 		task.UpdateType = core.ChangeLogUpdateType
-		task.UserId = u.Id
+		task.UserId = u.ID
 		task.ChangeLogId = changeLogId
 		task.SubscribedToId = data.PageId
 		task.GoToPageId = data.PageId

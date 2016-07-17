@@ -56,7 +56,7 @@ func newVoteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		FROM votes
 		WHERE userId=? AND pageId=?
 		ORDER BY id DESC
-		LIMIT 1`).QueryRow(database.Now(), u.Id, task.PageId)
+		LIMIT 1`).QueryRow(database.Now(), u.ID, task.PageId)
 	oldVoteExists, err = row.Scan(&oldVoteId, &oldVoteValue, &oldVoteAge)
 	if err != nil {
 		return pages.Fail("Couldn't check for a recent vote", err)
@@ -80,7 +80,7 @@ func newVoteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	} else {
 		// Insert new vote.
 		hashmap := make(map[string]interface{})
-		hashmap["userId"] = u.Id
+		hashmap["userId"] = u.ID
 		hashmap["pageId"] = task.PageId
 		hashmap["value"] = task.Value
 		hashmap["createdAt"] = database.Now()
