@@ -63,13 +63,7 @@ app.directive('arbSlowDownButton', function(arb, $window, $timeout) {
 			$scope.submitFreeformExplanationRequest = function() {
 				arb.stateService.postData(
 					'/feedback/',
-					{
-						text: 'Explanation request for page ' + $scope.page.pageId + ':\n' + $scope.request.freeformText
-					},
-					function(data) {
-						// ROGTODO: is this callback needed?
-						console.log('posted successfully');
-					}
+					{text: 'Explanation request for page ' + $scope.page.pageId + ':\n' + $scope.request.freeformText},
 				)
 				$scope.request.freeformText = '';
 			};
