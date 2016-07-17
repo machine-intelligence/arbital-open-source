@@ -132,6 +132,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	p.PathPages = livePage.PathPages
 	p.ChangeLogs = livePage.ChangeLogs
 	p.SearchStrings = livePage.SearchStrings
+	p.ProposalEditNum = livePage.ProposalEditNum
 	returnData.EditMap[pageID] = p
 
 	// Clear change logs from the live page
