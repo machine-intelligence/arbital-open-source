@@ -831,6 +831,15 @@ md-toast {
 		border-right: 2px solid $link-color;
 		border-bottom: 2px solid $link-color;
 	}
+
+	md-input-container {
+		margin-top: 10px;
+		margin-bottom: 0px;
+	}
+
+	.slow-down-free-form-text {
+		width: 300px;
+	}
 }
 
 .slow-down-button-collapsed {
