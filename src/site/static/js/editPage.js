@@ -604,7 +604,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				var originalPageInfo = arb.stateService.pageMap[$scope.pageId].getPageInfo();
 				var newPageInfo = $scope.page.getPageInfo();
 				var changed = !angular.equals(originalPageInfo, newPageInfo);
-				$scope.isReviewingProposal |= changed;
+				$scope.isReviewingProposal &= !changed;
 				return changed;
 			};
 
