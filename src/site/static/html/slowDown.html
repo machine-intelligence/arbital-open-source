@@ -12,6 +12,7 @@
 	</div>
 	<div class="slow-down-tray md-body-1">
 		<span ng-if="isHovered">
+			<span ng-if="page.subjects.length + page.requirements.length > 0"><b>Goals of this page:</b></span>
 			<!-- What the page teaches -->
 			<div ng-if="page.subjects.length > 0">
 				This page teaches
@@ -41,8 +42,11 @@
 			</div>
 
 			<!-- List other pages that teach things this page teaches -->
-			<!-- <div ng-if="altTeachers">
+			<div ng-if="altTeachers">
+				<br>
+				<span><b>Related explanations:</b></span>
 				<div ng-repeat="altTeacher in altTeachers">
+					*
 					<arb-page-title page-id="{{altTeacher.pageId}}"
 							is-link="true"></arb-page-title>
 					teaches
@@ -52,7 +56,7 @@
 								is-link="true"></arb-page-title>
 						<span ng-if="!$last && altTeacher.subjects.length != 2" class="comma">,</span>
 					</span>
-					and relies on
+					<span ng-if="altTeacher.requirements.length > 0"><span class="comma">,</span> and relies on</span>
 					<span ng-repeat="reqRelationship in altTeacher.requirements">
 						<span ng-if="$last && !$first">and</span>
 						<arb-page-title page-id="{{reqRelationship.parentId}}"
@@ -60,22 +64,26 @@
 						<span ng-if="!$last && altTeacher.subjects.length != 2" class="comma">,</span>
 					</span>
 				</div>
-			</div> -->
+			</div>
 
 			<!-- TODO: Request explanations without this pages reqs -->
 
 			<!-- TODO: Request a slower or faster explanation -->
-
-			<!-- TODO: Free-form feedback -->
-			<div layout="row" layout-align="start end">
-				<md-input-container flex>
-					<input ng-model="request.freeformText"
-							class="slow-down-free-form-text"
-							aria-label="Alternate page request"
-							placeholder="How can this page be improved?"
-							flex>
-				</md-input-container>
-				<md-button ng-click="submitFreeformExplanationRequest()">submit</md-button>
+			<br>
+			<div layout="column" layout-align="start start">
+				<span><b>Request an alternate explanation:</b></span>
+				<span><md-button ng-click="makeExplanationRequest('slowDown')">slower</md-button>(less technical)</span>
+				<span><md-button ng-click="makeExplanationRequest('speedUp')">faster</md-button>(more concise)</span>
+				<span layout="row" layout-align="start end">
+					<md-input-container flex>
+						<input ng-model="request.freeformText"
+								class="slow-down-free-form-text"
+								aria-label="Alternate page request"
+								placeholder="Other"
+								flex>
+					</md-input-container>
+					<md-button ng-click="submitFreeformExplanationRequest()">submit</md-button>
+				</span>
 			</div>
 		</span>
 	</div>

@@ -47,6 +47,18 @@ app.directive('arbSlowDownButton', function(arb, $window, $timeout) {
 					});
 				})
 
+			$scope.makeExplanationRequest = function(type) {
+				var erData = {pageId: $scope.page.pageId, type: type};
+				console.log('about to post to: /json/explanationRequest/');
+				console.log('with data:');
+				console.log(erData);
+				arb.stateService.postData('/json/explanationRequest/', erData,
+					function(data) {
+						console.log('success! posted to: /json/explanationRequest/');
+					}
+				);
+			};
+
 			$scope.request = {};
 			$scope.submitFreeformExplanationRequest = function() {
 				arb.stateService.postData(
@@ -60,7 +72,7 @@ app.directive('arbSlowDownButton', function(arb, $window, $timeout) {
 					}
 				)
 				$scope.request.freeformText = '';
-			}
+			};
 		},
 	}
 });
