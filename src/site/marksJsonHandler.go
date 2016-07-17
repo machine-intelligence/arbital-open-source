@@ -11,7 +11,7 @@ import (
 
 // marksJsonData contains parameters passed in via the request.
 type marksJsonData struct {
-	PageId string
+	PageID string
 }
 
 var marksHandler = siteHandler{
@@ -33,7 +33,7 @@ func marksJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageId) {
+	if !core.IsIdValid(data.PageID) {
 		return pages.Fail("Need a valid pageId", err).Status(http.StatusBadRequest)
 	}
 
@@ -41,7 +41,7 @@ func marksJsonHandler(params *pages.HandlerParams) *pages.Result {
 	loadOptions := &core.PageLoadOptions{
 		AllMarks: true,
 	}
-	core.AddPageToMap(data.PageId, returnData.PageMap, loadOptions)
+	core.AddPageToMap(data.PageID, returnData.PageMap, loadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Couldn't load pages", err)

@@ -14,7 +14,7 @@ import (
 // revertPageData is the data received from the request.
 type revertPageData struct {
 	// Page to revert
-	PageId string
+	PageID string
 	// Edit to revert to
 	EditNum int
 }
@@ -38,12 +38,12 @@ func revertPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageId) {
+	if !core.IsIdValid(data.PageID) {
 		return pages.Fail("Missing or invalid page id", nil).Status(http.StatusBadRequest)
 	}
 
 	// Load the page
-	page, err := core.LoadFullEdit(db, data.PageId, u, &core.LoadEditOptions{LoadSpecificEdit: data.EditNum})
+	page, err := core.LoadFullEdit(db, data.PageID, u, &core.LoadEditOptions{LoadSpecificEdit: data.EditNum})
 	if err != nil {
 		return pages.Fail("Couldn't load page", err)
 	} else if page == nil {
@@ -55,7 +55,7 @@ func revertPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Create the data to pass to the edit page handler
 	editData := &editPageData{
-		PageId:        page.PageId,
+		PageID:        page.PageID,
 		PrevEdit:      page.PrevEdit,
 		Title:         page.Title,
 		Clickbait:     page.Clickbait,

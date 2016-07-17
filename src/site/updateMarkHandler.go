@@ -72,7 +72,7 @@ func updateMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// If the mark has just been submitted, queue the updates
 	if data.Submit && !mark.IsSubmitted {
-		err = EnqueueNewMarkUpdateTask(params, data.MarkId, mark.PageId, 0)
+		err = EnqueueNewMarkUpdateTask(params, data.MarkId, mark.PageID, 0)
 		if err != nil {
 			return pages.Fail("Couldn't enqueue an updateTask", err)
 		}

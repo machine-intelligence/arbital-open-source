@@ -19,7 +19,7 @@ const (
 
 // newMarkData contains data given to us in the request.
 type newMarkData struct {
-	PageId        string
+	PageID        string
 	Type          string
 	Edit          int
 	Text          string
@@ -49,7 +49,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageId) {
+	if !core.IsIdValid(data.PageID) {
 		return pages.Fail("Invalid page id", nil).Status(http.StatusBadRequest)
 	}
 	if data.Type != core.QueryMarkType && data.Type != core.TypoMarkType && data.Type != core.ConfusionMarkType {
@@ -87,7 +87,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Create a new mark
 		hashmap := make(database.InsertMap)
-		hashmap["pageId"] = data.PageId
+		hashmap["pageId"] = data.PageID
 		hashmap["type"] = data.Type
 		hashmap["edit"] = data.Edit
 		hashmap["text"] = data.Text
@@ -116,7 +116,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 					hashmap := make(database.InsertMap)
 					hashmap["id"] = requisiteSnapshotId
 					hashmap["userId"] = u.ID
-					hashmap["requisiteId"] = req.PageId
+					hashmap["requisiteId"] = req.PageID
 					hashmap["has"] = req.Has
 					hashmap["wants"] = req.Wants
 					hashmap["createdAt"] = now
@@ -139,7 +139,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Enqueue a task that will create relevant updates for this mark event
 	if autoProcessed {
-		err = EnqueueNewMarkUpdateTask(params, markIdStr, data.PageId, markAutoProcessDelay)
+		err = EnqueueNewMarkUpdateTask(params, markIdStr, data.PageID, markAutoProcessDelay)
 		if err != nil {
 			return pages.Fail("Couldn't enqueue an updateTask", err)
 		}

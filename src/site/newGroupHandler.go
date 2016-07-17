@@ -64,7 +64,7 @@ func newGroupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if data.IsDomain {
 		// Create a task to propagate the domain change to all children
 		var task tasks.PropagateDomainTask
-		task.PageId = data.RootPageId
+		task.PageID = data.RootPageId
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}

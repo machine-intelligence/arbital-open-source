@@ -54,7 +54,7 @@ type markModeRow struct {
 // Row to show which users like a page
 type likesModeRow struct {
 	modeRowData
-	PageId    string          `json:"pageId"`
+	PageID    string          `json:"pageId"`
 	ChangeLog *core.ChangeLog `json:"changeLog"` // Optional changeLog.
 	UserIds   []string        `json:"userIds"`
 }
@@ -62,7 +62,7 @@ type likesModeRow struct {
 // Row to show which users learned some requisites
 type reqsTaughtModeRow struct {
 	modeRowData
-	PageId       string   `json:"pageId"`
+	PageID       string   `json:"pageId"`
 	UserIds      []string `json:"userIds"`
 	RequisiteIds []string `json:"requisiteIds"`
 }
@@ -70,7 +70,7 @@ type reqsTaughtModeRow struct {
 // Row to show a page
 type pageModeRow struct {
 	modeRowData
-	PageId string `json:"pageId"`
+	PageID string `json:"pageId"`
 }
 
 type updateModeRow struct {
@@ -211,7 +211,7 @@ func loadLikesModeRows(db *database.DB, returnData *core.CommonHandlerData, limi
 		if !ok {
 			row = &likesModeRow{
 				modeRowData: modeRowData{RowType: LikesModeRowType, ActivityDate: updatedAt},
-				PageId:      pageId,
+				PageID:      pageId,
 				UserIds:     make([]string, 0),
 			}
 			hedonsRowMap[pageId] = row
@@ -256,7 +256,7 @@ func loadChangeLikesModeRows(db *database.DB, returnData *core.CommonHandlerData
 		var changeLog core.ChangeLog
 
 		err := rows.Scan(&likerId, &pageId, &updatedAt,
-			&changeLog.ID, &changeLog.PageId, &changeLog.Type, &changeLog.OldSettingsValue,
+			&changeLog.ID, &changeLog.PageID, &changeLog.Type, &changeLog.OldSettingsValue,
 			&changeLog.NewSettingsValue, &changeLog.Edit)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
@@ -266,7 +266,7 @@ func loadChangeLikesModeRows(db *database.DB, returnData *core.CommonHandlerData
 		if !ok {
 			row = &likesModeRow{
 				modeRowData: modeRowData{RowType: LikesModeRowType, ActivityDate: updatedAt},
-				PageId:      pageId,
+				PageID:      pageId,
 				ChangeLog:   &changeLog,
 				UserIds:     make([]string, 0),
 			}
@@ -317,7 +317,7 @@ func loadReqsTaughtModeRows(db *database.DB, returnData *core.CommonHandlerData,
 		if !ok {
 			row = &reqsTaughtModeRow{
 				modeRowData:  modeRowData{RowType: ReqsTaughtModeRowType, ActivityDate: updatedAt},
-				PageId:       taughtById,
+				PageID:       taughtById,
 				UserIds:      make([]string, 0),
 				RequisiteIds: make([]string, 0),
 			}
@@ -382,7 +382,7 @@ func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 		}
 		row := &pageModeRow{
 			modeRowData: modeRowData{RowType: PageModeRowType, ActivityDate: activityDate},
-			PageId:      pageId,
+			PageID:      pageId,
 		}
 		modeRows = append(modeRows, row)
 
@@ -430,7 +430,7 @@ func loadDraftRows(db *database.DB, returnData *core.CommonHandlerData, limit in
 		}
 		row := &pageModeRow{
 			modeRowData: modeRowData{RowType: DraftModeRowType, ActivityDate: createdAt},
-			PageId:      pageId,
+			PageID:      pageId,
 		}
 		modeRows = append(modeRows, row)
 		core.AddPageToMap(pageId, returnData.PageMap, pageLoadOptions)
@@ -487,7 +487,7 @@ func loadTaggedForEditRows(db *database.DB, returnData *core.CommonHandlerData, 
 		}
 		row := &pageModeRow{
 			modeRowData: modeRowData{RowType: TaggedforEditModeRowType, ActivityDate: createdAt},
-			PageId:      pageId,
+			PageID:      pageId,
 		}
 		modeRows = append(modeRows, row)
 		core.AddPageToMap(pageId, returnData.PageMap, pageLoadOptions)
@@ -593,7 +593,7 @@ func loadChangeLogModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 		ORDER BY cl.createdAt DESC
 		LIMIT ?`, limit)
 	err := core.LoadChangeLogs(db, queryPart, returnData, func(db *database.DB, changeLog *core.ChangeLog) error {
-		core.AddPageToMap(changeLog.PageId, returnData.PageMap, pageLoadOptions)
+		core.AddPageToMap(changeLog.PageID, returnData.PageMap, pageLoadOptions)
 		changeLogs = append(changeLogs, changeLog)
 		return nil
 	})

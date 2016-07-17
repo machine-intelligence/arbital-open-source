@@ -116,7 +116,7 @@ If you are the owner, click [here to edit](%s).`, title, userGroupStr, url)
 
 	// Update elastic search index.
 	doc := &elastic.Document{
-		PageId:    groupId,
+		PageID:    groupId,
 		Type:      groupType,
 		Title:     title,
 		Clickbait: clickbait,

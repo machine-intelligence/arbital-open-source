@@ -57,7 +57,7 @@ func updatePathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	pageIds := make([]string, 0)
 	sourceIds := make([]string, 0)
 	for _, page := range instance.Pages {
-		pageIds = append(pageIds, page.PageId)
+		pageIds = append(pageIds, page.PageID)
 		sourceIds = append(sourceIds, page.SourceId)
 	}
 

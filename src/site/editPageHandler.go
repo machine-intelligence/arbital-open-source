@@ -22,7 +22,7 @@ const (
 
 // editPageData contains parameters passed in to create a page.
 type editPageData struct {
-	PageId        string
+	PageID        string
 	PrevEdit      int
 	Title         string
 	Clickbait     string
@@ -72,7 +72,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	u := params.U
 	returnData := core.NewHandlerData(u)
 
-	if !core.IsIdValid(data.PageId) {
+	if !core.IsIdValid(data.PageID) {
 		return pages.Fail("No pageId specified", nil).Status(http.StatusBadRequest)
 	}
 
@@ -81,7 +81,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		LoadNonliveEdit: true,
 		PreferLiveEdit:  true,
 	}
-	oldPage, err := core.LoadFullEdit(db, data.PageId, u, editLoadOptions)
+	oldPage, err := core.LoadFullEdit(db, data.PageID, u, editLoadOptions)
 	if err != nil {
 		return pages.Fail("Couldn't load the old page", err)
 	} else if oldPage == nil {
@@ -105,7 +105,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		SELECT max(edit)
 		FROM pages
 		WHERE pageId=? AND creatorId=? AND isAutosave
-		`).QueryRow(data.PageId, u.ID)
+		`).QueryRow(data.PageID, u.ID)
 	_, err = row.Scan(&myLastAutosaveEdit)
 	if err != nil {
 		return pages.Fail("Couldn't load additional page info", err)
@@ -173,7 +173,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	var commentParentId string
 	var commentPrimaryPageId string
 	if isNewCurrentEdit && oldPage.Type == core.CommentPageType {
-		commentParentId, commentPrimaryPageId, err = core.GetCommentParents(db, data.PageId)
+		commentParentId, commentPrimaryPageId, err = core.GetCommentParents(db, data.PageID)
 		if err != nil {
 			return pages.Fail("Couldn't load comment's parents", err)
 		}
@@ -224,14 +224,14 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if oldPage.WasPublished && isNewCurrentEdit {
 			// Clear previous isNewCurrentEdit
 			statement := tx.DB.NewStatement("UPDATE pages SET isLiveEdit=false WHERE pageId=? AND isLiveEdit").WithTx(tx)
-			if _, err = statement.Exec(data.PageId); err != nil {
+			if _, err = statement.Exec(data.PageID); err != nil {
 				return sessions.NewError("Couldn't update isLiveEdit", err)
 			}
 		}
 
 		// Create a new edit.
 		hashmap := make(database.InsertMap)
-		hashmap["pageId"] = data.PageId
+		hashmap["pageId"] = data.PageID
 		hashmap["edit"] = newEditNum
 		hashmap["prevEdit"] = data.PrevEdit
 		hashmap["creatorId"] = u.ID
@@ -259,13 +259,13 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if isNewCurrentEdit {
 			// Delete old summaries
 			statement = database.NewQuery(`
-				DELETE FROM pageSummaries WHERE pageId=?`, data.PageId).ToTxStatement(tx)
+				DELETE FROM pageSummaries WHERE pageId=?`, data.PageID).ToTxStatement(tx)
 			if _, err := statement.Exec(); err != nil {
 				return sessions.NewError("Couldn't delete existing page summaries", err)
 			}
 
 			// Insert new summaries
-			_, summaryValues := core.ExtractSummaries(data.PageId, data.Text)
+			_, summaryValues := core.ExtractSummaries(data.PageID, data.Text)
 			statement = tx.DB.NewStatement(`
 				INSERT INTO pageSummaries (pageId,name,text)
 				VALUES ` + database.ArgsPlaceholder(len(summaryValues), 3)).WithTx(tx)
@@ -276,7 +276,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 		// Update pageInfos
 		hashmap = make(database.InsertMap)
-		hashmap["pageId"] = data.PageId
+		hashmap["pageId"] = data.PageID
 		if isNewCurrentEdit && oldPage.IsDeleted {
 			hashmap["isDeleted"] = false
 			hashmap["mergedInto"] = ""
@@ -306,7 +306,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// Update change logs. We only create a changeLog for some types of edits.
 		createEditChangeLog = true
 		hashmap = make(database.InsertMap)
-		hashmap["pageId"] = data.PageId
+		hashmap["pageId"] = data.PageID
 		hashmap["edit"] = newEditNum
 		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = database.Now()
@@ -340,7 +340,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 		// Subscribe this user to the page that they just created.
 		if !oldPage.WasPublished && isNewCurrentEdit {
-			toId := data.PageId
+			toId := data.PageID
 			if oldPage.Type == core.CommentPageType && core.IsIdValid(commentParentId) {
 				toId = commentParentId // subscribe to the parent comment
 			}
@@ -352,7 +352,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 		// Update the links table.
 		if isNewCurrentEdit {
-			err = core.UpdatePageLinks(tx, data.PageId, data.Text, sessions.GetDomain())
+			err = core.UpdatePageLinks(tx, data.PageID, data.Text, sessions.GetDomain())
 			if err != nil {
 				return sessions.NewError("Couldn't update links", err)
 			}
@@ -371,8 +371,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if oldPage.WasPublished && !data.IsMinorEdit && createEditChangeLog && oldPage.Type != core.CommentPageType {
 			var task tasks.NewUpdateTask
 			task.UserId = u.ID
-			task.GoToPageId = data.PageId
-			task.SubscribedToId = data.PageId
+			task.GoToPageId = data.PageID
+			task.SubscribedToId = data.PageID
 			task.ChangeLogId = editChangeLogId
 			if oldPage.IsDeleted {
 				task.UpdateType = core.ChangeLogUpdateType
@@ -388,7 +388,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	if isNewCurrentEdit {
 		// Update elastic
 		var task tasks.UpdateElasticPageTask
-		task.PageId = data.PageId
+		task.PageID = data.PageID
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
@@ -399,7 +399,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			task.UserId = u.ID
 			task.UpdateType = core.NewPageByUserUpdateType
 			task.SubscribedToId = u.ID
-			task.GoToPageId = data.PageId
+			task.GoToPageId = data.PageID
 			if createEditChangeLog {
 				task.ChangeLogId = editChangeLogId
 			}
@@ -414,7 +414,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			if !data.IsMinorEdit {
 				var task tasks.NewUpdateTask
 				task.UserId = u.ID
-				task.GoToPageId = data.PageId
+				task.GoToPageId = data.PageID
 				task.ForceMaintainersOnly = oldPage.IsEditorComment
 				if createEditChangeLog {
 					task.ChangeLogId = editChangeLogId
@@ -441,7 +441,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				var task tasks.AtMentionUpdateTask
 				task.UserId = u.ID
 				task.MentionedUserId = submatch[1]
-				task.GoToPageId = data.PageId
+				task.GoToPageId = data.PageID
 				if err := tasks.Enqueue(c, &task, nil); err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
 				}
@@ -452,7 +452,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// TODO: condition: this page went from unpublished to published or deleted to undeleted
 		{
 			var task tasks.UpdatePagePairsTask
-			task.PageId = data.PageId
+			task.PageID = data.PageID
 			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
@@ -461,7 +461,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// Create a task to propagate the domain change to all children
 		if oldPage.IsDeleted || !oldPage.WasPublished {
 			var task tasks.PropagateDomainTask
-			task.PageId = data.PageId
+			task.PageID = data.PageID
 			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}

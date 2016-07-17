@@ -27,7 +27,7 @@ func (a HitsList) Less(i, j int) bool { return a[i].Score > a[j].Score }
 
 // Document describes the document which goes into the pages search index.
 type Document struct {
-	PageId        string   `json:"pageId"`
+	PageID        string   `json:"pageId"`
 	Alias         string   `json:"alias"`
 	Type          string   `json:"type"`
 	Title         string   `json:"title"`
@@ -93,7 +93,7 @@ func AddPageToIndex(c sessions.Context, doc *Document) error {
 	if err != nil {
 		return fmt.Errorf("Error marshalling data into json:", err)
 	}
-	request, err := http.NewRequest("PUT", fmt.Sprintf("%s/page/%s", ElasticDomain, doc.PageId), bytes.NewBuffer(jsonData))
+	request, err := http.NewRequest("PUT", fmt.Sprintf("%s/page/%s", ElasticDomain, doc.PageID), bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}

@@ -107,7 +107,7 @@ func (task PublishPagePairTask) Execute(db *database.DB) (delay int, err error) 
 		if pagePair.Type == core.ParentPagePairType {
 			// Create a task to propagate the domain change to all children
 			var task PropagateDomainTask
-			task.PageId = child.PageId
+			task.PageID = child.PageID
 			if err := Enqueue(c, &task, nil); err != nil {
 				tx.DB.C.Errorf("Couldn't enqueue a task: %v", err)
 			}

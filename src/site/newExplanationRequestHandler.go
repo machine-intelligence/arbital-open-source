@@ -15,7 +15,7 @@ import (
 
 // explanationRequestData is the data received from the request.
 type explanationRequestData struct {
-	PageId string
+	PageID string
 	Type   string
 }
 
@@ -36,13 +36,13 @@ func explanationRequestJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageId) {
+	if !core.IsIdValid(data.PageID) {
 		return pages.Fail("Missing or invalid page id", nil).Status(http.StatusBadRequest)
 	}
 
 	// Add the request.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		return plusOneToExplanationRequest(tx, u, data.PageId, data.Type)
+		return plusOneToExplanationRequest(tx, u, data.PageID, data.Type)
 	})
 	if err2 != nil {
 		return pages.FailWith(err2)

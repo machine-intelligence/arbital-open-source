@@ -12,7 +12,7 @@ import (
 
 // updatePageObject contains the data we get in the request.
 type updatePageObject struct {
-	PageId string
+	PageID string
 	Edit   int
 	Object string
 	Value  string
@@ -39,7 +39,7 @@ func updatePageObjectInternalHandlerFunc(params *pages.HandlerParams, data *upda
 	db := params.DB
 	u := params.U
 
-	if !core.IsIdValid(data.PageId) {
+	if !core.IsIdValid(data.PageID) {
 		return pages.Fail("Invalid page id", nil).Status(http.StatusBadRequest)
 	}
 	if data.Object == "" {
@@ -52,7 +52,7 @@ func updatePageObjectInternalHandlerFunc(params *pages.HandlerParams, data *upda
 
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = userId
-	hashmap["pageId"] = data.PageId
+	hashmap["pageId"] = data.PageID
 	hashmap["edit"] = data.Edit
 	hashmap["object"] = data.Object
 	hashmap["value"] = data.Value

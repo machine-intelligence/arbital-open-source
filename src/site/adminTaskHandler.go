@@ -35,7 +35,7 @@ func adminTaskHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 	} else if task == "propagateDomain" {
 		var task tasks.PropagateDomainTask
-		task.PageId = params.R.FormValue("pageId")
+		task.PageID = params.R.FormValue("pageId")
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			return pages.Fail("Couldn't enqueue a task", err)
 		}

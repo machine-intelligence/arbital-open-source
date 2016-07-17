@@ -84,7 +84,7 @@ func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Delete the question page
 		deletePageData := &deletePageData{
-			PageId:         data.QuestionId,
+			PageID:         data.QuestionId,
 			GenerateUpdate: false,
 		}
 		return deletePageTx(tx, params, deletePageData, question)

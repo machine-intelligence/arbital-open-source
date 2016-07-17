@@ -10,7 +10,7 @@ import (
 
 // UpdateElasticPageTask is the object that's put into the daemon queue.
 type UpdateElasticPageTask struct {
-	PageId string
+	PageID string
 }
 
 func (task UpdateElasticPageTask) Tag() string {
@@ -19,8 +19,8 @@ func (task UpdateElasticPageTask) Tag() string {
 
 // Check if this task is valid, and we can safely execute it.
 func (task UpdateElasticPageTask) IsValid() error {
-	if !core.IsIdValid(task.PageId) {
-		return fmt.Errorf("Invalid page id: %s", task.PageId)
+	if !core.IsIdValid(task.PageID) {
+		return fmt.Errorf("Invalid page id: %s", task.PageID)
 	}
 	return nil
 }
@@ -34,7 +34,7 @@ func (task UpdateElasticPageTask) Execute(db *database.DB) (int, error) {
 		return -1, err
 	}
 
-	c.Infof("Updaing elastic page: %s", task.PageId)
+	c.Infof("Updaing elastic page: %s", task.PageID)
 
 	// Compute all priors.
 	rows := database.NewQuery(`
@@ -42,7 +42,7 @@ func (task UpdateElasticPageTask) Execute(db *database.DB) (int, error) {
 		FROM pages AS p
 		JOIN`).AddPart(core.PageInfosTable(nil)).Add(`AS pi
 		ON (p.pageId=pi.pageId)
-		WHERE p.isLiveEdit AND p.pageId=?`, task.PageId).ToStatement(db).Query()
+		WHERE p.isLiveEdit AND p.pageId=?`, task.PageID).ToStatement(db).Query()
 	err := rows.Process(populateElasticProcessPage)
 	if err != nil {
 		return -1, err

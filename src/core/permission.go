@@ -193,7 +193,7 @@ func VerifyEditPermissionsForMap(db *database.DB, pageMap map[string]*Page, u *C
 	ComputePermissionsForMap(db.C, pageMap, u)
 	for _, p := range pageMap {
 		if !p.Permissions.Edit.Has {
-			return fmt.Sprintf("Don't have edit access to page " + p.PageId + ": " + p.Permissions.Edit.Reason), nil
+			return fmt.Sprintf("Don't have edit access to page " + p.PageID + ": " + p.Permissions.Edit.Reason), nil
 		}
 	}
 	return "", nil

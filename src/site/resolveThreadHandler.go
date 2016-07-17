@@ -14,7 +14,7 @@ import (
 
 // resolveThreadData is the data received from the request.
 type resolveThreadData struct {
-	PageId    string
+	PageID    string
 	Unresolve bool
 }
 
@@ -38,12 +38,12 @@ func resolveThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageId) {
+	if !core.IsIdValid(data.PageID) {
 		return pages.Fail("PageId isn't set", nil).Status(http.StatusBadRequest)
 	}
 
 	// Load the page
-	page, err := core.LoadFullEdit(db, data.PageId, u, nil)
+	page, err := core.LoadFullEdit(db, data.PageID, u, nil)
 	if err != nil {
 		return pages.Fail("Couldn't load page", err)
 	}
@@ -61,11 +61,11 @@ func resolveThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Get comment's parents
-	commentParentId, commentPrimaryPageId, err := core.GetCommentParents(db, data.PageId)
+	commentParentId, commentPrimaryPageId, err := core.GetCommentParents(db, data.PageID)
 	if err != nil {
 		return pages.Fail("Couldn't load comment's parents", err)
 	}
-	if commentParentId != data.PageId && commentParentId != "" {
+	if commentParentId != data.PageID && commentParentId != "" {
 		return pages.Fail("Trying to resolve a reply", nil).Status(http.StatusBadRequest)
 	}
 
@@ -85,7 +85,7 @@ func resolveThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		statement := database.NewQuery(`
 			UPDATE pageInfos
 			SET isResolved=?`, !data.Unresolve).Add(`
-			WHERE pageId=?`, data.PageId).ToTxStatement(tx)
+			WHERE pageId=?`, data.PageID).ToTxStatement(tx)
 		if _, err := statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't set isResolved", err)
 		}
@@ -94,8 +94,8 @@ func resolveThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		var updateTask tasks.NewUpdateTask
 		updateTask.UpdateType = core.ResolvedThreadUpdateType
 		updateTask.UserId = u.ID
-		updateTask.GoToPageId = data.PageId
-		updateTask.SubscribedToId = data.PageId
+		updateTask.GoToPageId = data.PageID
+		updateTask.SubscribedToId = data.PageID
 		updateTask.ForceMaintainersOnly = true
 		if err := tasks.Enqueue(c, &updateTask, nil); err != nil {
 			return sessions.NewError("Couldn't enqueue task", err)

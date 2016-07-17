@@ -36,7 +36,7 @@ type RedLinkRow struct {
 }
 
 type StubRow struct {
-	PageId string `json:"pageId"`
+	PageID string `json:"pageId"`
 }
 
 func writeNewModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
@@ -180,7 +180,7 @@ func loadStubRows(db *database.DB, returnData *core.CommonHandlerData, limit int
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
-		stubRows = append(stubRows, &StubRow{PageId: pageId})
+		stubRows = append(stubRows, &StubRow{PageID: pageId})
 		core.AddPageIdToMap(pageId, returnData.PageMap)
 		return nil
 	})

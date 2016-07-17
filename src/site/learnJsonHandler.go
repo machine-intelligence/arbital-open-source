@@ -39,7 +39,7 @@ type learnOption struct {
 
 // Requirement the user needs to acquire in order to read a tutor page
 type requirementNode struct {
-	PageId    string `json:"pageId"`
+	PageID    string `json:"pageId"`
 	LensIndex int    `json:"-"`
 	// Which pages can teach this requirement
 	TutorIds []string `json:"tutorIds"`
@@ -53,7 +53,7 @@ type requirementNode struct {
 
 // Page that will teach the user about stuff.
 type tutorNode struct {
-	PageId    string `json:"pageId"`
+	PageID    string `json:"pageId"`
 	LensIndex int    `json:"-"`
 	// To read this page, the user needs these requirements
 	RequirementIds []string `json:"requirementIds"`
@@ -78,11 +78,11 @@ func (t *tutorNode) Less(i, j int) bool {
 }
 
 func newRequirementNode(pageId string) *requirementNode {
-	return &requirementNode{PageId: pageId, TutorIds: make([]string, 0), Cost: 10000000}
+	return &requirementNode{PageID: pageId, TutorIds: make([]string, 0), Cost: 10000000}
 }
 
 func newTutorNode(pageId string) *tutorNode {
-	return &tutorNode{PageId: pageId, RequirementIds: make([]string, 0)}
+	return &tutorNode{PageID: pageId, RequirementIds: make([]string, 0)}
 }
 
 func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
@@ -155,7 +155,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			if err != nil {
 				return fmt.Errorf("Failed to scan: %v", err)
 			}
-			masteryMap[masteryId] = &core.Mastery{PageId: masteryId, Wants: wants, Has: has}
+			masteryMap[masteryId] = &core.Mastery{PageID: masteryId, Wants: wants, Has: has}
 			return nil
 		})
 		if err != nil {
@@ -326,8 +326,8 @@ func computeLearningPath(pl logger.Logger,
 		}
 		req.Cost = PenaltyCost
 		req.Processed = true
-		core.AddPageToMap(req.PageId, returnData.PageMap, loadOptions)
-		pl.Infof("Requirement '%s' pre-processed with cost %d", req.PageId, req.Cost)
+		core.AddPageToMap(req.PageID, returnData.PageMap, loadOptions)
+		pl.Infof("Requirement '%s' pre-processed with cost %d", req.PageID, req.Cost)
 	}
 
 	done := false
@@ -344,9 +344,9 @@ func computeLearningPath(pl logger.Logger,
 
 				// Print the cycle, but also find a node that's actually definitely in the cycle
 				cycleIds := make([]string, 0)
-				cycleIds = append(cycleIds, req.PageId)
+				cycleIds = append(cycleIds, req.PageID)
 				cycleReqMap := make(map[string]bool) // store all requirements we've met
-				cycleReqMap[req.PageId] = true
+				cycleReqMap[req.PageID] = true
 				continueCycle := true
 				for continueCycle {
 					// Get first eligible tutor
@@ -354,7 +354,7 @@ func computeLearningPath(pl logger.Logger,
 					for _, tutorId := range req.TutorIds {
 						cycleTutor = tutorMap[tutorId]
 						if !cycleTutor.Processed {
-							cycleIds = append(cycleIds, cycleTutor.PageId)
+							cycleIds = append(cycleIds, cycleTutor.PageID)
 							break
 						}
 					}
@@ -362,11 +362,11 @@ func computeLearningPath(pl logger.Logger,
 					for _, reqId := range cycleTutor.RequirementIds {
 						req = requirementMap[reqId]
 						if !req.Processed {
-							cycleIds = append(cycleIds, req.PageId)
-							if _, ok := cycleReqMap[req.PageId]; ok {
+							cycleIds = append(cycleIds, req.PageID)
+							if _, ok := cycleReqMap[req.PageID]; ok {
 								continueCycle = false
 							} else {
-								cycleReqMap[req.PageId] = true
+								cycleReqMap[req.PageID] = true
 							}
 							break
 						}
@@ -384,8 +384,8 @@ func computeLearningPath(pl logger.Logger,
 					req.Cost = PenaltyCost
 				}
 				req.Cost += req.LensIndex * LensCost
-				core.AddPageToMap(req.PageId, returnData.PageMap, loadOptions)
-				pl.Infof("Requirement '%s' (tutors: %v) forced to processed with cost %d and best tutor '%s'", req.PageId, req.TutorIds, req.Cost, req.BestTutorId)
+				core.AddPageToMap(req.PageID, returnData.PageMap, loadOptions)
+				pl.Infof("Requirement '%s' (tutors: %v) forced to processed with cost %d and best tutor '%s'", req.PageID, req.TutorIds, req.Cost, req.BestTutorId)
 				break
 			}
 		}
@@ -413,8 +413,8 @@ func computeLearningPath(pl logger.Logger,
 				req.Cost += req.LensIndex * LensCost
 				req.Processed = true
 				graphChanged = true
-				core.AddPageToMap(req.PageId, returnData.PageMap, loadOptions)
-				pl.Infof("Requirement '%s' (tutors: %v) processed with cost %d and best tutor '%s'", req.PageId, req.TutorIds, req.Cost, req.BestTutorId)
+				core.AddPageToMap(req.PageID, returnData.PageMap, loadOptions)
+				pl.Infof("Requirement '%s' (tutors: %v) processed with cost %d and best tutor '%s'", req.PageID, req.TutorIds, req.Cost, req.BestTutorId)
 			}
 		}
 
@@ -441,8 +441,8 @@ func computeLearningPath(pl logger.Logger,
 				tutor.RequirementMap = requirementMap
 				sort.Sort(tutor)
 				graphChanged = true
-				core.AddPageToMap(tutor.PageId, returnData.PageMap, loadOptions)
-				pl.Infof("Tutor '%s' processed with cost %d and reqs %v", tutor.PageId, tutor.Cost, tutor.RequirementIds)
+				core.AddPageToMap(tutor.PageID, returnData.PageMap, loadOptions)
+				pl.Infof("Tutor '%s' processed with cost %d and reqs %v", tutor.PageID, tutor.Cost, tutor.RequirementIds)
 			}
 		}
 

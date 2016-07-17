@@ -15,7 +15,7 @@ import (
 
 // newSearchStringData contains data given to us in the request.
 type newSearchStringData struct {
-	PageId string
+	PageID string
 	Text   string
 }
 
@@ -40,7 +40,7 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageId) {
+	if !core.IsIdValid(data.PageID) {
 		return pages.Fail("Invalid page id", nil).Status(http.StatusBadRequest)
 	}
 	if len(data.Text) <= 0 {
@@ -51,7 +51,7 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Add the new search string
 		hashmap := make(map[string]interface{})
-		hashmap["pageId"] = data.PageId
+		hashmap["pageId"] = data.PageID
 		hashmap["text"] = data.Text
 		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = database.Now()
@@ -67,7 +67,7 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Update change logs
 		hashmap = make(database.InsertMap)
-		hashmap["pageId"] = data.PageId
+		hashmap["pageId"] = data.PageID
 		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = core.SearchStringChangeChangeLog
@@ -85,8 +85,8 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Insert updates
 		var task tasks.NewUpdateTask
 		task.UserId = u.ID
-		task.GoToPageId = data.PageId
-		task.SubscribedToId = data.PageId
+		task.GoToPageId = data.PageID
+		task.SubscribedToId = data.PageID
 		task.UpdateType = core.ChangeLogUpdateType
 		task.ChangeLogId = changeLogId
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
@@ -101,7 +101,7 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Update Elastic
 	var task tasks.UpdateElasticPageTask
-	task.PageId = data.PageId
+	task.PageID = data.PageID
 	if err := tasks.Enqueue(c, &task, nil); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}

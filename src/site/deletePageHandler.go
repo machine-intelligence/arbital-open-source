@@ -15,7 +15,7 @@ import (
 
 // deletePageData is the data received from the request.
 type deletePageData struct {
-	PageId string
+	PageID string
 
 	// Set internally
 	GenerateUpdate bool `json:"-"`
@@ -37,7 +37,7 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageId) {
+	if !core.IsIdValid(data.PageID) {
 		return pages.Fail("PageId isn't set", nil).Status(http.StatusBadRequest)
 	}
 	return deletePageInternalHandlerFunc(params, &data)
@@ -48,7 +48,7 @@ func deletePageInternalHandlerFunc(params *pages.HandlerParams, data *deletePage
 	u := params.U
 
 	// Load the page
-	page, err := core.LoadFullEdit(db, data.PageId, u, nil)
+	page, err := core.LoadFullEdit(db, data.PageID, u, nil)
 	if err != nil {
 		return pages.Fail("Couldn't load page", err)
 	}
@@ -88,19 +88,19 @@ func deletePageTx(tx *database.Tx, params *pages.HandlerParams, data *deletePage
 
 	// Clear the current edit in pages
 	statement := tx.DB.NewStatement("UPDATE pages SET isLiveEdit=false WHERE pageId=? AND isLiveEdit").WithTx(tx)
-	if _, err := statement.Exec(data.PageId); err != nil {
+	if _, err := statement.Exec(data.PageID); err != nil {
 		return sessions.NewError("Couldn't update isLiveEdit for old edits", err)
 	}
 
 	// Set isDeleted in pageInfos
 	statement = tx.DB.NewStatement("UPDATE pageInfos SET isDeleted=true WHERE pageId=?").WithTx(tx)
-	if _, err := statement.Exec(data.PageId); err != nil {
+	if _, err := statement.Exec(data.PageID); err != nil {
 		return sessions.NewError("Couldn't set isDeleted for deleted page", err)
 	}
 
 	// Update change log
 	hashmap := make(database.InsertMap)
-	hashmap["pageId"] = data.PageId
+	hashmap["pageId"] = data.PageID
 	hashmap["userId"] = params.U.ID
 	hashmap["createdAt"] = database.Now()
 	hashmap["type"] = core.DeletePageChangeLog
@@ -118,8 +118,8 @@ func deletePageTx(tx *database.Tx, params *pages.HandlerParams, data *deletePage
 		// Generate "delete" update for users who are subscribed to this page.
 		var updateTask tasks.NewUpdateTask
 		updateTask.UserId = params.U.ID
-		updateTask.GoToPageId = data.PageId
-		updateTask.SubscribedToId = data.PageId
+		updateTask.GoToPageId = data.PageID
+		updateTask.SubscribedToId = data.PageID
 		updateTask.UpdateType = core.ChangeLogUpdateType
 		updateTask.ChangeLogId = changeLogId
 
@@ -132,7 +132,7 @@ func deletePageTx(tx *database.Tx, params *pages.HandlerParams, data *deletePage
 
 	// Delete it from the elastic index
 	if page.WasPublished {
-		err := elastic.DeletePageFromIndex(c, data.PageId)
+		err := elastic.DeletePageFromIndex(c, data.PageID)
 		if err != nil {
 			c.Errorf("Failed to update index: %v", err)
 		}
@@ -140,7 +140,7 @@ func deletePageTx(tx *database.Tx, params *pages.HandlerParams, data *deletePage
 
 	// Create a task to propagate the domain change to all children
 	var task tasks.PropagateDomainTask
-	task.PageId = data.PageId
+	task.PageID = data.PageID
 	if err := tasks.Enqueue(params.C, &task, nil); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}

@@ -59,7 +59,7 @@ func deleteSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Update change logs
 		hashmap := make(database.InsertMap)
-		hashmap["pageId"] = searchString.PageId
+		hashmap["pageId"] = searchString.PageID
 		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = core.SearchStringChangeChangeLog
@@ -77,8 +77,8 @@ func deleteSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Insert updates
 		var task tasks.NewUpdateTask
 		task.UserId = u.ID
-		task.GoToPageId = searchString.PageId
-		task.SubscribedToId = searchString.PageId
+		task.GoToPageId = searchString.PageID
+		task.SubscribedToId = searchString.PageID
 		task.UpdateType = core.ChangeLogUpdateType
 		task.ChangeLogId = changeLogId
 		if err := tasks.Enqueue(c, &task, nil); err != nil {

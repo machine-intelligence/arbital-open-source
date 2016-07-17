@@ -122,9 +122,9 @@ func LoadChildIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, opt
 
 		parent := sourcePageMap[parentId]
 		if piType == CommentPageType {
-			parent.CommentIds = append(parent.CommentIds, newPage.PageId)
+			parent.CommentIds = append(parent.CommentIds, newPage.PageID)
 		} else if piType == QuestionPageType {
-			parent.QuestionIds = append(parent.QuestionIds, newPage.PageId)
+			parent.QuestionIds = append(parent.QuestionIds, newPage.PageID)
 		} else if piType == WikiPageType && ppType == ParentPagePairType {
 			parent.ChildIds = append(parent.ChildIds, childId)
 			parent.HasChildren = true
@@ -181,7 +181,7 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, op
 		if ppType == ParentPagePairType {
 			childPage.ParentIds = append(childPage.ParentIds, parentId)
 			childPage.HasParents = true
-			newPages[newPage.PageId] = newPage
+			newPages[newPage.PageID] = newPage
 		} else if ppType == TagPagePairType {
 			childPage.TaggedAsIds = append(childPage.TaggedAsIds, parentId)
 		}
@@ -255,10 +255,10 @@ func LoadRequisites(db *database.DB, pageMap map[string]*Page, u *CurrentUser, o
 		childPage := sourcePageMap[pagePair.ChildId]
 		if pagePair.Type == RequirementPagePairType {
 			childPage.Requirements = append(childPage.Requirements, pagePair)
-			options.MasteryMap[pagePair.ParentId] = &Mastery{PageId: pagePair.ParentId}
+			options.MasteryMap[pagePair.ParentId] = &Mastery{PageID: pagePair.ParentId}
 		} else if pagePair.Type == SubjectPagePairType {
 			childPage.Subjects = append(childPage.Subjects, pagePair)
-			options.MasteryMap[pagePair.ParentId] = &Mastery{PageId: pagePair.ParentId}
+			options.MasteryMap[pagePair.ParentId] = &Mastery{PageID: pagePair.ParentId}
 		}
 		return nil
 	})
