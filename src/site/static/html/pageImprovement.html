@@ -10,46 +10,50 @@
 			An editor has plans for this page. You may want to check with them before making major changes.
 		</span>
 		<span ng-switch-when="unassessed">
-			This page's quality is unknown. Can you add a
-			<arb-page-title page-id="4yg"
-					is-link="true"
-					custom-page-title="quality"
-					flex></arb-page-title>
-			tag?
+			This page's quality is unknown.
+			<span ng-if="::arb.userService.user.maxTrustLevel >= 2">
+				Can you add a
+				<arb-page-title page-id="4yg"
+						is-link="true"
+						custom-page-title="quality"></arb-page-title>
+				tag?
+			</span>
 		</span>
 		<span ng-switch-when="stub">
 			This page is just getting started. Can you
 			<arb-page-title page-id="3hs"
 					is-link="true"
-					custom-page-title="help"
-					flex></arb-page-title>
+					custom-page-title="help"></arb-page-title>
 			improve it?
 		</span>
 		<span ng-switch-when="start">
 			This page has some issues, would you like to
 			<arb-page-title page-id="3hs"
 					is-link="true"
-					custom-page-title="help"
-					flex></arb-page-title>
+					custom-page-title="help"></arb-page-title>
 			fix them?
 		</span>
 		<span ng-switch-when="c-class">
 			This page could use some improvement, would you like to
 			<arb-page-title page-id="3hs"
 					is-link="true"
-					custom-page-title="help"
-					flex></arb-page-title>
+					custom-page-title="help"></arb-page-title>
 			with it?
 		</span>
 	</div>
-	<md-button ng-click="toggleExpand()" class="short-button icon-last" aria-label="Expand" ng-if="shouldShowImprovements()">
+	<md-button ng-click="toggleExpand()"
+			class="short-button icon-last"
+			aria-label="Expand"
+			ng-if="shouldShowImprovements()">
 		<span ng-if="!expanded">See details</span>
 		<span ng-if="expanded">Hide details</span>
 		<arb-expand-icon expanded="expanded"></arb-expand-icon>
 	</md-button>
 </div>
 
-<div class="improvement-body expand-tray vertical-layout-padding" layout="column" ng-if="expanded && shouldShowImprovements()">
+<div class="improvement-body expand-tray vertical-layout-padding"
+		layout="column"
+		ng-if="expanded && shouldShowImprovements()">
 	<div ng-if="shouldShowTags()">
 		<span>
 			This page has the following issues:

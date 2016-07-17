@@ -130,6 +130,10 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 				isEditorCommentIntention: this.isEditorCommentIntention,
 			};
 		},
+		// Return true iff the page is in the given domain
+		isInDomain: function(domainId) {
+			return this.domainIds.indexOf(domainId) >= 0;
+		},
 	};
 
 	// Massage page's variables to be easier to deal with.
@@ -552,14 +556,5 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		}, function(data) {
 			changeLog.type = 'newEdit';
 		});
-	};
-
-	// Look up the long version of a domain's name from id
-	// TODO: get rid of this, since we don't have "General" domain any more
-	this.getDomainName = function(domainId) {
-		if (domainId === '') {
-			return 'General';
-		}
-		return stateService.pageMap[domainId].title;
 	};
 });
