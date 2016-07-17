@@ -33,6 +33,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.publishOptions = {
 				isProposal: false,
 			};
+			$scope.isReviewingProposal = $scope.page.edit == $scope.page.proposalEditNum;
 
 			// Extract parentId from URL
 			$scope.quickParentId = $location.search().parentId;
@@ -43,6 +44,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			$scope.getPublishText = function() {
 				if ($scope.page.isDeleted) return 'Republish';
+				if ($scope.isReviewingProposal) return 'Approve edit';
 				if ($scope.publishOptions.isProposal) return 'Propose';
 				if ($scope.page.permissions.edit.has) return 'Publish';
 				if ($scope.page.permissions.proposeEdit.has) return 'Propose';
@@ -50,6 +52,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 			$scope.getPublishTooltipText = function() {
 				if ($scope.page.isDeleted) return 'Republish this page';
+				if ($scope.isReviewingProposal) return 'Approve the edit and publish this page';
 				if ($scope.publishOptions.isProposal) return 'Propose an edit to this page';
 				if ($scope.page.permissions.edit.has) return 'Make this version live';
 				if ($scope.page.permissions.proposeEdit.has) return 'Propose an edit to this page';
@@ -327,6 +330,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 							$scope.page.lockedUntil = moment.utc().add(30, 'm').format('YYYY-MM-DD HH:mm:ss');
 						}
 						$scope.isPageDirty = isAutosave;
+						$scope.isReviewingProposal = false;
 
 						if (callback) callback();
 					})
@@ -360,6 +364,11 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 			// Called when user clicks Publish button
 			$scope.publishPage = function() {
+				if ($scope.isReviewingProposal) {
+					$scope.processEditProposal(false);
+					return;
+				}
+
 				$scope.publishing = true;
 				$scope.savePageInfo(function(error) {
 					if (error) {
@@ -522,6 +531,12 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				$scope.diffHtml = undefined;
 			};
 
+			if ($scope.page.proposalEditNum > 0) {
+				$timeout(function() {
+					$scope.showDiff($scope.page.prevEdit);
+				});
+			}
+
 			// =========== Side by side edit ==============
 			// sideEdit stores the edit we loaded to show on the right-hand side
 			$scope.sideEdit = undefined;
@@ -587,7 +602,33 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				if (!($scope.pageId in arb.stateService.pageMap)) return true;
 				var originalPageInfo = arb.stateService.pageMap[$scope.pageId].getPageInfo();
 				var newPageInfo = $scope.page.getPageInfo();
-				return !angular.equals(originalPageInfo, newPageInfo);
+				var changed = !angular.equals(originalPageInfo, newPageInfo);
+				$scope.isReviewingProposal |= changed;
+				return changed;
+			};
+
+			$scope.$watch(function() {
+				return $scope.isReviewingProposal;
+			}, function() {
+				if (!$scope.isReviewingProposal) {
+					$location.search('edit', undefined);
+				}
+			});
+
+			// Called when the user decided to accept or dismiss the edit proposal.
+			$scope.processEditProposal = function(dismiss) {
+				for (var n = 0; n < $scope.page.changeLogs.length; n++) {
+					var changeLog = $scope.page.changeLogs[n];
+					if (changeLog.type == 'newEditProposal' && changeLog.edit == $scope.page.proposalEditNum) {
+						arb.pageService.approveEditProposal(changeLog, dismiss);
+						if (dismiss) {
+							$scope.isReviewingProposal = false;
+						} else {
+							publishPageDone();
+						}
+						break;
+					}
+				}
 			};
 
 			$scope.showPublishingOptionsPanel = false;

@@ -58,6 +58,7 @@ type PageLoadOptions struct {
 	UsedAsMastery   bool
 	Creators        bool
 	EditHistory     bool
+	ProposalEditNum bool
 
 	// Options for what fields to load from pages table
 	Text      bool
@@ -93,6 +94,7 @@ var (
 		Mastery:         true,
 		UsedAsMastery:   true,
 		Creators:        true,
+		ProposalEditNum: true,
 		NextPrevIds:     true,
 	}).Add(SubpageLoadOptions)
 	// Options for full page edit
@@ -110,6 +112,7 @@ var (
 		LensParentId:          true,
 		Links:                 true,
 		LinkedMarkCount:       true,
+		ProposalEditNum:       true,
 		Text:                  true,
 		IsSubscribed:          true,
 	}).Add(EmptyLoadOptions)
@@ -127,6 +130,7 @@ var (
 		Mastery:         true,
 		Creators:        true,
 		UsedAsMastery:   true,
+		ProposalEditNum: true,
 	}).Add(SubpageLoadOptions)
 	// Options for loading a subpage (like a comment)
 	SubpageLoadOptions = (&PageLoadOptions{

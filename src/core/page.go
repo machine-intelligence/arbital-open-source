@@ -168,6 +168,8 @@ type Page struct {
 	PrevPageId  string `json:"prevPageId"`
 	// Whether or not the page is used as a requirement
 	UsedAsMastery bool `json:"usedAsMastery"`
+	// If not 0, this is a pending edit which has been proposed
+	ProposalEditNum int `json:"proposalEditNum"`
 
 	// What actions the current user can perform with this page
 	Permissions *Permissions `json:"permissions"`
@@ -844,6 +846,13 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		return fmt.Errorf("LoadPages (deleted) failed: %v", err)
 	}
 
+	// Load proposal edit number (if any)
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.ProposalEditNum })
+	err = LoadProposalEditNum(db, filteredPageMap)
+	if err != nil {
+		return fmt.Errorf("LoadProposalEditNum failed: %v", err)
+	}
+
 	// Load (dis)likes
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Likes })
 	individualLikesPageMap := filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.IndividualLikes })
@@ -1132,9 +1141,9 @@ type ProcessChangeLogCallback func(db *database.DB, changeLog *ChangeLog) error
 // LoadChangeLogs loads the change logs matching the given condition.
 func LoadChangeLogs(db *database.DB, queryPart *database.QueryPart, resultData *CommonHandlerData, callback ProcessChangeLogCallback) error {
 	rows := database.NewQuery(`
-			SELECT cl.id,cl.pageId,cl.userId,cl.edit,cl.type,cl.createdAt,cl.auxPageId,cl.likeableId,
+		SELECT cl.id,cl.pageId,cl.userId,cl.edit,cl.type,cl.createdAt,cl.auxPageId,cl.likeableId,
 			cl.oldSettingsValue,cl.newSettingsValue
-			FROM changeLogs as cl`).AddPart(queryPart).ToStatement(db).Query()
+		FROM changeLogs as cl`).AddPart(queryPart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		l := NewChangeLog()
 		err := rows.Scan(&l.Id, &l.PageId, &l.UserId, &l.Edit, &l.Type, &l.CreatedAt,
@@ -1204,6 +1213,39 @@ func LoadLikesForChangeLogs(db *database.DB, u *CurrentUser, changeLogs []*Chang
 		}
 	}
 	return LoadLikes(db, u, likeablesMap, nil, nil)
+}
+
+// LoadProposalEditNum loads the proposal edit number
+func LoadProposalEditNum(db *database.DB, pageMap map[string]*Page) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIds := PageIdsListFromMap(pageMap)
+
+	rows := database.NewQuery(`
+		SELECT p.pageId,p.prevEdit,cl.edit
+		FROM changeLogs AS cl
+		JOIN pages AS p
+		ON (p.pageId=cl.pageId AND p.edit=cl.edit)
+		WHERE cl.pageId IN`).AddArgsGroup(pageIds).Add(`
+			AND cl.type=?`, NewEditProposalChangeLog).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageId string
+		var prevEdit, edit int
+		err := rows.Scan(&pageId, &prevEdit, &edit)
+		if err != nil {
+			return fmt.Errorf("Failed to scan: %v", err)
+		}
+		p := pageMap[pageId]
+		if p.CurrentEdit == prevEdit {
+			p.ProposalEditNum = edit
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("Couldn't load proposalEditNum: %v", err)
+	}
+	return nil
 }
 
 type LoadEditOptions struct {

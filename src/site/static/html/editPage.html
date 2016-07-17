@@ -681,6 +681,12 @@
 				</md-button>
 			</div>
 			<div ng-if="isPublishButtonVisible()">
+				<md-button class="md-raised"
+						ng-click="processEditProposal(true)"
+						ng-if="isReviewingProposal">
+					<md-tooltip md-delay="500">Dismiss this edit proposal</md-tooltip>
+					Dismiss edit
+				</md-button>
 				<md-button class="md-primary md-raised"
 						ng-click="publishPage()"
 						ng-disabled="publishing || snapshotting"

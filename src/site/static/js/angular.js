@@ -183,6 +183,7 @@ app.run(function($http, $location, arb) {
 				arb.pageService.loadEdit({
 					pageAlias: pageAlias,
 					additionalPageIds: quickParentId ? [quickParentId] : undefined,
+					specificEdit: $location.search().edit ? +$location.search().edit : 0,
 					success: $scope.getSuccessFunc(function() {
 						// Find the page in the editMap (have to search through it manually
 						// because we don't index pages by alias in editmap)
@@ -197,6 +198,13 @@ app.run(function($http, $location, arb) {
 							// Set page's alias
 							page.alias = $location.search().alias;
 							$location.replace().search('alias', undefined);
+						}
+
+						// If the page has a pending edit, and we are not on it, reload
+						if (page.proposalEditNum > 0 && page.proposalEditNum != page.edit) {
+							$location.replace().search('edit', page.proposalEditNum);
+							window.location.href = $location.url();
+							return {};
 						}
 
 						arb.urlService.ensureCanonPath(arb.urlService.getEditPageUrl(page.pageId));

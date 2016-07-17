@@ -1,26 +1,7 @@
 <div layout="column" layout-align="start center">
 	<md-button ng-click="processClick($event)" ng-class="::{'md-icon-button': isTinyScreen}">
-		<!-- The icon -->
 		<md-icon>create</md-icon>
-		<!-- The text if it's an edit button -->
-		<span ng-if="::!isTinyScreen">
-			<span ng-if="customText">{{customText}}</span>
-			<span ng-if="!customText">
-				<!-- If the user is not logged in or doesn't have permission to edit -->
-				<span ng-if="!arb.userService.userIsLoggedIn() || !page.permissions.edit.has">
-					Propose edit
-				</span>
-
-				<!-- If the user is logged in and has permission to edit -->
-				<span ng-if="arb.userService.userIsLoggedIn() && page.permissions.edit.has">
-					Edit
-					<!-- Show some text if the user has a draft -->
-					<span ng-if="page.hasDraft">
-						draft
-					</span>
-				</span>
-			</span>
-		</span>
+		<span ng-bind="getButtonText()" ng-if="::!isTinyScreen"></span>
 	</md-button>
 	<!-- Show a dot if the user has a draft and the screen is small -->
 	<span class="accent-dot" ng-if="(page.hasDraft && isTinyScreen)">

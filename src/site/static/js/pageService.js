@@ -545,9 +545,10 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 	};
 
 	// Approve the edit proposal associated with the given changelog
-	this.approveEditProposal = function(changeLog) {
+	this.approveEditProposal = function(changeLog, dismiss) {
 		stateService.postDataWithoutProcessing('/json/approvePageEditProposal/', {
 			changeLogId: changeLog.id,
+			dismiss: dismiss,
 		}, function(data) {
 			changeLog.type = 'newEdit';
 		});

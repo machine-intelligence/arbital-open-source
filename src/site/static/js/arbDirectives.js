@@ -92,6 +92,14 @@ app.directive('arbEditButton', function(arb) {
 						arb.urlService.goToUrl(arb.urlService.getEditPageUrl($scope.pageId));
 					});
 			};
+
+			$scope.getButtonText = function() {
+				if ($scope.customText) return $scope.customText;
+				if (!arb.userService.userIsLoggedIn() || !$scope.page.permissions.edit.has) return 'Propose edit';
+				if ($scope.page.hasDraft) return 'Edit draft';
+				if ($scope.page.proposalEditNum) return 'Review proposal';
+				return 'Edit';
+			};
 		},
 	};
 });
