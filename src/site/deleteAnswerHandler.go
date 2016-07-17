@@ -56,7 +56,7 @@ func deleteAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Update change logs
 		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = answer.QuestionId
-		hashmap["userId"] = u.Id
+		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = core.AnswerChangeChangeLog
 		hashmap["auxPageId"] = answer.AnswerPageId
@@ -73,7 +73,7 @@ func deleteAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Insert updates
 		var task tasks.NewUpdateTask
-		task.UserId = u.Id
+		task.UserId = u.ID
 		task.GoToPageId = answer.AnswerPageId
 		task.SubscribedToId = answer.QuestionId
 		task.UpdateType = core.ChangeLogUpdateType

@@ -17,11 +17,11 @@ import (
 
 // editPageInfoData contains parameters passed in.
 type editPageInfoData struct {
-	PageId                   string
+	PageID                   string
 	Type                     string
 	HasVote                  bool
 	VoteType                 string
-	SeeGroupId               string
+	SeeGroupID               string
 	EditGroupId              string
 	Alias                    string // if empty, leave the current one
 	SortChildrenBy           string
@@ -52,7 +52,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 
-	if !core.IsIdValid(data.PageId) {
+	if !core.IsIdValid(data.PageID) {
 		return pages.Fail("No pageId specified", nil).Status(http.StatusBadRequest)
 	}
 
@@ -61,7 +61,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		LoadNonliveEdit: true,
 		PreferLiveEdit:  true,
 	}
-	oldPage, err := core.LoadFullEdit(db, data.PageId, u, editLoadOptions)
+	oldPage, err := core.LoadFullEdit(db, data.PageID, u, editLoadOptions)
 	if err != nil {
 		return pages.Fail("Couldn't load the old page", err)
 	} else if oldPage == nil {
@@ -70,7 +70,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Fix some data.
 	if data.Type == core.CommentPageType {
-		data.EditGroupId = u.Id
+		data.EditGroupId = u.ID
 	}
 	if oldPage.WasPublished {
 		if (data.Type == core.WikiPageType || data.Type == core.QuestionPageType) &&
@@ -84,7 +84,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Error checking.
 	// Check the group settings
-	if oldPage.SeeGroupId != data.SeeGroupId && oldPage.WasPublished {
+	if oldPage.SeeGroupID != data.SeeGroupID && oldPage.WasPublished {
 		return pages.Fail("Editing this page in incorrect private group", nil).Status(http.StatusBadRequest)
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)
@@ -129,21 +129,21 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	} else if data.Type == core.GroupPageType || data.Type == core.DomainPageType {
 		data.Alias = oldPage.Alias
 	} else if data.Alias == "" {
-		data.Alias = data.PageId
-	} else if data.Alias != data.PageId {
+		data.Alias = data.PageID
+	} else if data.Alias != data.PageID {
 		// Check if the alias matches the strict regexp
 		if !core.StrictAliasRegexp.MatchString(data.Alias) {
 			return pages.Fail("Invalid alias. Can only contain letters, digits, and underscores. It also cannot start with a digit.", nil)
 		}
 
 		// Prefix alias with the group alias, if appropriate
-		if core.IsIdValid(data.SeeGroupId) && data.Type != core.GroupPageType && data.Type != core.DomainPageType {
-			tempPageMap := map[string]*core.Page{data.SeeGroupId: core.NewPage(data.SeeGroupId)}
+		if core.IsIdValid(data.SeeGroupID) && data.Type != core.GroupPageType && data.Type != core.DomainPageType {
+			tempPageMap := map[string]*core.Page{data.SeeGroupID: core.NewPage(data.SeeGroupID)}
 			err = core.LoadPages(db, u, tempPageMap)
 			if err != nil {
 				return pages.Fail("Couldn't load the see group", err)
 			}
-			data.Alias = fmt.Sprintf("%s.%s", tempPageMap[data.SeeGroupId].Alias, data.Alias)
+			data.Alias = fmt.Sprintf("%s.%s", tempPageMap[data.SeeGroupID].Alias, data.Alias)
 		}
 
 		// Check if another page is already using the alias
@@ -151,7 +151,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		row := database.NewQuery(`
 			SELECT pageId
 			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
-			WHERE pageId!=?`, data.PageId).Add(`
+			WHERE pageId!=?`, data.PageID).Add(`
 			AND alias=?`, data.Alias).ToStatement(db).QueryRow()
 		exists, err := row.Scan(&existingPageId)
 		if err != nil {
@@ -178,7 +178,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			data.HasVote == oldPage.HasVote &&
 			data.VoteType == oldPage.VoteType &&
 			data.Type == oldPage.Type &&
-			data.SeeGroupId == oldPage.SeeGroupId &&
+			data.SeeGroupID == oldPage.SeeGroupID &&
 			data.EditGroupId == oldPage.EditGroupId &&
 			data.IsRequisite == oldPage.IsRequisite &&
 			data.IndirectTeacher == oldPage.IndirectTeacher &&
@@ -205,13 +205,13 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Update pageInfos
 		hashmap := make(database.InsertMap)
-		hashmap["pageId"] = data.PageId
+		hashmap["pageId"] = data.PageID
 		hashmap["alias"] = data.Alias
 		hashmap["sortChildrenBy"] = data.SortChildrenBy
 		hashmap["hasVote"] = hasVote
 		hashmap["voteType"] = data.VoteType
 		hashmap["type"] = data.Type
-		hashmap["seeGroupId"] = data.SeeGroupId
+		hashmap["seeGroupId"] = data.SeeGroupID
 		hashmap["editGroupId"] = data.EditGroupId
 		hashmap["isRequisite"] = data.IsRequisite
 		hashmap["indirectTeacher"] = data.IndirectTeacher
@@ -227,8 +227,8 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			updateChangeLog := func(changeType string, auxPageId string, oldSettingsValue string, newSettingsValue string) (int64, sessions.Error) {
 
 				hashmap = make(database.InsertMap)
-				hashmap["pageId"] = data.PageId
-				hashmap["userId"] = u.Id
+				hashmap["pageId"] = data.PageID
+				hashmap["userId"] = u.ID
 				hashmap["createdAt"] = database.Now()
 				hashmap["type"] = changeType
 				hashmap["auxPageId"] = auxPageId
@@ -300,7 +300,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Update elastic search index.
 	if oldPage.WasPublished {
 		var task tasks.UpdateElasticPageTask
-		task.PageId = data.PageId
+		task.PageID = data.PageID
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
@@ -310,9 +310,9 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if oldPage.WasPublished {
 		for _, changeLogId := range changeLogIds {
 			var task tasks.NewUpdateTask
-			task.UserId = u.Id
-			task.GoToPageId = data.PageId
-			task.SubscribedToId = data.PageId
+			task.UserId = u.ID
+			task.GoToPageId = data.PageID
+			task.SubscribedToId = data.PageID
 			task.UpdateType = core.ChangeLogUpdateType
 			task.ChangeLogId = changeLogId
 			if err := tasks.Enqueue(c, &task, nil); err != nil {

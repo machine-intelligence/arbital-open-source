@@ -43,7 +43,7 @@ func updateSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Delete the subscription
 		query := database.NewQuery(`
 			DELETE FROM subscriptions
-			WHERE userId=? AND toId=?`, u.Id, data.ToId)
+			WHERE userId=? AND toId=?`, u.ID, data.ToId)
 		if _, err := query.ToStatement(db).Exec(); err != nil {
 			return pages.Fail("Couldn't delete a subscription", err)
 		}
@@ -52,7 +52,7 @@ func updateSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Otherwise, create/update it
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		return addSubscription(tx, u.Id, data.ToId, data.AsMaintainer)
+		return addSubscription(tx, u.ID, data.ToId, data.AsMaintainer)
 	})
 	if err2 != nil {
 		return pages.FailWith(err2)

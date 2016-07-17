@@ -83,7 +83,7 @@ type corePageData struct {
 
 	// === Basic data. ===
 	// Any time we load a page, you can at least expect all this data.
-	PageId                   string `json:"pageId"`
+	PageID                   string `json:"pageId"`
 	Edit                     int    `json:"edit"`
 	EditSummary              string `json:"editSummary"`
 	PrevEdit                 int    `json:"prevEdit"`
@@ -101,7 +101,7 @@ type corePageData struct {
 	EditCreatedAt            string `json:"editCreatedAt"`
 	PageCreatorId            string `json:"pageCreatorId"`
 	PageCreatedAt            string `json:"pageCreatedAt"`
-	SeeGroupId               string `json:"seeGroupId"`
+	SeeGroupID               string `json:"seeGroupId"`
 	EditGroupId              string `json:"editGroupId"`
 	IsAutosave               bool   `json:"isAutosave"`
 	IsSnapshot               bool   `json:"isSnapshot"`
@@ -127,8 +127,8 @@ type corePageData struct {
 }
 
 // NewCorePageData returns a pointer to a new corePageData object created with the given page id
-func NewCorePageData(pageId string) *corePageData {
-	data := &corePageData{PageId: pageId}
+func NewCorePageData(pageID string) *corePageData {
+	data := &corePageData{PageID: pageID}
 	data.Likeable = *NewLikeable(PageLikeableType)
 	return data
 }
@@ -247,8 +247,8 @@ type Page struct {
 }
 
 // NewPage returns a pointer to a new page object created with the given page id
-func NewPage(pageId string) *Page {
-	p := &Page{corePageData: *NewCorePageData(pageId)}
+func NewPage(pageID string) *Page {
+	p := &Page{corePageData: *NewCorePageData(pageID)}
 	p.Votes = make([]*Vote, 0)
 	p.Summaries = make(map[string]string)
 	p.CreatorIds = make([]string, 0)
@@ -284,8 +284,8 @@ func NewPage(pageId string) *Page {
 
 // Lens connection
 type Lens struct {
-	Id        int64  `json:"id,string"`
-	PageId    string `json:"pageId"`
+	ID        int64  `json:"id,string"`
+	PageID    string `json:"pageId"`
 	LensId    string `json:"lensId"`
 	LensIndex int    `json:"lensIndex"`
 	LensName  string `json:"lensName"`
@@ -304,7 +304,7 @@ func (a LensList) Less(i, j int) bool { return a[i].LensIndex < a[j].LensIndex }
 // PathPage connection
 // Corresponds to one row from pathPages table
 type PathPage struct {
-	Id         int64  `json:"id,string"`
+	ID         int64  `json:"id,string"`
 	GuideId    string `json:"guideId"`
 	PathPageId string `json:"pathPageId"`
 	PathIndex  int    `json:"pathIndex"`
@@ -323,7 +323,7 @@ func (a Path) Less(i, j int) bool { return a[i].PathIndex < a[j].PathIndex }
 // When a user starts a path, they get their own path instance
 // Corresponds to one row from pathInstances table
 type PathInstance struct {
-	Id         int64               `json:"id,string"`
+	ID         int64               `json:"id,string"`
 	GuideId    string              `json:"guideId"`
 	Pages      []*PathInstancePage `json:"pages"`
 	Progress   int                 `json:"progress"`
@@ -348,7 +348,7 @@ func NewPathInstance() *PathInstance {
 
 // A structure for each page on a path
 type PathInstancePage struct {
-	PageId   string `json:"pageId"`
+	PageID   string `json:"pageId"`
 	SourceId string `json:"sourceId"`
 }
 
@@ -382,8 +382,8 @@ func NewLikeable(likeableType string) *Likeable {
 type ChangeLog struct {
 	Likeable
 
-	Id               string `json:"id"`
-	PageId           string `json:"pageId"`
+	ID               string `json:"id"`
+	PageID           string `json:"pageId"`
 	UserId           string `json:"userId"`
 	Edit             int    `json:"edit"`
 	Type             string `json:"type"`
@@ -407,7 +407,7 @@ type EditInfo struct {
 
 // Mastery is a page you should have mastered before you can understand another page.
 type Mastery struct {
-	PageId    string `json:"pageId"`
+	PageID    string `json:"pageId"`
 	Has       bool   `json:"has"`
 	Wants     bool   `json:"wants"`
 	UpdatedAt string `json:"updatedAt"`
@@ -415,8 +415,8 @@ type Mastery struct {
 
 // Mark is something attached to a page, e.g. a place where a user said they were confused.
 type Mark struct {
-	Id                  string `json:"id"`
-	PageId              string `json:"pageId"`
+	ID                  string `json:"id"`
+	PageID              string `json:"pageId"`
 	Type                string `json:"type"`
 	IsCurrentUserOwned  bool   `json:"isCurrentUserOwned"`
 	CreatedAt           string `json:"createdAt"`
@@ -436,12 +436,12 @@ type Mark struct {
 
 	// Marks are anonymous, so the only info FE gets is whether this mark is owned
 	// by the current user.
-	CreatorId string `json:"-"`
+	CreatorID string `json:"-"`
 }
 
 // PageObject stores some information for an object embedded in a page
 type PageObject struct {
-	PageId string `json:"pageId"`
+	PageID string `json:"pageId"`
 	Edit   int    `json:"edit"`
 	Object string `json:"object"`
 	Value  string `json:"value"`
@@ -449,7 +449,7 @@ type PageObject struct {
 
 // Information about a page which was submitted to a domain
 type PageToDomainSubmission struct {
-	PageId      string `json:"pageId"`
+	PageID      string `json:"pageId"`
 	DomainId    string `json:"domainId"`
 	CreatedAt   string `json:"createdAt"`
 	SubmitterId string `json:"submitterId"`
@@ -460,7 +460,7 @@ type PageToDomainSubmission struct {
 // Answer is attached to a question page, and points to another page that
 // answers the question.
 type Answer struct {
-	Id           int64  `json:"id,string"`
+	ID           int64  `json:"id,string"`
 	QuestionId   string `json:"questionId"`
 	AnswerPageId string `json:"answerPageId"`
 	UserId       string `json:"userId"`
@@ -470,8 +470,8 @@ type Answer struct {
 // SearchString is attached to a question page to help with directing users
 // towards it via search or marks.
 type SearchString struct {
-	Id     int64
-	PageId string
+	ID     int64
+	PageID string
 	Text   string
 }
 
@@ -661,7 +661,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		return fmt.Errorf("LoadAnswers failed: %v", err)
 	}
 
-	if u.Id != "" {
+	if u.ID != "" {
 		// Load user's marks
 		filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.UserMarks })
 		err = LoadMarkIds(db, u, pageMap, markMap, &LoadMarkIdsOptions{
@@ -751,7 +751,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 	// Load whether or not the pages have an unpublished draft
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.HasDraft })
-	err = LoadDraftExistence(db, u.Id, &LoadDataOptions{
+	err = LoadDraftExistence(db, u.ID, &LoadDataOptions{
 		ForPages: filteredPageMap,
 	})
 	if err != nil {
@@ -760,28 +760,28 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 	// Load votes
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Votes })
-	err = LoadVotes(db, u.Id, filteredPageMap, userMap)
+	err = LoadVotes(db, u.ID, filteredPageMap, userMap)
 	if err != nil {
 		return fmt.Errorf("LoadVotes failed: %v", err)
 	}
 
 	// Load last visit dates
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.LastVisit })
-	err = LoadLastVisits(db, u.Id, filteredPageMap)
+	err = LoadLastVisits(db, u.ID, filteredPageMap)
 	if err != nil {
 		return fmt.Errorf("LoadLastVisits failed: %v", err)
 	}
 
 	// Load subscriptions
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.IsSubscribed })
-	err = LoadSubscriptions(db, u.Id, filteredPageMap)
+	err = LoadSubscriptions(db, u.ID, filteredPageMap)
 	if err != nil {
 		return fmt.Errorf("LoadSubscriptions failed: %v", err)
 	}
 
 	// Load subscriber count
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.SubscriberCount })
-	err = LoadSubscriberCount(db, u.Id, filteredPageMap)
+	err = LoadSubscriberCount(db, u.ID, filteredPageMap)
 	if err != nil {
 		return fmt.Errorf("LoadSubscriberCount failed: %v", err)
 	}
@@ -900,7 +900,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	// Add pages that need a corresponding mastery to the masteryMap
 	for _, p := range pageMap {
 		if p.LoadOptions.Mastery {
-			masteryMap[p.PageId] = &Mastery{PageId: p.PageId}
+			masteryMap[p.PageID] = &Mastery{PageID: p.PageID}
 		}
 	}
 
@@ -911,7 +911,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	}
 
 	// Load all the users
-	userMap[u.Id] = &User{Id: u.Id}
+	userMap[u.ID] = &User{ID: u.ID}
 	for _, p := range pageMap {
 		AddUserIdToMap(p.PageCreatorId, userMap)
 		AddUserIdToMap(p.EditCreatorId, userMap)
@@ -919,7 +919,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 			AddUserIdToMap(p.LockedBy, userMap)
 		}
 	}
-	err = LoadUsers(db, userMap, u.Id)
+	err = LoadUsers(db, userMap, u.ID)
 	if err != nil {
 		return fmt.Errorf("LoadUsers failed: %v", err)
 	}
@@ -929,9 +929,9 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	visitedValues := make([]interface{}, 0)
 	visitorId := u.GetSomeId()
 	if visitorId != "" {
-		for pageId, p := range pageMap {
+		for pageID, p := range pageMap {
 			if p.Text != "" {
-				visitedValues = append(visitedValues, visitorId, u.SessionId, db.C.R.RemoteAddr, pageId, database.Now())
+				visitedValues = append(visitedValues, visitorId, u.SessionId, db.C.R.RemoteAddr, pageID, database.Now())
 			}
 		}
 	}
@@ -962,11 +962,11 @@ func LoadMasteries(db *database.DB, u *CurrentUser, masteryMap map[string]*Maste
 		WHERE userId=?`, userId).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var mastery Mastery
-		err := rows.Scan(&mastery.PageId, &mastery.UpdatedAt, &mastery.Has, &mastery.Wants)
+		err := rows.Scan(&mastery.PageID, &mastery.UpdatedAt, &mastery.Has, &mastery.Wants)
 		if err != nil {
 			return fmt.Errorf("failed to scan for mastery: %v", err)
 		}
-		masteryMap[mastery.PageId] = &mastery
+		masteryMap[mastery.PageID] = &mastery
 		return nil
 	})
 	return err
@@ -991,14 +991,14 @@ func LoadPageObjects(db *database.DB, u *CurrentUser, pageMap map[string]*Page, 
 		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var obj PageObject
-		err := rows.Scan(&obj.PageId, &obj.Edit, &obj.Object, &obj.Value)
+		err := rows.Scan(&obj.PageID, &obj.Edit, &obj.Object, &obj.Value)
 		if err != nil {
 			return fmt.Errorf("Failed to scan for user: %v", err)
 		}
-		if _, ok := pageObjectMap[obj.PageId]; !ok {
-			pageObjectMap[obj.PageId] = make(map[string]*PageObject)
+		if _, ok := pageObjectMap[obj.PageID]; !ok {
+			pageObjectMap[obj.PageID] = make(map[string]*PageObject)
 		}
-		pageObjectMap[obj.PageId][obj.Object] = &obj
+		pageObjectMap[obj.PageID][obj.Object] = &obj
 		return nil
 	})
 	return err
@@ -1019,7 +1019,7 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 	textIds := make([]interface{}, 0)
 	for _, p := range pageMap {
 		if p.LoadOptions.Text {
-			textIds = append(textIds, p.PageId)
+			textIds = append(textIds, p.PageID)
 		}
 	}
 	textSelect := database.NewQuery(`IF(p.pageId IN`).AddIdsGroup(textIds).Add(`,p.text,"") AS text`)
@@ -1040,23 +1040,23 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		p := NewCorePageData("")
 		err := rows.Scan(
-			&p.PageId, &p.Edit, &p.PrevEdit, &p.EditCreatorId, &p.EditCreatedAt, &p.Title, &p.Clickbait,
+			&p.PageID, &p.Edit, &p.PrevEdit, &p.EditCreatorId, &p.EditCreatedAt, &p.Title, &p.Clickbait,
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.HasVote,
 			&p.VoteType, &p.Alias, &p.PageCreatedAt, &p.PageCreatorId, &p.SortChildrenBy,
-			&p.SeeGroupId, &p.EditGroupId, &p.IsEditorComment, &p.IsEditorCommentIntention,
+			&p.SeeGroupID, &p.EditGroupId, &p.IsEditorComment, &p.IsEditorCommentIntention,
 			&p.IsResolved, &p.IsRequisite, &p.IndirectTeacher, &p.CurrentEdit, &p.LikeableId, &p.ViewCount,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.EditSummary, &p.IsDeleted, &p.MergedInto,
 			&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
 			return fmt.Errorf("Failed to scan a page: %v", err)
 		}
-		pageMap[p.PageId].corePageData = *p
-		pageMap[p.PageId].WasPublished = true
+		pageMap[p.PageID].corePageData = *p
+		pageMap[p.PageID].WasPublished = true
 		return nil
 	})
 	for _, p := range pageMap {
 		if p.Type == "" {
-			delete(pageMap, p.PageId)
+			delete(pageMap, p.PageID)
 		}
 	}
 	return err
@@ -1074,13 +1074,13 @@ func LoadSummaries(db *database.DB, pageMap map[string]*Page) error {
 		FROM pageSummaries
 		WHERE pageId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId string
+		var pageID string
 		var name, text string
-		err := rows.Scan(&pageId, &name, &text)
+		err := rows.Scan(&pageID, &name, &text)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
-		pageMap[pageId].Summaries[name] = text
+		pageMap[pageID].Summaries[name] = text
 		return nil
 	})
 	return err
@@ -1099,13 +1099,13 @@ func LoadEditHistory(db *database.DB, pageMap map[string]*Page) error {
 		WHERE pageId IN`).AddArgsGroup(pageIds).Add(`
 			AND NOT isSnapshot AND NOT isAutosave`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId string
+		var pageID string
 		var editInfo EditInfo
-		err := rows.Scan(&pageId, &editInfo.Edit, &editInfo.PrevEdit)
+		err := rows.Scan(&pageID, &editInfo.Edit, &editInfo.PrevEdit)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
-		pageMap[pageId].EditHistory[fmt.Sprintf("%d", editInfo.Edit)] = &editInfo
+		pageMap[pageID].EditHistory[fmt.Sprintf("%d", editInfo.Edit)] = &editInfo
 		return nil
 	})
 	return err
@@ -1146,7 +1146,7 @@ func LoadChangeLogs(db *database.DB, queryPart *database.QueryPart, resultData *
 		FROM changeLogs as cl`).AddPart(queryPart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		l := NewChangeLog()
-		err := rows.Scan(&l.Id, &l.PageId, &l.UserId, &l.Edit, &l.Type, &l.CreatedAt,
+		err := rows.Scan(&l.ID, &l.PageID, &l.UserId, &l.Edit, &l.Type, &l.CreatedAt,
 			&l.AuxPageId, &l.LikeableId, &l.OldSettingsValue, &l.NewSettingsValue)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
@@ -1169,8 +1169,8 @@ func LoadChangeLogsForPages(db *database.DB, u *CurrentUser, resultData *CommonH
 	for _, p := range sourcePageMap {
 		p.ChangeLogs = make([]*ChangeLog, 0)
 		queryPart := database.NewQuery(`
-			WHERE pageId=?`, p.PageId).Add(`
-				AND (userId=? OR type!=?)`, u.Id, NewSnapshotChangeLog).Add(`
+			WHERE pageId=?`, p.PageID).Add(`
+				AND (userId=? OR type!=?)`, u.ID, NewSnapshotChangeLog).Add(`
 			ORDER BY createdAt DESC`)
 		err := LoadChangeLogs(db, queryPart, resultData, func(db *database.DB, changeLog *ChangeLog) error {
 			p.ChangeLogs = append(p.ChangeLogs, changeLog)
@@ -1195,7 +1195,7 @@ func LoadChangeLogsByIds(db *database.DB, ids []string, typeConstraint string) (
 			WHERE id IN`).AddArgsGroupStr(ids).Add(`
 				AND type=?`, typeConstraint)
 	err := LoadChangeLogs(db, queryPart, nil, func(db *database.DB, changeLog *ChangeLog) error {
-		changeLogs[changeLog.Id] = changeLog
+		changeLogs[changeLog.ID] = changeLog
 		return nil
 	})
 	if err != nil {
@@ -1266,11 +1266,11 @@ type LoadEditOptions struct {
 // LoadFullEdit loads and returns an edit for the given page id from the DB. It
 // also computes the permissions for the edit.
 // If the page couldn't be found, (nil, nil) will be returned.
-func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadEditOptions) (*Page, error) {
+func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, options *LoadEditOptions) (*Page, error) {
 	if options == nil {
 		options = &LoadEditOptions{}
 	}
-	p := NewPage(pageId)
+	p := NewPage(pageID)
 
 	whereClause := database.NewQuery("p.isLiveEdit")
 	if options.LoadSpecificEdit > 0 {
@@ -1281,14 +1281,14 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 				SELECT max(edit)
 				FROM pages
 				WHERE pageId=? AND createdAt<? AND NOT isSnapshot AND NOT isAutosave
-			)`, pageId, options.CreatedAtLimit)
+			)`, pageID, options.CreatedAtLimit)
 	} else if options.LoadEditWithLimit > 0 {
 		whereClause = database.NewQuery(`
 			p.edit=(
 				SELECT max(edit)
 				FROM pages
 				WHERE pageId=? AND edit<? AND NOT isSnapshot AND NOT isAutosave
-			)`, pageId, options.LoadEditWithLimit)
+			)`, pageID, options.LoadEditWithLimit)
 	} else if options.LoadNonliveEdit {
 		orderClause := database.NewQuery(`
 			/* From most to least preferred edits: autosave, (applicable) snapshot, currentEdit, anything else */
@@ -1313,8 +1313,8 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 				FROM pages AS p
 				JOIN`).AddPart(PageInfosTableAll(u)).Add(`AS pi
 				ON (p.pageId=pi.pageId)
-				WHERE p.pageId=?`, pageId).Add(`
-					AND (p.creatorId=? OR (NOT p.isSnapshot AND NOT p.isAutosave))`, u.Id).Add(`
+				WHERE p.pageId=?`, pageID).Add(`
+					AND (p.creatorId=? OR (NOT p.isSnapshot AND NOT p.isAutosave))`, u.ID).Add(`
 					/* To consider a snapshot, it has to be based on the current edit */
 					AND (NOT p.isSnapshot OR pi.currentEdit=0 OR p.prevEdit=pi.currentEdit)`).AddPart(orderClause).Add(`
 				LIMIT 1
@@ -1331,12 +1331,12 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 			pi.viewCount,pi.voteType,pi.isRequisite,pi.indirectTeacher
 		FROM pages AS p
 		JOIN`).AddPart(PageInfosTableAll(u)).Add(`AS pi
-		ON (p.pageId=pi.pageId AND p.pageId=?)`, pageId).Add(`
+		ON (p.pageId=pi.pageId AND p.pageId=?)`, pageID).Add(`
 		WHERE`).AddPart(whereClause).ToStatement(db)
 	row := statement.QueryRow()
-	exists, err := row.Scan(&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.Title, &p.Clickbait,
+	exists, err := row.Scan(&p.PageID, &p.Edit, &p.PrevEdit, &p.Type, &p.Title, &p.Clickbait,
 		&p.Text, &p.MetaText, &p.Alias, &p.EditCreatorId, &p.SortChildrenBy,
-		&p.HasVote, &p.VoteType, &p.EditCreatedAt, &p.SeeGroupId,
+		&p.HasVote, &p.VoteType, &p.EditCreatedAt, &p.SeeGroupID,
 		&p.EditGroupId, &p.PageCreatedAt, &p.PageCreatorId,
 		&p.IsEditorComment, &p.IsEditorCommentIntention, &p.IsResolved, &p.LikeableId,
 		&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.EditSummary,
@@ -1366,14 +1366,14 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 func LoadPageIds(rows *database.Rows, pageMap map[string]*Page, loadOptions *PageLoadOptions) ([]string, error) {
 	ids := make([]string, 0)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId string
-		err := rows.Scan(&pageId)
+		var pageID string
+		err := rows.Scan(&pageID)
 		if err != nil {
 			return fmt.Errorf("failed to scan a pageId: %v", err)
 		}
 
-		AddPageToMap(pageId, pageMap, loadOptions)
-		ids = append(ids, pageId)
+		AddPageToMap(pageID, pageMap, loadOptions)
+		ids = append(ids, pageID)
 		return nil
 	})
 	return ids, err
@@ -1386,7 +1386,7 @@ func LoadLikes(db *database.DB, u *CurrentUser, likeablesMap map[int64]*Likeable
 	}
 
 	likeableIds := make([]interface{}, 0)
-	for id, _ := range likeablesMap {
+	for id := range likeablesMap {
 		likeableIds = append(likeableIds, id)
 	}
 
@@ -1405,7 +1405,7 @@ func LoadLikes(db *database.DB, u *CurrentUser, likeablesMap map[int64]*Likeable
 		// TODO: just record the scores and then do a calculation in one line at the end (outside of Process).
 		likeable := likeablesMap[likeableId]
 		// We count the current user's like value towards the sum in the FE rather than here.
-		if userId == u.Id {
+		if userId == u.ID {
 			likeable.MyLikeValue = value
 		} else if value > 0 {
 			if likeable.LikeCount >= likeable.DislikeCount {
@@ -1462,12 +1462,12 @@ func LoadSearchStrings(db *database.DB, pageMap map[string]*Page) error {
 		WHERE pageId IN ` + database.InArgsPlaceholder(len(pageIds))).Query(pageIds...)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var id int64
-		var pageId, text string
-		err := rows.Scan(&id, &pageId, &text)
+		var pageID, text string
+		err := rows.Scan(&id, &pageID, &text)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
-		pageMap[pageId].SearchStrings[fmt.Sprintf("%d", id)] = text
+		pageMap[pageID].SearchStrings[fmt.Sprintf("%d", id)] = text
 		return nil
 	})
 	return err
@@ -1481,7 +1481,7 @@ func LoadSearchString(db *database.DB, id string) (*SearchString, error) {
 		FROM searchStrings
 		WHERE id=?`).Query(id)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		err := rows.Scan(&searchString.Id, &searchString.PageId, &searchString.Text)
+		err := rows.Scan(&searchString.ID, &searchString.PageID, &searchString.Text)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
@@ -1508,21 +1508,21 @@ func LoadVotes(db *database.DB, currentUserId string, pageMap map[string]*Page, 
 		GROUP BY userId,pageId`).Query(pageIds...)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var v Vote
-		var pageId string
-		err := rows.Scan(&v.UserId, &pageId, &v.Value, &v.CreatedAt)
+		var pageID string
+		err := rows.Scan(&v.UserId, &pageID, &v.Value, &v.CreatedAt)
 		if err != nil {
 			return fmt.Errorf("failed to scan for a vote: %v", err)
 		}
 		if v.Value == 0 {
 			return nil
 		}
-		page := pageMap[pageId]
+		page := pageMap[pageID]
 		if page.Votes == nil {
 			page.Votes = make([]*Vote, 0, 0)
 		}
 		page.Votes = append(page.Votes, &v)
 		if _, ok := usersMap[v.UserId]; !ok {
-			usersMap[v.UserId] = &User{Id: v.UserId}
+			usersMap[v.UserId] = &User{ID: v.UserId}
 		}
 		return nil
 	})
@@ -1608,14 +1608,14 @@ func LoadCreatorIds(db *database.DB, u *CurrentUser, pageMap map[string]*Page, u
 		GROUP BY 1,2
 		ORDER BY 3 DESC`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId, creatorId string
+		var pageID, creatorId string
 		var count int
-		err := rows.Scan(&pageId, &creatorId, &count)
+		err := rows.Scan(&pageID, &creatorId, &count)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
-		pageMap[pageId].CreatorIds = append(pageMap[pageId].CreatorIds, creatorId)
-		userMap[creatorId] = &User{Id: creatorId}
+		pageMap[pageID].CreatorIds = append(pageMap[pageID].CreatorIds, creatorId)
+		userMap[creatorId] = &User{ID: creatorId}
 		return nil
 	})
 	if err != nil {
@@ -1631,16 +1631,16 @@ func LoadCreatorIds(db *database.DB, u *CurrentUser, pageMap map[string]*Page, u
 		WHERE pi.pageId IN`).AddArgsGroup(pageIdsList).Add(`
 			AND pi.editGroupId!=""`).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId, editGroupId string
+		var pageID, editGroupId string
 		var isPage bool
-		err := rows.Scan(&pageId, &editGroupId, &isPage)
+		err := rows.Scan(&pageID, &editGroupId, &isPage)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
 		if isPage {
 			AddPageToMap(editGroupId, pageMap, TitlePlusLoadOptions)
 		} else {
-			userMap[editGroupId] = &User{Id: editGroupId}
+			userMap[editGroupId] = &User{ID: editGroupId}
 		}
 		return nil
 	})
@@ -1696,12 +1696,12 @@ func LoadLinks(db *database.DB, u *CurrentUser, pageMap map[string]*Page, option
 			FROM`).AddPart(PageInfosTable(u)).Add(`AS pi
 			WHERE alias IN`).AddArgsGroup(aliasesList).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var pageId string
-			err := rows.Scan(&pageId)
+			var pageID string
+			err := rows.Scan(&pageID)
 			if err != nil {
 				return fmt.Errorf("failed to scan for a page: %v", err)
 			}
-			AddPageIdToMap(pageId, pageMap)
+			AddPageIdToMap(pageID, pageMap)
 			return nil
 		})
 		if err != nil {
@@ -1720,7 +1720,7 @@ func LoadPageToDomainSubmissions(db *database.DB, queryPart *database.QueryPart,
 		FROM pageToDomainSubmissions`).AddPart(queryPart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var submission PageToDomainSubmission
-		err := rows.Scan(&submission.PageId, &submission.DomainId, &submission.CreatedAt,
+		err := rows.Scan(&submission.PageID, &submission.DomainId, &submission.CreatedAt,
 			&submission.SubmitterId, &submission.ApprovedAt, &submission.ApproverId)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
@@ -1751,16 +1751,16 @@ func LoadPageToDomainSubmissionsForPages(db *database.DB, pageMap map[string]*Pa
 		AddPageIdToMap(submission.DomainId, pageMap)
 		AddUserToMap(submission.SubmitterId, userMap)
 		AddUserToMap(submission.ApproverId, userMap)
-		pageMap[submission.PageId].DomainSubmissions[submission.DomainId] = submission
+		pageMap[submission.PageID].DomainSubmissions[submission.DomainId] = submission
 		return nil
 	})
 	return err
 }
 
 // LoadPageToDomainSubmission loads information about a specific page that was submitted to a specific domain
-func LoadPageToDomainSubmission(db *database.DB, pageId, domainId string) (*PageToDomainSubmission, error) {
+func LoadPageToDomainSubmission(db *database.DB, pageID, domainId string) (*PageToDomainSubmission, error) {
 	queryPart := database.NewQuery(`
-		WHERE pageId=?`, pageId).Add(`
+		WHERE pageId=?`, pageID).Add(`
 			AND domainId=?`, domainId).Add(`
 		LIMIT 1`)
 	var resultSubmission *PageToDomainSubmission
@@ -1793,12 +1793,12 @@ func LoadAnswers(db *database.DB, pageMap map[string]*Page, userMap map[string]*
 	WHERE questionId IN ` + database.InArgsPlaceholder(len(pageIds))).Query(pageIds...)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var answer Answer
-		err := rows.Scan(&answer.Id, &answer.QuestionId, &answer.AnswerPageId, &answer.UserId, &answer.CreatedAt)
+		err := rows.Scan(&answer.ID, &answer.QuestionId, &answer.AnswerPageId, &answer.UserId, &answer.CreatedAt)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
 		AddPageToMap(answer.AnswerPageId, pageMap, AnswerLoadOptions)
-		userMap[answer.UserId] = &User{Id: answer.UserId}
+		userMap[answer.UserId] = &User{ID: answer.UserId}
 		pageMap[answer.QuestionId].Answers = append(pageMap[answer.QuestionId].Answers, &answer)
 		return nil
 	})
@@ -1811,7 +1811,7 @@ func LoadAnswer(db *database.DB, answerId string) (*Answer, error) {
 	_, err := db.NewStatement(`
 		SELECT id,questionId,answerPageId,userId,createdAt
 		FROM answers
-		WHERE id=?`).QueryRow(answerId).Scan(&answer.Id, &answer.QuestionId,
+		WHERE id=?`).QueryRow(answerId).Scan(&answer.ID, &answer.QuestionId,
 		&answer.AnswerPageId, &answer.UserId, &answer.CreatedAt)
 	return &answer, err
 }
@@ -1843,7 +1843,7 @@ func LoadMarkIds(db *database.DB, u *CurrentUser, pageMap map[string]*Page, mark
 	// Only load the marks the current user created
 	constraint := database.NewQuery(``)
 	if options.CurrentUserConstraint {
-		constraint = database.NewQuery(`AND m.creatorId=?`, u.Id)
+		constraint = database.NewQuery(`AND m.creatorId=?`, u.ID)
 	}
 
 	// Only load for pages in which current user is an author
@@ -1854,7 +1854,7 @@ func LoadMarkIds(db *database.DB, u *CurrentUser, pageMap map[string]*Page, mark
 			FROM pages AS p
 			WHERE p.pageId IN`).AddArgsGroup(pageIds).Add(`
 				AND NOT p.isSnapshot AND NOT p.isAutosave
-				AND p.creatorId=?`, u.Id).Add(`
+				AND p.creatorId=?`, u.ID).Add(`
 		)`)
 		constraint.Add(`AND m.isSubmitted`)
 	}
@@ -1876,7 +1876,7 @@ func LoadMarkIds(db *database.DB, u *CurrentUser, pageMap map[string]*Page, mark
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
 		if _, ok := markMap[markId]; !ok {
-			markMap[markId] = &Mark{Id: markId}
+			markMap[markId] = &Mark{ID: markId}
 		}
 		return nil
 	})
@@ -1965,15 +1965,15 @@ func LoadSubpageCounts(db *database.DB, u *CurrentUser, pageMap map[string]*Page
 		ON (pi.pageId=pp.childId)
 		GROUP BY 1,2`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId string
+		var pageID string
 		var childType string
 		var count int
-		err := rows.Scan(&pageId, &childType, &count)
+		err := rows.Scan(&pageID, &childType, &count)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
 		if childType == CommentPageType {
-			pageMap[pageId].CommentCount = count
+			pageMap[pageID].CommentCount = count
 		}
 		return nil
 	})
@@ -2033,7 +2033,7 @@ func LoadCommentIds(db *database.DB, u *CurrentUser, pageMap map[string]*Page, o
 		}
 		parentPage := AddPageToMap(parentId, pageMap, SubpageLoadOptions)
 		childPage := AddPageToMap(childId, pageMap, SubpageLoadOptions)
-		parentPage.CommentIds = append(parentPage.CommentIds, childPage.PageId)
+		parentPage.CommentIds = append(parentPage.CommentIds, childPage.PageID)
 		return nil
 	})
 
@@ -2099,7 +2099,7 @@ func loadOrderedChildrenIds(db *database.DB, u *CurrentUser, parentId string, so
 
 // loadSiblingId loads the next/prev sibling page id, based on the "parent"
 // relationships. We search recursively up the hierarchy if necessary.
-func loadSiblingId(db *database.DB, u *CurrentUser, pageId string, useNextSibling bool) (string, error) {
+func loadSiblingId(db *database.DB, u *CurrentUser, pageID string, useNextSibling bool) (string, error) {
 	// Load the parent and the sorting order
 	var parentId string
 	var sortType string
@@ -2112,7 +2112,7 @@ func loadSiblingId(db *database.DB, u *CurrentUser, pageId string, useNextSiblin
 		FROM pagePairs AS pp
 		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
 		ON (pp.parentId=pi.pageId)
-		WHERE pp.type=?`, ParentPagePairType).Add(`AND pp.childId=?`, pageId).ToStatement(db).QueryRow()
+		WHERE pp.type=?`, ParentPagePairType).Add(`AND pp.childId=?`, pageID).ToStatement(db).QueryRow()
 	found, err := row.Scan(&parentId, &sortType, &parentCount)
 	if err != nil {
 		return "", err
@@ -2129,7 +2129,7 @@ func loadSiblingId(db *database.DB, u *CurrentUser, pageId string, useNextSiblin
 	// Find where the current page sits in the ordered sibling list
 	pageSiblingIndex := -1
 	for i, childId := range orderedSiblingIds {
-		if childId == pageId {
+		if childId == pageID {
 			pageSiblingIndex = i
 			break
 		}
@@ -2161,13 +2161,13 @@ func LoadNextPrevPageIds(db *database.DB, u *CurrentUser, options *LoadDataOptio
 	}
 	for _, p := range options.ForPages {
 		var err error
-		p.PrevPageId, err = loadSiblingId(db, u, p.PageId, false)
+		p.PrevPageId, err = loadSiblingId(db, u, p.PageID, false)
 		if err != nil {
 			return fmt.Errorf("Error while loading prev page id: %v", err)
 		}
 
 		// NextPageId will be the first child if there are children
-		orderedChildrenIds, err := loadOrderedChildrenIds(db, u, p.PageId, p.SortChildrenBy)
+		orderedChildrenIds, err := loadOrderedChildrenIds(db, u, p.PageID, p.SortChildrenBy)
 		if err != nil {
 			return fmt.Errorf("Error getting first child: %v", err)
 		}
@@ -2177,7 +2177,7 @@ func LoadNextPrevPageIds(db *database.DB, u *CurrentUser, options *LoadDataOptio
 
 		// If there are no children, then get the next sibling
 		if !IsIdValid(p.NextPageId) {
-			p.NextPageId, err = loadSiblingId(db, u, p.PageId, true)
+			p.NextPageId, err = loadSiblingId(db, u, p.PageID, true)
 			if err != nil {
 				return fmt.Errorf("Error while loading next page id: %v", err)
 			}
@@ -2201,12 +2201,12 @@ func LoadDraftExistence(db *database.DB, userId string, options *LoadDataOptions
 		WHERE pageId IN`).AddArgsGroup(pageIds).Add(`
 			AND isAutosave AND creatorId=?`, userId).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId string
-		err := rows.Scan(&pageId)
+		var pageID string
+		err := rows.Scan(&pageID)
 		if err != nil {
 			return fmt.Errorf("Failed to scan a draft existence: %v", err)
 		}
-		pageMap[pageId].HasDraft = true
+		pageMap[pageID].HasDraft = true
 		return nil
 	})
 	return err
@@ -2301,12 +2301,12 @@ func LoadDomainIds(db *database.DB, pageMap map[string]*Page, options *LoadDataO
 		FROM pageDomainPairs
 		WHERE pageId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId, domainId string
-		err := rows.Scan(&pageId, &domainId)
+		var pageID, domainId string
+		err := rows.Scan(&pageID, &domainId)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
-		sourcePageMap[pageId].DomainIds = append(sourcePageMap[pageId].DomainIds, domainId)
+		sourcePageMap[pageID].DomainIds = append(sourcePageMap[pageID].DomainIds, domainId)
 		if pageMap != nil {
 			AddPageToMap(domainId, pageMap, TitlePlusLoadOptions)
 		}
@@ -2315,7 +2315,7 @@ func LoadDomainIds(db *database.DB, pageMap map[string]*Page, options *LoadDataO
 	return err
 }
 func LoadDomainIdsForPage(db *database.DB, page *Page) error {
-	pageMap := map[string]*Page{page.PageId: page}
+	pageMap := map[string]*Page{page.PageID: page}
 	return LoadDomainIds(db, pageMap, &LoadDataOptions{
 		ForPages: pageMap,
 	})
@@ -2327,8 +2327,8 @@ func LoadTrustMapForUsers(db *database.DB, pageMap map[string]*Page) error {
 	if len(pageMap) > 1 {
 		db.C.Warningf("Loading more than one trust map. Inefficient!")
 	}
-	for pageId, page := range pageMap {
-		page.TrustMap, err = LoadUserTrust(db, pageId)
+	for pageID, page := range pageMap {
+		page.TrustMap, err = LoadUserTrust(db, pageID)
 		if err != nil {
 			return err
 		}
@@ -2375,14 +2375,14 @@ func LoadAliasToPageIdMap(db *database.DB, u *CurrentUser, aliases []string) (ma
 
 	rows := query.Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId string
+		var pageID string
 		var alias string
-		err := rows.Scan(&pageId, &alias)
+		err := rows.Scan(&pageID, &alias)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
-		aliasToIdMap[strings.ToLower(alias)] = pageId
-		aliasToIdMap[strings.ToLower(pageId)] = pageId
+		aliasToIdMap[strings.ToLower(alias)] = pageID
+		aliasToIdMap[strings.ToLower(pageID)] = pageID
 		return nil
 	})
 	if err != nil {
@@ -2391,8 +2391,8 @@ func LoadAliasToPageIdMap(db *database.DB, u *CurrentUser, aliases []string) (ma
 
 	// The query only gets results for when the page is published
 	// We also want to return the pageIds even if they aren't for valid pages
-	for _, pageId := range strictPageIds {
-		aliasToIdMap[strings.ToLower(pageId)] = strings.ToLower(pageId)
+	for _, pageID := range strictPageIds {
+		aliasToIdMap[strings.ToLower(pageID)] = strings.ToLower(pageID)
 	}
 	return aliasToIdMap, nil
 }
@@ -2403,8 +2403,8 @@ func LoadAliasToPageId(db *database.DB, u *CurrentUser, alias string) (string, b
 	if err != nil {
 		return "", false, err
 	}
-	pageId, ok := aliasToIdMap[strings.ToLower(alias)]
-	return pageId, ok, nil
+	pageID, ok := aliasToIdMap[strings.ToLower(alias)]
+	return pageID, ok, nil
 }
 
 // LoadAliasAndPageId returns both the alias and the pageId for a given alias or pageId.
@@ -2433,7 +2433,7 @@ func LoadLenses(db *database.DB, queryPart *database.QueryPart, resultData *Comm
 		FROM lenses AS l`).AddPart(queryPart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var lens Lens
-		err := rows.Scan(&lens.Id, &lens.PageId, &lens.LensId, &lens.LensIndex, &lens.LensName,
+		err := rows.Scan(&lens.ID, &lens.PageID, &lens.LensId, &lens.LensIndex, &lens.LensName,
 			&lens.CreatedBy, &lens.CreatedAt, &lens.UpdatedBy, &lens.UpdatedAt)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
@@ -2459,7 +2459,7 @@ func LoadLensesForPages(db *database.DB, resultData *CommonHandlerData, options 
 		ON (l.lensId=pi.pageId)`).Add(`
 		WHERE l.pageId IN`).AddArgsGroup(pageIds)
 	err := LoadLenses(db, queryPart, resultData, func(db *database.DB, lens *Lens) error {
-		sourcePageMap[lens.PageId].Lenses = append(sourcePageMap[lens.PageId].Lenses, lens)
+		sourcePageMap[lens.PageID].Lenses = append(sourcePageMap[lens.PageID].Lenses, lens)
 		AddPageToMap(lens.LensId, resultData.PageMap, LensInfoLoadOptions)
 		return nil
 	})
@@ -2508,13 +2508,13 @@ func LoadLensParentIds(db *database.DB, pageMap map[string]*Page, options *LoadD
 		FROM lenses
 		WHERE lensId IN`).AddArgsGroup(lensIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId, lensId string
-		err := rows.Scan(&pageId, &lensId)
+		var pageID, lensId string
+		err := rows.Scan(&pageID, &lensId)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
-		sourcePageMap[lensId].LensParentId = pageId
-		AddPageIdToMap(pageId, pageMap)
+		sourcePageMap[lensId].LensParentId = pageID
+		AddPageIdToMap(pageID, pageMap)
 		return nil
 	})
 	if err != nil {
@@ -2533,7 +2533,7 @@ func LoadPathPages(db *database.DB, queryPart *database.QueryPart, resultData *C
 		FROM pathPages AS pathp`).AddPart(queryPart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pathPage PathPage
-		err := rows.Scan(&pathPage.Id, &pathPage.GuideId, &pathPage.PathPageId, &pathPage.PathIndex,
+		err := rows.Scan(&pathPage.ID, &pathPage.GuideId, &pathPage.PathPageId, &pathPage.PathIndex,
 			&pathPage.CreatedBy, &pathPage.CreatedAt, &pathPage.UpdatedBy, &pathPage.UpdatedAt)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
@@ -2594,16 +2594,16 @@ func LoadPathInstance(db *database.DB, id string, u *CurrentUser) (*PathInstance
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		instance = NewPathInstance()
 		var pageIds, sourcePageIds, userId string
-		err := rows.Scan(&instance.Id, &userId, &instance.GuideId, &pageIds, &sourcePageIds,
+		err := rows.Scan(&instance.ID, &userId, &instance.GuideId, &pageIds, &sourcePageIds,
 			&instance.Progress, &instance.CreatedAt, &instance.UpdatedAt, &instance.IsFinished)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
-		instance.IsByCurrentUser = userId == u.Id
+		instance.IsByCurrentUser = userId == u.ID
 		pageIdsList := strings.Split(pageIds, ",")
 		sourceIdsList := strings.Split(sourcePageIds, ",")
-		for n, pageId := range pageIdsList {
-			instance.Pages = append(instance.Pages, &PathInstancePage{pageId, sourceIdsList[n]})
+		for n, pageID := range pageIdsList {
+			instance.Pages = append(instance.Pages, &PathInstancePage{pageID, sourceIdsList[n]})
 		}
 		return nil
 	})

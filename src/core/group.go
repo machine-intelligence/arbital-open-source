@@ -21,7 +21,7 @@ func LoadUserGroupIds(db *database.DB, u *CurrentUser) error {
 	rows := db.NewStatement(`
 		SELECT groupId
 		FROM groupMembers
-		WHERE userId=?`).Query(u.Id)
+		WHERE userId=?`).Query(u.ID)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var groupId string
 		err := rows.Scan(&groupId)
@@ -36,8 +36,8 @@ func LoadUserGroupIds(db *database.DB, u *CurrentUser) error {
 
 // AddUserGroupIdsToPageMap adds user's groups to the page map so we can load them.
 func AddUserGroupIdsToPageMap(u *CurrentUser, pageMap map[string]*Page) {
-	for _, pageId := range u.GroupIds {
-		AddPageIdToMap(pageId, pageMap)
+	for _, pageID := range u.GroupIds {
+		AddPageIdToMap(pageID, pageMap)
 	}
 }
 
@@ -116,13 +116,13 @@ If you are the owner, click [here to edit](%s).`, title, userGroupStr, url)
 
 	// Update elastic search index.
 	doc := &elastic.Document{
-		PageId:    groupId,
+		PageID:    groupId,
 		Type:      groupType,
 		Title:     title,
 		Clickbait: clickbait,
 		Text:      text,
 		Alias:     alias,
-		CreatorId: userId,
+		CreatorID: userId,
 	}
 	err := elastic.AddPageToIndex(tx.DB.C, doc)
 	if err != nil {

@@ -43,13 +43,13 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 		}
 	}()
 
-	if p.LockedUntil > database.Now() && p.LockedBy != u.Id {
+	if p.LockedUntil > database.Now() && p.LockedBy != u.ID {
 		p.Permissions.Edit.Reason = fmt.Sprintf(
 			"Another editor is currently working on the page. It will automatically unlock within half an hour.")
 		return
 	}
 
-	if IsIdValid(p.SeeGroupId) && !u.IsMemberOfGroup(p.SeeGroupId) {
+	if IsIdValid(p.SeeGroupID) && !u.IsMemberOfGroup(p.SeeGroupID) {
 		p.Permissions.Edit.Reason = "You don't have group permission to EVEN SEE this page"
 		return
 	}
@@ -61,7 +61,7 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 	}
 
 	// The page creator can always edit the page
-	if p.PageCreatorId == u.Id {
+	if p.PageCreatorId == u.ID {
 		p.Permissions.Edit.Has = true
 		return
 	}
@@ -112,7 +112,7 @@ func (p *Page) computeDeletePermissions(c sessions.Context, u *CurrentUser) {
 	}
 	// If it's a comment, only the creator can delete it
 	if p.Type == CommentPageType {
-		p.Permissions.Delete.Has = p.PageCreatorId == u.Id || u.IsAdmin
+		p.Permissions.Delete.Has = p.PageCreatorId == u.ID || u.IsAdmin
 		if !p.Permissions.Delete.Has {
 			p.Permissions.Delete.Reason = "Can't delete a comment you didn't create"
 		}
@@ -121,7 +121,7 @@ func (p *Page) computeDeletePermissions(c sessions.Context, u *CurrentUser) {
 	// If the page is part of the general domain, only the creator and domain reviewers
 	// can edit it.
 	if len(p.DomainIds) <= 0 {
-		p.Permissions.Delete.Has = p.PageCreatorId == u.Id || u.MaxTrustLevel >= ReviewerTrustLevel
+		p.Permissions.Delete.Has = p.PageCreatorId == u.ID || u.MaxTrustLevel >= ReviewerTrustLevel
 		if !p.Permissions.Delete.Has {
 			p.Permissions.Delete.Reason = "Only the creator and domain members can delete an unlisted page"
 		}
@@ -193,15 +193,15 @@ func VerifyEditPermissionsForMap(db *database.DB, pageMap map[string]*Page, u *C
 	ComputePermissionsForMap(db.C, pageMap, u)
 	for _, p := range pageMap {
 		if !p.Permissions.Edit.Has {
-			return fmt.Sprintf("Don't have edit access to page " + p.PageId + ": " + p.Permissions.Edit.Reason), nil
+			return fmt.Sprintf("Don't have edit access to page " + p.PageID + ": " + p.Permissions.Edit.Reason), nil
 		}
 	}
 	return "", nil
 }
 func VerifyEditPermissionsForList(db *database.DB, pageIds []string, u *CurrentUser) (string, error) {
 	pageMap := make(map[string]*Page)
-	for _, pageId := range pageIds {
-		AddPageIdToMap(pageId, pageMap)
+	for _, pageID := range pageIds {
+		AddPageIdToMap(pageID, pageMap)
 	}
 	return VerifyEditPermissionsForMap(db, pageMap, u)
 }
@@ -211,7 +211,7 @@ func VerifyEditPermissionsForList(db *database.DB, pageIds []string, u *CurrentU
 // Check if the given user can affect a relationship between the two pages.
 func CanAffectRelationship(c sessions.Context, parent *Page, child *Page, relationshipType string) (string, error) {
 	// No intragroup links allowed.
-	if child.SeeGroupId != parent.SeeGroupId {
+	if child.SeeGroupID != parent.SeeGroupID {
 		return "Parent and child need to have the same See Group", nil
 	}
 

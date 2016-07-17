@@ -11,7 +11,7 @@ import (
 
 // childrenJsonData contains parameters passed in to create a page.
 type childrenJsonData struct {
-	ParentId string
+	ParentID string
 }
 
 var childrenHandler = siteHandler{
@@ -29,7 +29,7 @@ func childrenJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.ParentId) {
+	if !core.IsIdValid(data.ParentID) {
 		return pages.Fail("Need a valid parentId", nil).Status(http.StatusBadRequest)
 	}
 
@@ -41,13 +41,13 @@ func childrenJsonHandler(params *pages.HandlerParams) *pages.Result {
 		HasGrandChildren:        true,
 		RedLinkCountForChildren: true,
 	}).Add(core.TitlePlusLoadOptions)
-	core.AddPageToMap(data.ParentId, returnData.PageMap, loadOptions)
+	core.AddPageToMap(data.ParentID, returnData.PageMap, loadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
 	}
 	// Remove parent, since we only want to return children.
-	delete(returnData.PageMap, data.ParentId)
+	delete(returnData.PageMap, data.ParentID)
 
 	return pages.Success(returnData)
 }

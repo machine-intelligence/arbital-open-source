@@ -43,7 +43,7 @@ func resolveMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the mark
-	mark := &core.Mark{Id: data.MarkId}
+	mark := &core.Mark{ID: data.MarkId}
 	loadData.MarkMap[data.MarkId] = mark
 	err = core.LoadMarkData(db, loadData.PageMap, loadData.UserMap, loadData.MarkMap, u)
 	if err != nil {
@@ -52,7 +52,7 @@ func resolveMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("No such mark", nil).Status(http.StatusBadRequest)
 	}
 
-	if mark.CreatorId != u.Id {
+	if mark.CreatorID != u.ID {
 		data.Text = ""
 	}
 
@@ -60,12 +60,12 @@ func resolveMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	hashmap := make(database.InsertMap)
 	hashmap["id"] = data.MarkId
 	hashmap["resolvedPageId"] = data.ResolvedPageId
-	hashmap["resolvedBy"] = u.Id
+	hashmap["resolvedBy"] = u.ID
 	hashmap["resolvedAt"] = database.Now()
 	if data.Text != "" {
 		hashmap["text"] = data.Text
 	}
-	if mark.CreatorId == u.Id {
+	if mark.CreatorID == u.ID {
 		hashmap["isSubmitted"] = true
 	}
 	statement := db.NewInsertStatement("marks", hashmap, hashmap.GetKeys()...)
@@ -77,7 +77,7 @@ func resolveMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// If the mark was resolved for the first time, update the user mark owner
 	if mark.Type != core.QueryMarkType && mark.ResolvedBy == "" && data.ResolvedPageId != "" {
 		hashmap := make(database.InsertMap)
-		hashmap["userId"] = mark.CreatorId
+		hashmap["userId"] = mark.CreatorID
 		hashmap["type"] = core.ResolvedMarkUpdateType
 		hashmap["goToPageId"] = data.ResolvedPageId
 		hashmap["markId"] = data.MarkId

@@ -15,8 +15,8 @@ import (
 
 // newPagePairData contains the data we get in the request.
 type newPagePairData struct {
-	ParentId string
-	ChildId  string
+	ParentID string
+	ChildID  string
 	Type     string
 	Level    int
 	IsStrong bool
@@ -48,10 +48,10 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 	var err error
 
 	// Error checking
-	if !core.IsIdValid(data.ParentId) || !core.IsIdValid(data.ChildId) {
+	if !core.IsIdValid(data.ParentID) || !core.IsIdValid(data.ChildID) {
 		return pages.Fail("ParentId and ChildId have to be set", nil).Status(http.StatusBadRequest)
 	}
-	if data.ParentId == data.ChildId &&
+	if data.ParentID == data.ChildID &&
 		data.Type != core.SubjectPagePairType &&
 		data.Type != core.RequirementPagePairType {
 		return pages.Fail("ParentId equals ChildId", nil).Status(http.StatusBadRequest)
@@ -63,7 +63,7 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 
 	// Check if this page pair already exists
 	var pagePair *core.PagePair
-	queryPart := database.NewQuery(`WHERE pp.parentId=? AND pp.childId=? AND pp.type=?`, data.ParentId, data.ChildId, data.Type)
+	queryPart := database.NewQuery(`WHERE pp.parentId=? AND pp.childId=? AND pp.type=?`, data.ParentID, data.ChildID, data.Type)
 	err = core.LoadPagePairs(db, queryPart, func(db *database.DB, pp *core.PagePair) error {
 		pagePair = pp
 		return nil
@@ -76,7 +76,7 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 
 	// Check if adding the relationship would create a parent-child cycle
 	if data.Type == core.ParentPagePairType {
-		childIsAncestor, err := core.IsAncestor(db, data.ChildId, data.ParentId)
+		childIsAncestor, err := core.IsAncestor(db, data.ChildID, data.ParentID)
 		if err != nil {
 			return pages.Fail("Failed to check for ancestor: %v", err)
 		} else if childIsAncestor {
@@ -86,8 +86,8 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 
 	// Load pages
 	pagePair = &core.PagePair{
-		ParentId: data.ParentId,
-		ChildId:  data.ChildId,
+		ParentID: data.ParentID,
+		ChildID:  data.ChildID,
 		Type:     data.Type,
 	}
 	parent, child, err := core.LoadFullEditsForPagePair(db, pagePair, u)
@@ -108,12 +108,12 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Create new page pair
 		hashmap := make(database.InsertMap)
-		hashmap["parentId"] = data.ParentId
-		hashmap["childId"] = data.ChildId
+		hashmap["parentId"] = data.ParentID
+		hashmap["childId"] = data.ChildID
 		hashmap["type"] = data.Type
 		hashmap["level"] = data.Level
 		hashmap["isStrong"] = data.IsStrong
-		hashmap["creatorId"] = u.Id
+		hashmap["creatorId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		statement := tx.DB.NewInsertStatement("pagePairs", hashmap).WithTx(tx)
 		resp, err := statement.Exec()
@@ -128,14 +128,14 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 		// Go ahead and update the domains for the child page
 		// (we'll handle its descendants in the PublishPagePairTask)
 		if data.Type == core.ParentPagePairType {
-			addedDomainsMap, _, err := core.PropagateDomainsWithTx(tx, []string{data.ChildId})
+			addedDomainsMap, _, err := core.PropagateDomainsWithTx(tx, []string{data.ChildID})
 			if err != nil {
 				return sessions.NewError("Couldn't update domains for the child page", err)
 			}
-			if addedDomainsSet, ok := addedDomainsMap[data.ChildId]; ok {
+			if addedDomainsSet, ok := addedDomainsMap[data.ChildID]; ok {
 				// Check to see if the child page had been submitted for approval to any of the domains it was just added to.
 				for domainId := range addedDomainsSet {
-					submission, err := core.LoadPageToDomainSubmission(tx.DB, data.ChildId, domainId)
+					submission, err := core.LoadPageToDomainSubmission(tx.DB, data.ChildID, domainId)
 					if err != nil {
 						return sessions.NewError("Couldn't load submission", err)
 					}
@@ -151,8 +151,8 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 		}
 
 		var task tasks.PublishPagePairTask
-		task.UserId = u.Id
-		task.PagePairId = fmt.Sprintf("%d", pagePairId)
+		task.UserId = u.ID
+		task.PagePairID = fmt.Sprintf("%d", pagePairId)
 		err = tasks.Enqueue(c, &task, nil)
 		if err != nil {
 			return sessions.NewError("Couldn't enqueue the task", err)

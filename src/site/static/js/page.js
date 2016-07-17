@@ -6,7 +6,6 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 		templateUrl: versionUrl('static/html/page.html'),
 		scope: {
 			pageId: '@',
-			isSimpleEmbed: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;

@@ -14,7 +14,7 @@ import (
 
 // Contains data given to us in the request.
 type approvePageToDomainData struct {
-	PageId   string `json:"pageId"`
+	PageID   string `json:"pageId"`
 	DomainId string `json:"domainId"`
 }
 
@@ -37,14 +37,14 @@ func approvePageToDomainHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageId) {
+	if !core.IsIdValid(data.PageID) {
 		return pages.Fail("Invalid page id", nil).Status(http.StatusBadRequest)
 	} else if !core.IsIdValid(data.DomainId) {
 		return pages.Fail("Invalid domain id", nil).Status(http.StatusBadRequest)
 	}
 
 	// Load the page info
-	oldPage, err := core.LoadFullEdit(db, data.PageId, u, nil)
+	oldPage, err := core.LoadFullEdit(db, data.PageID, u, nil)
 	if err != nil {
 		return pages.Fail("Error loading the page", err)
 	} else if oldPage == nil {
@@ -57,7 +57,7 @@ func approvePageToDomainHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the submission info
-	submission, err := core.LoadPageToDomainSubmission(db, data.PageId, data.DomainId)
+	submission, err := core.LoadPageToDomainSubmission(db, data.PageID, data.DomainId)
 	if err != nil {
 		return pages.Fail("Couldn't load submission", err)
 	}
@@ -78,7 +78,7 @@ func approvePageToDomainHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		JOIN pageDomainPairs AS pdp
 		ON (pp.parentId=pdp.pageId)
 		WHERE pp.type=?`, core.ParentPagePairType).Add(`
-			AND pp.childId=?`, submission.PageId).Add(`
+			AND pp.childId=?`, submission.PageID).Add(`
 			AND pdp.domainId=?`, submission.DomainId).ToStatement(db).QueryRow().Scan(&parentCount)
 	if err != nil {
 		return pages.Fail("Couldn't load parents", err)
@@ -87,8 +87,8 @@ func approvePageToDomainHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// If no parent, add domain as a parent
 	if parentCount <= 0 {
 		handlerData := newPagePairData{
-			ParentId: submission.DomainId,
-			ChildId:  submission.PageId,
+			ParentID: submission.DomainId,
+			ChildID:  submission.PageID,
 			Type:     core.ParentPagePairType,
 		}
 		result := newPagePairHandlerInternal(db, u, &handlerData)
@@ -102,7 +102,7 @@ func approvePageToDomainHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		Parents:     true,
 		SubmittedTo: true,
 	}).Add(core.TitlePlusLoadOptions)
-	core.AddPageToMap(data.PageId, returnData.PageMap, loadOptions)
+	core.AddPageToMap(data.PageID, returnData.PageMap, loadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
@@ -116,9 +116,9 @@ func approvePageToDomainTx(tx *database.Tx, approver *core.CurrentUser, submissi
 
 	// Approve the page
 	hashmap := make(map[string]interface{})
-	hashmap["pageId"] = submission.PageId
+	hashmap["pageId"] = submission.PageID
 	hashmap["domainId"] = submission.DomainId
-	hashmap["approverId"] = approver.Id
+	hashmap["approverId"] = approver.ID
 	hashmap["approvedAt"] = database.Now()
 	statement := tx.DB.NewInsertStatement("pageToDomainSubmissions", hashmap, "approvedAt", "approverId").WithTx(tx)
 	if _, err := statement.Exec(); err != nil {
@@ -126,19 +126,19 @@ func approvePageToDomainTx(tx *database.Tx, approver *core.CurrentUser, submissi
 	}
 
 	// Notify page creator and the person who submitted the page to domain
-	err := insertPageToDomainAcceptedUpdate(tx, approver.Id, submission.SubmitterId, submission.PageId, submission.DomainId)
+	err := insertPageToDomainAcceptedUpdate(tx, approver.ID, submission.SubmitterId, submission.PageID, submission.DomainId)
 	if err != nil {
 		return sessions.NewError("Couldn't insert update for submitter", err)
 	}
 	if submission.SubmitterId != pageCreatorId {
-		err = insertPageToDomainAcceptedUpdate(tx, approver.Id, pageCreatorId, submission.PageId, submission.DomainId)
+		err = insertPageToDomainAcceptedUpdate(tx, approver.ID, pageCreatorId, submission.PageID, submission.DomainId)
 		if err != nil {
 			return sessions.NewError("Couldn't insert update for creator", err)
 		}
 	}
 
 	// Subscribe the approver as a maintainer
-	serr := addSubscription(tx, approver.Id, submission.PageId, true)
+	serr := addSubscription(tx, approver.ID, submission.PageID, true)
 	if serr != nil {
 		return serr
 	}
@@ -147,7 +147,7 @@ func approvePageToDomainTx(tx *database.Tx, approver *core.CurrentUser, submissi
 }
 
 // Add an update for the given user about a page being accepted into a domain
-func insertPageToDomainAcceptedUpdate(tx *database.Tx, approverId, forUserId, pageId, domainId string) error {
+func insertPageToDomainAcceptedUpdate(tx *database.Tx, approverId, forUserId, pageID, domainId string) error {
 	if approverId == forUserId {
 		return nil
 	}
@@ -156,7 +156,7 @@ func insertPageToDomainAcceptedUpdate(tx *database.Tx, approverId, forUserId, pa
 	hashmap["byUserId"] = approverId
 	hashmap["type"] = core.PageToDomainAcceptedUpdateType
 	hashmap["subscribedToId"] = domainId
-	hashmap["goToPageId"] = pageId
+	hashmap["goToPageId"] = pageID
 	hashmap["createdAt"] = database.Now()
 	statement := tx.DB.NewInsertStatement("updates", hashmap).WithTx(tx)
 	if _, err := statement.Exec(); err != nil {

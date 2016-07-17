@@ -21,7 +21,7 @@ func LoadLastView(db *database.DB, u *CurrentUser, viewName string) (string, err
 	row := database.NewQuery(`
 		SELECT viewedAt
 		FROM lastViews
-		WHERE userId=?`, u.Id).Add(`
+		WHERE userId=?`, u.ID).Add(`
 			AND viewName=?`, viewName).ToStatement(db).QueryRow()
 	_, err := row.Scan(&lastView)
 	if err != nil {
@@ -39,7 +39,7 @@ func LoadAndUpdateLastView(db *database.DB, u *CurrentUser, viewName string) (st
 	}
 
 	hashmap := make(map[string]interface{})
-	hashmap["userId"] = u.Id
+	hashmap["userId"] = u.ID
 	hashmap["viewName"] = viewName
 	hashmap["viewedAt"] = database.Now()
 	statement := db.NewInsertStatement("lastViews", hashmap, "viewedAt")

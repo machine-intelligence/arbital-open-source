@@ -53,9 +53,9 @@ func newGroupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return sessions.NewError("Couldn't get next available Id", err)
 		}
 		if data.IsDomain {
-			return core.NewDomain(tx, groupId, u.Id, data.Name, data.Alias)
+			return core.NewDomain(tx, groupId, u.ID, data.Name, data.Alias)
 		}
-		return core.NewGroup(tx, groupId, u.Id, data.Name, data.Alias)
+		return core.NewGroup(tx, groupId, u.ID, data.Name, data.Alias)
 	})
 	if err2 != nil {
 		return pages.FailWith(err2)
@@ -64,7 +64,7 @@ func newGroupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if data.IsDomain {
 		// Create a task to propagate the domain change to all children
 		var task tasks.PropagateDomainTask
-		task.PageId = data.RootPageId
+		task.PageID = data.RootPageId
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}

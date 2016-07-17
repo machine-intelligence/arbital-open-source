@@ -10,7 +10,7 @@ import (
 
 // UpdatePagePairsTask is the object that's put into the daemon queue.
 type UpdatePagePairsTask struct {
-	PageId string
+	PageID string
 }
 
 func (task UpdatePagePairsTask) Tag() string {
@@ -19,7 +19,7 @@ func (task UpdatePagePairsTask) Tag() string {
 
 // Check if this task is valid, and we can safely execute it.
 func (task UpdatePagePairsTask) IsValid() error {
-	if !core.IsIdValid(task.PageId) {
+	if !core.IsIdValid(task.PageID) {
 		return fmt.Errorf("PageId needs to be set")
 	}
 	return nil
@@ -39,12 +39,12 @@ func (task UpdatePagePairsTask) Execute(db *database.DB) (delay int, err error) 
 
 	// Load relationships which haven't been published yet
 	queryPart := database.NewQuery(`
-		WHERE (pp.childId=? OR pp.parentId=?)`, task.PageId, task.PageId).Add(`
+		WHERE (pp.childId=? OR pp.parentId=?)`, task.PageID, task.PageID).Add(`
 			AND NOT pp.everPublished`)
 	err = core.LoadPagePairs(db, queryPart, func(db *database.DB, pagePair *core.PagePair) error {
 		var task PublishPagePairTask
-		task.UserId = pagePair.CreatorId
-		task.PagePairId = pagePair.Id
+		task.UserId = pagePair.CreatorID
+		task.PagePairID = pagePair.ID
 		return Enqueue(c, &task, nil)
 	})
 	if err != nil {

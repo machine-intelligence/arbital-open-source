@@ -13,7 +13,7 @@ import (
 
 // discardPageData is the data received from the request.
 type discardPageData struct {
-	PageId string
+	PageID string
 }
 
 var discardPageHandler = siteHandler{
@@ -35,7 +35,7 @@ func discardPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageId) {
+	if !core.IsIdValid(data.PageID) {
 		return pages.Fail("Missing or invalid page id", nil).Status(http.StatusBadRequest)
 	}
 
@@ -43,13 +43,13 @@ func discardPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	statement := db.NewStatement(`
 		DELETE FROM pages
 		WHERE pageId=? AND creatorId=? AND isAutosave`)
-	if _, err = statement.Exec(data.PageId, u.Id); err != nil {
+	if _, err = statement.Exec(data.PageID, u.ID); err != nil {
 		return pages.Fail("Couldn't discard a page", err)
 	}
 
 	// Update pageInfos
 	hashmap := make(map[string]interface{})
-	hashmap["pageId"] = data.PageId
+	hashmap["pageId"] = data.PageID
 	hashmap["lockedUntil"] = database.Now()
 	statement = db.NewInsertStatement("pageInfos", hashmap, "lockedUntil")
 	if _, err = statement.Exec(); err != nil {

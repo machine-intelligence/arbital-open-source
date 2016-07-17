@@ -13,7 +13,7 @@ import (
 
 // deletePathPageData contains the data we get in the request
 type deletePathPageData struct {
-	Id string
+	ID string
 }
 
 var deletePathPageHandler = siteHandler{
@@ -36,7 +36,7 @@ func deletePathPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check if this lens exists
-	pathPage, err := core.LoadPathPage(db, data.Id)
+	pathPage, err := core.LoadPathPage(db, data.ID)
 	if err != nil {
 		return pages.Fail("Couldn't load the path page: %v", err)
 	} else if pathPage == nil {
@@ -55,7 +55,7 @@ func deletePathPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Begin the transaction.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		statement := database.NewQuery(`
-			DELETE FROM pathPages WHERE id=?`, data.Id).ToTxStatement(tx)
+			DELETE FROM pathPages WHERE id=?`, data.ID).ToTxStatement(tx)
 		if _, err := statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't delete the pathPage", err)
 		}

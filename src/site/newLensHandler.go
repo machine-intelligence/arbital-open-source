@@ -14,7 +14,7 @@ import (
 
 // newLensData contains the data we get in the request
 type newLensData struct {
-	PageId string
+	PageID string
 	LensId string
 }
 
@@ -49,11 +49,11 @@ func newLensHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't load the lens: %v", err)
 	} else if lens != nil {
-		return pages.Fail(fmt.Sprintf("This page is already a lens for %v", lens.PageId), nil).Status(http.StatusBadRequest)
+		return pages.Fail(fmt.Sprintf("This page is already a lens for %v", lens.PageID), nil).Status(http.StatusBadRequest)
 	}
 
 	// Check permissions
-	pageIds := []string{data.PageId, data.LensId}
+	pageIds := []string{data.PageID, data.LensId}
 	permissionError, err := core.VerifyEditPermissionsForList(db, pageIds, u)
 	if err != nil {
 		return pages.Fail("Error verifying permissions", err)
@@ -69,7 +69,7 @@ func newLensHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		row := database.NewQuery(`
 			SELECT IFNULL(MAX(lensIndex)+1,0)
 			FROM lenses
-			WHERE pageId=?`, data.PageId).ToTxStatement(tx).QueryRow()
+			WHERE pageId=?`, data.PageID).ToTxStatement(tx).QueryRow()
 		_, err := row.Scan(&lensIndex)
 		if err != nil {
 			return sessions.NewError("Couldn't load lensIndex", err)
@@ -77,13 +77,13 @@ func newLensHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Create the lens
 		hashmap := make(database.InsertMap)
-		hashmap["pageId"] = data.PageId
+		hashmap["pageId"] = data.PageID
 		hashmap["lensId"] = data.LensId
 		hashmap["lensIndex"] = lensIndex
 		hashmap["lensName"] = fmt.Sprintf("Lens %d", lensIndex)
-		hashmap["createdBy"] = u.Id
+		hashmap["createdBy"] = u.ID
 		hashmap["createdAt"] = database.Now()
-		hashmap["updatedBy"] = u.Id
+		hashmap["updatedBy"] = u.ID
 		hashmap["updatedAt"] = database.Now()
 		statement := db.NewInsertStatement("lenses", hashmap).WithTx(tx)
 		result, err := statement.Exec()

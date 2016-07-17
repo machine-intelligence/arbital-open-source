@@ -12,8 +12,6 @@ import (
 	"appengine/taskqueue"
 )
 
-var ()
-
 // requestID is the unique ID for a given request.
 type requestID string
 
@@ -116,7 +114,7 @@ func (c Context) getReport() []reportEntry {
 		r[i] = reportEntry{
 			Name:    k,
 			Columns: []string{"time", "value"},
-			Points: []point{point{
+			Points: []point{{
 				v.last.UnixNano() / 1e6,
 				v.value}},
 		}

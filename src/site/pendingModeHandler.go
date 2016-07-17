@@ -70,7 +70,7 @@ func loadPageToDomainSubmissionRows(db *database.DB, returnData *core.CommonHand
 		ORDER BY createdAt DESC
 		LIMIT ?`, limit)
 	err := core.LoadPageToDomainSubmissions(db, queryPart, func(db *database.DB, submission *core.PageToDomainSubmission) error {
-		core.AddPageToMap(submission.PageId, returnData.PageMap, pageLoadOptions)
+		core.AddPageToMap(submission.PageID, returnData.PageMap, pageLoadOptions)
 		submissions = append(submissions, submission)
 		return nil
 	})
@@ -91,7 +91,7 @@ func loadEditProposalRows(db *database.DB, returnData *core.CommonHandlerData, l
 		ORDER BY createdAt DESC
 		LIMIT ?`, limit)
 	err := core.LoadChangeLogs(db, queryPart, returnData, func(db *database.DB, changeLog *core.ChangeLog) error {
-		core.AddPageToMap(changeLog.PageId, returnData.PageMap, pageLoadOptions)
+		core.AddPageToMap(changeLog.PageID, returnData.PageMap, pageLoadOptions)
 		changeLogs = append(changeLogs, changeLog)
 		return nil
 	})

@@ -23,7 +23,7 @@ type Account struct {
 
 // ProcessCodeToken takes a code token returned from OAuth, and returns auth_token
 func ProcessCodeToken(c sessions.Context, token, redirectUrl string) (string, error) {
-	fbId := config.XC.Facebook.Id
+	fbId := config.XC.Facebook.ID
 	fbSecret := config.XC.Facebook.Secret
 	if !sessions.Live {
 		fbId = config.XC.Facebook.TestId
@@ -54,7 +54,7 @@ func ProcessCodeToken(c sessions.Context, token, redirectUrl string) (string, er
 
 // ProcessAccessToken takes an access token and returns the corresponding account info
 func ProcessAccessToken(c sessions.Context, token string) (string, error) {
-	fbId := config.XC.Facebook.Id
+	fbId := config.XC.Facebook.ID
 	fbSecret := config.XC.Facebook.Secret
 	if !sessions.Live {
 		fbId = config.XC.Facebook.TestId

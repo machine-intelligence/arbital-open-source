@@ -84,7 +84,7 @@ func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Delete the question page
 		deletePageData := &deletePageData{
-			PageId:         data.QuestionId,
+			PageID:         data.QuestionId,
 			GenerateUpdate: false,
 		}
 		return deletePageTx(tx, params, deletePageData, question)
@@ -95,7 +95,7 @@ func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Generate "merge" update for users who are subscribed to either of the questions
 	var updateTask tasks.NewUpdateTask
-	updateTask.UserId = u.Id
+	updateTask.UserId = u.ID
 	updateTask.GoToPageId = data.IntoQuestionId
 	updateTask.SubscribedToId = data.QuestionId
 	updateTask.UpdateType = core.QuestionMergedUpdateType

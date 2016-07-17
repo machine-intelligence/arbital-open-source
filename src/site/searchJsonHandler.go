@@ -170,12 +170,12 @@ func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages
 
 	loadOptions := (&core.PageLoadOptions{
 		Tags:     true,
-		Creators: u.Id != "",
+		Creators: u.ID != "",
 	}).Add(core.TitlePlusLoadOptions)
 
 	// Create page map.
 	for _, hit := range results.Hits.Hits {
-		core.AddPageToMap(hit.Id, returnData.PageMap, loadOptions)
+		core.AddPageToMap(hit.ID, returnData.PageMap, loadOptions)
 	}
 
 	// Load pages.
@@ -192,7 +192,7 @@ func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages
 		"72":  0.65, // Stub
 	}
 	for _, hit := range results.Hits.Hits {
-		if page, ok := returnData.PageMap[hit.Source.PageId]; ok {
+		if page, ok := returnData.PageMap[hit.Source.PageID]; ok {
 			// Adjust the score based on tags
 			for _, tagId := range page.TaggedAsIds {
 				if penalty, ok := penaltyMap[tagId]; ok {
@@ -207,9 +207,9 @@ func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages
 				hit.Score *= 1.2
 			}
 			// Adjust the score if the user created the page
-			if u.Id != "" {
+			if u.ID != "" {
 				for _, creatorId := range page.CreatorIds {
-					if creatorId == u.Id {
+					if creatorId == u.ID {
 						hit.Score *= 1.2
 						break
 					}

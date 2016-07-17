@@ -14,8 +14,8 @@ import (
 
 // deletePagePairData contains the data we receive in the request.
 type deletePagePairData struct {
-	ParentId string
-	ChildId  string
+	ParentID string
+	ChildID  string
 	Type     string
 }
 
@@ -40,7 +40,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.ParentId) || !core.IsIdValid(data.ChildId) {
+	if !core.IsIdValid(data.ParentID) || !core.IsIdValid(data.ChildID) {
 		return pages.Fail("ParentId and ChildId have to be set", nil).Status(http.StatusBadRequest)
 	}
 	data.Type, err = core.CorrectPagePairType(data.Type)
@@ -50,7 +50,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Load the page pair
 	var pagePair *core.PagePair
-	queryPart := database.NewQuery(`WHERE pp.parentId=? AND pp.childId=? AND pp.type=?`, data.ParentId, data.ChildId, data.Type)
+	queryPart := database.NewQuery(`WHERE pp.parentId=? AND pp.childId=? AND pp.type=?`, data.ParentID, data.ChildID, data.Type)
 	err = core.LoadPagePairs(db, queryPart, func(db *database.DB, pp *core.PagePair) error {
 		pagePair = pp
 		return nil
@@ -79,7 +79,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Delete the pair
 		query := tx.DB.NewStatement(`DELETE FROM pagePairs WHERE id=?`).WithTx(tx)
-		if _, err := query.Exec(pagePair.Id); err != nil {
+		if _, err := query.Exec(pagePair.ID); err != nil {
 			return sessions.NewError("Couldn't delete the page pair", err)
 		}
 
@@ -90,9 +90,9 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Update change logs
 		hashmap := make(database.InsertMap)
-		hashmap["pageId"] = parent.PageId
-		hashmap["auxPageId"] = child.PageId
-		hashmap["userId"] = u.Id
+		hashmap["pageId"] = parent.PageID
+		hashmap["auxPageId"] = child.PageID
+		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = map[string]string{
 			core.ParentPagePairType:      core.DeleteChildChangeLog,
@@ -111,9 +111,9 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		hashmap = make(database.InsertMap)
-		hashmap["pageId"] = child.PageId
-		hashmap["auxPageId"] = parent.PageId
-		hashmap["userId"] = u.Id
+		hashmap["pageId"] = child.PageID
+		hashmap["auxPageId"] = parent.PageID
+		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = map[string]string{
 			core.ParentPagePairType:      core.DeleteParentChangeLog,
@@ -134,19 +134,19 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Go ahead and update the domains for the child page
 		// (we'll handle its descendants in the PropagateDomainTask)
 		if pagePair.Type == core.ParentPagePairType {
-			_, _, err = core.PropagateDomainsWithTx(tx, []string{child.PageId})
+			_, _, err = core.PropagateDomainsWithTx(tx, []string{child.PageID})
 			if err != nil {
 				return sessions.NewError("Couldn't update domains for the child page", err)
 			}
 		}
 
 		// Send updates for users subscribed to the parent.
-		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, u.Id, deletedChildChangeLogId, false)
+		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, u.ID, deletedChildChangeLogId, false)
 		if err != nil {
 			return sessions.NewError("Couldn't enqueue child updates", err)
 		}
 		// Send updates for users subscribed to the child.
-		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, u.Id, deletedParentChangeLogId, true)
+		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, u.ID, deletedParentChangeLogId, true)
 		if err != nil {
 			return sessions.NewError("Couldn't enqueue parent updates", err)
 		}
@@ -160,7 +160,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if pagePair.Type == core.ParentPagePairType {
 		// Create a task to propagate the domain change to all children
 		var task tasks.PropagateDomainTask
-		task.PageId = pagePair.ChildId
+		task.PageID = pagePair.ChildID
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}

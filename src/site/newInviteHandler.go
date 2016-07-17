@@ -69,7 +69,7 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	inviteMap := make(map[string]*core.Invite) // key: domainId
 	for _, domainId := range data.DomainIds {
 		inviteMap[domainId] = &core.Invite{
-			FromUserId: u.Id,
+			FromUserId: u.ID,
 			DomainId:   domainId,
 			ToEmail:    data.ToEmail,
 			ToUserId:   inviteeUserId,
@@ -79,7 +79,7 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	returnData.ResultMap["inviteMap"] = inviteMap
 
 	// Check if this invite already exists
-	wherePart := database.NewQuery(`WHERE fromUserId=?`, u.Id).Add(`
+	wherePart := database.NewQuery(`WHERE fromUserId=?`, u.ID).Add(`
 		AND domainId IN`).AddArgsGroupStr(data.DomainIds).Add(`
 		AND toEmail=?`, data.ToEmail)
 	existingInvites, err := core.LoadInvitesWhere(db, wherePart)
@@ -104,7 +104,7 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 			// Create new invite
 			hashmap := make(map[string]interface{})
-			hashmap["fromUserId"] = u.Id
+			hashmap["fromUserId"] = u.ID
 			hashmap["domainId"] = domainId
 			hashmap["toEmail"] = data.ToEmail
 			hashmap["createdAt"] = database.Now()
@@ -124,9 +124,9 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				hashmap["userId"] = invite.ToUserId
 				hashmap["type"] = core.InviteReceivedUpdateType
 				hashmap["createdAt"] = database.Now()
-				hashmap["subscribedToId"] = u.Id
+				hashmap["subscribedToId"] = u.ID
 				hashmap["goToPageId"] = domainId
-				hashmap["byUserId"] = u.Id
+				hashmap["byUserId"] = u.ID
 				statement := db.NewInsertStatement("updates", hashmap).WithTx(tx)
 				if _, err = statement.Exec(); err != nil {
 					return sessions.NewError("Couldn't add a new update for the invitee", err)
@@ -147,7 +147,7 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// If the user doesn't exist, send them an invite
 		if inviteeUserId == "" {
 			var task tasks.SendInviteTask
-			task.FromUserId = u.Id
+			task.FromUserId = u.ID
 			task.ToEmail = data.ToEmail
 			task.DomainIds = inviteDomainIds
 			if err := tasks.Enqueue(c, &task, nil); err != nil {

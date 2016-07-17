@@ -12,7 +12,7 @@ import (
 
 // alternatePagesData is the data received from the request.
 type alternatePagesData struct {
-	PageId string
+	PageID string
 }
 
 var alternatePagesHandler = siteHandler{
@@ -32,11 +32,11 @@ func alternatePagesJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageId) {
+	if !core.IsIdValid(data.PageID) {
 		return pages.Fail("Missing or invalid page id", nil).Status(http.StatusBadRequest)
 	}
 
-	subjectsTaughtByThisPage, err := core.GetSubjects(db, data.PageId)
+	subjectsTaughtByThisPage, err := core.GetSubjects(db, data.PageID)
 	if err != nil {
 		return pages.Fail("Couldn't get subjects taught by the page", err)
 	}
@@ -54,7 +54,7 @@ func alternatePagesJsonHandler(params *pages.HandlerParams) *pages.Result {
 			ON pp.childId=pi.pageId
 			WHERE pp.parentId IN`).AddArgsGroupStr(subjectsTaughtByThisPage).Add(`
 				AND pp.type=?`, core.SubjectPagePairType).Add(`
-				AND childId!=?`, data.PageId).ToStatement(db).Query()
+				AND childId!=?`, data.PageID).ToStatement(db).Query()
 		alternateTeachers, err = core.LoadPageIds(rows, returnData.PageMap, loadOptions)
 		if err != nil {
 			return pages.Fail("Error while loading alternate pages", err)

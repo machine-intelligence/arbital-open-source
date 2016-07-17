@@ -13,7 +13,7 @@ import (
 
 // updateLensNameData contains the data we get in the request
 type updateLensNameData struct {
-	Id   string
+	ID   string
 	Name string
 }
 
@@ -40,7 +40,7 @@ func updateLensNameHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the lens
-	lens, err := core.LoadLens(db, data.Id)
+	lens, err := core.LoadLens(db, data.ID)
 	if err != nil {
 		return pages.Fail("Couldn't load the lens: %v", err)
 	} else if lens == nil {
@@ -48,7 +48,7 @@ func updateLensNameHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check permissions
-	pageIds := []string{lens.PageId, lens.LensId}
+	pageIds := []string{lens.PageID, lens.LensId}
 	permissionError, err := core.VerifyEditPermissionsForList(db, pageIds, u)
 	if err != nil {
 		return pages.Fail("Error verifying permissions", err)
@@ -60,9 +60,9 @@ func updateLensNameHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Update the lens name
 		hashmap := make(database.InsertMap)
-		hashmap["id"] = lens.Id
+		hashmap["id"] = lens.ID
 		hashmap["lensName"] = data.Name
-		hashmap["updatedBy"] = u.Id
+		hashmap["updatedBy"] = u.ID
 		hashmap["updatedAt"] = database.Now()
 		statement := db.NewInsertStatement("lenses", hashmap, "lensName", "updatedBy", "updatedAt").WithTx(tx)
 		if _, err = statement.Exec(); err != nil {

@@ -3,8 +3,6 @@
 package sessions
 
 import (
-	"appengine"
-	"appengine/socket"
 	"bufio"
 	"bytes"
 	"compress/gzip"
@@ -20,6 +18,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"appengine"
+	"appengine/socket"
 
 	"github.com/garyburd/go-oauth/oauth"
 )

@@ -808,9 +808,6 @@ arb-requisite-button .md-button, [arb-requisite-button] .md-button {
 .lens-menu-floater-hidden {
   transform: translate(-50%, 100%); }
 
-.page-meta-bar {
-  height: 73px; }
-
 md-toast md-icon {
   color: white; }
 

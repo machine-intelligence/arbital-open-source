@@ -27,14 +27,14 @@ func (a HitsList) Less(i, j int) bool { return a[i].Score > a[j].Score }
 
 // Document describes the document which goes into the pages search index.
 type Document struct {
-	PageId        string   `json:"pageId"`
+	PageID        string   `json:"pageId"`
 	Alias         string   `json:"alias"`
 	Type          string   `json:"type"`
 	Title         string   `json:"title"`
 	Clickbait     string   `json:"clickbait"`
 	Text          string   `json:"text"`
-	SeeGroupId    string   `json:"seeGroupId"`
-	CreatorId     string   `json:"creatorId"`
+	SeeGroupID    string   `json:"seeGroupId"`
+	CreatorID     string   `json:"creatorId"`
 	SearchStrings []string `json:"searchStrings"`
 }
 
@@ -50,7 +50,7 @@ type Hits struct {
 }
 
 type Hit struct {
-	Id     string    `json:"_id"`
+	ID     string    `json:"_id"`
 	Score  float32   `json:"_score"`
 	Source *Document `json:"_source"`
 }
@@ -93,7 +93,7 @@ func AddPageToIndex(c sessions.Context, doc *Document) error {
 	if err != nil {
 		return fmt.Errorf("Error marshalling data into json:", err)
 	}
-	request, err := http.NewRequest("PUT", fmt.Sprintf("%s/page/%s", ElasticDomain, doc.PageId), bytes.NewBuffer(jsonData))
+	request, err := http.NewRequest("PUT", fmt.Sprintf("%s/page/%s", ElasticDomain, doc.PageID), bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}
@@ -112,8 +112,8 @@ func AddPageToIndex(c sessions.Context, doc *Document) error {
 }
 
 // DeletePageFromIndex dletes a page from the pages index.
-func DeletePageFromIndex(c sessions.Context, pageId string) error {
-	request, err := http.NewRequest("DELETE", fmt.Sprintf("%s/page/%s", ElasticDomain, pageId), nil)
+func DeletePageFromIndex(c sessions.Context, pageID string) error {
+	request, err := http.NewRequest("DELETE", fmt.Sprintf("%s/page/%s", ElasticDomain, pageID), nil)
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}

@@ -72,7 +72,7 @@ func (task SendOneEmailTask) Execute(db *database.DB) (delay int, err error) {
 		// Mark loaded updates as emailed
 		updateIds := make([]interface{}, 0)
 		for _, row := range emailData.UpdateRows {
-			updateIds = append(updateIds, row.Id)
+			updateIds = append(updateIds, row.ID)
 		}
 		statement := database.NewQuery(`
 			UPDATE updates

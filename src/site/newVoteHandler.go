@@ -16,7 +16,7 @@ const (
 
 // newVoteData contains data given to us in the request.
 type newVoteData struct {
-	PageId string
+	PageID string
 	Value  float32
 }
 
@@ -39,7 +39,7 @@ func newVoteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(task.PageId) {
+	if !core.IsIdValid(task.PageID) {
 		return pages.Fail("Missing or invalid page id", nil).Status(http.StatusBadRequest)
 	}
 	if task.Value < 0 || task.Value > 100 {
@@ -56,7 +56,7 @@ func newVoteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		FROM votes
 		WHERE userId=? AND pageId=?
 		ORDER BY id DESC
-		LIMIT 1`).QueryRow(database.Now(), u.Id, task.PageId)
+		LIMIT 1`).QueryRow(database.Now(), u.ID, task.PageID)
 	oldVoteExists, err = row.Scan(&oldVoteId, &oldVoteValue, &oldVoteAge)
 	if err != nil {
 		return pages.Fail("Couldn't check for a recent vote", err)
@@ -80,8 +80,8 @@ func newVoteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	} else {
 		// Insert new vote.
 		hashmap := make(map[string]interface{})
-		hashmap["userId"] = u.Id
-		hashmap["pageId"] = task.PageId
+		hashmap["userId"] = u.ID
+		hashmap["pageId"] = task.PageID
 		hashmap["value"] = task.Value
 		hashmap["createdAt"] = database.Now()
 		statement := db.NewInsertStatement("votes", hashmap)

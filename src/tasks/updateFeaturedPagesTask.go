@@ -54,11 +54,11 @@ func (task UpdateFeaturedPagesTask) Execute(db *database.DB) (delay int, err err
 			AND pp.parentId IN (?,?)`, core.AClassPageId, core.BClassPageId).Add(`
 		GROUP BY 1`).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId string
-		if err := rows.Scan(&pageId); err != nil {
+		var pageID string
+		if err := rows.Scan(&pageID); err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
-		featuredPageIds = append(featuredPageIds, pageId)
+		featuredPageIds = append(featuredPageIds, pageID)
 		return nil
 	})
 	if err != nil {

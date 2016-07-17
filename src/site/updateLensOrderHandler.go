@@ -16,7 +16,7 @@ import (
 // updateLensOrderData contains the data we get in the request
 type updateLensOrderData struct {
 	// Id of the page the lenses are for
-	PageId string
+	PageID string
 	// Map of ids -> lens index
 	LensOrder map[string]int
 }
@@ -40,17 +40,17 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageId) {
+	if !core.IsIdValid(data.PageID) {
 		return pages.Fail("PageId isn't valid", nil).Status(http.StatusBadRequest)
 	}
 
 	// Load all the lenses
 	pageMap := make(map[string]*core.Page)
 	lenses := make([]*core.Lens, 0)
-	queryPart := database.NewQuery(`WHERE l.pageId=?`, data.PageId)
+	queryPart := database.NewQuery(`WHERE l.pageId=?`, data.PageID)
 	err = core.LoadLenses(db, queryPart, nil, func(db *database.DB, lens *core.Lens) error {
 		lenses = append(lenses, lens)
-		core.AddPageIdToMap(lens.PageId, pageMap)
+		core.AddPageIdToMap(lens.PageID, pageMap)
 		return nil
 	})
 	if err != nil {
@@ -73,9 +73,9 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	hashmaps := make(database.InsertMaps, 0)
 	for _, lens := range lenses {
 		hashmap := make(database.InsertMap)
-		hashmap["id"] = lens.Id
-		hashmap["lensIndex"] = data.LensOrder[fmt.Sprintf("%d", lens.Id)]
-		hashmap["updatedBy"] = u.Id
+		hashmap["id"] = lens.ID
+		hashmap["lensIndex"] = data.LensOrder[fmt.Sprintf("%d", lens.ID)]
+		hashmap["updatedBy"] = u.ID
 		hashmap["updatedAt"] = database.Now()
 		hashmaps = append(hashmaps, hashmap)
 	}
@@ -91,8 +91,8 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Create changelogs entry
 		hashmap := make(database.InsertMap)
-		hashmap["pageId"] = data.PageId
-		hashmap["userId"] = u.Id
+		hashmap["pageId"] = data.PageID
+		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = core.LensOrderChangedChangeLog
 		statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
@@ -108,10 +108,10 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Generate updates for users who are subscribed to the primary page
 		var task tasks.NewUpdateTask
 		task.UpdateType = core.ChangeLogUpdateType
-		task.UserId = u.Id
+		task.UserId = u.ID
 		task.ChangeLogId = changeLogId
-		task.SubscribedToId = data.PageId
-		task.GoToPageId = data.PageId
+		task.SubscribedToId = data.PageID
+		task.GoToPageId = data.PageID
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			return sessions.NewError("Couldn't enqueue a task", err)
 		}

@@ -56,7 +56,7 @@ func updateUserTrustHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["createdAt"] = database.Now()
 		hashmap["subscribedToId"] = data.DomainId
 		hashmap["goToPageId"] = data.DomainId
-		hashmap["byUserId"] = u.Id
+		hashmap["byUserId"] = u.ID
 		statement = db.NewInsertStatement("updates", hashmap).WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't add a new update", err)

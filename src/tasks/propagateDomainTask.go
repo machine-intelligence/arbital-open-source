@@ -10,7 +10,7 @@ import (
 
 // PropagateDomainTask is the object that's put into the daemon queue.
 type PropagateDomainTask struct {
-	PageId string
+	PageID string
 	// If true, the page was deleted and we should update children + parents
 	Deleted bool
 }
@@ -21,7 +21,7 @@ func (task PropagateDomainTask) Tag() string {
 
 // Check if this task is valid, and we can safely execute it.
 func (task PropagateDomainTask) IsValid() error {
-	if !core.IsIdValid(task.PageId) {
+	if !core.IsIdValid(task.PageID) {
 		return fmt.Errorf("PageId needs to be set")
 	}
 	return nil
@@ -39,7 +39,7 @@ func (task PropagateDomainTask) Execute(db *database.DB) (delay int, err error) 
 	c.Infof("==== PROPAGATE DOMAIN START ====")
 	defer c.Infof("==== PROPAGATE DOMAIN COMPLETED ====")
 
-	err = propagateDomainsToPageAndDescendants(db, task.PageId)
+	err = propagateDomainsToPageAndDescendants(db, task.PageID)
 	if err != nil {
 		return -1, fmt.Errorf("Error propagating domain: %v", err)
 	}
@@ -48,9 +48,9 @@ func (task PropagateDomainTask) Execute(db *database.DB) (delay int, err error) 
 }
 
 // Recalculates the domains for the given page and all of its descendants
-func propagateDomainsToPageAndDescendants(db *database.DB, pageId string) error {
+func propagateDomainsToPageAndDescendants(db *database.DB, pageID string) error {
 	// All the descendants of the page (plus the page itself)
-	pagesToUpdate, err := core.GetDescendants(db, pageId)
+	pagesToUpdate, err := core.GetDescendants(db, pageID)
 	if err != nil {
 		return err
 	}

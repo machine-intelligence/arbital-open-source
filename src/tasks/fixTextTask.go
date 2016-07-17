@@ -50,9 +50,9 @@ func (task FixTextTask) Execute(db *database.DB) (delay int, err error) {
 }
 
 func fixText1(db *database.DB, rows *database.Rows) error {
-	var pageId, edit string
+	var pageID, edit string
 	var text string
-	if err := rows.Scan(&pageId, &edit, &text); err != nil {
+	if err := rows.Scan(&pageID, &edit, &text); err != nil {
 		return fmt.Errorf("failed to scan a page: %v", err)
 	}
 
@@ -67,7 +67,7 @@ func fixText1(db *database.DB, rows *database.Rows) error {
 		db.C.Infof("========================== %s", text)
 		db.C.Infof("========================== %s", newText)
 		hashmap := make(map[string]interface{})
-		hashmap["pageId"] = pageId
+		hashmap["pageId"] = pageID
 		hashmap["edit"] = edit
 		hashmap["text"] = newText
 		statement := db.NewInsertStatement("pages", hashmap, "text")
@@ -79,9 +79,9 @@ func fixText1(db *database.DB, rows *database.Rows) error {
 }
 
 func fixText2(db *database.DB, rows *database.Rows) error {
-	var pageId, edit string
+	var pageID, edit string
 	var text string
-	if err := rows.Scan(&pageId, &edit, &text); err != nil {
+	if err := rows.Scan(&pageID, &edit, &text); err != nil {
 		return fmt.Errorf("failed to scan a page: %v", err)
 	}
 
@@ -110,7 +110,7 @@ func fixText2(db *database.DB, rows *database.Rows) error {
 		db.C.Infof("========================== %s", text)
 		db.C.Infof("========================== %s", newText)
 		hashmap := make(map[string]interface{})
-		hashmap["pageId"] = pageId
+		hashmap["pageId"] = pageID
 		hashmap["edit"] = edit
 		hashmap["text"] = newText
 		statement := db.NewInsertStatement("pages", hashmap, "text")
@@ -123,9 +123,9 @@ func fixText2(db *database.DB, rows *database.Rows) error {
 }
 
 func fixText3(db *database.DB, rows *database.Rows) error {
-	var pageId, edit string
+	var pageID, edit string
 	var text string
-	if err := rows.Scan(&pageId, &edit, &text); err != nil {
+	if err := rows.Scan(&pageID, &edit, &text); err != nil {
 		return fmt.Errorf("failed to scan a page: %v", err)
 	}
 
@@ -180,7 +180,7 @@ func fixText3(db *database.DB, rows *database.Rows) error {
 		db.C.Infof("========================== %s", text)
 		db.C.Infof("========================== %s", newText)
 		hashmap := make(map[string]interface{})
-		hashmap["pageId"] = pageId
+		hashmap["pageId"] = pageID
 		hashmap["edit"] = edit
 		hashmap["text"] = newText
 		statement := db.NewInsertStatement("pages", hashmap, "text")
@@ -189,7 +189,7 @@ func fixText3(db *database.DB, rows *database.Rows) error {
 		}
 	}
 
-	exp = regexp.MustCompile("Click \\[here to edit\\]\\(http\\:\\/\\/arbital\\.com\\/edit\\/" + pageId)
+	exp = regexp.MustCompile("Click \\[here to edit\\]\\(http\\:\\/\\/arbital\\.com\\/edit\\/" + pageID)
 
 	submatches = exp.FindAllStringSubmatch(newText, -1)
 

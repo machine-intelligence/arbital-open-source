@@ -9,7 +9,7 @@ import (
 
 // User has a selection of the information about a user.
 type User struct {
-	Id               string `json:"id"`
+	ID               string `json:"id"`
 	FirstName        string `json:"firstName"`
 	LastName         string `json:"lastName"`
 	LastWebsiteVisit string `json:"lastWebsiteVisit"`
@@ -29,7 +29,7 @@ func AddUserIdToMap(userId string, userMap map[string]*User) *User {
 	if u, ok := userMap[userId]; ok {
 		return u
 	}
-	u := &User{Id: userId}
+	u := &User{ID: userId}
 	userMap[userId] = u
 	return u
 }
@@ -47,7 +47,7 @@ func GetUserUrl(userId string) string {
 // IdsListFromUserMap returns a list of all user ids in the map.
 func IdsListFromUserMap(userMap map[string]*User) []interface{} {
 	list := make([]interface{}, 0, len(userMap))
-	for id, _ := range userMap {
+	for id := range userMap {
 		list = append(list, id)
 	}
 	return list
@@ -59,7 +59,7 @@ func LoadUsers(db *database.DB, userMap map[string]*User, currentUserId string) 
 		return nil
 	}
 	userIds := make([]interface{}, 0, len(userMap))
-	for id, _ := range userMap {
+	for id := range userMap {
 		userIds = append(userIds, id)
 	}
 
@@ -77,17 +77,17 @@ func LoadUsers(db *database.DB, userMap map[string]*User, currentUserId string) 
 		ON (u.id=s.toId)`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var u User
-		err := rows.Scan(&u.Id, &u.FirstName, &u.LastName, &u.LastWebsiteVisit, &u.IsSubscribed)
+		err := rows.Scan(&u.ID, &u.FirstName, &u.LastName, &u.LastWebsiteVisit, &u.IsSubscribed)
 		if err != nil {
 			return fmt.Errorf("failed to scan for user: %v", err)
 		}
-		*userMap[u.Id] = u
+		*userMap[u.ID] = u
 		return nil
 	})
 	return err
 }
 func LoadUser(db *database.DB, userId string, currentUserId string) (*User, error) {
-	user := &User{Id: userId}
+	user := &User{ID: userId}
 	userMap := map[string]*User{userId: user}
 	err := LoadUsers(db, userMap, currentUserId)
 	return user, err

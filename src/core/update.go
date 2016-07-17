@@ -41,7 +41,7 @@ const (
 
 // UpdateRow is a row from updates table
 type UpdateRow struct {
-	Id              string
+	ID              string
 	UserId          string
 	ByUserId        string
 	CreatedAt       string
@@ -56,7 +56,7 @@ type UpdateRow struct {
 
 // UpdateEntry corresponds to one update entry we'll display.
 type UpdateEntry struct {
-	Id              string `json:"id"`
+	ID              string `json:"id"`
 	UserId          string `json:"userId"`
 	ByUserId        string `json:"byUserId"`
 	Type            string `json:"type"`
@@ -115,7 +115,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 				WHERE updates.goToPageId = pageId
 			), false) AS isGoToPageAlive
 		FROM updates
-		WHERE updates.userId=?`, u.Id).AddPart(emailFilter).AddPart(updateTypeFilter).Add(`
+		WHERE updates.userId=?`, u.ID).AddPart(emailFilter).AddPart(updateTypeFilter).Add(`
 			AND NOT updates.dismissed
 		HAVING isGoToPageAlive OR updates.type IN`).AddArgsGroupStr(getOkayToShowWhenGoToPageIsDeletedUpdateTypes()).Add(`
 		ORDER BY updates.createdAt DESC
@@ -123,7 +123,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var row UpdateRow
 		var changeLogId string
-		err := rows.Scan(&row.Id, &row.UserId, &row.ByUserId, &row.CreatedAt, &row.Type,
+		err := rows.Scan(&row.ID, &row.UserId, &row.ByUserId, &row.CreatedAt, &row.Type,
 			&row.Seen, &row.SubscribedToId, &row.GoToPageId, &row.MarkId, &changeLogId, &row.IsGoToPageAlive)
 		if err != nil {
 			return fmt.Errorf("failed to scan an update: %v", err)
@@ -136,9 +136,9 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 			AddPageToMap(row.GoToPageId, resultData.PageMap, domainSubmissionLoadOptions)
 		}
 
-		resultData.UserMap[row.UserId] = &User{Id: row.UserId}
+		resultData.UserMap[row.UserId] = &User{ID: row.UserId}
 		if IsIdValid(row.ByUserId) {
-			resultData.UserMap[row.ByUserId] = &User{Id: row.ByUserId}
+			resultData.UserMap[row.ByUserId] = &User{ID: row.ByUserId}
 		}
 		if row.MarkId == "0" {
 			row.MarkId = ""
@@ -150,7 +150,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		if changeLogId != "" {
 			changeLog, ok := changeLogMap[changeLogId]
 			if !ok {
-				changeLog = &ChangeLog{Id: changeLogId}
+				changeLog = &ChangeLog{ID: changeLogId}
 				changeLogMap[changeLogId] = changeLog
 				changeLogIds = append(changeLogIds, changeLogId)
 			}
@@ -169,8 +169,8 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		changeLogs := make([]*ChangeLog, 0)
 		queryPart := database.NewQuery(`WHERE id IN`).AddArgsGroupStr(changeLogIds)
 		err = LoadChangeLogs(db, queryPart, resultData, func(db *database.DB, changeLog *ChangeLog) error {
-			*changeLogMap[changeLog.Id] = *changeLog
-			changeLogs = append(changeLogs, changeLogMap[changeLog.Id])
+			*changeLogMap[changeLog.ID] = *changeLog
+			changeLogs = append(changeLogs, changeLogMap[changeLog.ID])
 			return nil
 		})
 		if err != nil {
@@ -196,7 +196,7 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 		SELECT id,email,emailFrequency,emailThreshold
 		FROM users
 		WHERE id=?`).QueryRow(userId)
-	_, err := row.Scan(&u.Id, &u.Email, &u.EmailFrequency, &u.EmailThreshold)
+	_, err := row.Scan(&u.ID, &u.Email, &u.EmailFrequency, &u.EmailThreshold)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a user: %v", err)
 	}
@@ -263,11 +263,11 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 		"GetUserName": func(userId string) string {
 			return handlerData.UserMap[userId].FullName()
 		},
-		"GetPageUrl": func(pageId string) string {
-			return fmt.Sprintf("%s/p/%s/"+handlerData.PageMap[pageId].Alias, sessions.GetDomainForTestEmail(), pageId)
+		"GetPageUrl": func(pageID string) string {
+			return fmt.Sprintf("%s/p/%s/"+handlerData.PageMap[pageID].Alias, sessions.GetDomainForTestEmail(), pageID)
 		},
-		"GetPageTitle": func(pageId string) string {
-			return handlerData.PageMap[pageId].Title
+		"GetPageTitle": func(pageID string) string {
+			return handlerData.PageMap[pageID].Title
 		},
 		"RelativeDateTime": func(date string) string {
 			t, err := time.Parse(database.TimeLayout, date)

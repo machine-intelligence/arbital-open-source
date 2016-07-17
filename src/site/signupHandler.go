@@ -181,7 +181,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Set the user value in params, since some internal handlers we might call
 		// will expect it to be set
-		u.Id = userId
+		u.ID = userId
 		u.Email = data.Email
 
 		// The user might have some data stored under their session id
@@ -209,7 +209,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		statement = database.NewQuery(`
 			INSERT INTO updates
 			(userId,type,createdAt,subscribedToId,goToPageId,byUserId)
-			SELECT ?,?,now(),fromUserId,domainId,fromUserId`, u.Id, core.InviteReceivedUpdateType).Add(`
+			SELECT ?,?,now(),fromUserId,domainId,fromUserId`, u.ID, core.InviteReceivedUpdateType).Add(`
 			FROM invites
 			WHERE toEmail=?`, u.Email).ToTxStatement(tx)
 		if _, err := statement.Exec(); err != nil {
@@ -219,7 +219,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Claim all existing invites for this user
 		statement = database.NewQuery(`
 			UPDATE invites
-			SET toUserId=?,claimedAt=?`, u.Id, database.Now()).Add(`
+			SET toUserId=?,claimedAt=?`, u.ID, database.Now()).Add(`
 			WHERE toEmail=?`, u.Email).ToTxStatement(tx)
 		if _, err := statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't delete existing page summaries", err)
@@ -231,7 +231,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				(userId,domainId,editTrust)
 			SELECT toUserId,domainId,?`, core.BasicKarmaLevel).Add(`
 			FROM invites
-			WHERE toUserId=?`, u.Id).ToTxStatement(tx)
+			WHERE toUserId=?`, u.ID).ToTxStatement(tx)
 		if _, err := statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't update user trust", err)
 		}

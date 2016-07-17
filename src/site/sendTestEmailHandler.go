@@ -38,16 +38,16 @@ func sendTestEmailHandler(w http.ResponseWriter, r *http.Request) {
 		UPDATE users
 		SET updateEmailSentAt=createdAt
 		WHERE id=?`)
-	statement.Exec(u.Id)
+	statement.Exec(u.ID)
 
 	// Mark all updates as new and not emailed, for testing
 	statement = db.NewStatement(`
 		UPDATE updates
 		SET seen=FALSE,emailed=0
 		WHERE userId=?`)
-	statement.Exec(u.Id)
+	statement.Exec(u.ID)
 
-	emailData, err := core.LoadUpdateEmail(db, u.Id)
+	emailData, err := core.LoadUpdateEmail(db, u.ID)
 	if err != nil {
 		fmt.Fprintf(w, "Loading email failed: %v", err)
 		return

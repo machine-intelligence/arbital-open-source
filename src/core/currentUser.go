@@ -47,7 +47,7 @@ var (
 // Note: this structure is also stored in a cookie.
 type CurrentUser struct {
 	// DB variables
-	Id                     string `json:"id"`
+	ID                     string `json:"id"`
 	FbUserId               string `json:"fbUserId"`
 	Email                  string `json:"email"`
 	FirstName              string `json:"firstName"`
@@ -120,8 +120,8 @@ func (user *CurrentUser) FullName() string {
 
 // GetSomeId returns user's id or, if not available, session id, which could still be ""
 func (user *CurrentUser) GetSomeId() string {
-	if user.Id != "" {
-		return user.Id
+	if user.ID != "" {
+		return user.ID
 	}
 	return user.SessionId
 }
@@ -171,7 +171,7 @@ func LoadCurrentUserFromDb(db *database.DB, userId string, u *CurrentUser) (*Cur
 			emailFrequency,emailThreshold,ignoreMathjax,showAdvancedEditorMode
 		FROM users
 		WHERE id=?`).QueryRow(userId)
-	exists, err := row.Scan(&u.Id, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
+	exists, err := row.Scan(&u.ID, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
 		&u.IsAdmin, &u.IsSlackMember, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
 		&u.ShowAdvancedEditorMode)
 	if err != nil {
@@ -210,7 +210,7 @@ func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (u
 			isSlackMember,emailFrequency,emailThreshold,ignoreMathjax,showAdvancedEditorMode
 		FROM users
 		WHERE email=?`).QueryRow(cookie.Email)
-	exists, err := row.Scan(&u.Id, &pretendToBeUserId, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
+	exists, err := row.Scan(&u.ID, &pretendToBeUserId, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
 		&u.IsAdmin, &u.IsSlackMember, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
 		&u.ShowAdvancedEditorMode)
 	if err != nil {
@@ -280,8 +280,8 @@ func LoadNewAchievementCount(db *database.DB, user *CurrentUser) (int, error) {
 		ON pi.likeableId=l.likeableId
 		JOIN users AS u
 		ON l.userId=u.id
-		WHERE pi.createdBy=?`, user.Id).Add(`
-			AND l.userId!=?`, user.Id).Add(`
+		WHERE pi.createdBy=?`, user.ID).Add(`
+			AND l.userId!=?`, user.ID).Add(`
 			AND l.value=1
 			AND l.updatedAt>?`, lastAchievementsView).ToStatement(db).QueryRow()
 	_, err = row.Scan(&newLikeCount)
@@ -295,8 +295,8 @@ func LoadNewAchievementCount(db *database.DB, user *CurrentUser) (int, error) {
 		FROM likes as l
 		JOIN changeLogs as cl
 		ON cl.likeableId=l.likeableId
-		WHERE cl.userId=?`, user.Id).Add(`
-			AND l.value=1 AND l.userId!=?`, user.Id).Add(`
+		WHERE cl.userId=?`, user.ID).Add(`
+			AND l.value=1 AND l.userId!=?`, user.ID).Add(`
 			AND cl.type=?`, NewEditChangeLog).Add(`
 			AND l.updatedAt>?`, lastAchievementsView).ToStatement(db).QueryRow()
 	_, err = row.Scan(&newChangeLogLikeCount)
@@ -312,15 +312,15 @@ func LoadNewAchievementCount(db *database.DB, user *CurrentUser) (int, error) {
 		ON ump.taughtBy=pi.pageId
 		JOIN users AS u
 		ON ump.userId=u.id
-		WHERE pi.createdBy=?`, user.Id).Add(`
-			AND ump.has=1 AND ump.userId!=?`, user.Id).Add(`
+		WHERE pi.createdBy=?`, user.ID).Add(`
+			AND ump.has=1 AND ump.userId!=?`, user.ID).Add(`
 			AND ump.updatedAt>?`, lastAchievementsView).ToStatement(db).QueryRow()
 	_, err = row.Scan(&newTaughtCount)
 	if err != nil {
 		return -1, err
 	}
 
-	newAchievementUpdateCount, err := LoadAchievementUpdateCount(db, user.Id, false)
+	newAchievementUpdateCount, err := LoadAchievementUpdateCount(db, user.ID, false)
 	if err != nil {
 		return -1, err
 	}
@@ -366,7 +366,7 @@ func loadUpdateCountInternal(db *database.DB, userId string, updateTypes []strin
 // LoadCurrentUserTrust computes the trust that the current user has in all domains.
 func LoadCurrentUserTrust(db *database.DB, u *CurrentUser) error {
 	var err error
-	u.TrustMap, err = LoadUserTrust(db, u.Id)
+	u.TrustMap, err = LoadUserTrust(db, u.ID)
 	if err != nil {
 		return err
 	}
@@ -402,7 +402,7 @@ func LoadInvitesWhere(db *database.DB, wherePart *database.QueryPart) ([]*Invite
 }
 
 func LoadHasReceivedMaintenanceUpdates(db *database.DB, u *CurrentUser) (bool, error) {
-	lifetimeMaintenanceUpdateCount, err := LoadMaintenanceUpdateCount(db, u.Id, true)
+	lifetimeMaintenanceUpdateCount, err := LoadMaintenanceUpdateCount(db, u.ID, true)
 	if err != nil {
 		return false, fmt.Errorf("Error while retrieving maintenance update count: %v", err)
 	}
@@ -411,7 +411,7 @@ func LoadHasReceivedMaintenanceUpdates(db *database.DB, u *CurrentUser) (bool, e
 }
 
 func LoadHasReceivedNotifications(db *database.DB, u *CurrentUser) (bool, error) {
-	lifetimeNotificationCount, err := LoadNotificationCount(db, u.Id, true)
+	lifetimeNotificationCount, err := LoadNotificationCount(db, u.ID, true)
 	if err != nil {
 		return false, fmt.Errorf("Error while retrieving notification count: %v", err)
 	}

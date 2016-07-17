@@ -54,7 +54,7 @@ func startPathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Create the sourcePageIds
 	sourcePageIds := make([]string, 0)
-	for _, _ = range pathPageIds {
+	for range pathPageIds {
 		sourcePageIds = append(sourcePageIds, data.GuideId)
 	}
 
@@ -63,7 +63,7 @@ func startPathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Start the path
 		hashmap := make(database.InsertMap)
-		hashmap["userId"] = u.Id
+		hashmap["userId"] = u.ID
 		hashmap["guideId"] = data.GuideId
 		hashmap["pageIds"] = strings.Join(pathPageIds, ",")
 		hashmap["sourcePageIds"] = strings.Join(sourcePageIds, ",")

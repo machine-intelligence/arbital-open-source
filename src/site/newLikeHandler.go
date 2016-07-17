@@ -83,7 +83,7 @@ func addNewLike(tx *database.Tx, u *core.CurrentUser, likeableId int64, objectId
 
 	// Create/update the like.
 	hashmap := make(map[string]interface{})
-	hashmap["userId"] = u.Id
+	hashmap["userId"] = u.ID
 	hashmap["likeableId"] = likeableId
 	hashmap["value"] = value
 	hashmap["createdAt"] = database.Now()

@@ -66,14 +66,14 @@ func (task PopulateElasticTask) Execute(db *database.DB) (delay int, err error) 
 
 func populateElasticProcessPage(db *database.DB, rows *database.Rows) error {
 	doc := &elastic.Document{}
-	if err := rows.Scan(&doc.PageId, &doc.Type, &doc.Title, &doc.Clickbait,
-		&doc.Text, &doc.Alias, &doc.SeeGroupId, &doc.CreatorId); err != nil {
+	if err := rows.Scan(&doc.PageID, &doc.Type, &doc.Title, &doc.Clickbait,
+		&doc.Text, &doc.Alias, &doc.SeeGroupID, &doc.CreatorID); err != nil {
 		return fmt.Errorf("failed to scan for page: %v", err)
 	}
 
 	// Load search strings
 	pageMap := make(map[string]*core.Page)
-	p := core.AddPageIdToMap(doc.PageId, pageMap)
+	p := core.AddPageIdToMap(doc.PageID, pageMap)
 	if err := core.LoadSearchStrings(db, pageMap); err != nil {
 		return fmt.Errorf("LoadSearchStrings failed: %v", err)
 	}
