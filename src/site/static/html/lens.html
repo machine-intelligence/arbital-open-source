@@ -2,7 +2,7 @@
 
 	<!-- Requirements -->
 	<div class="requirements-container"
-			ng-if="!isSimpleEmbed && showRequirementsPanel">
+			ng-if="showRequirementsPanel">
 		<div>
 			<span class="md-subhead" ng-class="{'md-accent': !meetsAllRequirements()}">
 				This lens relies on:
@@ -34,14 +34,14 @@
 			<md-icon class="page-title-icon" ng-if="::isUser">person</md-icon>
 			<md-icon class="page-title-icon" ng-if="::page.isQuestion()">help</md-icon>
 			<span class="md-display-3"
-					ng-class="::{'center-text': isTinyScreen, 'dynamic-hor-padding simple-embed-page-title': isSimpleEmbed}"
+					ng-class="::{'center-text': isTinyScreen}"
 					ng-bind="page.title"></span>
 		</h1>
 
 		<arb-slow-down-button page-id="{{::page.pageId}}"></arb-slow-down-button>
 
 		<!-- Owner -->
-		<div class="author-list md-caption page-list-span" ng-if="::(page.editGroupId !== '' && !isSimpleEmbed)">
+		<div class="author-list md-caption page-list-span" ng-if="::page.editGroupId !== ''">
 			Owner:
 			<arb-page-title page-id="{{::page.editGroupId}}"
 					is-link="true"
@@ -56,7 +56,7 @@
 
 		<!-- Contributors -->
 		<div class="author-list md-caption page-list-span"
-				ng-if="::(page.creatorIds.length > 0 && !isSimpleEmbed && page.seeGroupId &&
+				ng-if="::(page.creatorIds.length > 0 && page.seeGroupId &&
 					!(page.editGroupId === page.creatorIds[0] && page.creatorIds.length == 1))">
 			<br>
 			<ng-pluralize count="::page.creatorIds.length"
@@ -70,7 +70,7 @@
 
 		<div layout-gt-xs="row" layout-align="start end">
 			<!-- Subjects taught -->
-			<div flex ng-if="(!isSimpleEmbed && subject.length > 0 && showLearnedPanel)">
+			<div flex ng-if="(subject.length > 0 && showLearnedPanel)">
 				<span class="md-subhead">
 					<md-icon>assignment</md-icon>
 					Did you learn
@@ -119,7 +119,7 @@
 	<arb-lens-toolbar></arb-lens-toolbar>
 
 	<!-- Inline comments container -->
-	<div class="inline-comments-div" ng-show="::!isSimpleEmbed">
+    <div class="inline-comments-div">
 		<!-- Absolutely positioned RHS buttons -->
 		<div class="rhs-buttons"
 				ng-style="getRhsButtonsStyle()"

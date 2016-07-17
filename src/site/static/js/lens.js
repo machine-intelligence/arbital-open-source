@@ -9,7 +9,6 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 		scope: {
 			pageId: '@',
 			lensParentId: '@',
-			isSimpleEmbed: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -163,8 +162,6 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 			};
 		},
 		link: function(scope, element, attrs) {
-			if (scope.isSimpleEmbed) return;
-
 			var processInlineEverything = function() {
 				var inlineCommentButtonHeight = 40;
 				var inlineIconShiftLeft = inlineCommentButtonHeight * ($mdMedia('gt-md') ? 0.5 : 1.1);
