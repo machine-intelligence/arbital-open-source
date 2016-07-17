@@ -16,7 +16,7 @@ type MemberUpdateTask struct {
 
 	// Member is added to/removed from the given group
 	MemberId string
-	GroupId  string
+	GroupID  string
 }
 
 func (task MemberUpdateTask) Tag() string {
@@ -52,8 +52,8 @@ func (task MemberUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	hashmap["userId"] = task.MemberId
 	hashmap["byUserId"] = task.UserId
 	hashmap["type"] = task.UpdateType
-	hashmap["groupByPageId"] = task.GroupId
-	hashmap["goToPageId"] = task.GroupId
+	hashmap["groupByPageId"] = task.GroupID
+	hashmap["goToPageId"] = task.GroupID
 	hashmap["createdAt"] = database.Now()
 	statement := db.NewInsertStatement("updates", hashmap)
 	if _, err = statement.Exec(); err != nil {

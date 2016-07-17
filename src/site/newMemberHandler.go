@@ -13,7 +13,7 @@ import (
 
 // newMemberData contains data given to us in the request.
 type newMemberData struct {
-	GroupId   string
+	GroupID   string
 	UserInput string
 }
 
@@ -37,7 +37,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.GroupId) {
+	if !core.IsIdValid(data.GroupID) {
 		return pages.Fail("GroupId has to be set", nil).Status(http.StatusBadRequest)
 	}
 	if data.UserInput == "" {
@@ -51,7 +51,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		SELECT 1
 		FROM groupMembers
 		WHERE userId=? AND groupId=? AND canAddMembers
-		`).QueryRow(u.ID, data.GroupId)
+		`).QueryRow(u.ID, data.GroupID)
 	found, err = row.Scan(&blank)
 	if err != nil {
 		return pages.Fail("Couldn't check for a group member", err)
@@ -88,7 +88,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Update groupMembers table
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = newMemberId
-	hashmap["groupId"] = data.GroupId
+	hashmap["groupId"] = data.GroupID
 	hashmap["createdAt"] = database.Now()
 	statement := db.NewInsertStatement("groupMembers", hashmap)
 	if _, err = statement.Exec(); err != nil {
@@ -100,7 +100,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	task.UserId = u.ID
 	task.UpdateType = core.AddedToGroupUpdateType
 	task.MemberId = newMemberId
-	task.GroupId = data.GroupId
+	task.GroupID = data.GroupID
 	if err := tasks.Enqueue(c, &task, nil); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
