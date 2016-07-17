@@ -54,7 +54,7 @@ func startPathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Create the sourcePageIds
 	sourcePageIds := make([]string, 0)
-	for _, _ = range pathPageIds {
+	for range pathPageIds {
 		sourcePageIds = append(sourcePageIds, data.GuideId)
 	}
 

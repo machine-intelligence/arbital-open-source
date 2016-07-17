@@ -1344,7 +1344,7 @@ func LoadLikes(db *database.DB, u *CurrentUser, likeablesMap map[int64]*Likeable
 	}
 
 	likeableIds := make([]interface{}, 0)
-	for id, _ := range likeablesMap {
+	for id := range likeablesMap {
 		likeableIds = append(likeableIds, id)
 	}
 

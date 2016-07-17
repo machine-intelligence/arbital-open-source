@@ -74,7 +74,7 @@ func Now() string {
 // GetKeys returns all the keys in the InsertMap.
 func (m InsertMap) GetKeys() []string {
 	keys := make([]string, 0)
-	for key, _ := range m {
+	for key := range m {
 		keys = append(keys, key)
 	}
 	return keys

@@ -47,7 +47,7 @@ func GetUserUrl(userId string) string {
 // IdsListFromUserMap returns a list of all user ids in the map.
 func IdsListFromUserMap(userMap map[string]*User) []interface{} {
 	list := make([]interface{}, 0, len(userMap))
-	for id, _ := range userMap {
+	for id := range userMap {
 		list = append(list, id)
 	}
 	return list
@@ -59,7 +59,7 @@ func LoadUsers(db *database.DB, userMap map[string]*User, currentUserId string) 
 		return nil
 	}
 	userIds := make([]interface{}, 0, len(userMap))
-	for id, _ := range userMap {
+	for id := range userMap {
 		userIds = append(userIds, id)
 	}
 

@@ -82,7 +82,7 @@ func AddMarkToMap(markId string, markMap map[string]*Mark) *Mark {
 // PageIdsStringFromMap returns a comma separated string of all pageIds in the given map.
 func PageIdsStringFromMap(pageMap map[string]*Page) string {
 	var buffer bytes.Buffer
-	for id, _ := range pageMap {
+	for id := range pageMap {
 		buffer.WriteString(fmt.Sprintf("%s,", id))
 	}
 	str := buffer.String()
@@ -95,7 +95,7 @@ func PageIdsStringFromMap(pageMap map[string]*Page) string {
 // PageIdsListFromMap returns a comma separated string of all pageIds in the given map.
 func PageIdsListFromMap(pageMap map[string]*Page) []interface{} {
 	list := make([]interface{}, 0, len(pageMap))
-	for id, _ := range pageMap {
+	for id := range pageMap {
 		list = append(list, id)
 	}
 	return list
@@ -213,7 +213,7 @@ func ExtractPageLinks(text string, configAddress string) []string {
 	extractLinks(regexp.MustCompile("\\[@?(" + AliasRegexpStr + ")\\]"))
 
 	aliasesAndIds := make([]string, 0)
-	for alias, _ := range linkMap {
+	for alias := range linkMap {
 		aliasesAndIds = append(aliasesAndIds, alias)
 	}
 	return aliasesAndIds
