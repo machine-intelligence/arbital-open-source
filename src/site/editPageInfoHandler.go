@@ -21,7 +21,7 @@ type editPageInfoData struct {
 	Type                     string
 	HasVote                  bool
 	VoteType                 string
-	SeeGroupId               string
+	SeeGroupID               string
 	EditGroupId              string
 	Alias                    string // if empty, leave the current one
 	SortChildrenBy           string
@@ -84,7 +84,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Error checking.
 	// Check the group settings
-	if oldPage.SeeGroupId != data.SeeGroupId && oldPage.WasPublished {
+	if oldPage.SeeGroupID != data.SeeGroupID && oldPage.WasPublished {
 		return pages.Fail("Editing this page in incorrect private group", nil).Status(http.StatusBadRequest)
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)
@@ -137,13 +137,13 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Prefix alias with the group alias, if appropriate
-		if core.IsIdValid(data.SeeGroupId) && data.Type != core.GroupPageType && data.Type != core.DomainPageType {
-			tempPageMap := map[string]*core.Page{data.SeeGroupId: core.NewPage(data.SeeGroupId)}
+		if core.IsIdValid(data.SeeGroupID) && data.Type != core.GroupPageType && data.Type != core.DomainPageType {
+			tempPageMap := map[string]*core.Page{data.SeeGroupID: core.NewPage(data.SeeGroupID)}
 			err = core.LoadPages(db, u, tempPageMap)
 			if err != nil {
 				return pages.Fail("Couldn't load the see group", err)
 			}
-			data.Alias = fmt.Sprintf("%s.%s", tempPageMap[data.SeeGroupId].Alias, data.Alias)
+			data.Alias = fmt.Sprintf("%s.%s", tempPageMap[data.SeeGroupID].Alias, data.Alias)
 		}
 
 		// Check if another page is already using the alias
@@ -178,7 +178,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			data.HasVote == oldPage.HasVote &&
 			data.VoteType == oldPage.VoteType &&
 			data.Type == oldPage.Type &&
-			data.SeeGroupId == oldPage.SeeGroupId &&
+			data.SeeGroupID == oldPage.SeeGroupID &&
 			data.EditGroupId == oldPage.EditGroupId &&
 			data.IsRequisite == oldPage.IsRequisite &&
 			data.IndirectTeacher == oldPage.IndirectTeacher &&
@@ -211,7 +211,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["hasVote"] = hasVote
 		hashmap["voteType"] = data.VoteType
 		hashmap["type"] = data.Type
-		hashmap["seeGroupId"] = data.SeeGroupId
+		hashmap["seeGroupId"] = data.SeeGroupID
 		hashmap["editGroupId"] = data.EditGroupId
 		hashmap["isRequisite"] = data.IsRequisite
 		hashmap["indirectTeacher"] = data.IndirectTeacher

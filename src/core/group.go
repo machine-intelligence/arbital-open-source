@@ -36,8 +36,8 @@ func LoadUserGroupIds(db *database.DB, u *CurrentUser) error {
 
 // AddUserGroupIdsToPageMap adds user's groups to the page map so we can load them.
 func AddUserGroupIdsToPageMap(u *CurrentUser, pageMap map[string]*Page) {
-	for _, pageId := range u.GroupIds {
-		AddPageIdToMap(pageId, pageMap)
+	for _, pageID := range u.GroupIds {
+		AddPageIdToMap(pageID, pageMap)
 	}
 }
 
@@ -122,7 +122,7 @@ If you are the owner, click [here to edit](%s).`, title, userGroupStr, url)
 		Clickbait: clickbait,
 		Text:      text,
 		Alias:     alias,
-		CreatorId: userId,
+		CreatorID: userId,
 	}
 	err := elastic.AddPageToIndex(tx.DB.C, doc)
 	if err != nil {

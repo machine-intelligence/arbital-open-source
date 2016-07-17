@@ -58,9 +58,9 @@ func (task UpdateMetadataTask) Execute(db *database.DB) (delay int, err error) {
 }
 
 func updateMetadata(db *database.DB, rows *database.Rows) error {
-	var pageId, edit string
+	var pageID, edit string
 	var text string
-	if err := rows.Scan(&pageId, &edit, &text); err != nil {
+	if err := rows.Scan(&pageID, &edit, &text); err != nil {
 		return fmt.Errorf("failed to scan a page: %v", err)
 	}
 
@@ -73,7 +73,7 @@ func updateMetadata(db *database.DB, rows *database.Rows) error {
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Update pages table
 		hashmap := make(map[string]interface{})
-		hashmap["pageId"] = pageId
+		hashmap["pageId"] = pageID
 		hashmap["edit"] = edit
 		hashmap["text"] = text
 		hashmap["todoCount"] = core.ExtractTodoCount(text)
@@ -84,13 +84,13 @@ func updateMetadata(db *database.DB, rows *database.Rows) error {
 
 		// Delete old page summaries
 		statement = database.NewQuery(`
-			DELETE FROM pageSummaries WHERE pageId=?`, pageId).ToTxStatement(tx)
+			DELETE FROM pageSummaries WHERE pageId=?`, pageID).ToTxStatement(tx)
 		if _, err := statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't delete existing page summaries", err)
 		}
 
 		// Add new page summaries
-		_, summaryValues := core.ExtractSummaries(pageId, text)
+		_, summaryValues := core.ExtractSummaries(pageID, text)
 		statement = tx.DB.NewStatement(`
 			INSERT INTO pageSummaries (pageId,name,text)
 			VALUES ` + database.ArgsPlaceholder(len(summaryValues), 3)).WithTx(tx)
@@ -99,7 +99,7 @@ func updateMetadata(db *database.DB, rows *database.Rows) error {
 		}
 
 		// Update page links table
-		err := core.UpdatePageLinks(tx, pageId, text, sessions.GetDomain())
+		err := core.UpdatePageLinks(tx, pageID, text, sessions.GetDomain())
 		if err != nil {
 			return sessions.NewError("Couldn't update links", err)
 		}
@@ -113,10 +113,10 @@ func updateMetadata(db *database.DB, rows *database.Rows) error {
 }
 
 func updatePageInfos(db *database.DB, rows *database.Rows) error {
-	var pageId string
+	var pageID string
 	var currentEdit, maxEdit int64
 	var createdAt string
-	if err := rows.Scan(&pageId, &currentEdit, &maxEdit, &createdAt); err != nil {
+	if err := rows.Scan(&pageID, &currentEdit, &maxEdit, &createdAt); err != nil {
 		return fmt.Errorf("failed to scan a page: %v", err)
 	}
 
@@ -124,7 +124,7 @@ func updatePageInfos(db *database.DB, rows *database.Rows) error {
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Update pageInfos summary
 		hashmap := make(map[string]interface{})
-		hashmap["pageId"] = pageId
+		hashmap["pageId"] = pageID
 		hashmap["currentEdit"] = currentEdit
 		hashmap["maxEdit"] = maxEdit
 		hashmap["createdAt"] = createdAt

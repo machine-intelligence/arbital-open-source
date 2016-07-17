@@ -35,7 +35,7 @@ func intrasitePopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Get actual page id
-	pageId, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
+	pageID, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
 	if err != nil {
 		return pages.Fail("Couldn't convert alias", err)
 	}
@@ -44,7 +44,7 @@ func intrasitePopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load data
-	core.AddPageToMap(pageId, returnData.PageMap, core.IntrasitePopoverLoadOptions)
+	core.AddPageToMap(pageID, returnData.PageMap, core.IntrasitePopoverLoadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		pages.Fail("Pipeline error", err)

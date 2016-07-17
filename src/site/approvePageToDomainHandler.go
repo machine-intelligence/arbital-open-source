@@ -87,8 +87,8 @@ func approvePageToDomainHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// If no parent, add domain as a parent
 	if parentCount <= 0 {
 		handlerData := newPagePairData{
-			ParentId: submission.DomainId,
-			ChildId:  submission.PageID,
+			ParentID: submission.DomainId,
+			ChildID:  submission.PageID,
 			Type:     core.ParentPagePairType,
 		}
 		result := newPagePairHandlerInternal(db, u, &handlerData)
@@ -147,7 +147,7 @@ func approvePageToDomainTx(tx *database.Tx, approver *core.CurrentUser, submissi
 }
 
 // Add an update for the given user about a page being accepted into a domain
-func insertPageToDomainAcceptedUpdate(tx *database.Tx, approverId, forUserId, pageId, domainId string) error {
+func insertPageToDomainAcceptedUpdate(tx *database.Tx, approverId, forUserId, pageID, domainId string) error {
 	if approverId == forUserId {
 		return nil
 	}
@@ -156,7 +156,7 @@ func insertPageToDomainAcceptedUpdate(tx *database.Tx, approverId, forUserId, pa
 	hashmap["byUserId"] = approverId
 	hashmap["type"] = core.PageToDomainAcceptedUpdateType
 	hashmap["subscribedToId"] = domainId
-	hashmap["goToPageId"] = pageId
+	hashmap["goToPageId"] = pageID
 	hashmap["createdAt"] = database.Now()
 	statement := tx.DB.NewInsertStatement("updates", hashmap).WithTx(tx)
 	if _, err := statement.Exec(); err != nil {

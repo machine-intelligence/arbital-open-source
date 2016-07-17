@@ -94,17 +94,17 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			ORDER BY p.createdAt DESC
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId string
+		var pageID string
 		var title, createdAt string
 		var wasPublished bool
 		var isDeleted bool
-		err := rows.Scan(&pageId, &title, &createdAt, &wasPublished, &isDeleted)
+		err := rows.Scan(&pageID, &title, &createdAt, &wasPublished, &isDeleted)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
-		core.AddPageToMap(pageId, returnData.PageMap, pageOptions)
-		pagesWithDraftIds = append(pagesWithDraftIds, pageId)
-		page := core.AddPageIdToMap(pageId, returnData.EditMap)
+		core.AddPageToMap(pageID, returnData.PageMap, pageOptions)
+		pagesWithDraftIds = append(pagesWithDraftIds, pageID)
+		page := core.AddPageIdToMap(pageID, returnData.EditMap)
 		if title == "" {
 			title = "*Untitled*"
 		}

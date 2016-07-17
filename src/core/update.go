@@ -263,11 +263,11 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 		"GetUserName": func(userId string) string {
 			return handlerData.UserMap[userId].FullName()
 		},
-		"GetPageUrl": func(pageId string) string {
-			return fmt.Sprintf("%s/p/%s/"+handlerData.PageMap[pageId].Alias, sessions.GetDomainForTestEmail(), pageId)
+		"GetPageUrl": func(pageID string) string {
+			return fmt.Sprintf("%s/p/%s/"+handlerData.PageMap[pageID].Alias, sessions.GetDomainForTestEmail(), pageID)
 		},
-		"GetPageTitle": func(pageId string) string {
-			return handlerData.PageMap[pageId].Title
+		"GetPageTitle": func(pageID string) string {
+			return handlerData.PageMap[pageID].Title
 		},
 		"RelativeDateTime": func(date string) string {
 			t, err := time.Parse(database.TimeLayout, date)

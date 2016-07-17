@@ -48,9 +48,9 @@ func (task PropagateDomainTask) Execute(db *database.DB) (delay int, err error) 
 }
 
 // Recalculates the domains for the given page and all of its descendants
-func propagateDomainsToPageAndDescendants(db *database.DB, pageId string) error {
+func propagateDomainsToPageAndDescendants(db *database.DB, pageID string) error {
 	// All the descendants of the page (plus the page itself)
-	pagesToUpdate, err := core.GetDescendants(db, pageId)
+	pagesToUpdate, err := core.GetDescendants(db, pageID)
 	if err != nil {
 		return err
 	}

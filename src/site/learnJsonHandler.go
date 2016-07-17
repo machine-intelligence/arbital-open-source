@@ -77,12 +77,12 @@ func (t *tutorNode) Less(i, j int) bool {
 	return t.RequirementMap[t.RequirementIds[i]].Cost < t.RequirementMap[t.RequirementIds[j]].Cost
 }
 
-func newRequirementNode(pageId string) *requirementNode {
-	return &requirementNode{PageID: pageId, TutorIds: make([]string, 0), Cost: 10000000}
+func newRequirementNode(pageID string) *requirementNode {
+	return &requirementNode{PageID: pageID, TutorIds: make([]string, 0), Cost: 10000000}
 }
 
-func newTutorNode(pageId string) *tutorNode {
-	return &tutorNode{PageID: pageId, RequirementIds: make([]string, 0)}
+func newTutorNode(pageID string) *tutorNode {
+	return &tutorNode{PageID: pageID, RequirementIds: make([]string, 0)}
 }
 
 func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
@@ -132,12 +132,12 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	optionsMap := make(map[string]*learnOption)
 	pageIds := make([]string, 0)
 	for _, alias := range pageAliases {
-		pageId := aliasToIdMap[alias]
-		if !core.IsIdValid(pageId) {
-			return pages.Fail(fmt.Sprintf("Invalid page id: %s", pageId), nil).Status(http.StatusBadRequest)
+		pageID := aliasToIdMap[alias]
+		if !core.IsIdValid(pageID) {
+			return pages.Fail(fmt.Sprintf("Invalid page id: %s", pageID), nil).Status(http.StatusBadRequest)
 		}
-		pageIds = append(pageIds, pageId)
-		optionsMap[pageId] = aliasOptionsMap[alias]
+		pageIds = append(pageIds, pageID)
+		optionsMap[pageID] = aliasOptionsMap[alias]
 	}
 
 	// Remove requirements that the user already has
@@ -170,15 +170,15 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Track which requirements we need to process in the next step
 	requirementIds := make([]string, 0)
-	for _, pageId := range pageIds {
-		core.AddPageToMap(pageId, returnData.PageMap, loadOptions)
-		mastery, ok := masteryMap[pageId]
+	for _, pageID := range pageIds {
+		core.AddPageToMap(pageID, returnData.PageMap, loadOptions)
+		mastery, ok := masteryMap[pageID]
 		add := !ok || !mastery.Has
-		if ok && optionsMap[pageId].MustBeWanted && !mastery.Wants {
+		if ok && optionsMap[pageID].MustBeWanted && !mastery.Wants {
 			add = false
 		}
 		if add {
-			requirementIds = append(requirementIds, pageId)
+			requirementIds = append(requirementIds, pageID)
 		}
 	}
 	// Leave only the page ids we need to process
@@ -448,8 +448,8 @@ func computeLearningPath(pl logger.Logger,
 
 		// Check if we are done
 		done = true
-		for _, pageId := range pageIds {
-			if !requirementMap[pageId].Processed {
+		for _, pageID := range pageIds {
+			if !requirementMap[pageID].Processed {
 				done = false
 				break
 			}

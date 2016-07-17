@@ -49,7 +49,7 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 		return
 	}
 
-	if IsIdValid(p.SeeGroupId) && !u.IsMemberOfGroup(p.SeeGroupId) {
+	if IsIdValid(p.SeeGroupID) && !u.IsMemberOfGroup(p.SeeGroupID) {
 		p.Permissions.Edit.Reason = "You don't have group permission to EVEN SEE this page"
 		return
 	}
@@ -200,8 +200,8 @@ func VerifyEditPermissionsForMap(db *database.DB, pageMap map[string]*Page, u *C
 }
 func VerifyEditPermissionsForList(db *database.DB, pageIds []string, u *CurrentUser) (string, error) {
 	pageMap := make(map[string]*Page)
-	for _, pageId := range pageIds {
-		AddPageIdToMap(pageId, pageMap)
+	for _, pageID := range pageIds {
+		AddPageIdToMap(pageID, pageMap)
 	}
 	return VerifyEditPermissionsForMap(db, pageMap, u)
 }
@@ -211,7 +211,7 @@ func VerifyEditPermissionsForList(db *database.DB, pageIds []string, u *CurrentU
 // Check if the given user can affect a relationship between the two pages.
 func CanAffectRelationship(c sessions.Context, parent *Page, child *Page, relationshipType string) (string, error) {
 	// No intragroup links allowed.
-	if child.SeeGroupId != parent.SeeGroupId {
+	if child.SeeGroupID != parent.SeeGroupID {
 		return "Parent and child need to have the same See Group", nil
 	}
 

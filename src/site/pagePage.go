@@ -19,7 +19,7 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 
 	// Get actual page id
 	pageAlias := mux.Vars(params.R)["alias"]
-	pageId, ok, err := core.LoadAliasToPageId(db, u, pageAlias)
+	pageID, ok, err := core.LoadAliasToPageId(db, u, pageAlias)
 	if err != nil {
 		return pages.Fail("Couldn't convert alias", err)
 	} else if !ok {
@@ -32,7 +32,7 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 	row := database.NewQuery(`
 		SELECT type,seeGroupId
 		FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
-		WHERE pageId=?`, pageId).ToStatement(db).QueryRow()
+		WHERE pageId=?`, pageID).ToStatement(db).QueryRow()
 	exists, err := row.Scan(&pageType, &seeGroupId)
 	if err != nil {
 		return pages.Fail("Couldn't get page info", err)
@@ -51,12 +51,12 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 				return pages.Fail("Failed to redirect to subdomain", err)
 			}
 		}
-		return pages.RedirectWith(core.GetPageFullUrl(subdomain, pageId))
+		return pages.RedirectWith(core.GetPageFullUrl(subdomain, pageID))
 	}
 
-	p := core.NewPage(pageId)
+	p := core.NewPage(pageID)
 	pageMap := map[string]*core.Page{
-		pageId: p,
+		pageID: p,
 	}
 	err = core.LoadPages(db, params.U, pageMap)
 	if err != nil {

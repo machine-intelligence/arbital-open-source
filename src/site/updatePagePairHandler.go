@@ -58,8 +58,8 @@ func updatePagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *u
 
 	// Load pages
 	pagePair = &core.PagePair{
-		ParentId: pagePair.ParentId,
-		ChildId:  pagePair.ChildId,
+		ParentID: pagePair.ParentID,
+		ChildID:  pagePair.ChildID,
 		Type:     pagePair.Type,
 	}
 	parent, child, err := core.LoadFullEditsForPagePair(db, pagePair, u)

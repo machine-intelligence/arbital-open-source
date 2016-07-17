@@ -158,11 +158,11 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	return pages.Success(returnData)
 }
 
-func EnqueueNewMarkUpdateTask(params *pages.HandlerParams, markId string, pageId string, delay int) error {
+func EnqueueNewMarkUpdateTask(params *pages.HandlerParams, markId string, pageID string, delay int) error {
 	var updateTask tasks.NewUpdateTask
 	updateTask.UserId = params.U.ID
-	updateTask.GoToPageId = pageId
-	updateTask.SubscribedToId = pageId
+	updateTask.GoToPageId = pageID
+	updateTask.SubscribedToId = pageID
 	updateTask.UpdateType = core.NewMarkUpdateType
 	updateTask.MarkId = markId
 	options := &tasks.TaskOptions{Delay: delay}

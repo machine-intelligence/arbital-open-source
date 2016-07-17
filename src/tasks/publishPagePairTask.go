@@ -13,7 +13,7 @@ import (
 // PublishPagePairTask is the object that's put into the daemon queue.
 type PublishPagePairTask struct {
 	UserId     string
-	PagePairId string
+	PagePairID string
 }
 
 func (task PublishPagePairTask) Tag() string {
@@ -22,7 +22,7 @@ func (task PublishPagePairTask) Tag() string {
 
 // Check if this task is valid, and we can safely execute it.
 func (task PublishPagePairTask) IsValid() error {
-	if task.PagePairId == "" {
+	if task.PagePairID == "" {
 		return fmt.Errorf("PagePairId needs to be set")
 	}
 	if task.UserId == "" {
@@ -46,7 +46,7 @@ func (task PublishPagePairTask) Execute(db *database.DB) (delay int, err error) 
 	// Load the page pair
 	var pagePair *core.PagePair
 	queryPart := database.NewQuery(`
-		WHERE NOT pp.everPublished AND pp.id=?`, task.PagePairId)
+		WHERE NOT pp.everPublished AND pp.id=?`, task.PagePairID)
 	err = core.LoadPagePairs(db, queryPart, func(db *database.DB, pp *core.PagePair) error {
 		pagePair = pp
 		return nil
@@ -59,8 +59,8 @@ func (task PublishPagePairTask) Execute(db *database.DB) (delay int, err error) 
 
 	// Load all the involved pages
 	pageMap := make(map[string]*core.Page)
-	parent := core.AddPageIdToMap(pagePair.ParentId, pageMap)
-	child := core.AddPageIdToMap(pagePair.ChildId, pageMap)
+	parent := core.AddPageIdToMap(pagePair.ParentID, pageMap)
+	child := core.AddPageIdToMap(pagePair.ChildID, pageMap)
 	err = core.LoadPages(db, nil, pageMap)
 	if err != nil {
 		return -1, fmt.Errorf("Failed to load all the pages: %v", err)
@@ -167,14 +167,14 @@ func addNewRelationshipToParentChangeLog(tx *database.Tx, pagePair *core.PagePai
 
 	hashmap := make(database.InsertMap)
 	if !forChild {
-		hashmap["pageId"] = pagePair.ParentId
-		hashmap["auxPageId"] = pagePair.ChildId
+		hashmap["pageId"] = pagePair.ParentID
+		hashmap["auxPageId"] = pagePair.ChildID
 	} else {
-		hashmap["pageId"] = pagePair.ChildId
-		hashmap["auxPageId"] = pagePair.ParentId
+		hashmap["pageId"] = pagePair.ChildID
+		hashmap["auxPageId"] = pagePair.ParentID
 	}
 	hashmap["type"] = entryType
-	hashmap["userId"] = pagePair.CreatorId
+	hashmap["userId"] = pagePair.CreatorID
 	hashmap["createdAt"] = database.Now()
 	result, err := tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx).Exec()
 	if err != nil {
@@ -203,11 +203,11 @@ func EnqueuePagePairUpdate(c sessions.Context, pagePair *core.PagePair, userId s
 	task.ChangeLogId = changeLogId
 	task.UpdateType = core.ChangeLogUpdateType
 	if !forChild {
-		task.SubscribedToId = pagePair.ParentId
-		task.GoToPageId = pagePair.ChildId
+		task.SubscribedToId = pagePair.ParentID
+		task.GoToPageId = pagePair.ChildID
 	} else {
-		task.SubscribedToId = pagePair.ChildId
-		task.GoToPageId = pagePair.ParentId
+		task.SubscribedToId = pagePair.ChildID
+		task.GoToPageId = pagePair.ParentID
 	}
 	return Enqueue(c, &task, nil)
 }

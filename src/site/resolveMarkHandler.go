@@ -52,7 +52,7 @@ func resolveMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("No such mark", nil).Status(http.StatusBadRequest)
 	}
 
-	if mark.CreatorId != u.ID {
+	if mark.CreatorID != u.ID {
 		data.Text = ""
 	}
 
@@ -65,7 +65,7 @@ func resolveMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if data.Text != "" {
 		hashmap["text"] = data.Text
 	}
-	if mark.CreatorId == u.ID {
+	if mark.CreatorID == u.ID {
 		hashmap["isSubmitted"] = true
 	}
 	statement := db.NewInsertStatement("marks", hashmap, hashmap.GetKeys()...)
@@ -77,7 +77,7 @@ func resolveMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// If the mark was resolved for the first time, update the user mark owner
 	if mark.Type != core.QueryMarkType && mark.ResolvedBy == "" && data.ResolvedPageId != "" {
 		hashmap := make(database.InsertMap)
-		hashmap["userId"] = mark.CreatorId
+		hashmap["userId"] = mark.CreatorID
 		hashmap["type"] = core.ResolvedMarkUpdateType
 		hashmap["goToPageId"] = data.ResolvedPageId
 		hashmap["markId"] = data.MarkId

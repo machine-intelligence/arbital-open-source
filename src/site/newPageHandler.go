@@ -55,20 +55,20 @@ func newPageInternalHandler(params *pages.HandlerParams, data *newPageData) *pag
 		return pages.Fail("Can't set isEditorComment for non-comment pages", nil).Status(http.StatusBadRequest)
 	}
 
-	pageId := ""
+	pageID := ""
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		var err error
-		pageId, err = core.GetNextAvailableId(tx)
+		pageID, err = core.GetNextAvailableId(tx)
 		if err != nil {
 			return sessions.NewError("Couldn't get next available Id", err)
 		}
 		if data.Alias == "" {
-			data.Alias = pageId
+			data.Alias = pageID
 		}
 
 		// Update pageInfos
 		hashmap := make(map[string]interface{})
-		hashmap["pageId"] = pageId
+		hashmap["pageId"] = pageID
 		hashmap["alias"] = data.Alias
 		hashmap["sortChildrenBy"] = core.LikesChildSortingOption
 		hashmap["type"] = data.Type
@@ -89,7 +89,7 @@ func newPageInternalHandler(params *pages.HandlerParams, data *newPageData) *pag
 
 		// Update pages
 		hashmap = make(map[string]interface{})
-		hashmap["pageId"] = pageId
+		hashmap["pageId"] = pageID
 		hashmap["edit"] = 1
 		hashmap["prevEdit"] = 0
 		hashmap["isAutosave"] = true
@@ -108,8 +108,8 @@ func newPageInternalHandler(params *pages.HandlerParams, data *newPageData) *pag
 	// Add parents
 	for _, parentIdStr := range data.ParentIds {
 		handlerData := newPagePairData{
-			ParentId: parentIdStr,
-			ChildId:  pageId,
+			ParentID: parentIdStr,
+			ChildID:  pageID,
 			Type:     core.ParentPagePairType,
 		}
 		result := newPagePairHandlerInternal(params.DB, params.U, &handlerData)
@@ -119,7 +119,7 @@ func newPageInternalHandler(params *pages.HandlerParams, data *newPageData) *pag
 	}
 
 	editData := &editJsonData{
-		PageAlias: pageId,
+		PageAlias: pageID,
 	}
 	return editJsonInternalHandler(params, editData)
 }

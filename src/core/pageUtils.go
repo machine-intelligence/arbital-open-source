@@ -37,21 +37,21 @@ const (
 // AddPageToMap adds a new page with the given page id to the map if it's not
 // in the map already.
 // Returns the new/existing page.
-func AddPageToMap(pageId string, pageMap map[string]*Page, loadOptions *PageLoadOptions) *Page {
-	if !IsIdValid(pageId) {
+func AddPageToMap(pageID string, pageMap map[string]*Page, loadOptions *PageLoadOptions) *Page {
+	if !IsIdValid(pageID) {
 		return nil
 	}
-	if p, ok := pageMap[pageId]; ok {
+	if p, ok := pageMap[pageID]; ok {
 		p.LoadOptions.Add(loadOptions)
 		return p
 	}
-	p := NewPage(pageId)
+	p := NewPage(pageID)
 	p.LoadOptions = *loadOptions
-	pageMap[pageId] = p
+	pageMap[pageID] = p
 	return p
 }
-func AddPageIdToMap(pageId string, pageMap map[string]*Page) *Page {
-	return AddPageToMap(pageId, pageMap, EmptyLoadOptions)
+func AddPageIdToMap(pageID string, pageMap map[string]*Page) *Page {
+	return AddPageToMap(pageID, pageMap, EmptyLoadOptions)
 }
 
 // AddUserToMap adds a new user with the given user id to the map if it's not
@@ -154,12 +154,12 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 		FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
 		WHERE alias IN`).AddArgsGroupStr(aliasesAndIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId, alias string
-		err := rows.Scan(&pageId, &alias)
+		var pageID, alias string
+		err := rows.Scan(&pageID, &alias)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
-		aliasMap[alias] = pageId
+		aliasMap[alias] = pageID
 		return nil
 	})
 	if err != nil {
@@ -220,10 +220,10 @@ func ExtractPageLinks(text string, configAddress string) []string {
 }
 
 // UpdatePageLinks updates the links table for the given page by parsing the text.
-func UpdatePageLinks(tx *database.Tx, pageId string, text string, configAddress string) error {
+func UpdatePageLinks(tx *database.Tx, pageID string, text string, configAddress string) error {
 	// Delete old links.
 	statement := tx.DB.NewStatement("DELETE FROM links WHERE parentId=?").WithTx(tx)
-	_, err := statement.Exec(pageId)
+	_, err := statement.Exec(pageID)
 	if err != nil {
 		return fmt.Errorf("Couldn't delete old links: %v", err)
 	}
@@ -238,7 +238,7 @@ func UpdatePageLinks(tx *database.Tx, pageId string, text string, configAddress 
 			if linkMap[lowercaseAlias] {
 				continue
 			}
-			valuesList = append(valuesList, pageId, lowercaseAlias)
+			valuesList = append(valuesList, pageID, lowercaseAlias)
 			linkMap[lowercaseAlias] = true
 		}
 
@@ -263,7 +263,7 @@ func GetPageQuickLockedUntilTime() string {
 }
 
 // ExtractSummaries extracts the summaries from the given page text.
-func ExtractSummaries(pageId string, text string) (map[string]string, []interface{}) {
+func ExtractSummaries(pageID string, text string) (map[string]string, []interface{}) {
 	const defaultSummary = "Summary"
 	re := regexp.MustCompile("(?ms)^\\[summary(\\([^)]+\\))?: ?([\\s\\S]+?)\\] *(\\z|\n\\z|\n\n)")
 	summaries := make(map[string]string)
@@ -287,7 +287,7 @@ func ExtractSummaries(pageId string, text string) (map[string]string, []interfac
 	// Compute values for doing INSERT
 	summaryValues := make([]interface{}, 0)
 	for name, text := range summaries {
-		summaryValues = append(summaryValues, pageId, name, text)
+		summaryValues = append(summaryValues, pageID, name, text)
 	}
 	return summaries, summaryValues
 }
@@ -311,31 +311,31 @@ func ExtractTodoCount(text string) int {
 }
 
 // GetPageUrl returns the domain relative url for accessing the given page.
-func GetPageUrl(pageId string) string {
-	return fmt.Sprintf("/p/%s", pageId)
+func GetPageUrl(pageID string) string {
+	return fmt.Sprintf("/p/%s", pageID)
 }
 
 // GetPageFullUrl returns the full url for accessing the given page.
-func GetPageFullUrl(subdomain string, pageId string) string {
+func GetPageFullUrl(subdomain string, pageID string) string {
 	if len(subdomain) > 0 {
 		subdomain += "."
 	}
 	domain := strings.TrimPrefix(sessions.GetRawDomain(), "http://")
-	return fmt.Sprintf("http://%s%s/p/%s", subdomain, domain, pageId)
+	return fmt.Sprintf("http://%s%s/p/%s", subdomain, domain, pageID)
 }
 
 // GetEditPageUrl returns the domain relative url for editing the given page.
-func GetEditPageUrl(pageId string) string {
-	return fmt.Sprintf("/edit/%s", pageId)
+func GetEditPageUrl(pageID string) string {
+	return fmt.Sprintf("/edit/%s", pageID)
 }
 
 // GetEditPageFullUrl returns the full url for editing the given page.
-func GetEditPageFullUrl(subdomain string, pageId string) string {
+func GetEditPageFullUrl(subdomain string, pageID string) string {
 	if len(subdomain) > 0 {
 		subdomain += "."
 	}
 	domain := strings.TrimPrefix(sessions.GetRawDomain(), "http://")
-	return fmt.Sprintf("http://%s%s/edit/%s", subdomain, domain, pageId)
+	return fmt.Sprintf("http://%s%s/edit/%s", subdomain, domain, pageID)
 }
 
 // GetNewPageUrl returns the domain relative url for creating a page with a set alias.
@@ -370,8 +370,8 @@ func CorrectPagePairType(pagePairType string) (string, error) {
 	return pagePairType, nil
 }
 
-func IsIdValid(pageId string) bool {
-	if len(pageId) > 0 && pageId[0] > '0' && pageId[0] <= '9' {
+func IsIdValid(pageID string) bool {
+	if len(pageID) > 0 && pageID[0] > '0' && pageID[0] <= '9' {
 		return true
 	}
 	return false
@@ -392,7 +392,7 @@ func IsUser(db *database.DB, userId string) bool {
 	return userCount > 0
 }
 
-func GetCommentParents(db *database.DB, pageId string) (string, string, error) {
+func GetCommentParents(db *database.DB, pageID string) (string, string, error) {
 	var commentParentId string
 	var commentPrimaryPageId string
 	rows := database.NewQuery(`
@@ -401,7 +401,7 @@ func GetCommentParents(db *database.DB, pageId string) (string, string, error) {
 		JOIN pagePairs AS pp
 		ON (pi.pageId=pp.parentId)
 		WHERE pp.type=?`, ParentPagePairType).Add(`
-			AND pp.childId=?`, pageId).Add(`
+			AND pp.childId=?`, pageID).Add(`
 		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentId string
@@ -433,7 +433,7 @@ func GetCommentParents(db *database.DB, pageId string) (string, string, error) {
 	return commentParentId, commentPrimaryPageId, nil
 }
 
-func GetPrimaryParentTitle(db *database.DB, u *CurrentUser, pageId string) (string, error) {
+func GetPrimaryParentTitle(db *database.DB, u *CurrentUser, pageID string) (string, error) {
 	parentTitle := ""
 	found, err := database.NewQuery(`
 		SELECT primaryParents.title
@@ -444,7 +444,7 @@ func GetPrimaryParentTitle(db *database.DB, u *CurrentUser, pageId string) (stri
 		ON primaryParentInfos.pageId=primaryParents.pageId
 		WHERE primaryParentInfos.type!=?`, CommentPageType).Add(`
 			AND primaryParents.isLiveEdit AND pp.type=?`, ParentPagePairType).Add(`
-			AND pp.childId=?`, pageId).ToStatement(db).QueryRow().Scan(&parentTitle)
+			AND pp.childId=?`, pageID).ToStatement(db).QueryRow().Scan(&parentTitle)
 	if err != nil {
 		return "", fmt.Errorf("Couldn't load primary parent", err)
 	} else if !found {
@@ -455,8 +455,8 @@ func GetPrimaryParentTitle(db *database.DB, u *CurrentUser, pageId string) (stri
 }
 
 // Look up the domains that this page is in
-func LoadDomainsForPage(db *database.DB, pageId string) ([]string, error) {
-	return LoadDomainsForPages(db, pageId)
+func LoadDomainsForPage(db *database.DB, pageID string) ([]string, error) {
+	return LoadDomainsForPages(db, pageID)
 }
 
 // Look up the domains that these pages are in

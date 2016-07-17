@@ -33,8 +33,8 @@ type Document struct {
 	Title         string   `json:"title"`
 	Clickbait     string   `json:"clickbait"`
 	Text          string   `json:"text"`
-	SeeGroupId    string   `json:"seeGroupId"`
-	CreatorId     string   `json:"creatorId"`
+	SeeGroupID    string   `json:"seeGroupId"`
+	CreatorID     string   `json:"creatorId"`
 	SearchStrings []string `json:"searchStrings"`
 }
 
@@ -112,8 +112,8 @@ func AddPageToIndex(c sessions.Context, doc *Document) error {
 }
 
 // DeletePageFromIndex dletes a page from the pages index.
-func DeletePageFromIndex(c sessions.Context, pageId string) error {
-	request, err := http.NewRequest("DELETE", fmt.Sprintf("%s/page/%s", ElasticDomain, pageId), nil)
+func DeletePageFromIndex(c sessions.Context, pageID string) error {
+	request, err := http.NewRequest("DELETE", fmt.Sprintf("%s/page/%s", ElasticDomain, pageID), nil)
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}

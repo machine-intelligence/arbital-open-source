@@ -38,13 +38,13 @@ func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Get actual page id
-	pageId, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
+	pageID, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
 	if err != nil {
 		return pages.Fail("Couldn't convert alias", err)
 	} else if !ok {
 		return pages.Fail("No such page found", err)
 	}
-	returnData.ResultMap["pageId"] = pageId
+	returnData.ResultMap["pageId"] = pageID
 
 	loadOptions := (&core.PageLoadOptions{
 		SubpageCounts:    true,
@@ -56,10 +56,10 @@ func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 		IsSubscribed:     true,
 		RedLinkCount:     true,
 	}).Add(core.TitlePlusLoadOptions)
-	core.AddPageToMap(pageId, returnData.PageMap, loadOptions)
+	core.AddPageToMap(pageID, returnData.PageMap, loadOptions)
 
 	// Load all children of the pageId, then load all the grand-children, etc. recursively
-	parentIdsToProcess := []string{pageId}
+	parentIdsToProcess := []string{pageID}
 	for len(parentIdsToProcess) > 0 {
 		rows := database.NewQuery(`
 			SELECT pp.childId
@@ -71,15 +71,15 @@ func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 				AND pp.parentId IN`).AddArgsGroupStr(parentIdsToProcess).ToStatement(db).Query()
 		parentIdsToProcess = make([]string, 0)
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var pageId string
-			err := rows.Scan(&pageId)
+			var pageID string
+			err := rows.Scan(&pageID)
 			if err != nil {
 				return fmt.Errorf("Failed to scan: %v", err)
 			}
-			_, ok := returnData.PageMap[pageId]
+			_, ok := returnData.PageMap[pageID]
 			if !ok && len(returnData.PageMap) < ExploreMaxPagesToLoad {
-				parentIdsToProcess = append(parentIdsToProcess, pageId)
-				core.AddPageToMap(pageId, returnData.PageMap, loadOptions)
+				parentIdsToProcess = append(parentIdsToProcess, pageID)
+				core.AddPageToMap(pageID, returnData.PageMap, loadOptions)
 			}
 			return nil
 		})

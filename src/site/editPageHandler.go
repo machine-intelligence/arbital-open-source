@@ -145,7 +145,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		return pages.Fail("Can't set autosave and snapshot", nil).Status(http.StatusBadRequest)
 	}
 	// Check the group settings
-	if oldPage.SeeGroupId != seeGroupId && newEditNum != 1 {
+	if oldPage.SeeGroupID != seeGroupId && newEditNum != 1 {
 		return pages.Fail("Editing this page in incorrect private group", nil).Status(http.StatusBadRequest)
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)

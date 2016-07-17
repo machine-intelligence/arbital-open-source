@@ -88,12 +88,12 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 				AND NOT mp.has
 			GROUP BY 1`).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var pageId string
-			err := rows.Scan(&pageId)
+			var pageID string
+			err := rows.Scan(&pageID)
 			if err != nil {
 				return fmt.Errorf("Failed to scan: %v", err)
 			}
-			candidateIds = append(candidateIds, pageId)
+			candidateIds = append(candidateIds, pageID)
 			return nil
 		})
 		if err != nil {
@@ -160,13 +160,13 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 		HAVING SUM(1)<=SUM(mp.has)
 		LIMIT 5`).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId string
-		err := rows.Scan(&pageId)
+		var pageID string
+		err := rows.Scan(&pageID)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
-		unlockedIds = append(unlockedIds, pageId)
-		core.AddPageToMap(pageId, returnData.PageMap, core.TitlePlusLoadOptions)
+		unlockedIds = append(unlockedIds, pageID)
+		core.AddPageToMap(pageID, returnData.PageMap, core.TitlePlusLoadOptions)
 		return nil
 	})
 	if err != nil {

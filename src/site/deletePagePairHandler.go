@@ -14,8 +14,8 @@ import (
 
 // deletePagePairData contains the data we receive in the request.
 type deletePagePairData struct {
-	ParentId string
-	ChildId  string
+	ParentID string
+	ChildID  string
 	Type     string
 }
 
@@ -40,7 +40,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.ParentId) || !core.IsIdValid(data.ChildId) {
+	if !core.IsIdValid(data.ParentID) || !core.IsIdValid(data.ChildID) {
 		return pages.Fail("ParentId and ChildId have to be set", nil).Status(http.StatusBadRequest)
 	}
 	data.Type, err = core.CorrectPagePairType(data.Type)
@@ -50,7 +50,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Load the page pair
 	var pagePair *core.PagePair
-	queryPart := database.NewQuery(`WHERE pp.parentId=? AND pp.childId=? AND pp.type=?`, data.ParentId, data.ChildId, data.Type)
+	queryPart := database.NewQuery(`WHERE pp.parentId=? AND pp.childId=? AND pp.type=?`, data.ParentID, data.ChildID, data.Type)
 	err = core.LoadPagePairs(db, queryPart, func(db *database.DB, pp *core.PagePair) error {
 		pagePair = pp
 		return nil
@@ -160,7 +160,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if pagePair.Type == core.ParentPagePairType {
 		// Create a task to propagate the domain change to all children
 		var task tasks.PropagateDomainTask
-		task.PageID = pagePair.ChildId
+		task.PageID = pagePair.ChildID
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}

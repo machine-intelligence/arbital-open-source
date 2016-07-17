@@ -131,11 +131,11 @@ func _getDomainPages(tx *database.Tx, pageIds []string) (map[string]bool, error)
 		WHERE pageId IN`).AddArgsGroupStr(pageIds).Add(`
 			AND type=?`, DomainPageType).ToTxStatement(tx).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId string
-		if err := rows.Scan(&pageId); err != nil {
+		var pageID string
+		if err := rows.Scan(&pageID); err != nil {
 			return fmt.Errorf("failed to scan for domain page: %v", err)
 		}
-		domainPagesSet[pageId] = true
+		domainPagesSet[pageID] = true
 		return nil
 	})
 
@@ -155,12 +155,12 @@ func _getOriginalDomains(tx *database.Tx, pageIds []string) (map[string]map[stri
 		FROM pageDomainPairs
 		WHERE pageId IN`).AddArgsGroupStr(pageIds).ToTxStatement(tx).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId, domainId string
-		if err := rows.Scan(&pageId, &domainId); err != nil {
+		var pageID, domainId string
+		if err := rows.Scan(&pageID, &domainId); err != nil {
 			return fmt.Errorf("failed to scan for pageDomainPair: %v", err)
 		}
 		// Add the domain to this page's set of original domains
-		originalDomainsMap[pageId][domainId] = true
+		originalDomainsMap[pageID][domainId] = true
 		return nil
 	})
 	if err != nil {
@@ -189,23 +189,23 @@ func _getComputedDomains(originalDomainsMap map[string]map[string]bool, toUpdate
 }
 
 // Does a depth-first search up the hierarchy towards parents to find the page's domains
-func _computeDomainsRecursive(pageId string, parentMap map[string]map[string]bool, domainPagesSet map[string]bool,
+func _computeDomainsRecursive(pageID string, parentMap map[string]map[string]bool, domainPagesSet map[string]bool,
 	computedDomainsMap map[string]map[string]bool) map[string]bool {
 
 	// If we already know the domains for this page, we're done
-	if computedDomains, ok := computedDomainsMap[pageId]; ok {
+	if computedDomains, ok := computedDomainsMap[pageID]; ok {
 		return computedDomains
 	}
 
 	domainsSet := make(map[string]bool)
 
 	// Add this page if it's a domain page
-	if _, isDomainPage := domainPagesSet[pageId]; isDomainPage {
-		domainsSet[pageId] = true
+	if _, isDomainPage := domainPagesSet[pageID]; isDomainPage {
+		domainsSet[pageID] = true
 	}
 
 	// Add the domains from all of this page's parents
-	if parents, ok := parentMap[pageId]; ok {
+	if parents, ok := parentMap[pageID]; ok {
 		for parentId := range parents {
 			domainsFromParent := _computeDomainsRecursive(parentId, parentMap, domainPagesSet, computedDomainsMap)
 			for domainId := range domainsFromParent {
@@ -214,7 +214,7 @@ func _computeDomainsRecursive(pageId string, parentMap map[string]map[string]boo
 		}
 	}
 
-	computedDomainsMap[pageId] = domainsSet
+	computedDomainsMap[pageID] = domainsSet
 	return domainsSet
 }
 
@@ -256,18 +256,18 @@ func _updateDomains(tx *database.Tx, domainsToAddMap map[string]map[string]bool,
 	addDomainArgs := make([]interface{}, 0)
 	removeDomainArgsMap := make(map[string][]interface{}, 0)
 
-	for pageId, domainsToAddSet := range domainsToAddMap {
+	for pageID, domainsToAddSet := range domainsToAddMap {
 		for domainId := range domainsToAddSet {
-			addDomainArgs = append(addDomainArgs, domainId, pageId)
+			addDomainArgs = append(addDomainArgs, domainId, pageID)
 		}
 	}
-	for pageId, domainsToRemoveSet := range domainsToRemoveMap {
+	for pageID, domainsToRemoveSet := range domainsToRemoveMap {
 		removeDomainArgs := make([]interface{}, 0)
 		for domainId := range domainsToRemoveSet {
 			removeDomainArgs = append(removeDomainArgs, domainId)
 		}
 		if len(removeDomainArgs) > 0 {
-			removeDomainArgsMap[pageId] = removeDomainArgs
+			removeDomainArgsMap[pageID] = removeDomainArgs
 		}
 	}
 
@@ -281,13 +281,13 @@ func _updateDomains(tx *database.Tx, domainsToAddMap map[string]map[string]bool,
 		}
 	}
 
-	for pageId, removeDomainArgs := range removeDomainArgsMap {
+	for pageID, removeDomainArgs := range removeDomainArgsMap {
 		// Remove obsolete domains
 		if len(removeDomainArgs) > 0 {
 			statement := tx.DB.NewStatement(`
 				DELETE FROM pageDomainPairs
 				WHERE pageId=? AND domainId IN ` + database.InArgsPlaceholder(len(removeDomainArgs))).WithTx(tx)
-			args := append([]interface{}{pageId}, removeDomainArgs...)
+			args := append([]interface{}{pageID}, removeDomainArgs...)
 			if _, err := statement.Exec(args...); err != nil {
 				return fmt.Errorf("Failed to remove pageDomainPairs: %v", err)
 			}

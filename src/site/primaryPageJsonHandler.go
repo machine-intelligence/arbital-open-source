@@ -46,7 +46,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Get actual page id
-	pageId, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
+	pageID, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
 	if err != nil {
 		return pages.Fail("Couldn't convert alias", err)
 	}
@@ -57,14 +57,14 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// If lens id wasn't explicitly set, check to see if this page is a lens for some other page,
 	// and if so, load the primary page.
 	if data.LensId == "" {
-		page := core.AddPageIdToMap(pageId, returnData.PageMap)
+		page := core.AddPageIdToMap(pageID, returnData.PageMap)
 		err := core.LoadLensParentIds(db, returnData.PageMap, nil)
 		if err != nil {
 			return pages.Fail("Couldn't load lens parent id", err)
 		} else if page.LensParentId != "" {
-			c.Infof("Page %s redirected to its primary page %s", pageId, page.LensParentId)
-			data.LensId = pageId
-			pageId = page.LensParentId
+			c.Infof("Page %s redirected to its primary page %s", pageID, page.LensParentId)
+			data.LensId = pageID
+			pageID = page.LensParentId
 		}
 	}
 
@@ -72,7 +72,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	row := database.NewQuery(`
 		SELECT id
 		FROM users
-		WHERE id=?`, pageId).ToStatement(db).QueryRow()
+		WHERE id=?`, pageID).ToStatement(db).QueryRow()
 	var id string
 	exists, err := row.Scan(&id)
 	if err != nil {
@@ -91,7 +91,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		rows := database.NewQuery(`
 			SELECT pi.pageId
 			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
-			WHERE pi.createdBy=?`, pageId).Add(`
+			WHERE pi.createdBy=?`, pageID).Add(`
 				AND pi.seeGroupId=?`, params.PrivateGroupId).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
 			ORDER BY pi.createdAt DESC
@@ -107,7 +107,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			FROM pages AS p
 			JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 			ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
-			WHERE p.creatorId=?`, pageId).Add(`
+			WHERE p.creatorId=?`, pageID).Add(`
 				AND pi.seeGroupId=?`, params.PrivateGroupId).Add(`
 				AND pi.type=?`, core.CommentPageType).Add(`
 			ORDER BY pi.createdAt DESC
@@ -124,7 +124,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			FROM pages AS p
 			JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 			ON (p.pageId=pi.pageId)
-			WHERE p.creatorId=?`, pageId).Add(`
+			WHERE p.creatorId=?`, pageID).Add(`
 				AND pi.seeGroupId=?`, params.PrivateGroupId).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
 			GROUP BY 1
@@ -141,7 +141,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 			JOIN likes AS l2
 			ON (pi.likeableId=l2.likeableId)
-			WHERE pi.editGroupId=?`, pageId).Add(`
+			WHERE pi.editGroupId=?`, pageID).Add(`
 				AND pi.seeGroupId=?`, params.PrivateGroupId).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
 			GROUP BY 1
@@ -152,16 +152,16 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			return pages.Fail("error while loading recently edited by me page ids", err)
 		}
 
-		returnData.UserMap[pageId] = &core.User{ID: pageId}
+		returnData.UserMap[pageID] = &core.User{ID: pageID}
 	}
 
 	// Load data
-	returnData.ResultMap["primaryPageId"] = pageId
+	returnData.ResultMap["primaryPageId"] = pageID
 	core.AddPageIdToMap("14z", returnData.PageMap)
 	core.AddPageIdToMap("4yg", returnData.PageMap) // "Arbital quality"
 	core.AddPageIdToMap("3hs", returnData.PageMap) // "Author's guide"
 	core.AddPageIdToMap("58l", returnData.PageMap) // "Arbital user groups"
-	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryPageLoadOptions)
+	core.AddPageToMap(pageID, returnData.PageMap, core.PrimaryPageLoadOptions)
 	if data.LensId != "" {
 		returnData.ResultMap["lensId"] = data.LensId
 		core.AddPageToMap(data.LensId, returnData.PageMap, core.LensFullLoadOptions)

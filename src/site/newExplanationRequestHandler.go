@@ -58,16 +58,16 @@ func explanationRequestJsonHandler(params *pages.HandlerParams) *pages.Result {
 }
 
 // Add a like to the explanation request for the given (page, type) pair.
-func plusOneToExplanationRequest(tx *database.Tx, u *core.CurrentUser, pageId string, requestType string) sessions.Error {
+func plusOneToExplanationRequest(tx *database.Tx, u *core.CurrentUser, pageID string, requestType string) sessions.Error {
 	// Check to see if there's already an explanation request for this (page, type) pair.
-	alreadyExists, id, err := _lookupExplanationRequest(tx.DB, u, pageId, requestType)
+	alreadyExists, id, err := _lookupExplanationRequest(tx.DB, u, pageID, requestType)
 	if err != nil {
 		return sessions.NewError("Error querying for an existing explanation request", err)
 	}
 
 	// If an explanation request doesn't exist, create a new one.
 	if !alreadyExists {
-		idInt64, serr := _createExplanationRequest(tx, u, pageId, requestType)
+		idInt64, serr := _createExplanationRequest(tx, u, pageID, requestType)
 		if serr != nil {
 			return sessions.NewError("Couldn't create a new explanation request", serr)
 		}
@@ -79,13 +79,13 @@ func plusOneToExplanationRequest(tx *database.Tx, u *core.CurrentUser, pageId st
 }
 
 // Find the id of the explanation request for the given (page, type) pair.
-func _lookupExplanationRequest(db *database.DB, u *core.CurrentUser, pageId string, requestType string) (bool, string, error) {
+func _lookupExplanationRequest(db *database.DB, u *core.CurrentUser, pageID string, requestType string) (bool, string, error) {
 	var id string
 
 	row := database.NewQuery(`
 		SELECT id
 		FROM contentRequests AS er
-		WHERE er.pageId=?`, pageId).Add(`
+		WHERE er.pageId=?`, pageID).Add(`
 			AND er.type=?`, requestType).ToStatement(db).QueryRow()
 	exists, err := row.Scan(&id)
 	if err != nil {
@@ -96,9 +96,9 @@ func _lookupExplanationRequest(db *database.DB, u *core.CurrentUser, pageId stri
 }
 
 // Insert a new explanation request row into the table.
-func _createExplanationRequest(tx *database.Tx, u *core.CurrentUser, pageId string, requestType string) (int64, error) {
+func _createExplanationRequest(tx *database.Tx, u *core.CurrentUser, pageID string, requestType string) (int64, error) {
 	hashmap := make(map[string]interface{})
-	hashmap["pageId"] = pageId
+	hashmap["pageId"] = pageID
 	hashmap["type"] = requestType
 	hashmap["createdAt"] = database.Now()
 	statement := tx.DB.NewInsertStatement("contentRequests", hashmap)

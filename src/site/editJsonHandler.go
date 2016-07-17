@@ -46,7 +46,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	returnData := core.NewHandlerData(u)
 
 	// Get actual page id
-	pageId, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
+	pageID, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
 	if err != nil {
 		return pages.Fail("Couldn't convert alias", err)
 	} else if !ok {
@@ -70,15 +70,15 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 		LoadEditWithLimit: data.EditLimit,
 		CreatedAtLimit:    data.CreatedAtLimit,
 	}
-	p, err := core.LoadFullEdit(db, pageId, u, &options)
+	p, err := core.LoadFullEdit(db, pageID, u, &options)
 	if err != nil {
 		return pages.Fail("Error while loading full edit", err)
 	}
 	if p == nil {
 		return pages.Fail("Exact page not found", err)
 	}
-	if p.SeeGroupId != params.PrivateGroupId {
-		if core.IsIdValid(p.SeeGroupId) {
+	if p.SeeGroupID != params.PrivateGroupId {
+		if core.IsIdValid(p.SeeGroupID) {
 			return pages.Fail("Trying to edit a private page. Go to the corresponding group", err).Status(http.StatusBadRequest)
 		} else {
 			return pages.Fail("Trying to edit a public page. Go to arbital.com", err).Status(http.StatusBadRequest)
@@ -93,8 +93,8 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 		if err != nil {
 			return pages.Fail("Couldn't load links", err)
 		}
-		for _, pageId := range aliasToIdMap {
-			core.AddPageIdToMap(pageId, returnData.PageMap)
+		for _, pageID := range aliasToIdMap {
+			core.AddPageIdToMap(pageID, returnData.PageMap)
 		}
 	}
 
@@ -104,12 +104,12 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	}
 	data.AdditionalPageIds = append(data.AdditionalPageIds, "3n", "178", "1ln",
 		"17b", "35z", "370", "187", "185", "3hs", "1rt", "595", "596", "597")
-	for _, pageId := range data.AdditionalPageIds {
-		core.AddPageIdToMap(pageId, returnData.PageMap)
+	for _, pageID := range data.AdditionalPageIds {
+		core.AddPageIdToMap(pageID, returnData.PageMap)
 	}
 
 	// Load data
-	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryEditLoadOptions)
+	core.AddPageToMap(pageID, returnData.PageMap, core.PrimaryEditLoadOptions)
 	core.AddPageIdToMap(p.EditGroupId, returnData.PageMap)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
@@ -121,7 +121,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	// NOTE: a reminder when fixing this is that it's quite possible that we don't have
 	// the page in pageMap if it hasn't been published yet, so the only "page" on the FE
 	// is the one from editMap
-	livePage := returnData.PageMap[pageId]
+	livePage := returnData.PageMap[pageID]
 	p.LensParentId = livePage.LensParentId
 	p.ChildIds = livePage.ChildIds
 	p.ParentIds = livePage.ParentIds
@@ -132,7 +132,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	p.PathPages = livePage.PathPages
 	p.ChangeLogs = livePage.ChangeLogs
 	p.SearchStrings = livePage.SearchStrings
-	returnData.EditMap[pageId] = p
+	returnData.EditMap[pageID] = p
 
 	// Clear change logs from the live page
 	livePage.ChangeLogs = []*core.ChangeLog{}

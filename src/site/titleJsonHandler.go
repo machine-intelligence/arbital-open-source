@@ -34,7 +34,7 @@ func titleJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Get actual page id
-	pageId, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
+	pageID, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
 	if err != nil {
 		return pages.Fail("Couldn't convert alias", err)
 	}
@@ -45,7 +45,7 @@ func titleJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load data
-	core.AddPageIdToMap(pageId, returnData.PageMap)
+	core.AddPageIdToMap(pageID, returnData.PageMap)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		pages.Fail("Pipeline error", err)

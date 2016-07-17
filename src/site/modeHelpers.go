@@ -200,27 +200,27 @@ func loadLikesModeRows(db *database.DB, returnData *core.CommonHandlerData, limi
 		ORDER BY l.updatedAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var likerId, pageId, pageType, updatedAt string
+		var likerId, pageID, pageType, updatedAt string
 
-		err := rows.Scan(&likerId, &pageId, &pageType, &updatedAt)
+		err := rows.Scan(&likerId, &pageID, &pageType, &updatedAt)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
 
-		row, ok := hedonsRowMap[pageId]
+		row, ok := hedonsRowMap[pageID]
 		if !ok {
 			row = &likesModeRow{
 				modeRowData: modeRowData{RowType: LikesModeRowType, ActivityDate: updatedAt},
-				PageID:      pageId,
+				PageID:      pageID,
 				UserIds:     make([]string, 0),
 			}
-			hedonsRowMap[pageId] = row
+			hedonsRowMap[pageID] = row
 
 			loadOptions := core.TitlePlusLoadOptions
 			if pageType == core.CommentPageType {
 				loadOptions.Add(&core.PageLoadOptions{Parents: true})
 			}
-			core.AddPageToMap(pageId, returnData.PageMap, loadOptions)
+			core.AddPageToMap(pageID, returnData.PageMap, loadOptions)
 		}
 
 		core.AddUserIdToMap(likerId, returnData.UserMap)
@@ -252,10 +252,10 @@ func loadChangeLikesModeRows(db *database.DB, returnData *core.CommonHandlerData
 			AND cl.type=?`, core.NewEditChangeLog).Add(`
 		ORDER BY l.updatedAt DESC`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var likerId, pageId, updatedAt string
+		var likerId, pageID, updatedAt string
 		var changeLog core.ChangeLog
 
-		err := rows.Scan(&likerId, &pageId, &updatedAt,
+		err := rows.Scan(&likerId, &pageID, &updatedAt,
 			&changeLog.ID, &changeLog.PageID, &changeLog.Type, &changeLog.OldSettingsValue,
 			&changeLog.NewSettingsValue, &changeLog.Edit)
 		if err != nil {
@@ -266,14 +266,14 @@ func loadChangeLikesModeRows(db *database.DB, returnData *core.CommonHandlerData
 		if !ok {
 			row = &likesModeRow{
 				modeRowData: modeRowData{RowType: LikesModeRowType, ActivityDate: updatedAt},
-				PageID:      pageId,
+				PageID:      pageID,
 				ChangeLog:   &changeLog,
 				UserIds:     make([]string, 0),
 			}
 			hedonsRowMap[changeLog.ID] = row
 		}
 
-		core.AddPageToMap(pageId, returnData.PageMap, core.TitlePlusLoadOptions)
+		core.AddPageToMap(pageID, returnData.PageMap, core.TitlePlusLoadOptions)
 		core.AddUserIdToMap(likerId, returnData.UserMap)
 		row.UserIds = append(row.UserIds, likerId)
 		return nil
@@ -375,18 +375,18 @@ func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 		ORDER BY pi.`+pageInfoActivityDateField+` DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId, activityDate string
-		err := rows.Scan(&pageId, &activityDate)
+		var pageID, activityDate string
+		err := rows.Scan(&pageID, &activityDate)
 		if err != nil {
 			return fmt.Errorf("failed to scan a pageId: %v", err)
 		}
 		row := &pageModeRow{
 			modeRowData: modeRowData{RowType: PageModeRowType, ActivityDate: activityDate},
-			PageID:      pageId,
+			PageID:      pageID,
 		}
 		modeRows = append(modeRows, row)
 
-		core.AddPageToMap(pageId, returnData.PageMap, pageLoadOptions)
+		core.AddPageToMap(pageID, returnData.PageMap, pageLoadOptions)
 		return nil
 	})
 	if err != nil {
@@ -422,20 +422,20 @@ func loadDraftRows(db *database.DB, returnData *core.CommonHandlerData, limit in
 		ORDER BY p.createdAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId, title, createdAt string
+		var pageID, title, createdAt string
 		var wasPublished, isDeleted bool
-		err := rows.Scan(&pageId, &title, &createdAt, &wasPublished, &isDeleted)
+		err := rows.Scan(&pageID, &title, &createdAt, &wasPublished, &isDeleted)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
 		row := &pageModeRow{
 			modeRowData: modeRowData{RowType: DraftModeRowType, ActivityDate: createdAt},
-			PageID:      pageId,
+			PageID:      pageID,
 		}
 		modeRows = append(modeRows, row)
-		core.AddPageToMap(pageId, returnData.PageMap, pageLoadOptions)
+		core.AddPageToMap(pageID, returnData.PageMap, pageLoadOptions)
 
-		page := core.AddPageIdToMap(pageId, returnData.EditMap)
+		page := core.AddPageIdToMap(pageID, returnData.EditMap)
 		if title == "" {
 			title = "*Untitled*"
 		}
@@ -480,17 +480,17 @@ func loadTaggedForEditRows(db *database.DB, returnData *core.CommonHandlerData, 
 		ORDER BY p.createdAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId, createdAt string
-		err := rows.Scan(&pageId, &createdAt)
+		var pageID, createdAt string
+		err := rows.Scan(&pageID, &createdAt)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
 		row := &pageModeRow{
 			modeRowData: modeRowData{RowType: TaggedforEditModeRowType, ActivityDate: createdAt},
-			PageID:      pageId,
+			PageID:      pageID,
 		}
 		modeRows = append(modeRows, row)
-		core.AddPageToMap(pageId, returnData.PageMap, pageLoadOptions)
+		core.AddPageToMap(pageID, returnData.PageMap, pageLoadOptions)
 		return nil
 	})
 	if err != nil {

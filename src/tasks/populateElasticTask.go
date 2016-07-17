@@ -67,7 +67,7 @@ func (task PopulateElasticTask) Execute(db *database.DB) (delay int, err error) 
 func populateElasticProcessPage(db *database.DB, rows *database.Rows) error {
 	doc := &elastic.Document{}
 	if err := rows.Scan(&doc.PageID, &doc.Type, &doc.Title, &doc.Clickbait,
-		&doc.Text, &doc.Alias, &doc.SeeGroupId, &doc.CreatorId); err != nil {
+		&doc.Text, &doc.Alias, &doc.SeeGroupID, &doc.CreatorID); err != nil {
 		return fmt.Errorf("failed to scan for page: %v", err)
 	}
 
