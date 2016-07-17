@@ -54,6 +54,7 @@ app.directive('arbReqRelationships', function($q, $timeout, $interval, $http, ar
 					parentId: result.pageId,
 					childId: $scope.page.pageId,
 					type: $scope.type,
+					level: 1,
 				};
 				arb.pageService.newPagePair(params, function success(data) {
 					$scope.source.push(data.result.pagePair);
