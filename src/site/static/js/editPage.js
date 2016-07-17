@@ -687,8 +687,9 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				var $markdownToolbar = element.find('.wmd-button-bar');
 				var blurHooked = false;
 				// Show autocomplete for inserting an intrasite link
-				$markdownToolbar.on('showInsertLink', function(event, callback) {
+				$markdownToolbar.on('showInsertLink', function(event, callback, isAtMention) {
 					scope.showInsertLink = true;
+					scope.searchGroups = isAtMention;
 					scope.insertLinkCallback = callback;
 					// NOTE: not sure why, but we need two timeouts here
 					$timeout(function() { $timeout(function() {

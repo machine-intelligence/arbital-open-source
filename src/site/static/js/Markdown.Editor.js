@@ -991,13 +991,13 @@
 	// callback: The function which is executed when the prompt is dismissed, either via OK or Cancel.
 	//	  It receives a single argument; either the entered text (if OK was chosen) or null (if Cancel
 	//	  was chosen).
-	// isIntraLink: Set to true if the input is for page aliases.
-	ui.prompt = function(title, helpText, callback, pageId, newPageType) {
+	// isAtMention: Set to true if the input is for a group mention.
+	ui.prompt = function(title, helpText, callback, pageId, isAtMention, newPageType) {
 		var $buttonBar = $('#wmd-button-bar' + pageId);
 		if (newPageType) {
 			$buttonBar.trigger('showNewPageDialog', [callback, newPageType]);
 		} else {
-			$buttonBar.trigger('showInsertLink', callback);
+			$buttonBar.trigger('showInsertLink', [callback, isAtMention]);
 		}
 	};
 
@@ -1670,7 +1670,7 @@
 				postProcessing();
 			};
 
-			ui.prompt(this.getString('intralinkdialogtitle'), this.getString('intralinkdialog'), linkEnteredCallback, this.pageId);
+			ui.prompt(this.getString('intralinkdialogtitle'), this.getString('intralinkdialog'), linkEnteredCallback, this.pageId, isAtMention);
 			return true;
 		}
 	};
@@ -1711,7 +1711,7 @@
 				postProcessing();
 			};
 
-			ui.prompt('', '', pageCreatedCallback, this.pageId, newPageType);
+			ui.prompt('', '', pageCreatedCallback, this.pageId, false, newPageType);
 			return true;
 		}
 	};
