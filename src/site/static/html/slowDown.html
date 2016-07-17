@@ -44,7 +44,7 @@
 			<!-- TODO: rearrange this so that it's ("to learn thing1, see a or b or c; to learn thing2, see b or d or e" -->
 			<!-- TODO: fix issue with commas on 1x5 -->
 			<!-- List other pages that teach things this page teaches -->
-			<div ng-if="altTeachers">
+			<div ng-if="altTeachers && altTeachers.length > 0">
 				<br>
 				<span><b>Related explanations:</b></span>
 				<div ng-repeat="altTeacher in altTeachers">
