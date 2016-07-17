@@ -28,12 +28,12 @@
 
 			<!-- What this page requires -->
 			<div ng-if="page.requirements.length > 0">
-				This page requires
+				This page relies on
 				<span ng-repeat="reqRelationship in page.requirements">
 					<span ng-if="$last && !$first">and</span>
 					<arb-page-title page-id="{{reqRelationship.parentId}}"
 							is-link="true"></arb-page-title>
-					<span ng-if="!$last && page.subjects.length != 2" class="comma">,</span>
+					<span ng-if="!$last && page.requirements.length != 2" class="comma">,</span>
 				</span>
 
 				<span class="comma">.</span>
@@ -47,14 +47,14 @@
 							is-link="true"></arb-page-title>
 					teaches
 					<span ng-repeat="subjectRelationship in altTeacher.subjects">
-						<span ng-if="$last">and</span>
+						<span ng-if="$last && !$first">and</span>
 						<arb-page-title page-id="{{subjectRelationship.parentId}}"
 								is-link="true"></arb-page-title>
 						<span ng-if="!$last && altTeacher.subjects.length != 2" class="comma">,</span>
 					</span>
-					and requires
+					and relies on
 					<span ng-repeat="reqRelationship in altTeacher.requirements">
-						<span ng-if="$last">and</span>
+						<span ng-if="$last && !$first">and</span>
 						<arb-page-title page-id="{{reqRelationship.parentId}}"
 								is-link="true"></arb-page-title>
 						<span ng-if="!$last && altTeacher.subjects.length != 2" class="comma">,</span>
@@ -72,8 +72,7 @@
 					<input ng-model="request.freeformText"
 							class="slow-down-free-form-text"
 							aria-label="Alternate page request"
-							autofocus
-							placeholder="How would you like this page to be different?"
+							placeholder="How can this page be improved?"
 							flex>
 				</md-input-container>
 				<md-button ng-click="submitFreeformExplanationRequest()">submit</md-button>
