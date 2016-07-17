@@ -10,7 +10,7 @@
 		</div>
 
 		<!-- For user page display some additional info -->
-		<div ng-if="::(page.isUser() && !isSimpleEmbed)">
+		<div ng-if="::page.isUser()">
 
 			<div ng-repeat="(domainId, trust) in ::page.trustMap">
 				<!-- Admins can edit the level of the user -->
@@ -50,7 +50,7 @@
 				layout-padding
 				layout="row"
 				layout-align="start center"
-				ng-if="page.domainIds.length <= 0 && !page.isUser() && !page.isGroup() && !isSimpleEmbed">
+				ng-if="page.domainIds.length <= 0 && !page.isUser() && !page.isGroup()">
 			<!-- Hasn't been submitted -->
 			<div ng-if="page.domainSubmissionsCount() <= 0">
 				This page is
@@ -113,17 +113,14 @@
 						<arb-lens class="reveal-after-render"
 								page-id="{{::lens.lensId}}"
 								lens-parent-id="{{::page.pageId}}"
-								is-simple-embed="::isSimpleEmbed"
 								ng-if="isLoaded(lens.lensId)"></arb-lens>
 					</div>
 
 					<!-- Parents and tags -->
-					<div layout="column"
-							layout-padding
-							class="page-meta-bar"
-							ng-if="selectedLens.parentIds.length > 0 || (selectedLens.nonMetaTagIds.length > 0 && !isSimpleEmbed)">
+					<div layout="column" layout-padding>
 						<div layout="column"
 								layout-gt-sm="row"
+								ng-if="selectedLens.parentIds.length > 0 || selectedLens.nonMetaTagIds.length > 0"
 								layout-align="start start">
 							<!-- Parents -->
 							<div flex>
@@ -139,7 +136,7 @@
 
 							<!-- Tags -->
 							<div layout-align="start center"
-					 				ng-if="selectedLens.nonMetaTagIds.length > 0 && !isSimpleEmbed">
+					 				ng-if="selectedLens.nonMetaTagIds.length > 0">
 					 			<span>Tags:</span>
 					 			<span ng-repeat="(index, tagId) in selectedLens.nonMetaTagIds">
 					 				<span class="comma" ng-if="::(index > 0)">,</span>
@@ -147,9 +144,12 @@
 					 			</span>
 					 		</div>
 					 	</div>
-					 	<a ng-href="{{arb.urlService.getEditPageUrl(selectedLens.pageId, {tabId: 4})}}" class="md-caption">
-					 		{{page.changeLogs.length}} changes by {{page.authors.length}} authors
-					 	</a>
+						<div>
+							<a ng-href="{{arb.urlService.getEditPageUrl(selectedLens.pageId, {tabId: 4})}}" class="md-caption">
+								{{page.changeLogs.length}} changes by {{page.authors.length}}
+								<ng-pluralize count="page.authors.length" when="{'one': 'author', 'other': 'authors'}"></ng-pluralize>
+							</a>
+						</div>
 					</div>
 
 					<!-- Add tags panel -->
@@ -167,7 +167,7 @@
 
 		<!-- Answers section -->
 		<a id="answers"></a>
-		<div class="discussion-container" ng-if="::!isSimpleEmbed && page.isQuestion()">
+		<div class="discussion-container" ng-if="::page.isQuestion()">
 			<div class="user-page-panel md-whiteframe-1dp" layout="column">
 				<md-toolbar class="md-hue-2">
 					<div class="md-toolbar-tools">
@@ -193,7 +193,7 @@
 		</div>
 
 		<!-- Marks section -->
-		<div class="discussion-container" ng-if="::!isSimpleEmbed">
+		<div class="discussion-container">
 			<arb-marks ng-repeat="lens in ::lenses"
 					class="reveal-after-render"
 					page-id="{{::lens.lensId}}"
@@ -201,7 +201,7 @@
 		</div>
 
 		<!-- Discussion section -->
-		<div class="discussion-container" ng-if="::!isSimpleEmbed">
+		<div class="discussion-container">
 			<arb-page-discussion ng-repeat="lens in ::lenses"
 					class="reveal-after-render"
 					page-id="{{::lens.lensId}}"
