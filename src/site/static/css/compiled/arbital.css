@@ -952,6 +952,11 @@ md-toast md-icon {
     border-left: 2px solid #137abd;
     border-right: 2px solid #137abd;
     border-bottom: 2px solid #137abd; }
+  .slow-down-container-expanded md-input-container {
+    margin-top: 10px;
+    margin-bottom: 0px; }
+  .slow-down-container-expanded .slow-down-free-form-text {
+    width: 300px; }
 
 .slow-down-button-collapsed {
   border-radius: 16px 0 0 16px;
