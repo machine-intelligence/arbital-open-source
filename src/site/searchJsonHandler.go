@@ -72,6 +72,8 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		b, err := json.Marshal(types)
 		if err == nil {
 			forbiddenTypeFilter = fmt.Sprintf(`{"terms": { "type": %s } },`, b)
+		} else {
+			return pages.Fail("Error constructing ElasticSearch query: %v", err)
 		}
 	}
 
