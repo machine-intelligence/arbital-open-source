@@ -31,8 +31,6 @@
 		linkdialog: 'http://example.com/ "optional title"',
 
 		intralink: 'Intrasite link <a> Ctrl+;',
-		intralinkdialogtitle: 'Insert Intrasite Link',
-		intralinkdialog: 'Start typing a page alias or page title for autocomplete.',
 
 		newpage: 'Quickly create a new page and insert the link Ctrl+E',
 
@@ -986,13 +984,12 @@
 	// This simulates a modal dialog box and asks for the URL when you
 	// click the hyperlink or image buttons.
 	//
-	// title: title of the dialog
-	// helpText: Optional text to display to help the user
 	// callback: The function which is executed when the prompt is dismissed, either via OK or Cancel.
 	//	  It receives a single argument; either the entered text (if OK was chosen) or null (if Cancel
 	//	  was chosen).
-	// isAtMention: Set to true if the input is for a group mention.
-	ui.prompt = function(title, helpText, callback, pageId, isAtMention, newPageType) {
+	// isAtMention: Set to true if the input is for a group mention. If true, search only for groups.
+	//    If false, exclude groups from search results.
+	ui.prompt = function(callback, pageId, isAtMention, newPageType) {
 		var $buttonBar = $('#wmd-button-bar' + pageId);
 		if (newPageType) {
 			$buttonBar.trigger('showNewPageDialog', [callback, newPageType]);
@@ -1670,7 +1667,7 @@
 				postProcessing();
 			};
 
-			ui.prompt(this.getString('intralinkdialogtitle'), this.getString('intralinkdialog'), linkEnteredCallback, this.pageId, isAtMention);
+			ui.prompt(linkEnteredCallback, this.pageId, isAtMention);
 			return true;
 		}
 	};
@@ -1711,7 +1708,7 @@
 				postProcessing();
 			};
 
-			ui.prompt('', '', pageCreatedCallback, this.pageId, false, newPageType);
+			ui.prompt(pageCreatedCallback, this.pageId, false, newPageType);
 			return true;
 		}
 	};

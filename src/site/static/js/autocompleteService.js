@@ -34,6 +34,7 @@ app.service('autocompleteService', function($http, $compile, pageService, stateS
 	// options = {
 	//	term: string to search for
 	//	pageType: contraint for what type of pages we are looking for
+	//	filterPageTypes: do not return pages with these types
 	// }
 	// Returns: list of results
 	this.performSearch = function(options, callback) {

@@ -554,6 +554,8 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 			onBlur: '&',
 			// If true, only search over groups
 			searchGroups: '=',
+			// If true, exclude groups from search results
+			ignoreGroups: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -567,7 +569,11 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 						deferred.resolve(results);
 					});
 				} else {
-					arb.autocompleteService.performSearch({term: text, pageType: $scope.pageType}, function(results) {
+					arb.autocompleteService.performSearch({
+						term: text,
+						pageType: $scope.pageType,
+						filterPageTypes: $scope.ignoreGroups ? ['group'] : [],
+					}, function(results) {
 						deferred.resolve(results);
 					});
 				}
