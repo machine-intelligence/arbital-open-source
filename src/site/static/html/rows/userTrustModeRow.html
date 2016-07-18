@@ -3,10 +3,9 @@
 		<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
 		promoted you to a
 		<arb-page-title page-id="58l" is-link="true" custom-page-title="reviewer"></arb-page-title>
-		of
-		<arb-page-title page-id="{{::update.goToPageId}}"
-				is-link="true"
-				custom-page-title="the {{::arb.pageService.getDomainName(update.goToPageId)}} domain"></arb-page-title>
+		of the
+		<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
+		domain.
 	</div>
 	<div class="md-caption" layout="row" layout-align="start center">
 		<span ng-bind="::(modeRow.activityDate | smartDateTime)"></span>

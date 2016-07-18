@@ -58,7 +58,7 @@
 				<md-button class="md-primary md-raised"
 						ng-click="submitToDomain()"
 						ng-if="page.permissions.edit.has">
-					Submit to math domain
+					Submit for approval
 				</md-button>
 			</div>
 			<!-- Has been submitted -->
@@ -102,7 +102,8 @@
 				<div class="md-whiteframe-1dp">
 					<div class="md-whiteframe-1dp page-lens-body">
 						<!-- How to make this page better box -->
-						<div arb-page-improvement page="selectedLens" ng-if="selectedLens"></div>
+						<div arb-page-improvement page="selectedLens"
+								ng-if="selectedLens && selectedLens.isInDomain('1lw')"></div>
 
 						<div ng-style="{'min-height': 500}"
 								layout="column"

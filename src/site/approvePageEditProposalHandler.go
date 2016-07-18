@@ -111,7 +111,7 @@ func approvePageEditProposalHandlerFunc(params *pages.HandlerParams) *pages.Resu
 				hashmap["type"] = core.EditProposalAcceptedUpdateType
 				hashmap["subscribedToId"] = proposedEdit.PageID
 				hashmap["goToPageId"] = proposedEdit.PageID
-				hashmap["changeLogId"] = data.ChangeLogID
+				hashmap["changeLogId"] = data.ChangeLogId
 				hashmap["createdAt"] = database.Now()
 				statement = tx.DB.NewInsertStatement("updates", hashmap).WithTx(tx)
 				if _, err := statement.Exec(); err != nil {
