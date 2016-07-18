@@ -1,4 +1,4 @@
-// alternatePagesJsonHandler.go returns a list of pages the user might want to read instead of the given page
+// alternatePagesHandler.go returns a list of pages the user might want to read instead of the given page
 package site
 
 import (
@@ -17,11 +17,11 @@ type alternatePagesData struct {
 
 var alternatePagesHandler = siteHandler{
 	URI:         "/json/alternatePages/",
-	HandlerFunc: alternatePagesJsonHandler,
+	HandlerFunc: alternatePagesHandlerFunc,
 	Options:     pages.PageOptions{},
 }
 
-func alternatePagesJsonHandler(params *pages.HandlerParams) *pages.Result {
+func alternatePagesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(u)

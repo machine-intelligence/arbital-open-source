@@ -14,63 +14,6 @@ app.directive('arbUserName', function(arb) {
 	};
 });
 
-// arb-slow-down-button
-app.directive('arbSlowDownButton', function(arb, $window, $timeout) {
-	return {
-		templateUrl: versionUrl('static/html/slowDown.html'),
-		scope: {
-			pageId: '@',
-		},
-		link: function(scope, element) {
-			var parent = element.parent();
-			var slowDownContainer = angular.element(element.find('.slow-down-container'));
-
-			var topOfParent = parent[0].getBoundingClientRect().top + 10;
-			slowDownContainer.css('top', topOfParent);
-
-			angular.element($window).bind('scroll', function() {
-				scope.haveScrolled = true;
-
-				// Make the button not go past the bottom of the parent
-				var bottomOfParent = parent[0].getBoundingClientRect().bottom + 20;
-				slowDownContainer.css('top', Math.min(bottomOfParent, topOfParent));
-			});
-		},
-		controller: function($scope) {
-			$scope.arb = arb;
-			$scope.page = arb.stateService.pageMap[$scope.pageId];
-
-			arb.stateService.postData('/json/alternatePages/', {pageId: $scope.pageId},
-				function(data) {
-					$scope.altTeachers = data.result.alternateTeachers.map(function(altTeacherId) {
-						return arb.stateService.getPage(altTeacherId);
-					});
-				})
-
-			$scope.makeExplanationRequest = function(type) {
-				var erData = {pageId: $scope.page.pageId, type: type};
-				console.log('about to post to: /json/explanationRequest/');
-				console.log('with data:');
-				console.log(erData);
-				arb.stateService.postData('/json/explanationRequest/', erData,
-					function(data) {
-						console.log('success! posted to: /json/explanationRequest/');
-					}
-				);
-			};
-
-			$scope.request = {};
-			$scope.submitFreeformExplanationRequest = function() {
-				arb.stateService.postData(
-					'/feedback/',
-					{text: 'Explanation request for page ' + $scope.page.pageId + ':\n' + $scope.request.freeformText}
-				)
-				$scope.request.freeformText = '';
-			};
-		},
-	}
-});
-
 // arb-edit-button shows an edit button for a page, and handles users not being logged in
 app.directive('arbEditButton', function(arb) {
 	return {

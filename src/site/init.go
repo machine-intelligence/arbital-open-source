@@ -154,6 +154,7 @@ func init() {
 	s.HandleFunc(searchHandler.URI, handlerWrapper(searchHandler)).Methods("POST")
 	s.HandleFunc(sendSlackInviteHandler.URI, handlerWrapper(sendSlackInviteHandler)).Methods("POST")
 	s.HandleFunc(settingsPageHandler.URI, handlerWrapper(settingsPageHandler)).Methods("POST")
+	s.HandleFunc(slowDownHandler.URI, handlerWrapper(slowDownHandler)).Methods("POST")
 	s.HandleFunc(signupHandler.URI, handlerWrapper(signupHandler)).Methods("POST")
 	s.HandleFunc(similarPageSearchHandler.URI, handlerWrapper(similarPageSearchHandler)).Methods("POST")
 	s.HandleFunc(startPathHandler.URI, handlerWrapper(startPathHandler)).Methods("POST")
