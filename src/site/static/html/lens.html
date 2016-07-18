@@ -28,91 +28,94 @@
 	</div>
 
 	<!-- Page's text. Populated by markdown. -->
-	<div class="lens-text-container">
-		<!-- Page title -->
-		<h1>
-			<md-icon class="page-title-icon" ng-if="::isUser">person</md-icon>
-			<md-icon class="page-title-icon" ng-if="::page.isQuestion()">help</md-icon>
-			<span class="md-display-3"
-					ng-class="::{'center-text': isTinyScreen}"
-					ng-bind="page.title"></span>
-		</h1>
-
+	<div layout="row">
 		<arb-slow-down-button page-id="{{::page.pageId}}"></arb-slow-down-button>
+		<div class="lens-text-container">
 
-		<!-- Owner -->
-		<div class="author-list md-caption page-list-span" ng-if="::page.editGroupId !== ''">
-			Owner:
-			<arb-page-title page-id="{{::page.editGroupId}}"
-					is-link="true"
-					ng-if="::!arb.userService.userMap[page.editGroupId]"></arb-page-title>
-			<arb-user-name user-id="{{::page.editGroupId}}"
-					ng-if="::arb.userService.userMap[page.editGroupId]"></arb-user-name>
-		</div>
+			<!-- Page title -->
+			<h1>
+				<md-icon class="page-title-icon" ng-if="::isUser">person</md-icon>
+				<md-icon class="page-title-icon" ng-if="::page.isQuestion()">help</md-icon>
+				<span class="md-display-3"
+						ng-class="::{'center-text': isTinyScreen}"
+						ng-bind="page.title"></span>
+			</h1>
 
-		<!-- Body text -->
-		<arb-markdown class="lens-text"
-				page-id="{{::page.pageId}}"></arb-markdown>
-
-		<!-- Contributors -->
-		<div class="author-list md-caption page-list-span"
-				ng-if="::(page.creatorIds.length > 0 && page.seeGroupId &&
-					!(page.editGroupId === page.creatorIds[0] && page.creatorIds.length == 1))">
-			<br>
-			<ng-pluralize count="::page.creatorIds.length"
-					when="{'one': 'Contributor:', 'other': 'Contributors:'}"></ng-pluralize>
-			<span ng-repeat="(index, creatorId) in ::page.creatorIds">
-				<span class="comma" ng-if="::(index > 0)">,</span>
-				<arb-user-name ng-class="::{bold: creatorId === page.pageCreatorId}"
-						user-id="{{::creatorId}}"></arb-user-name>
-			</span>
-		</div>
-
-		<div layout-gt-xs="row" layout-align="start end">
-			<!-- Subjects taught -->
-			<div flex ng-if="(subject.length > 0 && showLearnedPanel)">
-				<span class="md-subhead">
-					<md-icon>assignment</md-icon>
-					Did you learn
-					<span ng-bind="::(subject.length > 1 ? 'these concepts' : 'this concept')"></span>
-					from "<span ng-bind="::page.title"></span>"?
-				</span>
-				<!--<div arb-mastery-list
-						ids-source="::subjects"
-						show-clickbait="::true"
-						unlocked-fn="pagesUnlocked(result)"></div>-->
-
-				<!-- Mark as done button -->
-				<md-button class="special md-raised"
-						ng-click="toggleSubjects(false)"
-						aria-label="Toggle subjects"
-						ng-if="!showQuickContinue()">
-					<span ng-bind="getToggleSubjectsText()"></span>
-				</md-button>
-				<!-- Mark as done button AND continue -->
-				<md-button class="special md-raised"
-						ng-click="toggleSubjects(true)"
-						aria-label="Toggle subjects"
-						ng-bind="getQuickContinueText()"
-						ng-if="showQuickContinue()">
-					<md-icon>chevron_right</md-icon>
-				</md-button>
+			<!-- Owner -->
+			<div class="author-list md-caption page-list-span" ng-if="::page.editGroupId !== ''">
+				Owner:
+				<arb-page-title page-id="{{::page.editGroupId}}"
+						is-link="true"
+						ng-if="::!arb.userService.userMap[page.editGroupId]"></arb-page-title>
+				<arb-user-name user-id="{{::page.editGroupId}}"
+						ng-if="::arb.userService.userMap[page.editGroupId]"></arb-user-name>
 			</div>
 
-			<arb-next-prev page-id="{{::lensParentId}}"
-					extra-info="!showQuickContinue()"></arb-next-prev>
+			<!-- Body text -->
+			<arb-markdown class="lens-text"
+					page-id="{{::page.pageId}}"></arb-markdown>
 
-			<arb-path-nav page-id="{{::pageId}}"></arb-path-nav>
-		</div>
+			<!-- Contributors -->
+			<div class="author-list md-caption page-list-span"
+					ng-if="::(page.creatorIds.length > 0 && page.seeGroupId &&
+						!(page.editGroupId === page.creatorIds[0] && page.creatorIds.length == 1))">
+				<br>
+				<ng-pluralize count="::page.creatorIds.length"
+						when="{'one': 'Contributor:', 'other': 'Contributors:'}"></ng-pluralize>
+				<span ng-repeat="(index, creatorId) in ::page.creatorIds">
+					<span class="comma" ng-if="::(index > 0)">,</span>
+					<arb-user-name ng-class="::{bold: creatorId === page.pageCreatorId}"
+							user-id="{{::creatorId}}"></arb-user-name>
+				</span>
+			</div>
 
-		<!-- You can now read... -->
-		<div ng-if="unlockedIds && unlockedIds.length > 0">
-			Now you have all the requirements for:
-			<span ng-repeat="(index, unlockedId) in unlockedIds">
-				<span class="comma" ng-if="index > 0">,</span>
-				<arb-page-title page-id="{{::unlockedId}}" is-link="true"></arb-page-title>
-			</span>
+			<div layout-gt-xs="row" layout-align="start end">
+				<!-- Subjects taught -->
+				<div flex ng-if="(subject.length > 0 && showLearnedPanel)">
+					<span class="md-subhead">
+						<md-icon>assignment</md-icon>
+						Did you learn
+						<span ng-bind="::(subject.length > 1 ? 'these concepts' : 'this concept')"></span>
+						from "<span ng-bind="::page.title"></span>"?
+					</span>
+					<!--<div arb-mastery-list
+							ids-source="::subjects"
+							show-clickbait="::true"
+							unlocked-fn="pagesUnlocked(result)"></div>-->
+
+					<!-- Mark as done button -->
+					<md-button class="special md-raised"
+							ng-click="toggleSubjects(false)"
+							aria-label="Toggle subjects"
+							ng-if="!showQuickContinue()">
+						<span ng-bind="getToggleSubjectsText()"></span>
+					</md-button>
+					<!-- Mark as done button AND continue -->
+					<md-button class="special md-raised"
+							ng-click="toggleSubjects(true)"
+							aria-label="Toggle subjects"
+							ng-bind="getQuickContinueText()"
+							ng-if="showQuickContinue()">
+						<md-icon>chevron_right</md-icon>
+					</md-button>
+				</div>
+
+				<arb-next-prev page-id="{{::lensParentId}}"
+						extra-info="!showQuickContinue()"></arb-next-prev>
+
+				<arb-path-nav page-id="{{::pageId}}"></arb-path-nav>
+			</div>
+
+			<!-- You can now read... -->
+			<div ng-if="unlockedIds && unlockedIds.length > 0">
+				Now you have all the requirements for:
+				<span ng-repeat="(index, unlockedId) in unlockedIds">
+					<span class="comma" ng-if="index > 0">,</span>
+					<arb-page-title page-id="{{::unlockedId}}" is-link="true"></arb-page-title>
+				</span>
+			</div>
 		</div>
+		<arb-speed-up-button page-id="{{::page.pageId}}"></arb-speed-up-button>
 	</div>
 
 	<!-- Action bar -->

@@ -1,9 +1,10 @@
 <div layout="column"
-		ng-mouseover="isHovered = true"
-		ng-mouseleave="isHovered = false"
 		class="slow-down-container"
+		arb-speed-up-or-slow-down-button
+		arb-click-elsewhere="isHovered = false"
 		ng-class="{'slow-down-container-expanded': isHovered}">
 	<div class="slow-down-button md-body-2"
+			ng-click="isHovered = true"
 			ng-class="{
 					'slow-down-button-collapsed': haveScrolled && !isHovered,
 				}">
