@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"appengine/mail"
+	"google.golang.org/appengine/mail"
 
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"

@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"time"
 
-	"appengine/urlfetch"
+	"google.golang.org/appengine/urlfetch"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"

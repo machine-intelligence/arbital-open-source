@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"time"
 
-	"appengine/taskqueue"
+	"google.golang.org/appengine/taskqueue"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"

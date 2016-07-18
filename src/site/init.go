@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"appengine"
-
 	"zanaduu3/src/core"
 	"zanaduu3/src/logger"
 	"zanaduu3/src/sessions"
@@ -37,7 +35,7 @@ func ahHandler(w http.ResponseWriter, r *http.Request) {
 
 func init() {
 	logger.SetLogger(func(r *http.Request) logger.Logger {
-		return appengine.NewContext(r)
+		return sessions.NewContext(r)
 	})
 
 	r := mux.NewRouter()

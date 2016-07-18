@@ -8,8 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"appengine"
-	"appengine/taskqueue"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/taskqueue"
 )
 
 // requestID is the unique ID for a given request.
@@ -30,11 +32,17 @@ type change struct {
 // TODO: merge sessions into context.
 // context represents the context of an in-flight HTTP request.
 type Context struct {
-	appengine.Context
+	context.Context
 	R        *http.Request
 	counters map[string]change // monitoring counters to update for current request
 	reported bool              // whether this context has been sent to collection
 }
+
+func (c Context) Criticalf(format string, a ...interface{}) { log.Criticalf(c.Context, format, a...) }
+func (c Context) Debugf(format string, a ...interface{})    { log.Debugf(c.Context, format, a...) }
+func (c Context) Errorf(format string, a ...interface{})    { log.Errorf(c.Context, format, a...) }
+func (c Context) Infof(format string, a ...interface{})     { log.Infof(c.Context, format, a...) }
+func (c Context) Warningf(format string, a ...interface{})  { log.Warningf(c.Context, format, a...) }
 
 // NewContext returns a context for the request.
 func NewContext(r *http.Request) Context {

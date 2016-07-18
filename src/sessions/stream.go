@@ -19,8 +19,8 @@ import (
 	"strings"
 	"time"
 
-	"appengine"
-	"appengine/socket"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/socket"
 
 	"github.com/garyburd/go-oauth/oauth"
 )
@@ -52,11 +52,11 @@ var (
 )
 
 // Open opens a new stream.
-func OpenHttpStream(c appengine.Context, oauthClient *oauth.Client, accessToken *oauth.Credentials, urlStr string, params url.Values) (*HttpStream, error) {
+func OpenHttpStream(c context.Context, oauthClient *oauth.Client, accessToken *oauth.Credentials, urlStr string, params url.Values) (*HttpStream, error) {
 	return openInternal(c, oauthClient, accessToken, urlStr, params)
 }
 
-func openInternal(c appengine.Context,
+func openInternal(c context.Context,
 	oauthClient *oauth.Client,
 	accessToken *oauth.Credentials,
 	urlStr string,

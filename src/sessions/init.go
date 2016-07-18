@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"appengine"
+	"google.golang.org/appengine"
 
 	"zanaduu3/src/config"
 
