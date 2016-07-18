@@ -52,6 +52,38 @@ app.directive('arbSlowDownButton', function(arb, $window, $timeout) {
 				)
 				$scope.request.freeformText = '';
 			};
+
+			if (!$scope.page.slowPagePairs) {
+				arb.stateService.postData('/json/slowDown/', {pageId: $scope.pageId});
+			}
+
+			// Return true if there is at least one page that's suggested
+			$scope.hasSomeSuggestions = function() {
+				var hasSlowDown = $scope.slowDownMap && Object.keys($scope.slowDownMap).length > 0;
+				return $scope.page.requirements.length > 0 || hasSlowDown;
+			};
+
+			// Allow the user to request an easier explanation
+			$scope.request = {
+				freeformText: '',
+			};
+			$scope.submitExplanationRequest = function() {
+				// Register the +1 to request
+				var erData = {
+					pageId: $scope.page.pageId,
+					type: 'slowDown',
+				};
+				arb.stateService.postData('/json/explanationRequest/', erData);
+
+				// Submit feedback if there is any text
+				if ($scope.request.freeformText.length > 0) {
+					arb.stateService.postData(
+						'/feedback/',
+						{text: 'Explanation request for page ' + $scope.page.pageId + ':\n' + $scope.request.freeformText}
+					)
+					$scope.request.freeformText = '';
+				}
+			};
 		},
 	}
 });
@@ -593,6 +625,8 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 			onBlur: '&',
 			// If true, only search over groups
 			searchGroups: '=',
+			// If true, exclude groups from search results
+			ignoreGroups: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -606,7 +640,11 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 						deferred.resolve(results);
 					});
 				} else {
-					arb.autocompleteService.performSearch({term: text, pageType: $scope.pageType}, function(results) {
+					arb.autocompleteService.performSearch({
+						term: text,
+						pageType: $scope.pageType,
+						filterPageTypes: $scope.ignoreGroups ? ['group'] : [],
+					}, function(results) {
 						deferred.resolve(results);
 					});
 				}

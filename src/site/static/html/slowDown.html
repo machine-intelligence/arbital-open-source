@@ -12,9 +12,37 @@
 		<span ng-if="!haveScrolled || isHovered">Say what?</span>
 	</div>
 	<div class="slow-down-tray md-body-1">
-		<span ng-if="isHovered">
-			<span ng-if="page.subjects.length + page.requirements.length > 0"><b>Goals of this page:</b></span>
+		<div ng-if="isHovered">
+
+			<!-- Learn a subject at an easier level -->
+			<div ng-repeat="(subjectId,pagePairs) in page.slowDownMap">
+				<div>
+					Would you like to learn
+					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
+					at a different level? See:
+				</div>
+				<ul>
+					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
+						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
+					</li>
+				</ul>
+			</div>
+
+			<!-- Learn one of the requirements -->
+			<div ng-if="::page.requirements.length > 0">
+				You can also learn
+				<ng-pluralize count="page.requirements.length"
+						when="{'one': 'one of the', 'other': 'one of the {}'}"></ng-pluralize>
+				topics this page relies on:
+				<ul>
+					<li ng-repeat="requirement in page.requirements | orderBy: ['-isStrong', '-level']">
+						<arb-page-title page-id="{{::requirement.parentId}}" is-link="true"></arb-page-title>
+					</li>
+				</ul>
+			</div>
+
 			<!-- What the page teaches -->
+			<!--<span ng-if="page.subjects.length + page.requirements.length > 0"><b>Goals of this page:</b></span>
 			<div ng-if="page.subjects.length > 0">
 				This page teaches
 				<span ng-repeat="subjectRelationship in page.subjects">
@@ -26,10 +54,10 @@
 
 				<span class="comma">.</span>
 				<br>
-			</div>
+			</div>-->
 
 			<!-- What this page requires -->
-			<div ng-if="page.requirements.length > 0">
+			<!-- <div ng-if="page.requirements.length > 0">
 				This page relies on
 				<span ng-repeat="reqRelationship in page.requirements">
 					<span ng-if="$last && !$first">and</span>
@@ -40,12 +68,12 @@
 
 				<span class="comma">.</span>
 				<br>
-			</div>
+			</div>-->
 
 			<!-- TODO: rearrange this so that it's ("to learn thing1, see a or b or c; to learn thing2, see b or d or e" -->
 			<!-- TODO: fix issue with commas on 1x5 -->
 			<!-- List other pages that teach things this page teaches -->
-			<div ng-if="altTeachers && altTeachers.length > 0">
+			<!--<div ng-if="altTeachers && altTeachers.length > 0">
 				<br>
 				<span><b>Related explanations:</b></span>
 				<div ng-repeat="altTeacher in altTeachers">
@@ -67,27 +95,27 @@
 						<span ng-if="!$last && altTeacher.subjects.length != 2" class="comma">,</span>
 					</span>
 				</div>
-			</div>
+			</div>-->
 
-			<!-- TODO: Request explanations without this pages reqs -->
-
-			<!-- TODO: Request a slower or faster explanation -->
+			<!-- Request a slower explanation -->
 			<br>
-			<div layout="column" layout-align="start start">
-				<span><b>Request an alternate explanation:</b></span>
-				<span><md-button ng-click="makeExplanationRequest('slowDown')">slower</md-button>(less technical)</span>
-				<span><md-button ng-click="makeExplanationRequest('speedUp')">faster</md-button>(more concise)</span>
-				<span layout="row" layout-align="start end">
+			<div>
+				<div>
+					<span ng-if="hasSomeSuggestions()">Not helpful?</span>
+					<span ng-if="!hasSomeSuggestions()">Looks like Arbital doesn't have any suggestions for this page yet.</span>
+					Help us by making a request:
+				</div>
+				<div>
 					<md-input-container flex>
 						<input ng-model="request.freeformText"
 								class="slow-down-free-form-text"
 								aria-label="Alternate page request"
-								placeholder="Other"
+								placeholder="Optional request text"
 								flex>
 					</md-input-container>
-					<md-button ng-click="submitFreeformExplanationRequest()">submit</md-button>
-				</span>
+					<md-button ng-click="submitExplanationRequest()">submit</md-button>
+				</div>
 			</div>
-		</span>
+		</div>
 	</div>
 </div>
