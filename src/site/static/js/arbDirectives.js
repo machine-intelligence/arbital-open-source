@@ -113,7 +113,6 @@ app.directive('arbClickElsewhere', function ($parse, $window) {
 			angular.element($window).on('click', function (event) {
 				var clickTarget = angular.element(event.target);
 				if (!element.is(clickTarget) && !element[0].contains(clickTarget[0])) {
-					console.log('sss', onClickElsewhereFn);
 					onClickElsewhereFn(scope);
 				}
 			});
