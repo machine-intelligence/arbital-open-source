@@ -690,7 +690,8 @@ md-toast {
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
 	}
-	.slow-down-button {
+	.speed-up-container,
+	.slow-down-container {
 		display: none;
 	}
 }
@@ -717,7 +718,8 @@ md-toast {
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
 	}
-	.slow-down-button {
+	.speed-up-container,
+	.slow-down-container {
 		display: none;
 	}
 }
@@ -744,7 +746,8 @@ md-toast {
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
 	}
-	.slow-down-button {
+	.speed-up-container,
+	.slow-down-container {
 		display: none;
 	}
 }
@@ -771,35 +774,56 @@ md-toast {
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
 	}
-	.slow-down-container {
-		position: fixed;
-		margin-left: -30px - $lens-padding !important;
-		top: 180px;
-	}
 }
 
+// BEGIN STYLES FOR SPEED UP AND SLOW DOWN BUTTONS
 .slow-down-container {
+	margin-left: -32px;
+}
+
+.speed-up-container {
+	margin-left: -68px;
+}
+
+.slow-down-container,
+.speed-up-container {
+	position: fixed;
+}
+
+.slow-down-container,
+.speed-up-container {
 	z-index: 1;
 	transition: all 100ms cubic-bezier(0.55, 0, 0.55, 0.2), top 1ms;
+	opacity: 1;
 }
 
-.slow-down-button {
+.slow-down-button,
+.speed-up-button {
 	transition: all 100ms cubic-bezier(0.55, 0, 0.55, 0.2), border-radius 1ms;
-	border-radius: 16px;
+	border-radius: 18px;
 	background-color: $link-color;
 	color: white;
 	min-width: 0;
-	padding: 4px 6px 4px 4px;
 	width: auto;
 	opacity: 1;
 	white-space: nowrap;
+	outline: none;
 
 	md-icon {
 		color: white;
 	}
 }
 
-.slow-down-tray {
+.slow-down-button {
+	padding: 6px 8px 6px 6px;
+}
+
+.speed-up-button {
+	padding: 6px 6px 6px 8px;
+}
+
+.slow-down-tray,
+.speed-up-tray {
 	transition: all 100ms cubic-bezier(0.55, 0, 0.55, 0.2);
 	border-left: 0px solid $link-color;
 	width: 0px;
@@ -809,16 +833,19 @@ md-toast {
 	background-color: white;
 }
 
-.slow-down-container-expanded {
-	border-radius: 16px 16px 5px 5px;
+.slow-down-container-expanded,
+.speed-up-container-expanded {
+	border-radius: 18px 18px 5px 5px;
 	background-color: white;
 
-	.slow-down-button {
+	.slow-down-button,
+	.speed-up-button {
 		min-width: 200px;
-		border-radius: 16px 16px 0 0;
+		border-radius: 18px 18px 0 0;
 	}
 
-	.slow-down-tray {
+	.slow-down-tray,
+	.speed-up-tray {
 		padding: 8px;
 		width: auto;
 		height: auto;
@@ -838,15 +865,28 @@ md-toast {
 	}
 }
 
-.slow-down-button-collapsed {
-	border-radius: 16px 0 0 16px;
-	padding-right: 2px;
+.slow-down-button-collapsed,
+.speed-up-button-collapsed {
 	width: 24px;
+	opacity: .7;
 
 	md-icon {
-		opacity: .4;
+		opacity: .2;
 	}
 }
+
+.slow-down-button-collapsed {
+	border-radius: 18px 0 0 18px;
+	padding-right: 2px;
+}
+
+.speed-up-button-collapsed {
+	border-radius: 0 18px 18px 0;
+	padding-left: 4px;
+	margin-left: 68px;
+}
+
+// END STYLES FOR SPEED UP AND SLOW DOWN BUTTONS
 
 // Container for requirements
 .requirements-container {

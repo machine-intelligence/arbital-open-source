@@ -21,21 +21,6 @@ app.directive('arbSlowDownButton', function(arb, $window, $timeout) {
 		scope: {
 			pageId: '@',
 		},
-		link: function(scope, element) {
-			var parent = element.parent();
-			var slowDownContainer = angular.element(element.find('.slow-down-container'));
-
-			var topOfParent = parent[0].getBoundingClientRect().top + 10;
-			slowDownContainer.css('top', topOfParent);
-
-			angular.element($window).bind('scroll', function() {
-				scope.haveScrolled = true;
-
-				// Make the button not go past the bottom of the parent
-				var bottomOfParent = parent[0].getBoundingClientRect().bottom + 20;
-				slowDownContainer.css('top', Math.min(bottomOfParent, topOfParent));
-			});
-		},
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.page = arb.stateService.pageMap[$scope.pageId];
@@ -69,6 +54,60 @@ app.directive('arbSlowDownButton', function(arb, $window, $timeout) {
 			};
 		},
 	}
+});
+
+// arb-speed-up-button
+app.directive('arbSpeedUpButton', function(arb, $window, $timeout) {
+	return {
+		templateUrl: versionUrl('static/html/speedUp.html'),
+		scope: {
+			pageId: '@',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+			$scope.page = arb.stateService.pageMap[$scope.pageId];
+		},
+	}
+});
+
+// arb-speed-up-or-slow-down-button
+app.directive('arbSpeedUpOrSlowDownButton', function(arb, $window, $timeout) {
+	return {
+		scope: false,
+		link: function(scope, element) {
+			var parent = element.parent();
+			var container = angular.element(element.find('.slow-down-container')) ||
+					angular.element(element.find('.speed-up-container'));
+
+			var topOfParent = parent[0].getBoundingClientRect().top + 10;
+			container.css('top', topOfParent);
+
+			angular.element($window).bind('scroll', function() {
+				scope.haveScrolled = true;
+
+				// Make the button not go past the bottom of the parent
+				var bottomOfParent = parent[0].getBoundingClientRect().bottom + 20;
+				container.css('top', Math.min(bottomOfParent, topOfParent));
+			});
+		},
+	};
+});
+
+// arb-click-elsewhere calls a function when there is a click outside the element
+app.directive('arbClickElsewhere', function ($parse, $window) {
+	return {
+		restrict: 'A',
+		link: function (scope, element, attr) {
+			var onClickElsewhereFn = $parse(attr['arbClickElsewhere']);
+			angular.element($window).on('click', function (event) {
+				var clickTarget = angular.element(event.target);
+				if (!element.is(clickTarget) && !element[0].contains(clickTarget[0])) {
+					console.log('sss', onClickElsewhereFn);
+					onClickElsewhereFn(scope);
+				}
+			});
+		}
+	};
 });
 
 // arb-edit-button shows an edit button for a page, and handles users not being logged in

@@ -833,7 +833,8 @@ md-toast md-icon {
     padding-left: 5px;
     padding-right: 5px; }
 
-  .slow-down-button {
+  .speed-up-container,
+  .slow-down-container {
     display: none; } }
 @media (min-width: 600px) and (max-width: 959px) {
   .lens-text-container {
@@ -857,7 +858,8 @@ md-toast md-icon {
     padding-left: 50px;
     padding-right: 50px; }
 
-  .slow-down-button {
+  .speed-up-container,
+  .slow-down-container {
     display: none; } }
 @media (min-width: 960px) and (max-width: 1099px) {
   .lens-text-container {
@@ -881,7 +883,8 @@ md-toast md-icon {
     padding-left: 90px;
     padding-right: 90px; }
 
-  .slow-down-button {
+  .speed-up-container,
+  .slow-down-container {
     display: none; } }
 @media (min-width: 1100px) {
   .lens-text-container {
@@ -903,30 +906,46 @@ md-toast md-icon {
     margin-left: -100px;
     margin-right: -100px;
     padding-left: 100px;
-    padding-right: 100px; }
-
-  .slow-down-container {
-    position: fixed;
-    margin-left: -130px !important;
-    top: 180px; } }
+    padding-right: 100px; } }
 .slow-down-container {
-  z-index: 1;
-  transition: all 100ms cubic-bezier(0.55, 0, 0.55, 0.2), top 1ms; }
+  margin-left: -32px; }
 
-.slow-down-button {
+.speed-up-container {
+  margin-left: -68px; }
+
+.slow-down-container,
+.speed-up-container {
+  position: fixed; }
+
+.slow-down-container,
+.speed-up-container {
+  z-index: 1;
+  transition: all 100ms cubic-bezier(0.55, 0, 0.55, 0.2), top 1ms;
+  opacity: 1; }
+
+.slow-down-button,
+.speed-up-button {
   transition: all 100ms cubic-bezier(0.55, 0, 0.55, 0.2), border-radius 1ms;
-  border-radius: 16px;
+  border-radius: 18px;
   background-color: #137abd;
   color: white;
   min-width: 0;
-  padding: 4px 6px 4px 4px;
   width: auto;
   opacity: 1;
-  white-space: nowrap; }
-  .slow-down-button md-icon {
+  white-space: nowrap;
+  outline: none; }
+  .slow-down-button md-icon,
+  .speed-up-button md-icon {
     color: white; }
 
-.slow-down-tray {
+.slow-down-button {
+  padding: 6px 8px 6px 6px; }
+
+.speed-up-button {
+  padding: 6px 6px 6px 8px; }
+
+.slow-down-tray,
+.speed-up-tray {
   transition: all 100ms cubic-bezier(0.55, 0, 0.55, 0.2);
   border-left: 0px solid #137abd;
   width: 0px;
@@ -935,13 +954,20 @@ md-toast md-icon {
   max-width: 400px;
   background-color: white; }
 
-.slow-down-container-expanded {
-  border-radius: 16px 16px 5px 5px;
+.slow-down-container-expanded,
+.speed-up-container-expanded {
+  border-radius: 18px 18px 5px 5px;
   background-color: white; }
-  .slow-down-container-expanded .slow-down-button {
+  .slow-down-container-expanded .slow-down-button,
+  .slow-down-container-expanded .speed-up-button,
+  .speed-up-container-expanded .slow-down-button,
+  .speed-up-container-expanded .speed-up-button {
     min-width: 200px;
-    border-radius: 16px 16px 0 0; }
-  .slow-down-container-expanded .slow-down-tray {
+    border-radius: 18px 18px 0 0; }
+  .slow-down-container-expanded .slow-down-tray,
+  .slow-down-container-expanded .speed-up-tray,
+  .speed-up-container-expanded .slow-down-tray,
+  .speed-up-container-expanded .speed-up-tray {
     padding: 8px;
     width: auto;
     height: auto;
@@ -949,18 +975,30 @@ md-toast md-icon {
     border-left: 2px solid #137abd;
     border-right: 2px solid #137abd;
     border-bottom: 2px solid #137abd; }
-  .slow-down-container-expanded md-input-container {
+  .slow-down-container-expanded md-input-container,
+  .speed-up-container-expanded md-input-container {
     margin-top: 10px;
     margin-bottom: 0px; }
-  .slow-down-container-expanded .slow-down-free-form-text {
+  .slow-down-container-expanded .slow-down-free-form-text,
+  .speed-up-container-expanded .slow-down-free-form-text {
     width: 300px; }
 
+.slow-down-button-collapsed,
+.speed-up-button-collapsed {
+  width: 24px;
+  opacity: .7; }
+  .slow-down-button-collapsed md-icon,
+  .speed-up-button-collapsed md-icon {
+    opacity: .2; }
+
 .slow-down-button-collapsed {
-  border-radius: 16px 0 0 16px;
-  padding-right: 2px;
-  width: 24px; }
-  .slow-down-button-collapsed md-icon {
-    opacity: .4; }
+  border-radius: 18px 0 0 18px;
+  padding-right: 2px; }
+
+.speed-up-button-collapsed {
+  border-radius: 0 18px 18px 0;
+  padding-left: 4px;
+  margin-left: 68px; }
 
 .requirements-container {
   padding: 5px 10px;
