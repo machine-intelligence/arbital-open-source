@@ -30,32 +30,7 @@ app.directive('arbSlowDownButton', function(arb, $window, $timeout) {
 					$scope.altTeachers = data.result.alternateTeachers.map(function(altTeacherId) {
 						return arb.stateService.getPage(altTeacherId);
 					});
-				})
-
-			$scope.makeExplanationRequest = function(type) {
-				var erData = {pageId: $scope.page.pageId, type: type};
-				console.log('about to post to: /json/explanationRequest/');
-				console.log('with data:');
-				console.log(erData);
-				arb.stateService.postData('/json/explanationRequest/', erData,
-					function(data) {
-						console.log('success! posted to: /json/explanationRequest/');
-					}
-				);
-			};
-
-			$scope.request = {};
-			$scope.submitFreeformExplanationRequest = function() {
-				arb.stateService.postData(
-					'/feedback/',
-					{text: 'Explanation request for page ' + $scope.page.pageId + ':\n' + $scope.request.freeformText}
-				)
-				$scope.request.freeformText = '';
-			};
-
-			if (!$scope.page.slowPagePairs) {
-				arb.stateService.postData('/json/slowDown/', {pageId: $scope.pageId});
-			}
+				});
 
 			// Return true if there is at least one page that's suggested
 			$scope.hasSomeSuggestions = function() {
