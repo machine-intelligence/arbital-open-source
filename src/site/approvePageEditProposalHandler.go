@@ -14,7 +14,7 @@ import (
 
 // approvePageEditProposalData contains parameters passed in.
 type approvePageEditProposalData struct {
-	ChangeLogId string
+	ChangeLogID string
 	// If this is set, we are dismissing the proposal instead
 	Dismiss bool
 }
@@ -42,11 +42,11 @@ func approvePageEditProposalHandlerFunc(params *pages.HandlerParams) *pages.Resu
 	}
 
 	// Load the changelog
-	changelogs, err := core.LoadChangeLogsByIds(db, []string{data.ChangeLogId}, core.NewEditProposalChangeLog)
+	changelogs, err := core.LoadChangeLogsByIds(db, []string{data.ChangeLogID}, core.NewEditProposalChangeLog)
 	if err != nil {
 		return pages.Fail("Couldn't load changelog", err)
 	}
-	changeLog, ok := changelogs[data.ChangeLogId]
+	changeLog, ok := changelogs[data.ChangeLogID]
 	if !ok {
 		return pages.Fail("Couldn't find changelog", nil).Status(http.StatusBadRequest)
 	}
@@ -95,7 +95,7 @@ func approvePageEditProposalHandlerFunc(params *pages.HandlerParams) *pages.Resu
 
 		// Update change log's type
 		hashmap := make(database.InsertMap)
-		hashmap["id"] = data.ChangeLogId
+		hashmap["id"] = data.ChangeLogID
 		hashmap["type"] = core.NewEditChangeLog
 		statement := tx.DB.NewInsertStatement("changeLogs", hashmap, "type").WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
@@ -111,7 +111,7 @@ func approvePageEditProposalHandlerFunc(params *pages.HandlerParams) *pages.Resu
 				hashmap["type"] = core.EditProposalAcceptedUpdateType
 				hashmap["subscribedToId"] = proposedEdit.PageID
 				hashmap["goToPageId"] = proposedEdit.PageID
-				hashmap["changeLogId"] = data.ChangeLogId
+				hashmap["changeLogId"] = data.ChangeLogID
 				hashmap["createdAt"] = database.Now()
 				statement = tx.DB.NewInsertStatement("updates", hashmap).WithTx(tx)
 				if _, err := statement.Exec(); err != nil {
