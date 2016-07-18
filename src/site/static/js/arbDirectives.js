@@ -32,6 +32,10 @@ app.directive('arbSlowDownButton', function(arb, $window, $timeout) {
 					});
 				});
 
+			if (!$scope.page.slowPagePairs) {
+ 				arb.stateService.postData('/json/slowDown/', {pageId: $scope.pageId});
+ 			}
+
 			// Return true if there is at least one page that's suggested
 			$scope.hasSomeSuggestions = function() {
 				var hasSlowDown = $scope.slowDownMap && Object.keys($scope.slowDownMap).length > 0;
