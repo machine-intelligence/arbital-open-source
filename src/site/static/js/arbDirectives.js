@@ -495,6 +495,10 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 			onSelect: '&',
 			// Function to call when input loses focus
 			onBlur: '&',
+			// If true, only search over groups
+			searchGroups: '=',
+			// If true, exclude groups from search results
+			ignoreGroups: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -503,9 +507,19 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 			$scope.getSearchResults = function(text) {
 				if (!text) return [];
 				var deferred = $q.defer();
-				arb.autocompleteService.performSearch({term: text, pageType: $scope.pageType}, function(results) {
-					deferred.resolve(results);
-				});
+				if ($scope.searchGroups) {
+					arb.autocompleteService.userSource({term: text}, function(results) {
+						deferred.resolve(results);
+					});
+				} else {
+					arb.autocompleteService.performSearch({
+						term: text,
+						pageType: $scope.pageType,
+						filterPageTypes: $scope.ignoreGroups ? ['group'] : [],
+					}, function(results) {
+						deferred.resolve(results);
+					});
+				}
 				return deferred.promise;
 			};
 

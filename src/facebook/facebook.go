@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"appengine/urlfetch"
+	"google.golang.org/appengine/urlfetch"
 
 	"zanaduu3/src/config"
 	"zanaduu3/src/sessions"

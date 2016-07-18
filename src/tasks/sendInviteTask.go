@@ -4,7 +4,7 @@ package tasks
 import (
 	"fmt"
 
-	"appengine/mail"
+	"google.golang.org/appengine/mail"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"

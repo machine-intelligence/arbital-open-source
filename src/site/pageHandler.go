@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"appengine"
-	"appengine/taskqueue"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/taskqueue"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"

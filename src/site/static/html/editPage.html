@@ -79,6 +79,8 @@
 						<!-- Input we show when entering a new link -->
 						<arb-autocomplete class="insert-autocomplete"
 								placeholder="Search for a page to link"
+								search-groups="searchGroups"
+								ignore-groups="!searchGroups"
 								on-select="insertLinkSelect(result)"
 								on-blur="insertLinkSelect()"
 								flex></arb-autocomplete>

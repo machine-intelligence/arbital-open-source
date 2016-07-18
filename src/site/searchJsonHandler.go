@@ -27,6 +27,8 @@ type searchJsonData struct {
 	Term string
 	// If this is set, only pages of this type will be returned
 	PageType string
+	// If this is set, pages of these types will not be returned
+	FilterPageTypes []string
 }
 
 var searchHandler = siteHandler{
@@ -49,7 +51,7 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("No search term specified", nil).Status(http.StatusBadRequest)
 	}
 
-	groupIds := make([]string, 0)
+	var groupIds []string
 	for _, id := range u.GroupIds {
 		groupIds = append(groupIds, "\""+id+"\"")
 	}
@@ -61,6 +63,18 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	mandatoryTypeFilter := ""
 	if data.PageType != "" {
 		mandatoryTypeFilter = fmt.Sprintf(`{"term": { "type": "%s" } },`, elastic.EscapeMatchTerm(data.PageType))
+	}
+	forbiddenTypeFilter := ""
+	if types := data.FilterPageTypes; len(types) != 0 {
+		for i, s := range types {
+			types[i] = elastic.EscapeMatchTerm(s)
+		}
+		b, err := json.Marshal(types)
+		if err == nil {
+			forbiddenTypeFilter = fmt.Sprintf(`{"terms": { "type": %s } },`, b)
+		} else {
+			return pages.Fail("Error constructing ElasticSearch query: %v", err)
+		}
 	}
 
 	// To allow for partial matching on the last word, we have to split it off
@@ -138,7 +152,7 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 				},
 				"filter": {
 					"bool": {
-						"must_not": [
+						"must_not": [`+forbiddenTypeFilter+`
 							{
 								"terms": { "type": ["comment"] }
 							}
