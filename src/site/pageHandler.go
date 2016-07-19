@@ -4,7 +4,6 @@ package site
 
 import (
 	"fmt"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"strings"
@@ -47,7 +46,6 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 
 		c := sessions.NewContext(r)
 		params := pages.HandlerParams{W: w, R: r, C: c}
-		rand.Seed(time.Now().UnixNano())
 
 		// Redirect www.
 		if mux.Vars(r)["www"] != "" {

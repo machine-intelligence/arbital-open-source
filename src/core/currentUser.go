@@ -2,9 +2,9 @@
 package core
 
 import (
+	"crypto/rand"
 	"encoding/gob"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"time"
 
@@ -147,12 +147,23 @@ func SaveCookie(w http.ResponseWriter, r *http.Request, email string) (string, e
 		return "", fmt.Errorf("Couldn't get session: %v", err)
 	}
 
-	rand.Seed(time.Now().UnixNano())
-	sessionID := fmt.Sprintf("sid:%d", rand.Int63())
+	randString := func() (string, error) {
+		b := make([]byte, 30)
+		if _, err := rand.Read(b); err != nil {
+			return "", err
+		}
+		return base64.StdEncoding.EncodeToString(b), nil
+	}
+	r1, err1 := randString()
+	r2, err2 := randString()
+	if err1 != nil || err2 != nil {
+		return "", errors.New("Failed to read random device")
+	}
+	sessionID := "sid:" + r1
 	s.Values[sessionKey] = &CookieSession{
 		Email:     email,
 		SessionID: sessionID,
-		Random:    fmt.Sprintf("%d", rand.Int63()),
+		Random:    r2,
 	}
 	err = s.Save(r, w)
 	if err != nil {

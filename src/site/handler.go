@@ -5,7 +5,6 @@ package site
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"strings"
 	"time"
@@ -35,7 +34,6 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		}
 
 		c := sessions.NewContext(r)
-		rand.Seed(time.Now().UnixNano())
 
 		fail := func(responseCode int, message string, err error) {
 			c.Inc(fmt.Sprintf("%s-fail", r.URL.Path))
