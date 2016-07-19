@@ -10,7 +10,7 @@ else
 		FILES=$(git ls-files -c | grep -e '\.go$');
 fi
 for file in $FILES; do
-		badfile="$(git --no-pager show :"$file" >/dev/null 2>&1 | gofmt -l)"
+		badfile="$(git --no-pager show :"$file" >/dev/null 2>&1 | gofmt -s -l)"
 		if test -n "$badfile" ; then
 				echo "git pre-commit check failed: file needs gofmt: $file" >&2
 				exit 1
