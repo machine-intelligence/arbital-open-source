@@ -77,6 +77,10 @@ func writeNewModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	return pages.Success(returnData)
 }
 
+func selectRandomNFrom(n int, query *database.QueryPart) *database.QueryPart {
+	return database.NewQuery("SELECT * FROM (").AddPart(query).Add(") AS T ORDER BY RAND() LIMIT ?", n)
+}
+
 // Load pages that are linked to but don't exist
 func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLinkRow, error) {
 	redLinks := make([]*RedLinkRow, 0)
@@ -90,7 +94,7 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 		Fields:      []string{"alias"},
 		WhereFilter: database.NewQuery(`currentEdit>0 OR DATEDIFF(NOW(),createdAt) <= ?`, hideRedLinkIfDraftExistsDays),
 	})
-	rows := database.NewQuery(`
+	rows := selectRandomNFrom(limit, database.NewQuery(`
 		SELECT childAlias,groupedRedLinks.likeableId,refCount
 		FROM (
 			SELECT l.childAlias,rl.likeableId,COUNT(*) AS refCount
@@ -113,8 +117,8 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 		) as likeCounts
 		ON groupedRedLinks.likeableId=likeCounts.likeableId
 		WHERE !COALESCE(hasAnyDownvotes,0)
-		ORDER BY refCount + COALESCE(likeCount,0) DESC, groupedRedLinks.likeableId
-		LIMIT ?`, limit).ToStatement(db).Query()
+		ORDER BY COALESCE(likeCount,0) DESC, refCount DESC, groupedRedLinks.likeableId
+		LIMIT ?`, 5*limit)).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var alias, refCount string
 		var likeableId sql.NullInt64
@@ -159,7 +163,7 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 // Load pages that are marked as stubs
 func loadStubRows(db *database.DB, returnData *core.CommonHandlerData, limit int) ([]*StubRow, error) {
 	stubRows := make([]*StubRow, 0)
-	rows := database.NewQuery(`
+	rows := selectRandomNFrom(limit, database.NewQuery(`
 		SELECT pi.pageId
 		FROM`).AddPart(core.PageInfosTable(returnData.User)).Add(`AS pi
 		JOIN pagePairs AS pp
@@ -173,7 +177,7 @@ func loadStubRows(db *database.DB, returnData *core.CommonHandlerData, limit int
 			AND pi.lockedUntil < NOW()
 		GROUP BY 1
 		ORDER BY SUM(l.value) DESC
-		LIMIT ?`, limit).ToStatement(db).Query()
+		LIMIT ?`, 5*limit)).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageID string
 		err := rows.Scan(&pageID)
