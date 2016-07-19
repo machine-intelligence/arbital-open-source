@@ -1,4 +1,5 @@
 // discussionModeHandler.go serves the /discussion panel.
+
 package site
 
 import (

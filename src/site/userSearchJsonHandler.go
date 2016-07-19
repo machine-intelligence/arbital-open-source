@@ -1,5 +1,6 @@
 // userSearchJsonHandler.go contains the handler for matching a partial query against
 // pages' ids, aliases, and titles.
+
 package site
 
 import (

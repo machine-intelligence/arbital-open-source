@@ -1,4 +1,5 @@
 // dynamicPage.go serves a page which then loads more data dynamically.
+
 package site
 
 import (

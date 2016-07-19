@@ -1,4 +1,5 @@
 // newPageHandler.go creates and returns a new page
+
 package site
 
 import (

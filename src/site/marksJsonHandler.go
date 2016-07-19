@@ -1,4 +1,5 @@
 // marksJsonHandler.go returns marks for a given page.
+
 package site
 
 import (

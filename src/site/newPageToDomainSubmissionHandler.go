@@ -1,4 +1,5 @@
 // newPageToDomainSubmissionHandler.go adds new invites to db and auto-claims / sends invite emails
+
 package site
 
 import (

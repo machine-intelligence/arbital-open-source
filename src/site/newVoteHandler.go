@@ -1,4 +1,5 @@
 // newVoteHandler.go adds a new vote for for a page.
+
 package site
 
 import (

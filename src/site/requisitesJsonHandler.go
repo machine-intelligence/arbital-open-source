@@ -1,4 +1,5 @@
 // requisitesJsonHandler.go returns all the requisites the user knows
+
 package site
 
 import (

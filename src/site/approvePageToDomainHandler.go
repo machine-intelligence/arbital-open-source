@@ -1,4 +1,5 @@
 // approvePageToDomainHandler.go approves a page that was submitted to a domain
+
 package site
 
 import (

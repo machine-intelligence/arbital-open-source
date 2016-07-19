@@ -1,5 +1,6 @@
 // defaultJsonHandler.go returns basic data every page needs. Used for pages
 // that don't need any custom data, and therefore don't have custom handlers.
+
 package site
 
 import (

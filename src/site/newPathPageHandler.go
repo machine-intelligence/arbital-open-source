@@ -1,4 +1,5 @@
 // newPathPageHandler.go adds a page to a path
+
 package site
 
 import (

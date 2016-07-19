@@ -1,4 +1,5 @@
 // adminDashboardPageJsonHandler.go serves JSON data to display admin dashboard page.
+
 package site
 
 import (

@@ -1,4 +1,5 @@
 // newGroupHandler.go creates a new group.
+
 package site
 
 import (

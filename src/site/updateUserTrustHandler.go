@@ -1,4 +1,5 @@
 // updateUserTrustHandler.go updates user's trust values
+
 package site
 
 import (

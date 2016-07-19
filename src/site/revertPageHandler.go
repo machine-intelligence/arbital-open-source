@@ -1,6 +1,7 @@
 // revertPageHandler.go handles requests for reverting a page. This means marking
 // as deleted all autosaves and snapshots which were created by the current user
 // after the currently live edit.
+
 package site
 
 import (

@@ -1,4 +1,5 @@
 // searchJsonHandler.go contains the handler for searching all the pages.
+
 package site
 
 import (

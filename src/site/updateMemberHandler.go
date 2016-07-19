@@ -1,4 +1,5 @@
 // updateMemberHandler.go adds a new member for a group.
+
 package site
 
 import (

@@ -1,4 +1,5 @@
 // editPageHandler.go contains the handler for creating a new page edit.
+
 package site
 
 import (

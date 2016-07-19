@@ -1,4 +1,5 @@
 // newsletterJsonHandler.go serves the newsletter page data.
+
 package site
 
 import (

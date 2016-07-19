@@ -1,4 +1,5 @@
 // updateMasteries.go handles request to add and/or delete masteries
+
 package site
 
 import (

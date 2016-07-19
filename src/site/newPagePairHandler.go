@@ -1,4 +1,5 @@
 // newPagePairHandler.go handles creating and updating a page
+
 package site
 
 import (

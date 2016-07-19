@@ -1,4 +1,5 @@
 // groupsJsonHandler.go returns the data about user's groups.
+
 package site
 
 import (

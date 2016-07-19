@@ -1,4 +1,5 @@
 // updateLensNameHandler.go updates the name of a lens
+
 package site
 
 import (

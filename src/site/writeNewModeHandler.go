@@ -1,4 +1,5 @@
 // Provide data for "write new" mode.
+
 package site
 
 import (

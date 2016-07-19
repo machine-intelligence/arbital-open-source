@@ -1,4 +1,5 @@
 // updateSettingsHandler.go updates the settings from the Settings page
+
 package site
 
 import (

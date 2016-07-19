@@ -1,4 +1,5 @@
 // alternatePagesHandler.go returns a list of pages the user might want to read instead of the given page
+
 package site
 
 import (

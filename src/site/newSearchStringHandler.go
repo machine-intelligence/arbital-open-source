@@ -1,4 +1,5 @@
 // newSearchStringHandler.go adds a search string to a page
+
 package site
 
 import (

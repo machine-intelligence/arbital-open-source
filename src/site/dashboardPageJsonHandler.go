@@ -1,4 +1,5 @@
 // dashboardPage.go serves the dashboard template.
+
 package site
 
 import (

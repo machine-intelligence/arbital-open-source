@@ -1,4 +1,5 @@
 // resolveMarkHandler.go resolves an existing mark.
+
 package site
 
 import (

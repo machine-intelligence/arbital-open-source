@@ -1,4 +1,5 @@
 // indexJsonHandler.go serves the index page data.
+
 package site
 
 import (

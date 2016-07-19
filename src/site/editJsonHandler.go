@@ -1,4 +1,5 @@
 // editJsonHandler.go contains the handler for returning JSON with pages data.
+
 package site
 
 import (

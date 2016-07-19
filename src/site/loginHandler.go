@@ -1,4 +1,5 @@
 // loginPage.go serves the login page.
+
 package site
 
 import (

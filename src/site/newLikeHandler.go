@@ -1,4 +1,5 @@
 // newLikeHandler.go adds a new (dis)like for a likeable object
+
 package site
 
 import (

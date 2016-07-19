@@ -1,4 +1,5 @@
 // signupHandler.go serves the signup page.
+
 package site
 
 import (

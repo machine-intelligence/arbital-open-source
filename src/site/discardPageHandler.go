@@ -1,5 +1,6 @@
 // discardPageHandler.go handles requests for discarding a page. This means
 // deleting all autosaves which were created by the user.
+
 package site
 
 import (

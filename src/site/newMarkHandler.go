@@ -1,4 +1,5 @@
 // newMarkHandler.go creates a new mark.
+
 package site
 
 import (

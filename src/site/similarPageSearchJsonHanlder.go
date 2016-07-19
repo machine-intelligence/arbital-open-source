@@ -1,5 +1,6 @@
 // similarPageSearchJsonHandler.go contains the handler for searching for a
 // page that's similar to the one the user is creating.
+
 package site
 
 import (

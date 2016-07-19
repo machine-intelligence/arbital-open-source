@@ -1,4 +1,5 @@
 // resolveThreadHandler.go allows a maintainer to mark a comment thread as resolved
+
 package site
 
 import (

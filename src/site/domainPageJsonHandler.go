@@ -1,4 +1,5 @@
 // domainPageJsonHandler.go serves JSON data to display domain index page.
+
 package site
 
 import (

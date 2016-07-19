@@ -1,5 +1,6 @@
 // primaryPageJsonHandler.go contains the handler for returning JSON with data
 // to display a primary page.
+
 package site
 
 import (

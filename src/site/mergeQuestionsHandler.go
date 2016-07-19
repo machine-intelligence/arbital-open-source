@@ -1,4 +1,5 @@
 // mergeQuestionsHandler.go merges one question into another.
+
 package site
 
 import (

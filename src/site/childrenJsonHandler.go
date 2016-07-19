@@ -1,4 +1,5 @@
 // childrenJsonHandler.go contains the handler for returning JSON with children pages.
+
 package site
 
 import (

@@ -1,4 +1,5 @@
 // updateMarkHandler.go updates an existing mark.
+
 package site
 
 import (

@@ -1,4 +1,5 @@
 // monitor.go: reports monitoring data to influxdb server.
+
 package site
 
 import (

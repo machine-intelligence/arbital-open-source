@@ -1,4 +1,5 @@
 // updatePathHandler.go updates the given path instance
+
 package site
 
 import (

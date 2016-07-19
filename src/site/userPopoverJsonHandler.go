@@ -1,4 +1,5 @@
 // userPopoverJsonHandler.go contains the handler for returning JSON with user data
+
 package site
 
 import (

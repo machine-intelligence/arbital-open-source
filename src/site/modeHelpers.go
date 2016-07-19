@@ -1,4 +1,5 @@
 // Contains helpers for various modes.
+
 package site
 
 import (

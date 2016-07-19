@@ -1,4 +1,5 @@
 // sendSlackInviteHandler.go sends an email to our admin to invite a user to slack
+
 package site
 
 import (

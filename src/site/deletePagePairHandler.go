@@ -1,4 +1,5 @@
 // deletePagePairHandler.go handles requests for deleting a tag.
+
 package site
 
 import (

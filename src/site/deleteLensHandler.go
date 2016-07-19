@@ -1,4 +1,5 @@
 // deleteLensHandler.go deletes the given lens, while keeping the page as a child
+
 package site
 
 import (

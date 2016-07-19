@@ -1,4 +1,5 @@
 // startPathHandler.go starts the user on the given path
+
 package site
 
 import (

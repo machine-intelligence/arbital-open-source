@@ -1,4 +1,5 @@
 // Handles requests to dismiss updates
+
 package site
 
 import (

@@ -1,4 +1,5 @@
 // deletePageHandler.go handles requests for deleting a page.
+
 package site
 
 import (
