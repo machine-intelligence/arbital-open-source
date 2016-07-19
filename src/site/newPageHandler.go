@@ -23,7 +23,7 @@ var newPageHandler = siteHandler{
 // newPageData contains parameters passed in via the request.
 type newPageData struct {
 	Type            string
-	ParentIds       []string
+	ParentIDs       []string
 	IsEditorComment bool
 	Alias           string
 }
@@ -107,7 +107,7 @@ func newPageInternalHandler(params *pages.HandlerParams, data *newPageData) *pag
 	}
 
 	// Add parents
-	for _, parentIDStr := range data.ParentIds {
+	for _, parentIDStr := range data.ParentIDs {
 		handlerData := newPagePairData{
 			ParentID: parentIDStr,
 			ChildID:  pageID,

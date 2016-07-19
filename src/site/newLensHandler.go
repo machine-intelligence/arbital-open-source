@@ -54,8 +54,8 @@ func newLensHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check permissions
-	pageIds := []string{data.PageID, data.LensID}
-	permissionError, err := core.VerifyEditPermissionsForList(db, pageIds, u)
+	pageIDs := []string{data.PageID, data.LensID}
+	permissionError, err := core.VerifyEditPermissionsForList(db, pageIDs, u)
 	if err != nil {
 		return pages.Fail("Error verifying permissions", err)
 	} else if permissionError != "" {

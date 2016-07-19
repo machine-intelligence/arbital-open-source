@@ -45,7 +45,7 @@ func GetUserURL(userID string) string {
 }
 
 // IdsListFromUserMap returns a list of all user ids in the map.
-func IdsListFromUserMap(userMap map[string]*User) []interface{} {
+func IDsListFromUserMap(userMap map[string]*User) []interface{} {
 	list := make([]interface{}, 0, len(userMap))
 	for id := range userMap {
 		list = append(list, id)
@@ -58,9 +58,9 @@ func LoadUsers(db *database.DB, userMap map[string]*User, currentUserID string) 
 	if len(userMap) <= 0 {
 		return nil
 	}
-	userIds := make([]interface{}, 0, len(userMap))
+	userIDs := make([]interface{}, 0, len(userMap))
 	for id := range userMap {
-		userIds = append(userIds, id)
+		userIDs = append(userIDs, id)
 	}
 
 	rows := database.NewQuery(`
@@ -68,7 +68,7 @@ func LoadUsers(db *database.DB, userMap map[string]*User, currentUserID string) 
 		FROM (
 			SELECT *
 			FROM users
-			WHERE id IN `).AddArgsGroup(userIds).Add(`
+			WHERE id IN `).AddArgsGroup(userIDs).Add(`
 		) AS u
 		LEFT JOIN (
 			SELECT *

@@ -60,7 +60,7 @@ func unassessedPagesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		GROUP BY 1
 		ORDER BY SUM(1) DESC
 		LIMIT ?`, numPagesToLoad).ToStatement(db).Query()
-	returnData.ResultMap["pageIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
+	returnData.ResultMap["pageIds"], err = core.LoadPageIDs(rows, returnData.PageMap, pageOptions)
 	if err != nil {
 		return pages.Fail("Error loading pageIds", err)
 	}

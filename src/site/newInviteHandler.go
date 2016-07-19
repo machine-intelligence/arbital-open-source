@@ -15,7 +15,7 @@ import (
 
 // updateSettingsData contains data given to us in the request.
 type newInviteData struct {
-	DomainIds []string `json:"domainIds"`
+	DomainIDs []string `json:"domainIds"`
 	ToEmail   string   `json:"toEmail"`
 }
 
@@ -39,7 +39,7 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	for _, domainID := range data.DomainIds {
+	for _, domainID := range data.DomainIDs {
 		if !core.IsIDValid(domainID) {
 			return pages.Fail("One of the domainIds is invalid", nil).Status(http.StatusBadRequest)
 		}
@@ -49,7 +49,7 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check to make sure user has permissions for all the domains
-	for _, domainID := range data.DomainIds {
+	for _, domainID := range data.DomainIDs {
 		if u.TrustMap[domainID].Level < core.ArbiterTrustLevel {
 			return pages.Fail("Don't have permissions to invite to one of the domains", nil).Status(http.StatusBadRequest)
 		}
@@ -68,7 +68,7 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Create invite map
 	inviteMap := make(map[string]*core.Invite) // key: domainId
-	for _, domainID := range data.DomainIds {
+	for _, domainID := range data.DomainIDs {
 		inviteMap[domainID] = &core.Invite{
 			FromUserID: u.ID,
 			DomainID:   domainID,
@@ -81,7 +81,7 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Check if this invite already exists
 	wherePart := database.NewQuery(`WHERE fromUserId=?`, u.ID).Add(`
-		AND domainId IN`).AddArgsGroupStr(data.DomainIds).Add(`
+		AND domainId IN`).AddArgsGroupStr(data.DomainIDs).Add(`
 		AND toEmail=?`, data.ToEmail)
 	existingInvites, err := core.LoadInvitesWhere(db, wherePart)
 	if err != nil {
@@ -97,10 +97,10 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Begin the transaction.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 
-		inviteDomainIds := make([]string, 0)
+		inviteDomainIDs := make([]string, 0)
 		for domainID, invite := range inviteMap {
 			if domainID != "" {
-				inviteDomainIds = append(inviteDomainIds, domainID)
+				inviteDomainIDs = append(inviteDomainIDs, domainID)
 			}
 
 			// Create new invite
@@ -150,7 +150,7 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			var task tasks.SendInviteTask
 			task.FromUserID = u.ID
 			task.ToEmail = data.ToEmail
-			task.DomainIds = inviteDomainIds
+			task.DomainIDs = inviteDomainIDs
 			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				return sessions.NewError("Couldn't enqueue a task", err)
 			}

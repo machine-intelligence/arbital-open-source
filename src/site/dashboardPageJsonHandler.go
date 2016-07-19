@@ -41,7 +41,7 @@ func dashboardPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 		RedLinkCount: true,
 	}).Add(core.TitlePlusLoadOptions)
 
-	_, err = core.LoadAllDomainIds(db, returnData.PageMap)
+	_, err = core.LoadAllDomainIDs(db, returnData.PageMap)
 	if err != nil {
 		return pages.Fail("Error while loading domain ids", err)
 	}
@@ -58,7 +58,7 @@ func dashboardPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 	returnData.ResultMap["recentlyCreatedCommentIds"], err =
-		core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
+		core.LoadPageIDs(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
 		return pages.Fail("error while loading recently created page ids", err)
 	}
@@ -75,12 +75,12 @@ func dashboardPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 		GROUP BY 1
 		ORDER BY MAX(p.createdAt) DESC
 		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
-	returnData.ResultMap["recentlyEditedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
+	returnData.ResultMap["recentlyEditedIds"], err = core.LoadPageIDs(rows, returnData.PageMap, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading recently edited page ids", err)
 	}
 
-	pagesWithDraftIds := make([]string, 0)
+	pagesWithDraftIDs := make([]string, 0)
 	// Load pages with unpublished drafts
 	rows = database.NewQuery(`
 			SELECT p.pageId,p.title,p.createdAt,pi.currentEdit>0,pi.isDeleted
@@ -104,7 +104,7 @@ func dashboardPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
 		core.AddPageToMap(pageID, returnData.PageMap, pageOptions)
-		pagesWithDraftIds = append(pagesWithDraftIds, pageID)
+		pagesWithDraftIDs = append(pagesWithDraftIDs, pageID)
 		page := core.AddPageIDToMap(pageID, returnData.EditMap)
 		if title == "" {
 			title = "*Untitled*"
@@ -118,7 +118,7 @@ func dashboardPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("error while loading pages with drafts ids", err)
 	}
-	returnData.ResultMap["pagesWithDraftIds"] = pagesWithDraftIds
+	returnData.ResultMap["pagesWithDraftIds"] = pagesWithDraftIDs
 
 	// Load page ids with the most todos
 	rows = database.NewQuery(`
@@ -137,7 +137,7 @@ func dashboardPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 		GROUP BY 1
 		ORDER BY (SUM(ISNULL(pi.pageId)) + MAX(l.parentTodoCount)) DESC
 		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
-	returnData.ResultMap["mostTodosIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
+	returnData.ResultMap["mostTodosIds"], err = core.LoadPageIDs(rows, returnData.PageMap, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading most todos page ids", err)
 	}

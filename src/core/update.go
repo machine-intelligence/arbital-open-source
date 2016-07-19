@@ -103,7 +103,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 	domainSubmissionLoadOptions := &PageLoadOptions{SubmittedTo: true, DomainsAndPermissions: true}
 
 	updateRows := make([]*UpdateRow, 0)
-	changeLogIds := make([]string, 0)
+	changeLogIDs := make([]string, 0)
 	changeLogMap := make(map[string]*ChangeLog)
 
 	rows := database.NewQuery(`
@@ -152,7 +152,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 			if !ok {
 				changeLog = &ChangeLog{ID: changeLogID}
 				changeLogMap[changeLogID] = changeLog
-				changeLogIds = append(changeLogIds, changeLogID)
+				changeLogIDs = append(changeLogIDs, changeLogID)
 			}
 			row.ChangeLog = changeLog
 		}
@@ -165,9 +165,9 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 	}
 
 	// Load the changelogs
-	if len(changeLogIds) > 0 {
+	if len(changeLogIDs) > 0 {
 		changeLogs := make([]*ChangeLog, 0)
-		queryPart := database.NewQuery(`WHERE id IN`).AddArgsGroupStr(changeLogIds)
+		queryPart := database.NewQuery(`WHERE id IN`).AddArgsGroupStr(changeLogIDs)
 		err = LoadChangeLogs(db, queryPart, resultData, func(db *database.DB, changeLog *ChangeLog) error {
 			*changeLogMap[changeLog.ID] = *changeLog
 			changeLogs = append(changeLogs, changeLogMap[changeLog.ID])
@@ -202,7 +202,7 @@ func LoadUpdateEmail(db *database.DB, userID string) (resultData *UpdateData, re
 	}
 
 	// Load the groups the user belongs to.
-	if err = LoadUserGroupIds(db, u); err != nil {
+	if err = LoadUserGroupIDs(db, u); err != nil {
 		return nil, fmt.Errorf("Couldn't load user groups: %v", err)
 	}
 

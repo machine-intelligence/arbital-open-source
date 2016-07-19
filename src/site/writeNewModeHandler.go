@@ -91,7 +91,7 @@ func selectRandomNFrom(n int, query *database.QueryPart) *database.QueryPart {
 func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLinkRow, error) {
 	redLinks := make([]*RedLinkRow, 0)
 
-	publishedPageIds := core.PageInfosTableWithOptions(u, &core.PageInfosOptions{
+	publishedPageIDs := core.PageInfosTableWithOptions(u, &core.PageInfosOptions{
 		Fields: []string{"pageId"},
 	})
 	// NOTE: keep in mind that multiple pages can have the same alias, as long as only one page is published
@@ -110,7 +110,7 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 				AND pdp.domainId=?`, core.MathDomainID).Add(`
 			JOIN links AS l
 			ON l.parentId=mathPi.pageId
-				AND l.childAlias NOT IN`).AddPart(publishedPageIds).Add(`
+				AND l.childAlias NOT IN`).AddPart(publishedPageIDs).Add(`
 				AND l.childAlias NOT IN`).AddPart(publishedAndRecentAliases).Add(`
 			LEFT JOIN redLinks AS rl
 			ON l.childAlias=rl.alias

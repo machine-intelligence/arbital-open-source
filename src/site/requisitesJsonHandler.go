@@ -26,7 +26,7 @@ func requisitesJSONHandler(params *pages.HandlerParams) *pages.Result {
 		SELECT masteryId
 		FROM userMasteryPairs
 		WHERE userId=?`).Query(u.GetSomeID())
-	_, err := core.LoadPageIds(rows, returnData.PageMap, pageOptions)
+	_, err := core.LoadPageIDs(rows, returnData.PageMap, pageOptions)
 	if err != nil {
 		return pages.Fail("Error while loading masteries", err)
 	}

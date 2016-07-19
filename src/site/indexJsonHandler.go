@@ -9,7 +9,7 @@ import (
 
 type featuredDomain struct {
 	DomainID string   `json:"domainId"`
-	ChildIds []string `json:"childIds"`
+	ChildIDs []string `json:"childIds"`
 }
 
 var indexHandler = siteHandler{

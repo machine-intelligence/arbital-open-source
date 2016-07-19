@@ -78,7 +78,7 @@ func domainPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 		WHERE p.isLiveEdit AND pi.type!=?`, core.CommentPageType).AddPart(constraintPart).Add(`
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
-	returnData.ResultMap["recentlyCreatedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
+	returnData.ResultMap["recentlyCreatedIds"], err = core.LoadPageIDs(rows, returnData.PageMap, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading recently created page ids", err)
 	}
@@ -95,7 +95,7 @@ func domainPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 		GROUP BY l2.likeableId
 		ORDER BY SUM(value) DESC
 		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
-	returnData.ResultMap["mostLikedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
+	returnData.ResultMap["mostLikedIds"], err = core.LoadPageIDs(rows, returnData.PageMap, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading most liked page ids", err)
 	}
@@ -127,7 +127,7 @@ func domainPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 		GROUP BY 1
 		ORDER BY SUM(tally) DESC
 		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
-	returnData.ResultMap["hotIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
+	returnData.ResultMap["hotIds"], err = core.LoadPageIDs(rows, returnData.PageMap, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading recently edited page ids", err)
 	}
@@ -154,7 +154,7 @@ func domainPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 		HAVING COUNT(v2.value) > 1
 		ORDER BY VAR_POP(v2.value) DESC
 		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
-	returnData.ResultMap["mostControversialIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
+	returnData.ResultMap["mostControversialIds"], err = core.LoadPageIDs(rows, returnData.PageMap, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading most controversial page ids", err)
 	}

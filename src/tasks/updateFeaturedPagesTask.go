@@ -39,7 +39,7 @@ func (task UpdateFeaturedPagesTask) Execute(db *database.DB) (delay int, err err
 	defer c.Infof("==== UPDATE FEATURED PAGES COMPLETED ====")
 
 	// Which pages should be featured
-	featuredPageIds := make([]string, 0)
+	featuredPageIDs := make([]string, 0)
 
 	// Load all pages that haven't been featured yet
 	rows := database.NewQuery(`
@@ -58,23 +58,23 @@ func (task UpdateFeaturedPagesTask) Execute(db *database.DB) (delay int, err err
 		if err := rows.Scan(&pageID); err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
-		featuredPageIds = append(featuredPageIds, pageID)
+		featuredPageIDs = append(featuredPageIDs, pageID)
 		return nil
 	})
 	if err != nil {
 		return 0, fmt.Errorf("Failed to load featured page candidates: %v", err)
 	}
 
-	if len(featuredPageIds) <= 0 {
+	if len(featuredPageIDs) <= 0 {
 		return
 	}
-	c.Infof("New featured pages: %+v", featuredPageIds)
+	c.Infof("New featured pages: %+v", featuredPageIDs)
 
 	// Update the database
 	statement := database.NewQuery(`
 		UPDATE pageInfos
 		SET featuredAt=NOW()
-		WHERE pageId IN`).AddArgsGroupStr(featuredPageIds).ToStatement(db)
+		WHERE pageId IN`).AddArgsGroupStr(featuredPageIDs).ToStatement(db)
 	if _, err = statement.Exec(); err != nil {
 		return 0, fmt.Errorf("Failed to update pageInfos: %v", err)
 	}

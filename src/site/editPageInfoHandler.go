@@ -200,7 +200,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Can't edit: "+oldPage.Permissions.Edit.Reason, nil).Status(http.StatusBadRequest)
 	}
 
-	var changeLogIds []int64
+	var changeLogIDs []int64
 
 	// Begin the transaction.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
@@ -253,14 +253,14 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				if err2 != nil {
 					return err2
 				}
-				changeLogIds = append(changeLogIds, changeLogID)
+				changeLogIDs = append(changeLogIDs, changeLogID)
 			}
 			if data.SortChildrenBy != oldPage.SortChildrenBy {
 				changeLogID, err2 := updateChangeLog(core.NewSortChildrenByChangeLog, "", oldPage.SortChildrenBy, data.SortChildrenBy)
 				if err2 != nil {
 					return err2
 				}
-				changeLogIds = append(changeLogIds, changeLogID)
+				changeLogIDs = append(changeLogIDs, changeLogID)
 			}
 			if hasVote != oldPage.HasVote {
 				changeType := core.TurnOnVoteChangeLog
@@ -271,21 +271,21 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				if err2 != nil {
 					return err2
 				}
-				changeLogIds = append(changeLogIds, changeLogID)
+				changeLogIDs = append(changeLogIDs, changeLogID)
 			}
 			if data.VoteType != oldPage.VoteType {
 				changeLogID, err2 := updateChangeLog(core.SetVoteTypeChangeLog, "", oldPage.VoteType, data.VoteType)
 				if err2 != nil {
 					return err2
 				}
-				changeLogIds = append(changeLogIds, changeLogID)
+				changeLogIDs = append(changeLogIDs, changeLogID)
 			}
 			if data.EditGroupID != oldPage.EditGroupID {
 				changeLogID, err2 := updateChangeLog(core.NewEditGroupChangeLog, data.EditGroupID, oldPage.EditGroupID, data.EditGroupID)
 				if err2 != nil {
 					return err2
 				}
-				changeLogIds = append(changeLogIds, changeLogID)
+				changeLogIDs = append(changeLogIDs, changeLogID)
 			}
 
 		}
@@ -309,7 +309,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Generate "edit" update for users who are subscribed to this page.
 	if oldPage.WasPublished {
-		for _, changeLogID := range changeLogIds {
+		for _, changeLogID := range changeLogIDs {
 			var task tasks.NewUpdateTask
 			task.UserID = u.ID
 			task.GoToPageID = data.PageID

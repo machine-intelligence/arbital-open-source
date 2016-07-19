@@ -30,7 +30,7 @@ func groupsJSONHandler(params *pages.HandlerParams) *pages.Result {
 			FROM groupMembers
 		) AS m
 		ON (p.pageId=m.groupId)
-		WHERE p.pageId IN`).AddArgsGroupStr(u.GroupIds).ToStatement(db).Query()
+		WHERE p.pageId IN`).AddArgsGroupStr(u.GroupIDs).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var groupID string
 		var m core.Member

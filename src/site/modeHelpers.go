@@ -57,15 +57,15 @@ type likesModeRow struct {
 	modeRowData
 	PageID    string          `json:"pageId"`
 	ChangeLog *core.ChangeLog `json:"changeLog"` // Optional changeLog.
-	UserIds   []string        `json:"userIds"`
+	UserIDs   []string        `json:"userIds"`
 }
 
 // Row to show which users learned some requisites
 type reqsTaughtModeRow struct {
 	modeRowData
 	PageID       string   `json:"pageId"`
-	UserIds      []string `json:"userIds"`
-	RequisiteIds []string `json:"requisiteIds"`
+	UserIDs      []string `json:"userIds"`
+	RequisiteIDs []string `json:"requisiteIds"`
 }
 
 // Row to show a page
@@ -213,7 +213,7 @@ func loadLikesModeRows(db *database.DB, returnData *core.CommonHandlerData, limi
 			row = &likesModeRow{
 				modeRowData: modeRowData{RowType: LikesModeRowType, ActivityDate: updatedAt},
 				PageID:      pageID,
-				UserIds:     make([]string, 0),
+				UserIDs:     make([]string, 0),
 			}
 			hedonsRowMap[pageID] = row
 
@@ -225,7 +225,7 @@ func loadLikesModeRows(db *database.DB, returnData *core.CommonHandlerData, limi
 		}
 
 		core.AddUserIDToMap(likerID, returnData.UserMap)
-		row.UserIds = append(row.UserIds, likerID)
+		row.UserIDs = append(row.UserIDs, likerID)
 		return nil
 	})
 	if err != nil {
@@ -269,14 +269,14 @@ func loadChangeLikesModeRows(db *database.DB, returnData *core.CommonHandlerData
 				modeRowData: modeRowData{RowType: LikesModeRowType, ActivityDate: updatedAt},
 				PageID:      pageID,
 				ChangeLog:   &changeLog,
-				UserIds:     make([]string, 0),
+				UserIDs:     make([]string, 0),
 			}
 			hedonsRowMap[changeLog.ID] = row
 		}
 
 		core.AddPageToMap(pageID, returnData.PageMap, core.TitlePlusLoadOptions)
 		core.AddUserIDToMap(likerID, returnData.UserMap)
-		row.UserIds = append(row.UserIds, likerID)
+		row.UserIDs = append(row.UserIDs, likerID)
 		return nil
 	})
 	if err != nil {
@@ -319,8 +319,8 @@ func loadReqsTaughtModeRows(db *database.DB, returnData *core.CommonHandlerData,
 			row = &reqsTaughtModeRow{
 				modeRowData:  modeRowData{RowType: ReqsTaughtModeRowType, ActivityDate: updatedAt},
 				PageID:       taughtByID,
-				UserIds:      make([]string, 0),
-				RequisiteIds: make([]string, 0),
+				UserIDs:      make([]string, 0),
+				RequisiteIDs: make([]string, 0),
 			}
 			hedonsRowMap[taughtByID] = row
 		}
@@ -328,11 +328,11 @@ func loadReqsTaughtModeRows(db *database.DB, returnData *core.CommonHandlerData,
 		core.AddPageToMap(taughtByID, returnData.PageMap, core.TitlePlusLoadOptions)
 		core.AddPageToMap(masteryID, returnData.PageMap, core.TitlePlusLoadOptions)
 		core.AddUserIDToMap(learnerID, returnData.UserMap)
-		if !core.IsStringInList(learnerID, row.UserIds) {
-			row.UserIds = append(row.UserIds, learnerID)
+		if !core.IsStringInList(learnerID, row.UserIDs) {
+			row.UserIDs = append(row.UserIDs, learnerID)
 		}
-		if !core.IsStringInList(masteryID, row.RequisiteIds) {
-			row.RequisiteIds = append(row.RequisiteIds, masteryID)
+		if !core.IsStringInList(masteryID, row.RequisiteIDs) {
+			row.RequisiteIDs = append(row.RequisiteIDs, masteryID)
 		}
 		return nil
 	})

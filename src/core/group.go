@@ -16,8 +16,8 @@ type Member struct {
 }
 
 // LoadUserGroupIds loads all the group names this user belongs to.
-func LoadUserGroupIds(db *database.DB, u *CurrentUser) error {
-	u.GroupIds = make([]string, 0)
+func LoadUserGroupIDs(db *database.DB, u *CurrentUser) error {
+	u.GroupIDs = make([]string, 0)
 	rows := db.NewStatement(`
 		SELECT groupId
 		FROM groupMembers
@@ -28,15 +28,15 @@ func LoadUserGroupIds(db *database.DB, u *CurrentUser) error {
 		if err != nil {
 			return fmt.Errorf("failed to scan for a member: %v", err)
 		}
-		u.GroupIds = append(u.GroupIds, groupID)
+		u.GroupIDs = append(u.GroupIDs, groupID)
 		return nil
 	})
 	return err
 }
 
 // AddUserGroupIdsToPageMap adds user's groups to the page map so we can load them.
-func AddUserGroupIdsToPageMap(u *CurrentUser, pageMap map[string]*Page) {
-	for _, pageID := range u.GroupIds {
+func AddUserGroupIDsToPageMap(u *CurrentUser, pageMap map[string]*Page) {
+	for _, pageID := range u.GroupIDs {
 		AddPageIDToMap(pageID, pageMap)
 	}
 }

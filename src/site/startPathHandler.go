@@ -39,24 +39,24 @@ func startPathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load path pages
-	pathPageIds := []string{data.GuideID}
+	pathPageIDs := []string{data.GuideID}
 	queryPart := database.NewQuery(`
 		WHERE pathp.guideId=?`, data.GuideID).Add(`
 		ORDER BY pathp.pathIndex`)
 	err = core.LoadPathPages(db, queryPart, nil, func(db *database.DB, pathPage *core.PathPage) error {
-		pathPageIds = append(pathPageIds, pathPage.PathPageID)
+		pathPageIDs = append(pathPageIDs, pathPage.PathPageID)
 		return nil
 	})
 	if err != nil {
 		return pages.Fail("Couldn't load the path pages: %v", err)
-	} else if len(pathPageIds) <= 0 {
+	} else if len(pathPageIDs) <= 0 {
 		return pages.Fail("No path pages found for this guide", nil).Status(http.StatusBadRequest)
 	}
 
 	// Create the sourcePageIds
-	sourcePageIds := make([]string, 0)
-	for range pathPageIds {
-		sourcePageIds = append(sourcePageIds, data.GuideID)
+	sourcePageIDs := make([]string, 0)
+	for range pathPageIDs {
+		sourcePageIDs = append(sourcePageIDs, data.GuideID)
 	}
 
 	// Begin the transaction.
@@ -66,8 +66,8 @@ func startPathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap := make(database.InsertMap)
 		hashmap["userId"] = u.ID
 		hashmap["guideId"] = data.GuideID
-		hashmap["pageIds"] = strings.Join(pathPageIds, ",")
-		hashmap["sourcePageIds"] = strings.Join(sourcePageIds, ",")
+		hashmap["pageIds"] = strings.Join(pathPageIDs, ",")
+		hashmap["sourcePageIds"] = strings.Join(sourcePageIDs, ",")
 		hashmap["progress"] = 1
 		hashmap["createdAt"] = database.Now()
 		hashmap["updatedAt"] = database.Now()

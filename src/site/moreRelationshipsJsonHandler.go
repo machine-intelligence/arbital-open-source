@@ -54,7 +54,7 @@ func moreRelationshipsJSONHandler(params *pages.HandlerParams) *pages.Result {
 
 	rows := query.ToStatement(db).Query()
 	loadOptions := (&core.PageLoadOptions{}).Add(core.TitlePlusLoadOptions)
-	returnData.ResultMap["moreRelationshipIds"], err = core.LoadPageIds(rows, returnData.PageMap, loadOptions)
+	returnData.ResultMap["moreRelationshipIds"], err = core.LoadPageIDs(rows, returnData.PageMap, loadOptions)
 	if err != nil {
 		return pages.Fail("error while loading links", err)
 	}

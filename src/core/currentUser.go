@@ -70,7 +70,7 @@ type CurrentUser struct {
 	NewNotificationCount          int               `json:"newNotificationCount"`
 	NewAchievementCount           int               `json:"newAchievementCount"`
 	MaintenanceUpdateCount        int               `json:"maintenanceUpdateCount"`
-	GroupIds                      []string          `json:"groupIds"`
+	GroupIDs                      []string          `json:"groupIds"`
 	TrustMap                      map[string]*Trust `json:"trustMap"`
 	InvitesClaimed                []*Invite         `json:"invitesClaimed"`
 	// If set, these are the lists the user is subscribed to via mailchimp
@@ -108,7 +108,7 @@ type CookieSession struct {
 
 func NewCurrentUser() *CurrentUser {
 	var u CurrentUser
-	u.GroupIds = make([]string, 0)
+	u.GroupIDs = make([]string, 0)
 	u.TrustMap = make(map[string]*Trust)
 	u.InvitesClaimed = make([]*Invite, 0)
 	u.MailchimpInterests = make(map[string]bool)
@@ -132,7 +132,7 @@ func (user *CurrentUser) GetSomeID() string {
 func (user *CurrentUser) IsMemberOfGroup(groupID string) bool {
 	isMember := false
 	oldGroupIDStr := groupID
-	for _, groupIDStr := range user.GroupIds {
+	for _, groupIDStr := range user.GroupIDs {
 		if groupIDStr == oldGroupIDStr {
 			isMember = true
 			break
@@ -241,7 +241,7 @@ func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (u
 		}
 	}
 
-	if err := LoadUserGroupIds(db, u); err != nil {
+	if err := LoadUserGroupIDs(db, u); err != nil {
 		return nil, fmt.Errorf("Couldn't load group membership: %v", err)
 	}
 

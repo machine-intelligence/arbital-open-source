@@ -52,11 +52,11 @@ func searchJSONHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("No search term specified", nil).Status(http.StatusBadRequest)
 	}
 
-	var groupIds []string
-	for _, id := range u.GroupIds {
-		groupIds = append(groupIds, "\""+id+"\"")
+	var groupIDs []string
+	for _, id := range u.GroupIDs {
+		groupIDs = append(groupIDs, "\""+id+"\"")
 	}
-	groupIds = append(groupIds, "\"\"")
+	groupIDs = append(groupIDs, "\"\"")
 
 	data.Term = elastic.EscapeMatchTerm(data.Term)
 
@@ -168,7 +168,7 @@ func searchJSONHandler(params *pages.HandlerParams) *pages.Result {
 			}
 		},
 		"_source": []
-	}`, minSearchScore, searchSize, data.Term, strings.Join(groupIds, ","))
+	}`, minSearchScore, searchSize, data.Term, strings.Join(groupIDs, ","))
 	return searchJSONInternalHandler(params, jsonStr)
 }
 
@@ -209,7 +209,7 @@ func searchJSONInternalHandler(params *pages.HandlerParams, query string) *pages
 	for _, hit := range results.Hits.Hits {
 		if page, ok := returnData.PageMap[hit.Source.PageID]; ok {
 			// Adjust the score based on tags
-			for _, tagID := range page.TaggedAsIds {
+			for _, tagID := range page.TaggedAsIDs {
 				if penalty, ok := penaltyMap[tagID]; ok {
 					hit.Score *= penalty
 				}
@@ -223,7 +223,7 @@ func searchJSONInternalHandler(params *pages.HandlerParams, query string) *pages
 			}
 			// Adjust the score if the user created the page
 			if u.ID != "" {
-				for _, creatorID := range page.CreatorIds {
+				for _, creatorID := range page.CreatorIDs {
 					if creatorID == u.ID {
 						hit.Score *= 1.2
 						break

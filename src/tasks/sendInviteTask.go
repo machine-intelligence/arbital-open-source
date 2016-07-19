@@ -14,7 +14,7 @@ import (
 // SendInviteTask is the object that's put into the daemon queue.
 type SendInviteTask struct {
 	FromUserID string
-	DomainIds  []string
+	DomainIDs  []string
 	ToEmail    string
 }
 
@@ -27,7 +27,7 @@ func (task SendInviteTask) IsValid() error {
 	if !core.IsIDValid(task.FromUserID) {
 		return fmt.Errorf("Invalid FromUserId")
 	}
-	for _, domainID := range task.DomainIds {
+	for _, domainID := range task.DomainIDs {
 		if !core.IsIDValid(domainID) {
 			return fmt.Errorf("Invalid domain id: %v", domainID)
 		}
@@ -58,7 +58,7 @@ func (task SendInviteTask) Execute(db *database.DB) (delay int, err error) {
 	}
 
 	pageMap := make(map[string]*core.Page)
-	for _, domainID := range task.DomainIds {
+	for _, domainID := range task.DomainIDs {
 		core.AddPageIDToMap(domainID, pageMap)
 	}
 	err = core.LoadPages(db, &core.CurrentUser{ID: task.FromUserID}, pageMap)
@@ -68,9 +68,9 @@ func (task SendInviteTask) Execute(db *database.DB) (delay int, err error) {
 
 	domainsDesc := ""
 	if len(pageMap) > 0 {
-		for index, domainID := range task.DomainIds {
+		for index, domainID := range task.DomainIDs {
 			if index > 0 {
-				if index == len(task.DomainIds)-1 {
+				if index == len(task.DomainIDs)-1 {
 					domainsDesc += " and "
 				} else {
 					domainsDesc += ", "

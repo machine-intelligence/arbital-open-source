@@ -70,14 +70,14 @@ func (task SendOneEmailTask) Execute(db *database.DB) (delay int, err error) {
 
 	if sessions.Live {
 		// Mark loaded updates as emailed
-		updateIds := make([]interface{}, 0)
+		updateIDs := make([]interface{}, 0)
 		for _, row := range emailData.UpdateRows {
-			updateIds = append(updateIds, row.ID)
+			updateIDs = append(updateIDs, row.ID)
 		}
 		statement := database.NewQuery(`
 			UPDATE updates
 			SET emailed=true
-			WHERE id IN`).AddArgsGroup(updateIds).ToStatement(db)
+			WHERE id IN`).AddArgsGroup(updateIDs).ToStatement(db)
 		_, err = statement.Exec()
 		if err != nil {
 			return 0, fmt.Errorf("Couldn't update updates as emailed: %v", err)

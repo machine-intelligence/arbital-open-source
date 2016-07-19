@@ -27,7 +27,7 @@ type editJSONData struct {
 	CreatedAtLimit string
 
 	// Optional pages to load as well (e.g. for making a quick parent)
-	AdditionalPageIds []string
+	AdditionalPageIDs []string
 }
 
 // editJsonHandler handles the request.
@@ -100,12 +100,12 @@ func editJSONInternalHandler(params *pages.HandlerParams, data *editJSONData) *p
 	}
 
 	// Load additional pages (for which we need to display a greenlink)
-	if data.AdditionalPageIds == nil {
-		data.AdditionalPageIds = make([]string, 0)
+	if data.AdditionalPageIDs == nil {
+		data.AdditionalPageIDs = make([]string, 0)
 	}
-	data.AdditionalPageIds = append(data.AdditionalPageIds, "3n", "178", "1ln",
+	data.AdditionalPageIDs = append(data.AdditionalPageIDs, "3n", "178", "1ln",
 		"17b", "35z", "370", "187", "185", "3hs", "1rt", "595", "596", "597")
-	for _, pageID := range data.AdditionalPageIds {
+	for _, pageID := range data.AdditionalPageIDs {
 		core.AddPageIDToMap(pageID, returnData.PageMap)
 	}
 
@@ -124,9 +124,9 @@ func editJSONInternalHandler(params *pages.HandlerParams, data *editJSONData) *p
 	// is the one from editMap
 	livePage := returnData.PageMap[pageID]
 	p.LensParentID = livePage.LensParentID
-	p.ChildIds = livePage.ChildIds
-	p.ParentIds = livePage.ParentIds
-	p.TaggedAsIds = livePage.TaggedAsIds
+	p.ChildIDs = livePage.ChildIDs
+	p.ParentIDs = livePage.ParentIDs
+	p.TaggedAsIDs = livePage.TaggedAsIDs
 	p.Requirements = livePage.Requirements
 	p.Subjects = livePage.Subjects
 	p.Lenses = livePage.Lenses

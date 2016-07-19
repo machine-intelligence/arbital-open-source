@@ -43,7 +43,7 @@ func approvePageEditProposalHandlerFunc(params *pages.HandlerParams) *pages.Resu
 	}
 
 	// Load the changelog
-	changelogs, err := core.LoadChangeLogsByIds(db, []string{data.ChangeLogID}, core.NewEditProposalChangeLog)
+	changelogs, err := core.LoadChangeLogsByIDs(db, []string{data.ChangeLogID}, core.NewEditProposalChangeLog)
 	if err != nil {
 		return pages.Fail("Couldn't load changelog", err)
 	}

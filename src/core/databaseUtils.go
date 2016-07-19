@@ -52,7 +52,7 @@ func PageInfosTableWithOptions(u *CurrentUser, options *PageInfosOptions) *datab
 
 	q := database.NewQuery(`(SELECT ` + fieldsString + ` FROM pageInfos WHERE true`)
 	if u != nil {
-		allowedGroups := append(u.GroupIds, "")
+		allowedGroups := append(u.GroupIDs, "")
 		q.Add(`AND seeGroupId IN`).AddArgsGroupStr(allowedGroups)
 	}
 	if !options.Unpublished {

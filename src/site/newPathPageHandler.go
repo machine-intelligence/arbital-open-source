@@ -40,8 +40,8 @@ func newPathPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check permissions
-	pageIds := []string{data.GuideID}
-	permissionError, err := core.VerifyEditPermissionsForList(db, pageIds, u)
+	pageIDs := []string{data.GuideID}
+	permissionError, err := core.VerifyEditPermissionsForList(db, pageIDs, u)
 	if err != nil {
 		return pages.Fail("Error verifying permissions", err)
 	} else if permissionError != "" {

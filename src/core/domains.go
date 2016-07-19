@@ -96,7 +96,7 @@ func PropagateDomainsWithTx(tx *database.Tx, pagesToUpdate []string) (map[string
 }
 
 // Gets a map from a set of pages to sets of their parents
-func _getParentMap(tx *database.Tx, pageIds []string) (map[string]map[string]bool, error) {
+func _getParentMap(tx *database.Tx, pageIDs []string) (map[string]map[string]bool, error) {
 	parentMap := make(map[string]map[string]bool)
 
 	rows := database.NewQuery(`
@@ -105,7 +105,7 @@ func _getParentMap(tx *database.Tx, pageIds []string) (map[string]map[string]boo
 		JOIN`).AddPart(PageInfosTable(nil)).Add(`AS pi
 		ON pp.parentId=pi.pageId
 		WHERE pp.type=?`, ParentPagePairType).Add(`
-			AND childId IN`).AddArgsGroupStr(pageIds).ToTxStatement(tx).Query()
+			AND childId IN`).AddArgsGroupStr(pageIDs).ToTxStatement(tx).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var childID, parentID string
 		if err := rows.Scan(&childID, &parentID); err != nil {
@@ -123,12 +123,12 @@ func _getParentMap(tx *database.Tx, pageIds []string) (map[string]map[string]boo
 }
 
 // Gets the set of pages, from among those given, that are domain pages
-func _getDomainPages(tx *database.Tx, pageIds []string) (map[string]bool, error) {
+func _getDomainPages(tx *database.Tx, pageIDs []string) (map[string]bool, error) {
 	domainPagesSet := make(map[string]bool)
 	rows := database.NewQuery(`
 		SELECT pageId
 		FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
-		WHERE pageId IN`).AddArgsGroupStr(pageIds).Add(`
+		WHERE pageId IN`).AddArgsGroupStr(pageIDs).Add(`
 			AND type=?`, DomainPageType).ToTxStatement(tx).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageID string
@@ -144,16 +144,16 @@ func _getDomainPages(tx *database.Tx, pageIds []string) (map[string]bool, error)
 
 // Gets the current set of domains for each of the given pages.
 // Returns a map from page ids to sets of domain ids.
-func _getOriginalDomains(tx *database.Tx, pageIds []string) (map[string]map[string]bool, error) {
+func _getOriginalDomains(tx *database.Tx, pageIDs []string) (map[string]map[string]bool, error) {
 	originalDomainsMap := make(map[string]map[string]bool)
-	for _, id := range pageIds {
+	for _, id := range pageIDs {
 		originalDomainsMap[id] = make(map[string]bool)
 	}
 
 	rows := database.NewQuery(`
 		SELECT pageId, domainId
 		FROM pageDomainPairs
-		WHERE pageId IN`).AddArgsGroupStr(pageIds).ToTxStatement(tx).Query()
+		WHERE pageId IN`).AddArgsGroupStr(pageIDs).ToTxStatement(tx).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageID, domainID string
 		if err := rows.Scan(&pageID, &domainID); err != nil {

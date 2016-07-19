@@ -59,7 +59,7 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 	// and if so, load the primary page.
 	if data.LensID == "" {
 		page := core.AddPageIDToMap(pageID, returnData.PageMap)
-		err := core.LoadLensParentIds(db, returnData.PageMap, nil)
+		err := core.LoadLensParentIDs(db, returnData.PageMap, nil)
 		if err != nil {
 			return pages.Fail("Couldn't load lens parent id", err)
 		} else if page.LensParentID != "" {
@@ -97,7 +97,7 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 				AND pi.type!=?`, core.CommentPageType).Add(`
 			ORDER BY pi.createdAt DESC
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
-		returnData.ResultMap["recentlyCreatedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
+		returnData.ResultMap["recentlyCreatedIds"], err = core.LoadPageIDs(rows, returnData.PageMap, pageOptions)
 		if err != nil {
 			return pages.Fail("error while loading recently created page ids", err)
 		}
@@ -114,7 +114,7 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 			ORDER BY pi.createdAt DESC
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 		returnData.ResultMap["recentlyCreatedCommentIds"], err =
-			core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
+			core.LoadPageIDs(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 		if err != nil {
 			return pages.Fail("error while loading recently created page ids", err)
 		}
@@ -131,7 +131,7 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 			GROUP BY 1
 			ORDER BY MAX(p.createdAt) DESC
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
-		returnData.ResultMap["recentlyEditedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
+		returnData.ResultMap["recentlyEditedIds"], err = core.LoadPageIDs(rows, returnData.PageMap, pageOptions)
 		if err != nil {
 			return pages.Fail("error while loading recently edited page ids", err)
 		}
@@ -148,7 +148,7 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 			GROUP BY 1
 			ORDER BY SUM(l2.value) DESC
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
-		returnData.ResultMap["topPagesIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
+		returnData.ResultMap["topPagesIds"], err = core.LoadPageIDs(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 		if err != nil {
 			return pages.Fail("error while loading recently edited by me page ids", err)
 		}

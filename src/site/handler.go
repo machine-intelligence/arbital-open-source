@@ -74,7 +74,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		}
 
 		// Load all domains
-		params.DomainIds, err = core.LoadAllDomainIds(db, nil)
+		params.DomainIDs, err = core.LoadAllDomainIDs(db, nil)
 		if err != nil {
 			fail(http.StatusInternalServerError, "Couldn't load domainIds", err)
 			return
@@ -120,7 +120,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			if handlerData.ResetEverything {
 				// Fetch some more global data and pass it to the FE
 				handlerData.GlobalData = &params.GlobalHandlerData
-				handlerData.GlobalData.ImprovementTagIds, err = core.LoadMetaTags(db, core.RequestForEditTagParentPageID)
+				handlerData.GlobalData.ImprovementTagIDs, err = core.LoadMetaTags(db, core.RequestForEditTagParentPageID)
 				if err != nil {
 					fail(http.StatusInternalServerError, "Couldn't load improvement tags", err)
 					return

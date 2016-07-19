@@ -39,7 +39,7 @@ func (task CheckAnsweredMarksTask) Execute(db *database.DB) (delay int, err erro
 	c.Infof("==== CHECK ANSWERED MARK START ====")
 	defer c.Infof("==== CHECK ANSWERED MARK COMPLETED ====")
 
-	markIds := make([]string, 0)
+	markIDs := make([]string, 0)
 	markMap := make(map[string]bool)
 	hashmaps := make(database.InsertMaps, 0)
 
@@ -58,7 +58,7 @@ func (task CheckAnsweredMarksTask) Execute(db *database.DB) (delay int, err erro
 		_, exists := markMap[markID]
 		if !exists {
 			markMap[markID] = true
-			markIds = append(markIds, markID)
+			markIDs = append(markIDs, markID)
 
 			// Add an update
 			hashmap := make(database.InsertMap)
@@ -78,7 +78,7 @@ func (task CheckAnsweredMarksTask) Execute(db *database.DB) (delay int, err erro
 		return -1, fmt.Errorf("Failed to load marks: %v", err)
 	}
 
-	if len(markIds) <= 0 {
+	if len(markIDs) <= 0 {
 		return
 	}
 
@@ -87,7 +87,7 @@ func (task CheckAnsweredMarksTask) Execute(db *database.DB) (delay int, err erro
 		statement := database.NewQuery(`
 			UPDATE marks
 			SET answered=true,answeredAt=NOW()
-			WHERE id IN`).AddArgsGroupStr(markIds).ToTxStatement(tx)
+			WHERE id IN`).AddArgsGroupStr(markIDs).ToTxStatement(tx)
 		if _, err = statement.Exec(); err != nil {
 			return sessions.NewError("Failed to load update marks", err)
 		}
