@@ -16,6 +16,11 @@ const (
 	// If there is a draft with a given alias that's at most X days old, we won't
 	// show the corresponding red link
 	hideRedLinkIfDraftExistsDays = 3 // days
+
+	// varietyDepth represents how far down we sample the top new pages.
+	// When loading N pages, we will randomly sample them from the top
+	// varietyDepth*N results.
+	varietyDepth = 5
 )
 
 type writeNewModeData struct {
@@ -118,7 +123,7 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 		ON groupedRedLinks.likeableId=likeCounts.likeableId
 		WHERE !COALESCE(hasAnyDownvotes,0)
 		ORDER BY COALESCE(likeCount,0) DESC, refCount DESC, groupedRedLinks.likeableId
-		LIMIT ?`, 5*limit)).ToStatement(db).Query()
+		LIMIT ?`, varietyDepth*limit)).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var alias, refCount string
 		var likeableId sql.NullInt64
@@ -177,7 +182,7 @@ func loadStubRows(db *database.DB, returnData *core.CommonHandlerData, limit int
 			AND pi.lockedUntil < NOW()
 		GROUP BY 1
 		ORDER BY SUM(l.value) DESC
-		LIMIT ?`, 5*limit)).ToStatement(db).Query()
+		LIMIT ?`, varietyDepth*limit)).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageID string
 		err := rows.Scan(&pageID)
