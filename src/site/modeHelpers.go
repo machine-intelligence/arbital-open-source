@@ -414,10 +414,11 @@ func loadDraftRows(db *database.DB, returnData *core.CommonHandlerData, limit in
 		SELECT p.pageId,p.title,p.createdAt,pi.currentEdit>0,pi.isDeleted
 		FROM pages AS p
 		JOIN`).AddPart(core.PageInfosTableAll(returnData.User)).Add(`AS pi
-		ON (p.pageId = pi.pageId)
+		ON p.pageId = pi.pageId
 		WHERE p.creatorId=?`, returnData.User.ID).Add(`
 			AND pi.type!=?`, core.CommentPageType).Add(`
 			AND p.edit>pi.currentEdit AND (p.text!="" OR p.title!="")
+			AND (p.isAutosave OR p.isSnapshot)
 		GROUP BY p.pageId
 		ORDER BY p.createdAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
