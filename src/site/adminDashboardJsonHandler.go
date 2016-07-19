@@ -11,7 +11,7 @@ import (
 
 var adminDashboardPageHandler = siteHandler{
 	URI:         "/json/adminDashboardPage/",
-	HandlerFunc: adminDashboardPageJsonHandler,
+	HandlerFunc: adminDashboardPageJSONHandler,
 	Options: pages.PageOptions{
 		AdminOnly: true,
 	},
@@ -40,7 +40,7 @@ func processRows(rows *database.Rows, pageMap map[string]*core.Page, loadOptions
 }
 
 // adminDashboardPageJsonHandler handles the request.
-func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
+func adminDashboardPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(u).SetResetEverything()

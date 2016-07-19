@@ -15,22 +15,22 @@ const (
 	ExploreMaxPagesToLoad = 10000
 )
 
-type exploreJsonData struct {
+type exploreJSONData struct {
 	PageAlias string
 }
 
 var exploreHandler = siteHandler{
 	URI:         "/json/explore/",
-	HandlerFunc: exploreJsonHandler,
+	HandlerFunc: exploreJSONHandler,
 }
 
-func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
+func exploreJSONHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(params.U).SetResetEverything()
 
 	// Decode data
-	var data exploreJsonData
+	var data exploreJSONData
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
@@ -38,7 +38,7 @@ func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Get actual page id
-	pageID, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
+	pageID, ok, err := core.LoadAliasToPageID(db, u, data.PageAlias)
 	if err != nil {
 		return pages.Fail("Couldn't convert alias", err)
 	} else if !ok {

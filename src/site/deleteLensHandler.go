@@ -44,7 +44,7 @@ func deleteLensHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check permissions
-	pageIds := []string{lens.PageID, lens.LensId}
+	pageIds := []string{lens.PageID, lens.LensID}
 	permissionError, err := core.VerifyEditPermissionsForList(db, pageIds, u)
 	if err != nil {
 		return pages.Fail("Error verifying permissions", err)

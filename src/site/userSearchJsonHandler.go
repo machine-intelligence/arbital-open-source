@@ -15,13 +15,13 @@ import (
 
 var userSearchHandler = siteHandler{
 	URI:         "/json/userSearch/",
-	HandlerFunc: userSearchJsonHandler,
+	HandlerFunc: userSearchJSONHandler,
 }
 
 // userSearchJsonHandler handles the request.
-func userSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
+func userSearchJSONHandler(params *pages.HandlerParams) *pages.Result {
 	// Decode data
-	var data searchJsonData
+	var data searchJSONData
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
@@ -69,5 +69,5 @@ func userSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		},
 		"_source": []
 	}`, escapedTerm, strings.Join(groupIds, ","), core.GroupPageType)
-	return searchJsonInternalHandler(params, jsonStr)
+	return searchJSONInternalHandler(params, jsonStr)
 }

@@ -49,7 +49,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageID) {
+	if !core.IsIDValid(data.PageID) {
 		return pages.Fail("Invalid page id", nil).Status(http.StatusBadRequest)
 	}
 	if data.Type != core.QueryMarkType && data.Type != core.TypoMarkType && data.Type != core.ConfusionMarkType {
@@ -66,23 +66,23 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Load masteries failed: %v", err)
 	}
 
-	var markId int64
+	var markID int64
 	// Set to true if this mark is automatically processed within a few minutes
 	autoProcessed := data.Type == core.TypoMarkType || data.Type == core.ConfusionMarkType
 
 	// Begin the transaction.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Compute snapshot id we can use
-		var requisiteSnapshotId int64
+		var requisiteSnapshotID int64
 		if data.Type != core.TypoMarkType {
 			row := tx.DB.NewStatement(`
 			SELECT IFNULL(max(id),0)
 			FROM userRequisitePairSnapshots`).WithTx(tx).QueryRow()
-			_, err = row.Scan(&requisiteSnapshotId)
+			_, err = row.Scan(&requisiteSnapshotID)
 			if err != nil {
 				return sessions.NewError("Couldn't load max snapshot id", err)
 			}
-			requisiteSnapshotId++
+			requisiteSnapshotID++
 		}
 
 		// Create a new mark
@@ -96,14 +96,14 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["anchorContext"] = data.AnchorContext
 		hashmap["anchorText"] = data.AnchorText
 		hashmap["anchorOffset"] = data.AnchorOffset
-		hashmap["requisiteSnapshotId"] = requisiteSnapshotId
+		hashmap["requisiteSnapshotId"] = requisiteSnapshotID
 		hashmap["isSubmitted"] = autoProcessed
 		statement := tx.DB.NewInsertStatement("marks", hashmap).WithTx(tx)
 		resp, err := statement.Exec()
 		if err != nil {
 			return sessions.NewError("Couldn't insert an new mark", err)
 		}
-		markId, err = resp.LastInsertId()
+		markID, err = resp.LastInsertId()
 		if err != nil {
 			return sessions.NewError("Couldn't get inserted id", err)
 		}
@@ -114,7 +114,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			for _, req := range masteryMap {
 				if req.Has || req.Wants {
 					hashmap := make(database.InsertMap)
-					hashmap["id"] = requisiteSnapshotId
+					hashmap["id"] = requisiteSnapshotID
 					hashmap["userId"] = u.ID
 					hashmap["requisiteId"] = req.PageID
 					hashmap["has"] = req.Has
@@ -135,36 +135,36 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err2 != nil {
 		return pages.FailWith(err2)
 	}
-	markIdStr := fmt.Sprintf("%d", markId)
+	markIDStr := fmt.Sprintf("%d", markID)
 
 	// Enqueue a task that will create relevant updates for this mark event
 	if autoProcessed {
-		err = EnqueueNewMarkUpdateTask(params, markIdStr, data.PageID, markAutoProcessDelay)
+		err = EnqueueNewMarkUpdateTask(params, markIDStr, data.PageID, markAutoProcessDelay)
 		if err != nil {
 			return pages.Fail("Couldn't enqueue an updateTask", err)
 		}
 	}
 
 	// Load mark to return it
-	core.AddMarkToMap(markIdStr, returnData.MarkMap)
+	core.AddMarkToMap(markIDStr, returnData.MarkMap)
 	core.AddPageToMap("370", returnData.PageMap, core.TitlePlusLoadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
 	}
 
-	returnData.ResultMap["markId"] = markIdStr
+	returnData.ResultMap["markId"] = markIDStr
 
 	return pages.Success(returnData)
 }
 
-func EnqueueNewMarkUpdateTask(params *pages.HandlerParams, markId string, pageID string, delay int) error {
+func EnqueueNewMarkUpdateTask(params *pages.HandlerParams, markID string, pageID string, delay int) error {
 	var updateTask tasks.NewUpdateTask
-	updateTask.UserId = params.U.ID
-	updateTask.GoToPageId = pageID
-	updateTask.SubscribedToId = pageID
+	updateTask.UserID = params.U.ID
+	updateTask.GoToPageID = pageID
+	updateTask.SubscribedToID = pageID
 	updateTask.UpdateType = core.NewMarkUpdateType
-	updateTask.MarkId = markId
+	updateTask.MarkID = markID
 	options := &tasks.TaskOptions{Delay: delay}
 	if err := tasks.Enqueue(params.C, &updateTask, options); err != nil {
 		return fmt.Errorf("Couldn't enqueue an updateTask: %v", err)

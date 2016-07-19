@@ -12,7 +12,7 @@ import (
 // updateMemberData contains data given to us in the request.
 type updateMemberData struct {
 	GroupID       string
-	UserId        string
+	UserID        string
 	CanAddMembers bool
 	CanAdmin      bool
 }
@@ -35,7 +35,7 @@ func updateMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.GroupID) || !core.IsIdValid(data.UserId) {
+	if !core.IsIDValid(data.GroupID) || !core.IsIDValid(data.UserID) {
 		return pages.Fail("GroupId and UserId have to be set", nil).Status(http.StatusBadRequest)
 	}
 
@@ -59,7 +59,7 @@ func updateMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		SELECT canAdmin
 		FROM groupMembers
 		WHERE userId=? AND groupId=?
-		`).QueryRow(data.UserId, data.GroupID)
+		`).QueryRow(data.UserID, data.GroupID)
 	found, err = row.Scan(&targetCanAdmin)
 	if err != nil {
 		return pages.Fail("Couldn't check for target group member", err)
@@ -74,7 +74,7 @@ func updateMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	data.CanAddMembers = data.CanAddMembers || data.CanAdmin
 
 	hashmap := make(map[string]interface{})
-	hashmap["userId"] = data.UserId
+	hashmap["userId"] = data.UserID
 	hashmap["groupId"] = data.GroupID
 	hashmap["canAddMembers"] = data.CanAddMembers
 	hashmap["canAdmin"] = data.CanAdmin

@@ -72,7 +72,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	u := params.U
 	returnData := core.NewHandlerData(u)
 
-	if !core.IsIdValid(data.PageID) {
+	if !core.IsIDValid(data.PageID) {
 		return pages.Fail("No pageId specified", nil).Status(http.StatusBadRequest)
 	}
 
@@ -129,9 +129,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 
 	// Set the see-group
-	var seeGroupId string
-	if core.IsIdValid(params.PrivateGroupId) {
-		seeGroupId = params.PrivateGroupId
+	var seeGroupID string
+	if core.IsIDValid(params.PrivateGroupID) {
+		seeGroupID = params.PrivateGroupID
 	}
 
 	// Error checking.
@@ -145,7 +145,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		return pages.Fail("Can't set autosave and snapshot", nil).Status(http.StatusBadRequest)
 	}
 	// Check the group settings
-	if oldPage.SeeGroupID != seeGroupId && newEditNum != 1 {
+	if oldPage.SeeGroupID != seeGroupID && newEditNum != 1 {
 		return pages.Fail("Editing this page in incorrect private group", nil).Status(http.StatusBadRequest)
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)
@@ -170,10 +170,10 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 
 	// Load parents for comments
-	var commentParentId string
-	var commentPrimaryPageId string
+	var commentParentID string
+	var commentPrimaryPageID string
 	if isNewCurrentEdit && oldPage.Type == core.CommentPageType {
-		commentParentId, commentPrimaryPageId, err = core.GetCommentParents(db, data.PageID)
+		commentParentID, commentPrimaryPageID, err = core.GetCommentParents(db, data.PageID)
 		if err != nil {
 			return pages.Fail("Couldn't load comment's parents", err)
 		}
@@ -215,7 +215,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 
 	// The id of the changeLog for this edit
-	var editChangeLogId int64
+	var editChangeLogID int64
 	// Whether we created a changeLog for this edit
 	var createEditChangeLog bool
 
@@ -332,7 +332,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			if err != nil {
 				return sessions.NewError("Couldn't insert new child change log", err)
 			}
-			editChangeLogId, err = result.LastInsertId()
+			editChangeLogID, err = result.LastInsertId()
 			if err != nil {
 				return sessions.NewError("Couldn't get id of changeLog", err)
 			}
@@ -340,11 +340,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 		// Subscribe this user to the page that they just created.
 		if !oldPage.WasPublished && isNewCurrentEdit {
-			toId := data.PageID
-			if oldPage.Type == core.CommentPageType && core.IsIdValid(commentParentId) {
-				toId = commentParentId // subscribe to the parent comment
+			toID := data.PageID
+			if oldPage.Type == core.CommentPageType && core.IsIDValid(commentParentID) {
+				toID = commentParentID // subscribe to the parent comment
 			}
-			err2 := addSubscription(tx, u.ID, toId, true)
+			err2 := addSubscription(tx, u.ID, toID, true)
 			if err2 != nil {
 				return err2
 			}
@@ -370,10 +370,10 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// Generate "edit" update for users who are subscribed to this page.
 		if oldPage.WasPublished && !data.IsMinorEdit && createEditChangeLog && oldPage.Type != core.CommentPageType {
 			var task tasks.NewUpdateTask
-			task.UserId = u.ID
-			task.GoToPageId = data.PageID
-			task.SubscribedToId = data.PageID
-			task.ChangeLogId = editChangeLogId
+			task.UserID = u.ID
+			task.GoToPageID = data.PageID
+			task.SubscribedToID = data.PageID
+			task.ChangeLogID = editChangeLogID
 			if oldPage.IsDeleted {
 				task.UpdateType = core.ChangeLogUpdateType
 			} else {
@@ -396,12 +396,12 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// Generate updates for users who are subscribed to the author.
 		if !oldPage.WasPublished && oldPage.Type != core.CommentPageType && !data.IsMinorEdit {
 			var task tasks.NewUpdateTask
-			task.UserId = u.ID
+			task.UserID = u.ID
 			task.UpdateType = core.NewPageByUserUpdateType
-			task.SubscribedToId = u.ID
-			task.GoToPageId = data.PageID
+			task.SubscribedToID = u.ID
+			task.GoToPageID = data.PageID
 			if createEditChangeLog {
-				task.ChangeLogId = editChangeLogId
+				task.ChangeLogID = editChangeLogID
 			}
 			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
@@ -413,20 +413,20 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			// Send "new comment" updates.
 			if !data.IsMinorEdit {
 				var task tasks.NewUpdateTask
-				task.UserId = u.ID
-				task.GoToPageId = data.PageID
+				task.UserID = u.ID
+				task.GoToPageID = data.PageID
 				task.ForceMaintainersOnly = oldPage.IsEditorComment
 				if createEditChangeLog {
-					task.ChangeLogId = editChangeLogId
+					task.ChangeLogID = editChangeLogID
 				}
-				if core.IsIdValid(commentParentId) {
+				if core.IsIDValid(commentParentID) {
 					// This is a new reply
 					task.UpdateType = core.ReplyUpdateType
-					task.SubscribedToId = commentParentId
+					task.SubscribedToID = commentParentID
 				} else {
 					// This is a new top level comment
 					task.UpdateType = core.TopLevelCommentUpdateType
-					task.SubscribedToId = commentPrimaryPageId
+					task.SubscribedToID = commentPrimaryPageID
 				}
 				if err := tasks.Enqueue(c, &task, nil); err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
@@ -439,9 +439,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			submatches := exp.FindAllStringSubmatch(data.Text, -1)
 			for _, submatch := range submatches {
 				var task tasks.AtMentionUpdateTask
-				task.UserId = u.ID
-				task.MentionedUserId = submatch[1]
-				task.GoToPageId = data.PageID
+				task.UserID = u.ID
+				task.MentionedUserID = submatch[1]
+				task.GoToPageID = data.PageID
 				if err := tasks.Enqueue(c, &task, nil); err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
 				}

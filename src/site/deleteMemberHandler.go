@@ -13,7 +13,7 @@ import (
 // deleteMemberData contains data given to us in the request.
 type deleteMemberData struct {
 	GroupID string
-	UserId  string
+	UserID  string
 }
 
 var deleteMemberHandler = siteHandler{
@@ -35,7 +35,7 @@ func deleteMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.GroupID) || !core.IsIdValid(data.UserId) {
+	if !core.IsIDValid(data.GroupID) || !core.IsIDValid(data.UserID) {
 		return pages.Fail("GroupId and UserId have to be set", nil).Status(http.StatusBadRequest)
 	}
 
@@ -59,7 +59,7 @@ func deleteMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		SELECT canAdmin
 		FROM groupMembers
 		WHERE userId=? AND groupId=?
-		`).QueryRow(data.UserId, data.GroupID)
+		`).QueryRow(data.UserID, data.GroupID)
 	found, err = row.Scan(&targetCanAdmin)
 	if err != nil {
 		return pages.Fail("Couldn't check for target group member", err)
@@ -76,15 +76,15 @@ func deleteMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	statement := db.NewStatement(`
 		DELETE FROM groupMembers
 		WHERE userId=? AND groupId=?`)
-	if _, err := statement.Exec(data.UserId, data.GroupID); err != nil {
+	if _, err := statement.Exec(data.UserID, data.GroupID); err != nil {
 		return pages.Fail("Couldn't delete the group member", err)
 	}
 
 	// Create a task to do further processing
 	var task tasks.MemberUpdateTask
-	task.UserId = u.ID
+	task.UserID = u.ID
 	task.UpdateType = core.RemovedFromGroupUpdateType
-	task.MemberId = data.UserId
+	task.MemberID = data.UserID
 	task.GroupID = data.GroupID
 	if err := tasks.Enqueue(c, &task, nil); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)

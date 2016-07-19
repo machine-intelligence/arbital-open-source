@@ -12,7 +12,7 @@ import (
 
 // updateMarkData contains data given to us in the request.
 type updateMarkData struct {
-	MarkId string
+	MarkID string
 
 	// Optional vars.
 	// Set mark's text to this
@@ -43,8 +43,8 @@ func updateMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the mark
-	mark := &core.Mark{ID: data.MarkId}
-	loadData.MarkMap[data.MarkId] = mark
+	mark := &core.Mark{ID: data.MarkID}
+	loadData.MarkMap[data.MarkID] = mark
 	err = core.LoadMarkData(db, loadData.PageMap, loadData.UserMap, loadData.MarkMap, u)
 	if err != nil {
 		return pages.Fail("Couldn't load the mark", err)
@@ -54,7 +54,7 @@ func updateMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Update existing mark
 	hashmap := make(database.InsertMap)
-	hashmap["id"] = data.MarkId
+	hashmap["id"] = data.MarkID
 	if data.Text != "" {
 		hashmap["text"] = data.Text
 	}
@@ -72,7 +72,7 @@ func updateMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// If the mark has just been submitted, queue the updates
 	if data.Submit && !mark.IsSubmitted {
-		err = EnqueueNewMarkUpdateTask(params, data.MarkId, mark.PageID, 0)
+		err = EnqueueNewMarkUpdateTask(params, data.MarkID, mark.PageID, 0)
 		if err != nil {
 			return pages.Fail("Couldn't enqueue an updateTask", err)
 		}

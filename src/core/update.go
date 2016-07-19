@@ -42,14 +42,14 @@ const (
 // UpdateRow is a row from updates table
 type UpdateRow struct {
 	ID              string
-	UserId          string
-	ByUserId        string
+	UserID          string
+	ByUserID        string
 	CreatedAt       string
 	Type            string
 	Seen            bool
-	SubscribedToId  string
-	GoToPageId      string
-	MarkId          string
+	SubscribedToID  string
+	GoToPageID      string
+	MarkID          string
 	IsGoToPageAlive bool
 	ChangeLog       *ChangeLog
 }
@@ -57,13 +57,13 @@ type UpdateRow struct {
 // UpdateEntry corresponds to one update entry we'll display.
 type UpdateEntry struct {
 	ID              string `json:"id"`
-	UserId          string `json:"userId"`
-	ByUserId        string `json:"byUserId"`
+	UserID          string `json:"userId"`
+	ByUserID        string `json:"byUserId"`
 	Type            string `json:"type"`
-	SubscribedToId  string `json:"subscribedToId"`
-	GoToPageId      string `json:"goToPageId"`
+	SubscribedToID  string `json:"subscribedToId"`
+	GoToPageID      string `json:"goToPageId"`
 	IsGoToPageAlive bool   `json:"isGoToPageAlive"`
-	MarkId          string `json:"markId"`
+	MarkID          string `json:"markId"`
 	// Optional changeLog associated with this update
 	ChangeLog *ChangeLog `json:"changeLog"`
 	CreatedAt string     `json:"createdAt"`
@@ -122,37 +122,37 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var row UpdateRow
-		var changeLogId string
-		err := rows.Scan(&row.ID, &row.UserId, &row.ByUserId, &row.CreatedAt, &row.Type,
-			&row.Seen, &row.SubscribedToId, &row.GoToPageId, &row.MarkId, &changeLogId, &row.IsGoToPageAlive)
+		var changeLogID string
+		err := rows.Scan(&row.ID, &row.UserID, &row.ByUserID, &row.CreatedAt, &row.Type,
+			&row.Seen, &row.SubscribedToID, &row.GoToPageID, &row.MarkID, &changeLogID, &row.IsGoToPageAlive)
 		if err != nil {
 			return fmt.Errorf("failed to scan an update: %v", err)
 		}
 
-		AddPageToMap(row.GoToPageId, resultData.PageMap, goToPageLoadOptions)
-		AddPageToMap(row.SubscribedToId, resultData.PageMap, groupLoadOptions)
+		AddPageToMap(row.GoToPageID, resultData.PageMap, goToPageLoadOptions)
+		AddPageToMap(row.SubscribedToID, resultData.PageMap, groupLoadOptions)
 		if row.Type == PageToDomainSubmissionUpdateType {
 			// Load domains and permissions, so that if I'm on the page when I see the update, I don't get the orphan page message.
-			AddPageToMap(row.GoToPageId, resultData.PageMap, domainSubmissionLoadOptions)
+			AddPageToMap(row.GoToPageID, resultData.PageMap, domainSubmissionLoadOptions)
 		}
 
-		resultData.UserMap[row.UserId] = &User{ID: row.UserId}
-		if IsIdValid(row.ByUserId) {
-			resultData.UserMap[row.ByUserId] = &User{ID: row.ByUserId}
+		resultData.UserMap[row.UserID] = &User{ID: row.UserID}
+		if IsIDValid(row.ByUserID) {
+			resultData.UserMap[row.ByUserID] = &User{ID: row.ByUserID}
 		}
-		if row.MarkId == "0" {
-			row.MarkId = ""
+		if row.MarkID == "0" {
+			row.MarkID = ""
 		} else {
-			AddMarkToMap(row.MarkId, resultData.MarkMap)
+			AddMarkToMap(row.MarkID, resultData.MarkMap)
 		}
 
 		// Process the change log
-		if changeLogId != "" {
-			changeLog, ok := changeLogMap[changeLogId]
+		if changeLogID != "" {
+			changeLog, ok := changeLogMap[changeLogID]
 			if !ok {
-				changeLog = &ChangeLog{ID: changeLogId}
-				changeLogMap[changeLogId] = changeLog
-				changeLogIds = append(changeLogIds, changeLogId)
+				changeLog = &ChangeLog{ID: changeLogID}
+				changeLogMap[changeLogID] = changeLog
+				changeLogIds = append(changeLogIds, changeLogID)
 			}
 			row.ChangeLog = changeLog
 		}
@@ -186,7 +186,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 }
 
 // LoadUpdateEmail loads the text and other data for the update email
-func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, retErr error) {
+func LoadUpdateEmail(db *database.DB, userID string) (resultData *UpdateData, retErr error) {
 	c := db.C
 	resultData = &UpdateData{}
 
@@ -195,7 +195,7 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 	row := db.NewStatement(`
 		SELECT id,email,emailFrequency,emailThreshold
 		FROM users
-		WHERE id=?`).QueryRow(userId)
+		WHERE id=?`).QueryRow(userID)
 	_, err := row.Scan(&u.ID, &u.Email, &u.EmailFrequency, &u.EmailThreshold)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a user: %v", err)
@@ -257,11 +257,11 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 	}
 
 	funcMap := template.FuncMap{
-		"GetUserUrl": func(userId string) string {
-			return fmt.Sprintf(`%s/user/%s`, sessions.GetDomainForTestEmail(), userId)
+		"GetUserUrl": func(userID string) string {
+			return fmt.Sprintf(`%s/user/%s`, sessions.GetDomainForTestEmail(), userID)
 		},
-		"GetUserName": func(userId string) string {
-			return handlerData.UserMap[userId].FullName()
+		"GetUserName": func(userID string) string {
+			return handlerData.UserMap[userID].FullName()
 		},
 		"GetPageUrl": func(pageID string) string {
 			return fmt.Sprintf("%s/p/%s/"+handlerData.PageMap[pageID].Alias, sessions.GetDomainForTestEmail(), pageID)
@@ -336,11 +336,11 @@ func getOkayToShowWhenGoToPageIsDeletedUpdateTypes() []string {
 	}
 }
 
-func MarkUpdatesAsSeen(db *database.DB, userId string, types []string) error {
+func MarkUpdatesAsSeen(db *database.DB, userID string, types []string) error {
 	statement := database.NewQuery(`
 		UPDATE updates
 		SET seen=TRUE
-		WHERE userId=?`, userId).Add(`
+		WHERE userId=?`, userID).Add(`
 			AND type IN`).AddArgsGroupStr(types).ToStatement(db)
 	_, err := statement.Exec()
 	return err

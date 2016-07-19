@@ -148,16 +148,16 @@ func ShowError(w http.ResponseWriter, r *http.Request, err error) {
 	q := url.Values{
 		"error_msg": []string{BadRequestMsg},
 	}
-	nextUrl := fmt.Sprintf("/?%s", q.Encode())
-	l.Errorf("returning StatusBadRequest and redirecting to %q: %v\n", nextUrl, err)
-	http.Redirect(w, r, nextUrl, http.StatusSeeOther)
+	nextURL := fmt.Sprintf("/?%s", q.Encode())
+	l.Errorf("returning StatusBadRequest and redirecting to %q: %v\n", nextURL, err)
+	http.Redirect(w, r, nextURL, http.StatusSeeOther)
 }
 
 // Values are simple URL params.
 type Values map[string]string
 
 // UrlValues returns the simplifies values as url.Values.
-func (vs Values) UrlValues() url.Values {
+func (vs Values) URLValues() url.Values {
 	q := url.Values{}
 	for k, v := range vs {
 		q[k] = []string{v}
@@ -167,7 +167,7 @@ func (vs Values) UrlValues() url.Values {
 
 // AddTo adds the Values to specified URI.
 func (v Values) AddTo(uri string) string {
-	return fmt.Sprintf("%s?%s", uri, v.UrlValues().Encode())
+	return fmt.Sprintf("%s?%s", uri, v.URLValues().Encode())
 }
 
 // ServeHTTP serves HTTP for the page.

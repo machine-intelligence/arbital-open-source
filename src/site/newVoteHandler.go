@@ -39,7 +39,7 @@ func newVoteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(task.PageID) {
+	if !core.IsIDValid(task.PageID) {
 		return pages.Fail("Missing or invalid page id", nil).Status(http.StatusBadRequest)
 	}
 	if task.Value < 0 || task.Value > 100 {
@@ -47,7 +47,7 @@ func newVoteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Get the last vote.
-	var oldVoteId int64
+	var oldVoteID int64
 	var oldVoteValue float32
 	var oldVoteExists bool
 	var oldVoteAge int64
@@ -57,7 +57,7 @@ func newVoteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		WHERE userId=? AND pageId=?
 		ORDER BY id DESC
 		LIMIT 1`).QueryRow(database.Now(), u.ID, task.PageID)
-	oldVoteExists, err = row.Scan(&oldVoteId, &oldVoteValue, &oldVoteAge)
+	oldVoteExists, err = row.Scan(&oldVoteID, &oldVoteValue, &oldVoteAge)
 	if err != nil {
 		return pages.Fail("Couldn't check for a recent vote", err)
 	}
@@ -70,7 +70,7 @@ func newVoteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Check to see if we have a recent vote by this user for this page.
 	if oldVoteExists && oldVoteAge <= redoWindow {
 		hashmap := make(map[string]interface{})
-		hashmap["id"] = oldVoteId
+		hashmap["id"] = oldVoteID
 		hashmap["value"] = task.Value
 		hashmap["createdAt"] = database.Now()
 		statement := db.NewInsertStatement("votes", hashmap, "value", "createdAt")

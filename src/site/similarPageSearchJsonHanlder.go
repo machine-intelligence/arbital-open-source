@@ -11,7 +11,7 @@ import (
 	"zanaduu3/src/pages"
 )
 
-type similarPageSearchJsonData struct {
+type similarPageSearchJSONData struct {
 	Title     string
 	Clickbait string
 	Text      string
@@ -20,13 +20,13 @@ type similarPageSearchJsonData struct {
 
 var similarPageSearchHandler = siteHandler{
 	URI:         "/json/similarPageSearch/",
-	HandlerFunc: similarPageSearchJsonHandler,
+	HandlerFunc: similarPageSearchJSONHandler,
 }
 
 // similarPageSearchJsonHandler handles the request.
-func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
+func similarPageSearchJSONHandler(params *pages.HandlerParams) *pages.Result {
 	// Decode data
-	var data similarPageSearchJsonData
+	var data similarPageSearchJSONData
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
@@ -36,7 +36,7 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Success(nil)
 	}
 
-	groupIds := []string{"\"\"", "\"" + params.PrivateGroupId + "\""}
+	groupIds := []string{"\"\"", "\"" + params.PrivateGroupID + "\""}
 	escapedTitle := elastic.EscapeMatchTerm(data.Title)
 	escapedClickbait := elastic.EscapeMatchTerm(data.Clickbait)
 	escapedText := elastic.EscapeMatchTerm(data.Text)
@@ -75,5 +75,5 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		},
 		"_source": []
 	}`, minSearchScore, searchSize, escapedTitle, escapedClickbait, escapedText, strings.Join(groupIds, ","))
-	return searchJsonInternalHandler(params, jsonStr)
+	return searchJSONInternalHandler(params, jsonStr)
 }

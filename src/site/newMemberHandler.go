@@ -37,7 +37,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.GroupID) {
+	if !core.IsIDValid(data.GroupID) {
 		return pages.Fail("GroupId has to be set", nil).Status(http.StatusBadRequest)
 	}
 	if data.UserInput == "" {
@@ -59,14 +59,14 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("You don't have the permission to add a user", nil).Status(http.StatusForbidden)
 	}
 
-	var newMemberId string
+	var newMemberID string
 
 	// See if data.UserInput is the id or email of an existing user
 	row = db.NewStatement(`
 		SELECT id
 		FROM users
 		WHERE id=? OR email=?`).QueryRow(data.UserInput, data.UserInput)
-	found, err = row.Scan(&newMemberId)
+	found, err = row.Scan(&newMemberID)
 	if err != nil {
 		return pages.Fail("Couldn't check for a user", err)
 	}
@@ -77,7 +77,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		found, err = database.NewQuery(`
 			SELECT pageId
 			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
-			WHERE alias=?`, data.UserInput).ToStatement(db).QueryRow().Scan(&newMemberId)
+			WHERE alias=?`, data.UserInput).ToStatement(db).QueryRow().Scan(&newMemberID)
 		if err != nil {
 			return pages.Fail("Couldn't check for a user", err)
 		} else if !found {
@@ -87,7 +87,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Update groupMembers table
 	hashmap := make(map[string]interface{})
-	hashmap["userId"] = newMemberId
+	hashmap["userId"] = newMemberID
 	hashmap["groupId"] = data.GroupID
 	hashmap["createdAt"] = database.Now()
 	statement := db.NewInsertStatement("groupMembers", hashmap)
@@ -97,9 +97,9 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Create a task to do further processing
 	var task tasks.MemberUpdateTask
-	task.UserId = u.ID
+	task.UserID = u.ID
 	task.UpdateType = core.AddedToGroupUpdateType
-	task.MemberId = newMemberId
+	task.MemberID = newMemberID
 	task.GroupID = data.GroupID
 	if err := tasks.Enqueue(c, &task, nil); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)

@@ -14,13 +14,13 @@ import (
 
 var parentsSearchHandler = siteHandler{
 	URI:         "/json/parentsSearch/",
-	HandlerFunc: parentsSearchJsonHandler,
+	HandlerFunc: parentsSearchJSONHandler,
 }
 
 // parentsSearchJsonHandler handles the request.
-func parentsSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
+func parentsSearchJSONHandler(params *pages.HandlerParams) *pages.Result {
 	// Decode data
-	var data searchJsonData
+	var data searchJSONData
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
@@ -30,7 +30,7 @@ func parentsSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("No search term specified", nil).Status(http.StatusBadRequest)
 	}
 
-	groupIds := []string{params.PrivateGroupId}
+	groupIds := []string{params.PrivateGroupID}
 	escapedTerm := elastic.EscapeMatchTerm(data.Term)
 
 	// Construct the search JSON
@@ -72,5 +72,5 @@ func parentsSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		},
 		"_source": []
 	}`, minSearchScore, searchSize, escapedTerm, strings.Join(groupIds, ","))
-	return searchJsonInternalHandler(params, jsonStr)
+	return searchJSONInternalHandler(params, jsonStr)
 }

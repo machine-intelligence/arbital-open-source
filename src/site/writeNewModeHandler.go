@@ -106,7 +106,7 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS mathPi
 			JOIN pageDomainPairs AS pdp
 			ON pdp.pageId=mathPi.pageId
-				AND pdp.domainId=?`, core.MathDomainId).Add(`
+				AND pdp.domainId=?`, core.MathDomainID).Add(`
 			JOIN links AS l
 			ON l.parentId=mathPi.pageId
 				AND l.childAlias NOT IN`).AddPart(publishedPageIds).Add(`
@@ -126,11 +126,11 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 		LIMIT ?`, varietyDepth*limit)).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var alias, refCount string
-		var likeableId sql.NullInt64
-		err := rows.Scan(&alias, &likeableId, &refCount)
+		var likeableID sql.NullInt64
+		err := rows.Scan(&alias, &likeableID, &refCount)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
-		} else if core.IsIdValid(alias) {
+		} else if core.IsIDValid(alias) {
 			// Skip redlinks that are ids
 			return nil
 		}
@@ -140,8 +140,8 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 			Alias:    alias,
 			RefCount: refCount,
 		}
-		if likeableId.Valid {
-			row.LikeableId = likeableId.Int64
+		if likeableID.Valid {
+			row.LikeableID = likeableID.Int64
 		}
 		redLinks = append(redLinks, row)
 		return nil
@@ -153,8 +153,8 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 	// Load likes
 	likeablesMap := make(map[int64]*core.Likeable)
 	for _, redLink := range redLinks {
-		if redLink.LikeableId != 0 {
-			likeablesMap[redLink.LikeableId] = &redLink.Likeable
+		if redLink.LikeableID != 0 {
+			likeablesMap[redLink.LikeableID] = &redLink.Likeable
 		}
 	}
 	err = core.LoadLikes(db, u, likeablesMap, nil, nil)
@@ -177,8 +177,8 @@ func loadStubRows(db *database.DB, returnData *core.CommonHandlerData, limit int
 		ON (pi.pageId=pdp.pageId)
 		LEFT JOIN likes AS l
 		ON (pi.likeableId=l.likeableId)
-		WHERE pp.parentId=?`, core.StubPageId).Add(`
-			AND pdp.domainId=?`, core.MathDomainId).Add(`
+		WHERE pp.parentId=?`, core.StubPageID).Add(`
+			AND pdp.domainId=?`, core.MathDomainID).Add(`
 			AND pi.lockedUntil < NOW()
 		GROUP BY 1
 		ORDER BY SUM(l.value) DESC
@@ -190,7 +190,7 @@ func loadStubRows(db *database.DB, returnData *core.CommonHandlerData, limit int
 			return fmt.Errorf("failed to scan: %v", err)
 		}
 		stubRows = append(stubRows, &StubRow{PageID: pageID})
-		core.AddPageIdToMap(pageID, returnData.PageMap)
+		core.AddPageIDToMap(pageID, returnData.PageMap)
 		return nil
 	})
 	if err != nil {

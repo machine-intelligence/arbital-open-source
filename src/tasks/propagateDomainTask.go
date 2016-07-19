@@ -21,7 +21,7 @@ func (task PropagateDomainTask) Tag() string {
 
 // Check if this task is valid, and we can safely execute it.
 func (task PropagateDomainTask) IsValid() error {
-	if !core.IsIdValid(task.PageID) {
+	if !core.IsIDValid(task.PageID) {
 		return fmt.Errorf("PageId needs to be set")
 	}
 	return nil

@@ -48,7 +48,7 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 	var err error
 
 	// Error checking
-	if !core.IsIdValid(data.ParentID) || !core.IsIdValid(data.ChildID) {
+	if !core.IsIDValid(data.ParentID) || !core.IsIDValid(data.ChildID) {
 		return pages.Fail("ParentId and ChildId have to be set", nil).Status(http.StatusBadRequest)
 	}
 	if data.ParentID == data.ChildID &&
@@ -104,7 +104,7 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 	}
 
 	// Do it!
-	var pagePairId int64
+	var pagePairID int64
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Create new page pair
 		hashmap := make(database.InsertMap)
@@ -120,7 +120,7 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 		if err != nil {
 			return sessions.NewError("Couldn't insert pagePair", err)
 		}
-		pagePairId, err = resp.LastInsertId()
+		pagePairID, err = resp.LastInsertId()
 		if err != nil {
 			return sessions.NewError("Couldn't get page pair id", err)
 		}
@@ -134,14 +134,14 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 			}
 			if addedDomainsSet, ok := addedDomainsMap[data.ChildID]; ok {
 				// Check to see if the child page had been submitted for approval to any of the domains it was just added to.
-				for domainId := range addedDomainsSet {
-					submission, err := core.LoadPageToDomainSubmission(tx.DB, data.ChildID, domainId)
+				for domainID := range addedDomainsSet {
+					submission, err := core.LoadPageToDomainSubmission(tx.DB, data.ChildID, domainID)
 					if err != nil {
 						return sessions.NewError("Couldn't load submission", err)
 					}
 					// The child had been submitted to this domain, so we mark the request as approved.
 					if submission != nil {
-						serr := approvePageToDomainTx(tx, u, submission, child.PageCreatorId)
+						serr := approvePageToDomainTx(tx, u, submission, child.PageCreatorID)
 						if serr != nil {
 							return serr
 						}
@@ -151,8 +151,8 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 		}
 
 		var task tasks.PublishPagePairTask
-		task.UserId = u.ID
-		task.PagePairID = fmt.Sprintf("%d", pagePairId)
+		task.UserID = u.ID
+		task.PagePairID = fmt.Sprintf("%d", pagePairID)
 		err = tasks.Enqueue(c, &task, nil)
 		if err != nil {
 			return sessions.NewError("Couldn't enqueue the task", err)
@@ -163,7 +163,7 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 		return pages.FailWith(err2)
 	}
 
-	returnData.ResultMap["pagePair"], err = core.LoadPagePair(db, fmt.Sprintf("%d", pagePairId))
+	returnData.ResultMap["pagePair"], err = core.LoadPagePair(db, fmt.Sprintf("%d", pagePairID))
 	if err != nil {
 		return pages.Fail("Error loading the page pair", err)
 	}

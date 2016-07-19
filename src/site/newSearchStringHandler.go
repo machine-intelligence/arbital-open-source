@@ -40,14 +40,14 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageID) {
+	if !core.IsIDValid(data.PageID) {
 		return pages.Fail("Invalid page id", nil).Status(http.StatusBadRequest)
 	}
 	if len(data.Text) <= 0 {
 		return pages.Fail("Invalid text", nil).Status(http.StatusBadRequest)
 	}
 
-	var newId int64
+	var newID int64
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Add the new search string
 		hashmap := make(map[string]interface{})
@@ -60,7 +60,7 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err != nil {
 			return sessions.NewError("Couldn't insert into DB", err)
 		}
-		newId, err = resp.LastInsertId()
+		newID, err = resp.LastInsertId()
 		if err != nil {
 			return sessions.NewError("Couldn't get inserted id", err)
 		}
@@ -77,18 +77,18 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err != nil {
 			return sessions.NewError("Couldn't add to changeLogs", err)
 		}
-		changeLogId, err := resp.LastInsertId()
+		changeLogID, err := resp.LastInsertId()
 		if err != nil {
 			return sessions.NewError("Couldn't get changeLog id", err)
 		}
 
 		// Insert updates
 		var task tasks.NewUpdateTask
-		task.UserId = u.ID
-		task.GoToPageId = data.PageID
-		task.SubscribedToId = data.PageID
+		task.UserID = u.ID
+		task.GoToPageID = data.PageID
+		task.SubscribedToID = data.PageID
 		task.UpdateType = core.ChangeLogUpdateType
-		task.ChangeLogId = changeLogId
+		task.ChangeLogID = changeLogID
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			return sessions.NewError("Couldn't enqueue a task: %v", err)
 		}
@@ -106,6 +106,6 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 
-	returnData.ResultMap["searchStringId"] = fmt.Sprintf("%d", newId)
+	returnData.ResultMap["searchStringId"] = fmt.Sprintf("%d", newID)
 	return pages.Success(returnData)
 }

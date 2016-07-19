@@ -10,23 +10,23 @@ import (
 )
 
 // titleJsonData contains parameters passed in via the request.
-type titleJsonData struct {
+type titleJSONData struct {
 	PageAlias string
 }
 
 var titleHandler = siteHandler{
 	URI:         "/json/title/",
-	HandlerFunc: titleJsonHandler,
+	HandlerFunc: titleJSONHandler,
 }
 
 // titleJsonHandler handles the request.
-func titleJsonHandler(params *pages.HandlerParams) *pages.Result {
+func titleJSONHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(u)
 
 	// Decode data
-	var data titleJsonData
+	var data titleJSONData
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
@@ -34,7 +34,7 @@ func titleJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Get actual page id
-	pageID, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
+	pageID, ok, err := core.LoadAliasToPageID(db, u, data.PageAlias)
 	if err != nil {
 		return pages.Fail("Couldn't convert alias", err)
 	}
@@ -45,7 +45,7 @@ func titleJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load data
-	core.AddPageIdToMap(pageID, returnData.PageMap)
+	core.AddPageIDToMap(pageID, returnData.PageMap)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		pages.Fail("Pipeline error", err)

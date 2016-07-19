@@ -11,26 +11,26 @@ import (
 // NewUpdateTask is the object that's put into the daemon queue.
 type NewUpdateTask struct {
 	// User who performed an action, e.g. creating a comment
-	UserId     string
+	UserID     string
 	UpdateType string
 
 	// We'll notify the users who are subscribed to this page id (also could be a
 	// user id, group id, domain id)
-	SubscribedToId string
+	SubscribedToID string
 
 	// Go to destination. One of these has to be set. This is where we'll direct
 	// the user if they want to see more info about this update, e.g. to see the
 	// comment someone made.
-	GoToPageId string
+	GoToPageID string
 
 	// If set the update will shown only to maintainers.
 	ForceMaintainersOnly bool
 
 	// Optional. FK into changeLogs table.
-	ChangeLogId int64
+	ChangeLogID int64
 
 	// Only set if UpdateType is for a mark. Id is a FK into marks table.
-	MarkId string
+	MarkID string
 }
 
 func (task NewUpdateTask) Tag() string {
@@ -39,19 +39,19 @@ func (task NewUpdateTask) Tag() string {
 
 // Check if this task is valid, and we can safely execute it.
 func (task NewUpdateTask) IsValid() error {
-	if !core.IsIdValid(task.UserId) {
-		return fmt.Errorf("User id has to be set: %v", task.UserId)
+	if !core.IsIDValid(task.UserID) {
+		return fmt.Errorf("User id has to be set: %v", task.UserID)
 	} else if task.UpdateType == "" {
 		return fmt.Errorf("Update type has to be set")
-	} else if !core.IsIdValid(task.SubscribedToId) {
+	} else if !core.IsIDValid(task.SubscribedToID) {
 		return fmt.Errorf("SubscibedTo id has to be set")
 	}
 
-	if !core.IsIdValid(task.GoToPageId) {
+	if !core.IsIDValid(task.GoToPageID) {
 		return fmt.Errorf("GoToPageId has to be set")
 	}
 
-	if task.UpdateType == core.ChangeLogUpdateType && task.ChangeLogId <= 0 {
+	if task.UpdateType == core.ChangeLogUpdateType && task.ChangeLogID <= 0 {
 		return fmt.Errorf("No changeLogId set for a ChangeLogUpdateType")
 	}
 
@@ -74,15 +74,15 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	rows = database.NewQuery(`
 		SELECT DISTINCT seeGroupId
 		FROM`).AddPart(core.PageInfosTableWithOptions(nil, &core.PageInfosOptions{Deleted: true})).Add(`AS pi
-		WHERE seeGroupId != '' AND pageId IN (?)`, task.GoToPageId).ToStatement(db).Query()
+		WHERE seeGroupId != '' AND pageId IN (?)`, task.GoToPageID).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var groupId string
-		err := rows.Scan(&groupId)
+		var groupID string
+		err := rows.Scan(&groupID)
 		if err != nil {
 			return fmt.Errorf("failed to scan for required groups: %v", err)
 		}
 
-		requiredGroupMemberships = append(requiredGroupMemberships, groupId)
+		requiredGroupMemberships = append(requiredGroupMemberships, groupID)
 		return nil
 	})
 	if err != nil {
@@ -97,7 +97,7 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 			FROM subscriptions AS s
 			JOIN pages as p
 			ON s.userId = p.creatorId
-			WHERE s.toId=? AND p.pageId=?`, task.SubscribedToId, task.SubscribedToId)
+			WHERE s.toId=? AND p.pageId=?`, task.SubscribedToID, task.SubscribedToID)
 	if !task.ForceMaintainersOnly &&
 		(task.UpdateType == core.TopLevelCommentUpdateType || task.UpdateType == core.ReplyUpdateType ||
 			task.UpdateType == core.NewPageByUserUpdateType || task.UpdateType == core.AtMentionUpdateType ||
@@ -119,24 +119,24 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	}
 	rows = query.ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var userId string
-		err := rows.Scan(&userId)
+		var userID string
+		err := rows.Scan(&userID)
 		if err != nil {
 			return fmt.Errorf("failed to scan for subscriptions: %v", err)
 		}
-		if userId == task.UserId {
+		if userID == task.UserID {
 			return nil
 		}
 
 		// Insert new update
 		hashmap := make(database.InsertMap)
-		hashmap["userId"] = userId
-		hashmap["byUserId"] = task.UserId
+		hashmap["userId"] = userID
+		hashmap["byUserId"] = task.UserID
 		hashmap["type"] = task.UpdateType
-		hashmap["subscribedToId"] = task.SubscribedToId
-		hashmap["goToPageId"] = task.GoToPageId
-		hashmap["changeLogId"] = task.ChangeLogId
-		hashmap["markId"] = task.MarkId
+		hashmap["subscribedToId"] = task.SubscribedToID
+		hashmap["goToPageId"] = task.GoToPageID
+		hashmap["changeLogId"] = task.ChangeLogID
+		hashmap["markId"] = task.MarkID
 		hashmap["createdAt"] = database.Now()
 		statement := db.NewInsertStatement("updates", hashmap)
 		if _, err = statement.Exec(); err != nil {

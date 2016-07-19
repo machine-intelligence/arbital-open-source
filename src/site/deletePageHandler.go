@@ -37,7 +37,7 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageID) {
+	if !core.IsIDValid(data.PageID) {
 		return pages.Fail("PageId isn't set", nil).Status(http.StatusBadRequest)
 	}
 	return deletePageInternalHandlerFunc(params, &data)
@@ -61,7 +61,7 @@ func deletePageInternalHandlerFunc(params *pages.HandlerParams, data *deletePage
 			return pages.Fail("Have to be an admin to delete a group/domain", nil).Status(http.StatusForbidden)
 		}
 	}
-	if page.Type == core.CommentPageType && u.ID != page.PageCreatorId {
+	if page.Type == core.CommentPageType && u.ID != page.PageCreatorID {
 		if !u.IsAdmin {
 			return pages.Fail("Have to be an admin to delete someone else's comment", nil).Status(http.StatusForbidden)
 		}
@@ -109,7 +109,7 @@ func deletePageTx(tx *database.Tx, params *pages.HandlerParams, data *deletePage
 	if err != nil {
 		return sessions.NewError("Couldn't update change logs", err)
 	}
-	changeLogId, err := result.LastInsertId()
+	changeLogID, err := result.LastInsertId()
 	if err != nil {
 		return sessions.NewError("Couldn't get changeLogId", err)
 	}
@@ -117,11 +117,11 @@ func deletePageTx(tx *database.Tx, params *pages.HandlerParams, data *deletePage
 	if data.GenerateUpdate && page.Type != core.CommentPageType {
 		// Generate "delete" update for users who are subscribed to this page.
 		var updateTask tasks.NewUpdateTask
-		updateTask.UserId = params.U.ID
-		updateTask.GoToPageId = data.PageID
-		updateTask.SubscribedToId = data.PageID
+		updateTask.UserID = params.U.ID
+		updateTask.GoToPageID = data.PageID
+		updateTask.SubscribedToID = data.PageID
 		updateTask.UpdateType = core.ChangeLogUpdateType
-		updateTask.ChangeLogId = changeLogId
+		updateTask.ChangeLogID = changeLogID
 
 		if err := tasks.Enqueue(c, &updateTask, nil); err != nil {
 			return sessions.NewError("Couldn't enqueue changeLog task", err)

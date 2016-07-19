@@ -9,13 +9,13 @@ import (
 
 var defaultHandler = siteHandler{
 	URI:         "/json/default/",
-	HandlerFunc: defaultJsonHandlerFunc,
+	HandlerFunc: defaultJSONHandlerFunc,
 	Options: pages.PageOptions{
 		AllowAnyone: true,
 	},
 }
 
-func defaultJsonHandlerFunc(params *pages.HandlerParams) *pages.Result {
+func defaultJSONHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 
 	returnData := core.NewHandlerData(params.U).SetResetEverything()

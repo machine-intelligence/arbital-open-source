@@ -11,20 +11,20 @@ import (
 )
 
 type Domain struct {
-	DomainId string `json:"domainId"`
+	DomainID string `json:"domainId"`
 	LongName string `json:"longName"`
 }
 
 var settingsPageHandler = siteHandler{
 	URI:         "/json/settingsPage/",
-	HandlerFunc: settingsPageJsonHandler,
+	HandlerFunc: settingsPageJSONHandler,
 	Options: pages.PageOptions{
 		RequireLogin: true,
 	},
 }
 
 // settingsPageJsonHandler renders the settings page.
-func settingsPageJsonHandler(params *pages.HandlerParams) *pages.Result {
+func settingsPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 	returnData := core.NewHandlerData(u).SetResetEverything()
@@ -38,12 +38,12 @@ func settingsPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		WHERE type=?`, core.DomainPageType).ToStatement(db).Query()
 	domains := make(map[string]*Domain)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var domainId, longName string
-		err := rows.Scan(&domainId, &longName)
+		var domainID, longName string
+		err := rows.Scan(&domainID, &longName)
 		if err != nil {
 			return fmt.Errorf("failed to scan a domain: %v", err)
 		}
-		domains[domainId] = &Domain{domainId, longName}
+		domains[domainID] = &Domain{domainID, longName}
 		return nil
 	})
 	if err != nil {

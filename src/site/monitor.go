@@ -15,7 +15,7 @@ var monitoringAPI = getMonitoringAPI()
 
 // getMonitoringAPI returns the URL to use when reporting monitoring data.
 func getMonitoringAPI() string {
-	host := fmt.Sprintf("http://%s:%s", config.XC.Vm.Monitoring.Address, "8086")
+	host := fmt.Sprintf("http://%s:%s", config.XC.VM.Monitoring.Address, "8086")
 	monDb := config.XC.Monitoring.Influx.Database.Dev
 	if sessions.Live {
 		monDb = config.XC.Monitoring.Influx.Database.Live

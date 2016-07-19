@@ -8,11 +8,11 @@ import (
 
 var requisitesHandler = siteHandler{
 	URI:         "/json/requisites/",
-	HandlerFunc: requisitesJsonHandler,
+	HandlerFunc: requisitesJSONHandler,
 	Options:     pages.PageOptions{},
 }
 
-func requisitesJsonHandler(params *pages.HandlerParams) *pages.Result {
+func requisitesJSONHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(u).SetResetEverything()
@@ -24,7 +24,7 @@ func requisitesJsonHandler(params *pages.HandlerParams) *pages.Result {
 	rows := db.NewStatement(`
 		SELECT masteryId
 		FROM userMasteryPairs
-		WHERE userId=?`).Query(u.GetSomeId())
+		WHERE userId=?`).Query(u.GetSomeID())
 	_, err := core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 	if err != nil {
 		return pages.Fail("Error while loading masteries", err)

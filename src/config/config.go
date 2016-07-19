@@ -102,7 +102,7 @@ type Config struct {
 			Password string
 		}
 	}
-	Vm struct {
+	VM struct {
 		Monitoring struct {
 			Instance, Zone, Address string
 		}
@@ -134,7 +134,7 @@ type Config struct {
 		Tenant                     string
 		AccountStoreMappings       string
 		Accounts                   string
-		ApiKeys                    string
+		APIKeys                    string
 		AuthTokens                 string
 		CustomData                 string
 		DefaultAccountStoreMapping string
@@ -150,7 +150,7 @@ type Config struct {
 	Facebook struct {
 		ID         string
 		Secret     string
-		TestId     string `yaml:"testId"`
+		TestID     string `yaml:"testId"`
 		TestSecret string `yaml:"testSecret"`
 	}
 	Mailchimp struct {

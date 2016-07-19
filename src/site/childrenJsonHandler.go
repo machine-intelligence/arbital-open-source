@@ -10,26 +10,26 @@ import (
 )
 
 // childrenJsonData contains parameters passed in to create a page.
-type childrenJsonData struct {
+type childrenJSONData struct {
 	ParentID string
 }
 
 var childrenHandler = siteHandler{
 	URI:         "/json/children/",
-	HandlerFunc: childrenJsonHandler,
+	HandlerFunc: childrenJSONHandler,
 }
 
 // childrenJsonHandler handles requests to create a new page.
-func childrenJsonHandler(params *pages.HandlerParams) *pages.Result {
+func childrenJSONHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 
 	// Decode data
-	var data childrenJsonData
+	var data childrenJSONData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.ParentID) {
+	if !core.IsIDValid(data.ParentID) {
 		return pages.Fail("Need a valid parentId", nil).Status(http.StatusBadRequest)
 	}
 

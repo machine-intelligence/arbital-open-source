@@ -11,7 +11,7 @@ import (
 
 // commentThreadData contains parameters passed in to load a comment thread.
 type commentThreadData struct {
-	CommentId string `json:"pageAlias"`
+	CommentID string `json:"pageAlias"`
 }
 
 var commentThreadHandler = siteHandler{
@@ -30,11 +30,11 @@ func commentThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.CommentId) {
+	if !core.IsIDValid(data.CommentID) {
 		return pages.Fail("Need a valid commentId", nil).Status(http.StatusBadRequest)
 	}
 
-	_, commentPrimaryPageId, err := core.GetCommentParents(db, data.CommentId)
+	_, commentPrimaryPageID, err := core.GetCommentParents(db, data.CommentID)
 	if err != nil {
 		return pages.Fail("Couldn't load comment's parents", err)
 	}
@@ -43,8 +43,8 @@ func commentThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	loadOptions := (&core.PageLoadOptions{
 		Parents: true,
 	}).Add(core.SubpageLoadOptions)
-	core.AddPageToMap(data.CommentId, returnData.PageMap, loadOptions)
-	core.AddPageToMap(commentPrimaryPageId, returnData.PageMap, (&core.PageLoadOptions{
+	core.AddPageToMap(data.CommentID, returnData.PageMap, loadOptions)
+	core.AddPageToMap(commentPrimaryPageID, returnData.PageMap, (&core.PageLoadOptions{
 		DomainsAndPermissions: true,
 	}).Add(core.TitlePlusLoadOptions))
 	err = core.ExecuteLoadPipeline(db, returnData)

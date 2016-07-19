@@ -13,7 +13,7 @@ import (
 
 // SendFeedbackEmailTask is the object that's put into the daemon queue.
 type SendFeedbackEmailTask struct {
-	UserId    string
+	UserID    string
 	UserEmail string
 	Text      string
 }
@@ -24,8 +24,8 @@ func (task SendFeedbackEmailTask) Tag() string {
 
 // Check if this task is valid, and we can safely execute it.
 func (task SendFeedbackEmailTask) IsValid() error {
-	if !core.IsIdValid(task.UserId) {
-		return fmt.Errorf("User id has to be set: %v", task.UserId)
+	if !core.IsIDValid(task.UserID) {
+		return fmt.Errorf("User id has to be set: %v", task.UserID)
 	}
 	if task.Text == "" {
 		return fmt.Errorf("Text has to be set")
@@ -53,7 +53,7 @@ func (task SendFeedbackEmailTask) Execute(db *database.DB) (delay int, err error
 			Sender:  "alexei@arbital.com",
 			To:      []string{"alexei@arbital.com", "eric@arbital.com", "steph@arbital.com", "eric.bruylant@arbital.com"},
 			Cc:      []string{task.UserEmail},
-			Subject: fmt.Sprintf("Arbital feedback (user #%s)", task.UserId),
+			Subject: fmt.Sprintf("Arbital feedback (user #%s)", task.UserID),
 			Body:    task.Text,
 		}
 
@@ -65,7 +65,7 @@ func (task SendFeedbackEmailTask) Execute(db *database.DB) (delay int, err error
 		}
 	} else {
 		// If not live, then do nothing, for now
-		db.C.Debugf("feedback from %v (user #%v):\n%v", task.UserEmail, task.UserId, task.Text)
+		db.C.Debugf("feedback from %v (user #%v):\n%v", task.UserEmail, task.UserID, task.Text)
 	}
 
 	c.Inc("feedback_send_success")

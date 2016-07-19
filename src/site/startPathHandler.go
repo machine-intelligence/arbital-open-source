@@ -19,7 +19,7 @@ var startPathHandler = siteHandler{
 }
 
 type startPathData struct {
-	GuideId string
+	GuideID string
 }
 
 func startPathHandlerFunc(params *pages.HandlerParams) *pages.Result {
@@ -33,17 +33,17 @@ func startPathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.GuideId) {
+	if !core.IsIDValid(data.GuideID) {
 		return pages.Fail("Invalid guideId", nil).Status(http.StatusBadRequest)
 	}
 
 	// Load path pages
-	pathPageIds := []string{data.GuideId}
+	pathPageIds := []string{data.GuideID}
 	queryPart := database.NewQuery(`
-		WHERE pathp.guideId=?`, data.GuideId).Add(`
+		WHERE pathp.guideId=?`, data.GuideID).Add(`
 		ORDER BY pathp.pathIndex`)
 	err = core.LoadPathPages(db, queryPart, nil, func(db *database.DB, pathPage *core.PathPage) error {
-		pathPageIds = append(pathPageIds, pathPage.PathPageId)
+		pathPageIds = append(pathPageIds, pathPage.PathPageID)
 		return nil
 	})
 	if err != nil {
@@ -55,7 +55,7 @@ func startPathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Create the sourcePageIds
 	sourcePageIds := make([]string, 0)
 	for range pathPageIds {
-		sourcePageIds = append(sourcePageIds, data.GuideId)
+		sourcePageIds = append(sourcePageIds, data.GuideID)
 	}
 
 	// Begin the transaction.
@@ -64,7 +64,7 @@ func startPathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Start the path
 		hashmap := make(database.InsertMap)
 		hashmap["userId"] = u.ID
-		hashmap["guideId"] = data.GuideId
+		hashmap["guideId"] = data.GuideID
 		hashmap["pageIds"] = strings.Join(pathPageIds, ",")
 		hashmap["sourcePageIds"] = strings.Join(sourcePageIds, ",")
 		hashmap["progress"] = 1

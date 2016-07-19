@@ -38,7 +38,7 @@ func resolveThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageID) {
+	if !core.IsIDValid(data.PageID) {
 		return pages.Fail("PageId isn't set", nil).Status(http.StatusBadRequest)
 	}
 
@@ -61,17 +61,17 @@ func resolveThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Get comment's parents
-	commentParentId, commentPrimaryPageId, err := core.GetCommentParents(db, data.PageID)
+	commentParentID, commentPrimaryPageID, err := core.GetCommentParents(db, data.PageID)
 	if err != nil {
 		return pages.Fail("Couldn't load comment's parents", err)
 	}
-	if commentParentId != data.PageID && commentParentId != "" {
+	if commentParentID != data.PageID && commentParentID != "" {
 		return pages.Fail("Trying to resolve a reply", nil).Status(http.StatusBadRequest)
 	}
 
 	// Only users who have edit access to the comment's primary page can resolve it
 	if !data.Unresolve {
-		lens, err := core.LoadFullEdit(db, commentPrimaryPageId, u, nil)
+		lens, err := core.LoadFullEdit(db, commentPrimaryPageID, u, nil)
 		if err != nil {
 			return pages.Fail("Couldn't load page", err)
 		}
@@ -93,9 +93,9 @@ func resolveThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Notify the comment owner
 		var updateTask tasks.NewUpdateTask
 		updateTask.UpdateType = core.ResolvedThreadUpdateType
-		updateTask.UserId = u.ID
-		updateTask.GoToPageId = data.PageID
-		updateTask.SubscribedToId = data.PageID
+		updateTask.UserID = u.ID
+		updateTask.GoToPageID = data.PageID
+		updateTask.SubscribedToID = data.PageID
 		updateTask.ForceMaintainersOnly = true
 		if err := tasks.Enqueue(c, &updateTask, nil); err != nil {
 			return sessions.NewError("Couldn't enqueue task", err)

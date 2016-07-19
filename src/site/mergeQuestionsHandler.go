@@ -14,8 +14,8 @@ import (
 
 // mergeQuestionsData is the data received from the request.
 type mergeQuestionsData struct {
-	QuestionId     string
-	IntoQuestionId string
+	QuestionID     string
+	IntoQuestionID string
 }
 
 var mergeQuestionsHandler = siteHandler{
@@ -37,14 +37,14 @@ func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.QuestionId) || !core.IsIdValid(data.IntoQuestionId) {
+	if !core.IsIDValid(data.QuestionID) || !core.IsIDValid(data.IntoQuestionID) {
 		return pages.Fail("One of the ids is invalid", nil).Status(http.StatusBadRequest)
 	}
 
 	// Load the page
 	pageMap := make(map[string]*core.Page)
-	question := core.AddPageIdToMap(data.QuestionId, pageMap)
-	intoQuestion := core.AddPageIdToMap(data.IntoQuestionId, pageMap)
+	question := core.AddPageIDToMap(data.QuestionID, pageMap)
+	intoQuestion := core.AddPageIDToMap(data.IntoQuestionID, pageMap)
 	err = core.LoadPages(db, u, pageMap)
 	if err != nil {
 		return pages.Fail("Couldn't load questions", err)
@@ -60,31 +60,31 @@ func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		statement := database.NewQuery(`
 			UPDATE answers
-			SET questionId=?`, data.IntoQuestionId).Add(`
-			WHERE questionId=?`, data.QuestionId).ToTxStatement(tx)
+			SET questionId=?`, data.IntoQuestionID).Add(`
+			WHERE questionId=?`, data.QuestionID).ToTxStatement(tx)
 		if _, err := statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't update answers", err)
 		}
 
 		statement = database.NewQuery(`
 			UPDATE marks
-			SET resolvedPageId=?`, data.IntoQuestionId).Add(`
-			WHERE resolvedPageId=?`, data.QuestionId).ToTxStatement(tx)
+			SET resolvedPageId=?`, data.IntoQuestionID).Add(`
+			WHERE resolvedPageId=?`, data.QuestionID).ToTxStatement(tx)
 		if _, err := statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't update answers", err)
 		}
 
 		statement = database.NewQuery(`
 			UPDATE pageInfos
-			SET mergedInto=?`, data.IntoQuestionId).Add(`
-			WHERE pageId=?`, data.QuestionId).ToTxStatement(tx)
+			SET mergedInto=?`, data.IntoQuestionID).Add(`
+			WHERE pageId=?`, data.QuestionID).ToTxStatement(tx)
 		if _, err := statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't update pageInfos", err)
 		}
 
 		// Delete the question page
 		deletePageData := &deletePageData{
-			PageID:         data.QuestionId,
+			PageID:         data.QuestionID,
 			GenerateUpdate: false,
 		}
 		return deletePageTx(tx, params, deletePageData, question)
@@ -95,15 +95,15 @@ func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Generate "merge" update for users who are subscribed to either of the questions
 	var updateTask tasks.NewUpdateTask
-	updateTask.UserId = u.ID
-	updateTask.GoToPageId = data.IntoQuestionId
-	updateTask.SubscribedToId = data.QuestionId
+	updateTask.UserID = u.ID
+	updateTask.GoToPageID = data.IntoQuestionID
+	updateTask.SubscribedToID = data.QuestionID
 	updateTask.UpdateType = core.QuestionMergedUpdateType
 	if err := tasks.Enqueue(c, &updateTask, nil); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
-	updateTask.GoToPageId = data.QuestionId
-	updateTask.SubscribedToId = data.IntoQuestionId
+	updateTask.GoToPageID = data.QuestionID
+	updateTask.SubscribedToID = data.IntoQuestionID
 	updateTask.UpdateType = core.QuestionMergedReverseUpdateType
 	if err := tasks.Enqueue(c, &updateTask, nil); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)

@@ -19,7 +19,7 @@ func (task UpdateElasticPageTask) Tag() string {
 
 // Check if this task is valid, and we can safely execute it.
 func (task UpdateElasticPageTask) IsValid() error {
-	if !core.IsIdValid(task.PageID) {
+	if !core.IsIDValid(task.PageID) {
 		return fmt.Errorf("Invalid page id: %s", task.PageID)
 	}
 	return nil

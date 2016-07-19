@@ -9,11 +9,11 @@ import (
 
 var newsletterHandler = siteHandler{
 	URI:         "/json/newsletter/",
-	HandlerFunc: newsletterJsonHandler,
+	HandlerFunc: newsletterJSONHandler,
 	Options:     pages.PageOptions{},
 }
 
-func newsletterJsonHandler(params *pages.HandlerParams) *pages.Result {
+func newsletterJSONHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	c := params.C
 	returnData := core.NewHandlerData(u).SetResetEverything()

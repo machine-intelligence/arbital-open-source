@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	listId = "c2d8c6a708"
+	listID = "c2d8c6a708"
 )
 
 // Holds information about a MailChimp account
@@ -26,12 +26,12 @@ type Account struct {
 	Interests map[string]bool `json:"interests"`
 }
 
-func getUrl() string {
+func getURL() string {
 	return config.XC.Mailchimp.Production
 }
 
-func getListUrl() string {
-	return fmt.Sprintf("%s/lists/%s", getUrl(), listId)
+func getListURL() string {
+	return fmt.Sprintf("%s/lists/%s", getURL(), listID)
 }
 
 // Convert an email to a subscriber hash, according to:
@@ -47,7 +47,7 @@ func SubscribeUser(c sessions.Context, account *Account) error {
 	if err != nil {
 		return fmt.Errorf("Couldn't marshal json: %v", err)
 	}
-	request, err := http.NewRequest("PUT", fmt.Sprintf("%s/members/%s", getListUrl(), getSubscriberHash(account.Email)), bytes.NewBuffer(jsonData))
+	request, err := http.NewRequest("PUT", fmt.Sprintf("%s/members/%s", getListURL(), getSubscriberHash(account.Email)), bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}
@@ -66,7 +66,7 @@ func SubscribeUser(c sessions.Context, account *Account) error {
 func GetInterests(c sessions.Context, email string) (map[string]bool, error) {
 	//'https://usX.api.mailchimp.com/3.0/lists/57afe96172/members/852aaa9532cb36adfb5e9fef7a4206a9'
 	interestMap := make(map[string]bool)
-	request, err := http.NewRequest("GET", fmt.Sprintf("%s/members/%s", getListUrl(), getSubscriberHash(email)), bytes.NewBuffer([]byte("")))
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/members/%s", getListURL(), getSubscriberHash(email)), bytes.NewBuffer([]byte("")))
 	if err != nil {
 		return interestMap, fmt.Errorf("Couldn't create request: %v", err)
 	}

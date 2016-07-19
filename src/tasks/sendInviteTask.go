@@ -13,7 +13,7 @@ import (
 
 // SendInviteTask is the object that's put into the daemon queue.
 type SendInviteTask struct {
-	FromUserId string
+	FromUserID string
 	DomainIds  []string
 	ToEmail    string
 }
@@ -24,12 +24,12 @@ func (task SendInviteTask) Tag() string {
 
 // Check if this task is valid, and we can safely execute it.
 func (task SendInviteTask) IsValid() error {
-	if !core.IsIdValid(task.FromUserId) {
+	if !core.IsIDValid(task.FromUserID) {
 		return fmt.Errorf("Invalid FromUserId")
 	}
-	for _, domainId := range task.DomainIds {
-		if !core.IsIdValid(domainId) {
-			return fmt.Errorf("Invalid domain id: %v", domainId)
+	for _, domainID := range task.DomainIds {
+		if !core.IsIDValid(domainID) {
+			return fmt.Errorf("Invalid domain id: %v", domainID)
 		}
 	}
 	if task.ToEmail == "" {
@@ -52,23 +52,23 @@ func (task SendInviteTask) Execute(db *database.DB) (delay int, err error) {
 	c.Infof("==== SEND INVITE START ====")
 	defer c.Infof("==== SEND INVITE COMPLETED ====")
 
-	senderUser, err := core.LoadUser(db, task.FromUserId, task.FromUserId)
+	senderUser, err := core.LoadUser(db, task.FromUserID, task.FromUserID)
 	if err != nil {
 		return -1, fmt.Errorf("Couldn't load sender user info: %v", err)
 	}
 
 	pageMap := make(map[string]*core.Page)
-	for _, domainId := range task.DomainIds {
-		core.AddPageIdToMap(domainId, pageMap)
+	for _, domainID := range task.DomainIds {
+		core.AddPageIDToMap(domainID, pageMap)
 	}
-	err = core.LoadPages(db, &core.CurrentUser{ID: task.FromUserId}, pageMap)
+	err = core.LoadPages(db, &core.CurrentUser{ID: task.FromUserID}, pageMap)
 	if err != nil {
 		return -1, fmt.Errorf("Couldn't load domain info: %v", err)
 	}
 
 	domainsDesc := ""
 	if len(pageMap) > 0 {
-		for index, domainId := range task.DomainIds {
+		for index, domainID := range task.DomainIds {
 			if index > 0 {
 				if index == len(task.DomainIds)-1 {
 					domainsDesc += " and "
@@ -76,7 +76,7 @@ func (task SendInviteTask) Execute(db *database.DB) (delay int, err error) {
 					domainsDesc += ", "
 				}
 			}
-			domainsDesc += pageMap[domainId].Title
+			domainsDesc += pageMap[domainID].Title
 		}
 	}
 

@@ -9,7 +9,7 @@ import (
 )
 
 type dismissUpdateData struct {
-	UpdateId string `json:"id"`
+	UpdateID string `json:"id"`
 }
 
 var dismissUpdateHandler = siteHandler{
@@ -36,7 +36,7 @@ func dismissUpdateHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		UPDATE updates
 		SET dismissed=TRUE
 		WHERE id=? AND userId=?`)
-	if _, err := statement.Exec(data.UpdateId, u.ID); err != nil {
+	if _, err := statement.Exec(data.UpdateID, u.ID); err != nil {
 		return pages.Fail("Couldn't dismiss update", err)
 	}
 

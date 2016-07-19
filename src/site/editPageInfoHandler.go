@@ -22,7 +22,7 @@ type editPageInfoData struct {
 	HasVote                  bool
 	VoteType                 string
 	SeeGroupID               string
-	EditGroupId              string
+	EditGroupID              string
 	Alias                    string // if empty, leave the current one
 	SortChildrenBy           string
 	IsRequisite              bool
@@ -52,7 +52,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 
-	if !core.IsIdValid(data.PageID) {
+	if !core.IsIDValid(data.PageID) {
 		return pages.Fail("No pageId specified", nil).Status(http.StatusBadRequest)
 	}
 
@@ -70,7 +70,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Fix some data.
 	if data.Type == core.CommentPageType {
-		data.EditGroupId = u.ID
+		data.EditGroupID = u.ID
 	}
 	if oldPage.WasPublished {
 		if (data.Type == core.WikiPageType || data.Type == core.QuestionPageType) &&
@@ -137,7 +137,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Prefix alias with the group alias, if appropriate
-		if core.IsIdValid(data.SeeGroupID) && data.Type != core.GroupPageType && data.Type != core.DomainPageType {
+		if core.IsIDValid(data.SeeGroupID) && data.Type != core.GroupPageType && data.Type != core.DomainPageType {
 			tempPageMap := map[string]*core.Page{data.SeeGroupID: core.NewPage(data.SeeGroupID)}
 			err = core.LoadPages(db, u, tempPageMap)
 			if err != nil {
@@ -147,17 +147,17 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Check if another page is already using the alias
-		var existingPageId string
+		var existingPageID string
 		row := database.NewQuery(`
 			SELECT pageId
 			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 			WHERE pageId!=?`, data.PageID).Add(`
 			AND alias=?`, data.Alias).ToStatement(db).QueryRow()
-		exists, err := row.Scan(&existingPageId)
+		exists, err := row.Scan(&existingPageID)
 		if err != nil {
 			return pages.Fail("Failed on looking for conflicting alias", err)
 		} else if exists {
-			return pages.Fail(fmt.Sprintf("Alias '%s' is already in use by: %s", data.Alias, existingPageId), nil)
+			return pages.Fail(fmt.Sprintf("Alias '%s' is already in use by: %s", data.Alias, existingPageID), nil)
 		}
 	}
 
@@ -179,7 +179,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			data.VoteType == oldPage.VoteType &&
 			data.Type == oldPage.Type &&
 			data.SeeGroupID == oldPage.SeeGroupID &&
-			data.EditGroupId == oldPage.EditGroupId &&
+			data.EditGroupID == oldPage.EditGroupID &&
 			data.IsRequisite == oldPage.IsRequisite &&
 			data.IndirectTeacher == oldPage.IndirectTeacher &&
 			isEditorComment == oldPage.IsEditorComment &&
@@ -212,7 +212,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["voteType"] = data.VoteType
 		hashmap["type"] = data.Type
 		hashmap["seeGroupId"] = data.SeeGroupID
-		hashmap["editGroupId"] = data.EditGroupId
+		hashmap["editGroupId"] = data.EditGroupID
 		hashmap["isRequisite"] = data.IsRequisite
 		hashmap["indirectTeacher"] = data.IndirectTeacher
 		hashmap["isEditorComment"] = isEditorComment
@@ -224,14 +224,14 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Update change logs
 		if oldPage.WasPublished {
-			updateChangeLog := func(changeType string, auxPageId string, oldSettingsValue string, newSettingsValue string) (int64, sessions.Error) {
+			updateChangeLog := func(changeType string, auxPageID string, oldSettingsValue string, newSettingsValue string) (int64, sessions.Error) {
 
 				hashmap = make(database.InsertMap)
 				hashmap["pageId"] = data.PageID
 				hashmap["userId"] = u.ID
 				hashmap["createdAt"] = database.Now()
 				hashmap["type"] = changeType
-				hashmap["auxPageId"] = auxPageId
+				hashmap["auxPageId"] = auxPageID
 				hashmap["oldSettingsValue"] = oldSettingsValue
 				hashmap["newSettingsValue"] = newSettingsValue
 
@@ -240,51 +240,51 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				if err != nil {
 					return 0, sessions.NewError(fmt.Sprintf("Couldn't insert new child change log for %s", changeType), err)
 				}
-				changeLogId, err := result.LastInsertId()
+				changeLogID, err := result.LastInsertId()
 				if err != nil {
 					return 0, sessions.NewError(fmt.Sprintf("Couldn't insert new child change log for %s", changeType), err)
 				}
-				return changeLogId, nil
+				return changeLogID, nil
 			}
 
 			if data.Alias != oldPage.Alias {
-				changeLogId, err2 := updateChangeLog(core.NewAliasChangeLog, "", oldPage.Alias, data.Alias)
+				changeLogID, err2 := updateChangeLog(core.NewAliasChangeLog, "", oldPage.Alias, data.Alias)
 				if err2 != nil {
 					return err2
 				}
-				changeLogIds = append(changeLogIds, changeLogId)
+				changeLogIds = append(changeLogIds, changeLogID)
 			}
 			if data.SortChildrenBy != oldPage.SortChildrenBy {
-				changeLogId, err2 := updateChangeLog(core.NewSortChildrenByChangeLog, "", oldPage.SortChildrenBy, data.SortChildrenBy)
+				changeLogID, err2 := updateChangeLog(core.NewSortChildrenByChangeLog, "", oldPage.SortChildrenBy, data.SortChildrenBy)
 				if err2 != nil {
 					return err2
 				}
-				changeLogIds = append(changeLogIds, changeLogId)
+				changeLogIds = append(changeLogIds, changeLogID)
 			}
 			if hasVote != oldPage.HasVote {
 				changeType := core.TurnOnVoteChangeLog
 				if !hasVote {
 					changeType = core.TurnOffVoteChangeLog
 				}
-				changeLogId, err2 := updateChangeLog(changeType, "", strconv.FormatBool(oldPage.HasVote), strconv.FormatBool(hasVote))
+				changeLogID, err2 := updateChangeLog(changeType, "", strconv.FormatBool(oldPage.HasVote), strconv.FormatBool(hasVote))
 				if err2 != nil {
 					return err2
 				}
-				changeLogIds = append(changeLogIds, changeLogId)
+				changeLogIds = append(changeLogIds, changeLogID)
 			}
 			if data.VoteType != oldPage.VoteType {
-				changeLogId, err2 := updateChangeLog(core.SetVoteTypeChangeLog, "", oldPage.VoteType, data.VoteType)
+				changeLogID, err2 := updateChangeLog(core.SetVoteTypeChangeLog, "", oldPage.VoteType, data.VoteType)
 				if err2 != nil {
 					return err2
 				}
-				changeLogIds = append(changeLogIds, changeLogId)
+				changeLogIds = append(changeLogIds, changeLogID)
 			}
-			if data.EditGroupId != oldPage.EditGroupId {
-				changeLogId, err2 := updateChangeLog(core.NewEditGroupChangeLog, data.EditGroupId, oldPage.EditGroupId, data.EditGroupId)
+			if data.EditGroupID != oldPage.EditGroupID {
+				changeLogID, err2 := updateChangeLog(core.NewEditGroupChangeLog, data.EditGroupID, oldPage.EditGroupID, data.EditGroupID)
 				if err2 != nil {
 					return err2
 				}
-				changeLogIds = append(changeLogIds, changeLogId)
+				changeLogIds = append(changeLogIds, changeLogID)
 			}
 
 		}
@@ -308,13 +308,13 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Generate "edit" update for users who are subscribed to this page.
 	if oldPage.WasPublished {
-		for _, changeLogId := range changeLogIds {
+		for _, changeLogID := range changeLogIds {
 			var task tasks.NewUpdateTask
-			task.UserId = u.ID
-			task.GoToPageId = data.PageID
-			task.SubscribedToId = data.PageID
+			task.UserID = u.ID
+			task.GoToPageID = data.PageID
+			task.SubscribedToID = data.PageID
 			task.UpdateType = core.ChangeLogUpdateType
-			task.ChangeLogId = changeLogId
+			task.ChangeLogID = changeLogID
 			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}

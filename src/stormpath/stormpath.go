@@ -21,7 +21,7 @@ type Account struct {
 	Surname   string `json:"surname"`
 }
 
-func getStormpathUrl() string {
+func getStormpathURL() string {
 	if sessions.Live {
 		return config.XC.Stormpath.Production
 	}
@@ -35,7 +35,7 @@ func CreateNewUser(c sessions.Context, givenName, surname, email, password strin
 		"email": "%s",
 		"password":"%s"
 	}`, givenName, surname, email, password)
-	request, err := http.NewRequest("POST", fmt.Sprintf("%s/accounts", getStormpathUrl()), bytes.NewBuffer([]byte(jsonStr)))
+	request, err := http.NewRequest("POST", fmt.Sprintf("%s/accounts", getStormpathURL()), bytes.NewBuffer([]byte(jsonStr)))
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}
@@ -57,7 +57,7 @@ func CreateNewFbUser(c sessions.Context, accessToken string) (*Account, error) {
 			"accessToken": "%s"
 		}
 	}`, accessToken)
-	request, err := http.NewRequest("POST", fmt.Sprintf("%s/accounts", getStormpathUrl()), bytes.NewBuffer([]byte(jsonStr)))
+	request, err := http.NewRequest("POST", fmt.Sprintf("%s/accounts", getStormpathURL()), bytes.NewBuffer([]byte(jsonStr)))
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't create request: %v", err)
 	}
@@ -103,7 +103,7 @@ func AuthenticateUser(c sessions.Context, email, password string) error {
 		"type": "basic",
 		"value": "%s"
 	}`, value)
-	request, err := http.NewRequest("POST", fmt.Sprintf("%s/loginAttempts", getStormpathUrl()), bytes.NewBuffer([]byte(jsonStr)))
+	request, err := http.NewRequest("POST", fmt.Sprintf("%s/loginAttempts", getStormpathURL()), bytes.NewBuffer([]byte(jsonStr)))
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}
@@ -122,7 +122,7 @@ func ForgotPassword(c sessions.Context, email string) error {
 	jsonStr := fmt.Sprintf(`{
 		"email": "%s"
 	}`, email)
-	request, err := http.NewRequest("POST", fmt.Sprintf("%s/passwordResetTokens", getStormpathUrl()), bytes.NewBuffer([]byte(jsonStr)))
+	request, err := http.NewRequest("POST", fmt.Sprintf("%s/passwordResetTokens", getStormpathURL()), bytes.NewBuffer([]byte(jsonStr)))
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}

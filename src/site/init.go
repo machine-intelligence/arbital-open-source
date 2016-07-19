@@ -191,7 +191,7 @@ func init() {
 }
 
 // writeJson converts the given map to JSON and writes it to the given writer.
-func writeJson(w http.ResponseWriter, m interface{}) error {
+func writeJSON(w http.ResponseWriter, m interface{}) error {
 	jsonData, err := json.Marshal(m)
 	if err != nil {
 		return fmt.Errorf("Error marshalling data into json:", err)

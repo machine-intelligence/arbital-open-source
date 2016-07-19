@@ -14,12 +14,12 @@ import (
 // newLikeData contains data given to us in the request.
 type newLikeData struct {
 	// If likeableId is given, we'll modify the corresponding likeable directly, ignoring objectId
-	LikeableId int64 `json:"likeableId,string"`
+	LikeableID int64 `json:"likeableId,string"`
 
 	// If likeableId is missing, we'll use objectId to look it up in the appropriate
 	// table (based on likeableType)
 	// For example, if likeableType=='page', the objectId is the corresponding pageId
-	ObjectId     string
+	ObjectID     string
 	LikeableType string // Eg 'changelog', 'page'
 
 	Value int
@@ -52,7 +52,7 @@ func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		return addNewLike(tx, u, data.LikeableId, data.ObjectId, data.LikeableType, data.Value)
+		return addNewLike(tx, u, data.LikeableID, data.ObjectID, data.LikeableType, data.Value)
 	})
 	if err2 != nil {
 		return pages.FailWith(err2)
@@ -61,21 +61,21 @@ func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	return pages.Success(nil)
 }
 
-func addNewLike(tx *database.Tx, u *core.CurrentUser, likeableId int64, objectId string, likeableType string, value int) sessions.Error {
+func addNewLike(tx *database.Tx, u *core.CurrentUser, likeableID int64, objectID string, likeableType string, value int) sessions.Error {
 	var err error
 
-	if likeableId == 0 {
+	if likeableID == 0 {
 		// Get the likeableId of this likeable.
-		likeableId, err = core.GetOrCreateLikeableId(tx, likeableType, objectId)
+		likeableID, err = core.GetOrCreateLikeableID(tx, likeableType, objectID)
 		if err != nil {
 			return sessions.NewError("Couldn't get the likeableId", err)
 		}
 	}
 
 	// Snapshot the state of the user's trust.
-	var snapshotId int64
+	var snapshotID int64
 	if likeableType == core.ChangeLogLikeableType || likeableType == core.PageLikeableType {
-		snapshotId, err = InsertUserTrustSnapshots(tx, u)
+		snapshotID, err = InsertUserTrustSnapshots(tx, u)
 		if err != nil {
 			return sessions.NewError("Couldn't insert userTrustSnapshot", err)
 		}
@@ -84,11 +84,11 @@ func addNewLike(tx *database.Tx, u *core.CurrentUser, likeableId int64, objectId
 	// Create/update the like.
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = u.ID
-	hashmap["likeableId"] = likeableId
+	hashmap["likeableId"] = likeableID
 	hashmap["value"] = value
 	hashmap["createdAt"] = database.Now()
 	hashmap["updatedAt"] = database.Now()
-	hashmap["userTrustSnapshotId"] = snapshotId
+	hashmap["userTrustSnapshotId"] = snapshotID
 	statement := tx.DB.NewInsertStatement("likes", hashmap, "value", "updatedAt", "userTrustSnapshotId")
 	if _, err = statement.WithTx(tx).Exec(); err != nil {
 		return sessions.NewError("Couldn't update/create a like", err)

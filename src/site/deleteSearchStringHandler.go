@@ -69,18 +69,18 @@ func deleteSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err != nil {
 			return sessions.NewError("Couldn't add to changeLogs", err)
 		}
-		changeLogId, err := resp.LastInsertId()
+		changeLogID, err := resp.LastInsertId()
 		if err != nil {
 			return sessions.NewError("Couldn't get changeLog id", err)
 		}
 
 		// Insert updates
 		var task tasks.NewUpdateTask
-		task.UserId = u.ID
-		task.GoToPageId = searchString.PageID
-		task.SubscribedToId = searchString.PageID
+		task.UserID = u.ID
+		task.GoToPageID = searchString.PageID
+		task.SubscribedToID = searchString.PageID
 		task.UpdateType = core.ChangeLogUpdateType
-		task.ChangeLogId = changeLogId
+		task.ChangeLogID = changeLogID
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			return sessions.NewError("Couldn't enqueue a task: %v", err)
 		}

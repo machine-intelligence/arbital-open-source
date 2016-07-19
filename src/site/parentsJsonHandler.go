@@ -10,27 +10,27 @@ import (
 )
 
 // parentsJsonData contains parameters passed in via the request.
-type parentsJsonData struct {
+type parentsJSONData struct {
 	ChildID string
 }
 
 var parentsHandler = siteHandler{
 	URI:         "/json/parents/",
-	HandlerFunc: parentsJsonHandler,
+	HandlerFunc: parentsJSONHandler,
 }
 
 // parentsJsonHandler handles the request.
-func parentsJsonHandler(params *pages.HandlerParams) *pages.Result {
+func parentsJSONHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	returnData := core.NewHandlerData(params.U)
 
 	// Decode data
-	var data parentsJsonData
+	var data parentsJSONData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.ChildID) {
+	if !core.IsIDValid(data.ChildID) {
 		return pages.Fail("Need a valid childId", err).Status(http.StatusBadRequest)
 	}
 

@@ -40,7 +40,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.ParentID) || !core.IsIdValid(data.ChildID) {
+	if !core.IsIDValid(data.ParentID) || !core.IsIDValid(data.ChildID) {
 		return pages.Fail("ParentId and ChildId have to be set", nil).Status(http.StatusBadRequest)
 	}
 	data.Type, err = core.CorrectPagePairType(data.Type)
@@ -105,7 +105,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err != nil {
 			return sessions.NewError("Couldn't add to parent change log", err)
 		}
-		deletedChildChangeLogId, err := result.LastInsertId()
+		deletedChildChangeLogID, err := result.LastInsertId()
 		if err != nil {
 			return sessions.NewError("Couldn't get child changeLogId", err)
 		}
@@ -126,7 +126,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err != nil {
 			return sessions.NewError("Couldn't add to child change log", err)
 		}
-		deletedParentChangeLogId, err := result.LastInsertId()
+		deletedParentChangeLogID, err := result.LastInsertId()
 		if err != nil {
 			return sessions.NewError("Couldn't get parent changeLogId", err)
 		}
@@ -141,12 +141,12 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Send updates for users subscribed to the parent.
-		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, u.ID, deletedChildChangeLogId, false)
+		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, u.ID, deletedChildChangeLogID, false)
 		if err != nil {
 			return sessions.NewError("Couldn't enqueue child updates", err)
 		}
 		// Send updates for users subscribed to the child.
-		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, u.ID, deletedParentChangeLogId, true)
+		err = tasks.EnqueuePagePairUpdate(tx.DB.C, pagePair, u.ID, deletedParentChangeLogID, true)
 		if err != nil {
 			return sessions.NewError("Couldn't enqueue parent updates", err)
 		}

@@ -15,7 +15,7 @@ import (
 // newLensData contains the data we get in the request
 type newLensData struct {
 	PageID string
-	LensId string
+	LensID string
 }
 
 var newLensHandler = siteHandler{
@@ -41,7 +41,7 @@ func newLensHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Check if this page is already a lens
 	var lens *core.Lens
 	queryPart := database.NewQuery(`
-		WHERE l.lensId=?`, data.LensId)
+		WHERE l.lensId=?`, data.LensID)
 	err = core.LoadLenses(db, queryPart, nil, func(db *database.DB, l *core.Lens) error {
 		lens = l
 		return nil
@@ -53,7 +53,7 @@ func newLensHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check permissions
-	pageIds := []string{data.PageID, data.LensId}
+	pageIds := []string{data.PageID, data.LensID}
 	permissionError, err := core.VerifyEditPermissionsForList(db, pageIds, u)
 	if err != nil {
 		return pages.Fail("Error verifying permissions", err)
@@ -78,7 +78,7 @@ func newLensHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Create the lens
 		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = data.PageID
-		hashmap["lensId"] = data.LensId
+		hashmap["lensId"] = data.LensID
 		hashmap["lensIndex"] = lensIndex
 		hashmap["lensName"] = fmt.Sprintf("Lens %d", lensIndex)
 		hashmap["createdBy"] = u.ID

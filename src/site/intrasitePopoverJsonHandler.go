@@ -11,23 +11,23 @@ import (
 )
 
 // intrasitePopoverJsonData contains parameters passed in via the request.
-type intrasitePopoverJsonData struct {
+type intrasitePopoverJSONData struct {
 	PageAlias string
 }
 
 var intrasitePopoverHandler = siteHandler{
 	URI:         "/json/intrasitePopover/",
-	HandlerFunc: intrasitePopoverJsonHandler,
+	HandlerFunc: intrasitePopoverJSONHandler,
 }
 
 // intrasitePopoverJsonHandler handles the request.
-func intrasitePopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
+func intrasitePopoverJSONHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(u)
 
 	// Decode data
-	var data intrasitePopoverJsonData
+	var data intrasitePopoverJSONData
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
@@ -35,7 +35,7 @@ func intrasitePopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Get actual page id
-	pageID, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
+	pageID, ok, err := core.LoadAliasToPageID(db, u, data.PageAlias)
 	if err != nil {
 		return pages.Fail("Couldn't convert alias", err)
 	}

@@ -73,14 +73,14 @@ func (task EmailUpdatesTask) Execute(db *database.DB) (delay int, err error) {
 func emailUpdatesProcessUser(db *database.DB, rows *database.Rows) error {
 	c := db.C
 
-	var userId string
-	err := rows.Scan(&userId)
+	var userID string
+	err := rows.Scan(&userID)
 	if err != nil {
 		return fmt.Errorf("failed to scan a user id: %v", err)
 	}
 
 	var task SendOneEmailTask
-	task.UserId = userId
+	task.UserID = userID
 	if err := Enqueue(c, &task, nil); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}

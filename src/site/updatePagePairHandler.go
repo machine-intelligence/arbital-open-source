@@ -76,7 +76,7 @@ func updatePagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *u
 	}
 
 	// Do it!
-	var pagePairId int64
+	var pagePairID int64
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Update page pair
 		hashmap := make(database.InsertMap)
@@ -94,7 +94,7 @@ func updatePagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *u
 		return pages.FailWith(err2)
 	}
 
-	returnData.ResultMap["pagePair"], err = core.LoadPagePair(db, fmt.Sprintf("%d", pagePairId))
+	returnData.ResultMap["pagePair"], err = core.LoadPagePair(db, fmt.Sprintf("%d", pagePairID))
 	if err != nil {
 		return pages.Fail("Error loading the page pair", err)
 	}

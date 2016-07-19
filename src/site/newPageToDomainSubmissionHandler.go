@@ -15,7 +15,7 @@ import (
 // updateSettingsData contains data given to us in the request.
 type newPageToDomainSubmissionData struct {
 	PageID   string `json:"pageId"`
-	DomainId string `json:"domainId"`
+	DomainID string `json:"domainId"`
 }
 
 var newPageToDomainSubmissionHandler = siteHandler{
@@ -38,7 +38,7 @@ func newPageToDomainSubmissionHandlerFunc(params *pages.HandlerParams) *pages.Re
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageID) {
+	if !core.IsIDValid(data.PageID) {
 		return pages.Fail("Invalid page id", nil).Status(http.StatusBadRequest)
 	}
 
@@ -48,7 +48,7 @@ func newPageToDomainSubmissionHandlerFunc(params *pages.HandlerParams) *pages.Re
 		// Create new submission
 		hashmap := make(map[string]interface{})
 		hashmap["pageId"] = data.PageID
-		hashmap["domainId"] = data.DomainId
+		hashmap["domainId"] = data.DomainID
 		hashmap["submitterId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		statement := db.NewInsertStatement("pageToDomainSubmissions", hashmap).WithTx(tx)
@@ -58,10 +58,10 @@ func newPageToDomainSubmissionHandlerFunc(params *pages.HandlerParams) *pages.Re
 
 		// Notify all domain owners about this new submission
 		var task tasks.DomainWideNewUpdateTask
-		task.UserId = u.ID
+		task.UserID = u.ID
 		task.UpdateType = core.PageToDomainSubmissionUpdateType
-		task.DomainId = data.DomainId
-		task.GoToPageId = data.PageID
+		task.DomainID = data.DomainID
+		task.GoToPageID = data.PageID
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			return sessions.NewError("Couldn't enqueue a task", err)
 		}
@@ -71,7 +71,7 @@ func newPageToDomainSubmissionHandlerFunc(params *pages.HandlerParams) *pages.Re
 		return pages.FailWith(err2)
 	}
 
-	returnData.ResultMap["submission"], err = core.LoadPageToDomainSubmission(db, data.PageID, data.DomainId)
+	returnData.ResultMap["submission"], err = core.LoadPageToDomainSubmission(db, data.PageID, data.DomainID)
 	if err != nil {
 		return pages.Fail("Couldn't load submission", err)
 	}
