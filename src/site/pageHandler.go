@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/taskqueue"
