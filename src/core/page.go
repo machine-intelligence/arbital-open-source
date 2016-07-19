@@ -244,8 +244,9 @@ type Page struct {
 	NonMetaTagIds []string `json:"nonMetaTagIds"`
 	// TODOs extracted from the page's text
 	Todos []string `json:"todos"`
-	// PagePairs for "go slower" suggestions; subjectId -> list of pagePairs
+	// PagePairs for "go slower/faster" suggestions; subjectId -> list of pagePairs
 	SlowDownMap map[string][]*PagePair `json:"slowDownMap"`
+	SpeedUpMap  map[string][]*PagePair `json:"speedUpMap"`
 }
 
 // NewPage returns a pointer to a new page object created with the given page id
@@ -281,6 +282,7 @@ func NewPage(pageID string) *Page {
 	// Some fields are explicitly nil until they are loaded, so we can differentiate
 	// between "not loaded" and "loaded, but empty"
 	p.SlowDownMap = nil
+	p.SpeedUpMap = nil
 
 	// NOTE: we want permissions to be explicitly null so that if someone refers to them
 	// they get an error. The permissions are only set when they are also fully computed.

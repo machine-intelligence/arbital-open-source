@@ -29,7 +29,7 @@
 
 	<!-- Page's text. Populated by markdown. -->
 	<div layout="row">
-		<arb-slow-down-button page-id="{{::page.pageId}}"></arb-slow-down-button>
+		<arb-change-speed-button page-id="{{::page.pageId}}" go-slow="::true"></arb-change-speed-button>
 		<div class="lens-text-container">
 
 			<!-- Page title -->
@@ -115,7 +115,7 @@
 				</span>
 			</div>
 		</div>
-		<arb-speed-up-button page-id="{{::page.pageId}}"></arb-speed-up-button>
+		<arb-change-speed-button page-id="{{::page.pageId}}" go-slow="::false"></arb-change-speed-button>
 	</div>
 
 	<!-- Action bar -->

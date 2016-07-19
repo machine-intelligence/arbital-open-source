@@ -1,0 +1,96 @@
+<div layout="column"
+		class="change-speed-container"
+		ng-class="{
+				'slow-down-container': goSlow,
+				'speed-up-container': !goSlow,
+				'expanded': isHovered,
+			}"
+		arb-click-elsewhere="isHovered = false">
+	<div class="md-body-2 change-speed-button"
+			ng-click="isHovered = true"
+			ng-class="{'collapsed': haveScrolled && !isHovered}">
+		<md-icon>slow_motion_video</md-icon>
+		<span ng-bind="::goSlow ? 'Say what?' : 'Go faster'"
+				ng-if="!haveScrolled || isHovered"></span>
+	</div>
+	<div class="change-speed-tray md-body-1">
+		<div ng-if="isHovered">
+
+			<!-- Go slower stuff -->
+
+			<!-- Learn a subject at an easier level -->
+			<div ng-repeat="(subjectId,pagePairs) in page.slowDownMap" ng-if="::goSlow">
+				<div>
+					You can learn
+					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
+					at a lower level:
+				</div>
+				<ul>
+					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
+						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
+					</li>
+				</ul>
+			</div>
+
+			<!-- Learn one of the requirements -->
+			<div ng-if="::page.requirements.length > 0 && goSlow">
+				You can learn
+				<ng-pluralize count="page.requirements.length"
+						when="{'one': 'the topic', 'other': 'one of the topics'}"></ng-pluralize>
+				this page relies on:
+				<ul>
+					<li ng-repeat="requirement in page.requirements | orderBy: ['-isStrong', '-level']">
+						<arb-page-title page-id="{{::requirement.parentId}}" is-link="true"></arb-page-title>
+					</li>
+				</ul>
+			</div>
+
+			<!-- Go faster stuff -->
+
+			<!-- Learn a subject at a harder level -->
+			<div ng-repeat="(subjectId,pagePairs) in page.speedUpMap" ng-if="::!goSlow">
+				<div>
+					You can learn
+					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
+					at a higher level:
+				</div>
+				<ul>
+					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
+						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
+					</li>
+				</ul>
+			</div>
+
+			<!-- Learn one of the requirements -->
+			<div ng-if="::page.subjects.length > 0 && !goSlow">
+				You can jump directly to reading about
+				<ng-pluralize count="page.subjects.length"
+						when="{'one': 'the topic', 'other': 'one of the topics'}"></ng-pluralize>
+				this page covers:
+				<ul>
+					<li ng-repeat="subject in page.subjects | orderBy: ['-level']">
+						<arb-page-title page-id="{{::subject.parentId}}" is-link="true"></arb-page-title>
+					</li>
+				</ul>
+			</div>
+
+			<!-- Request a different explanation -->
+			<div>
+				<div>
+					<span ng-if="hasSomeSuggestions()">Not helpful?</span>
+					<span ng-if="!hasSomeSuggestions()">Looks like Arbital doesn't have any suggestions for this page yet.</span>
+					Help us by making a request:
+				</div>
+				<div layout="row">
+					<md-input-container flex>
+						<input ng-model="request.freeformText"
+								aria-label="Alternate page request"
+								placeholder="Optional request text"
+								flex>
+					</md-input-container>
+					<md-button ng-click="submitExplanationRequest()">submit</md-button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
