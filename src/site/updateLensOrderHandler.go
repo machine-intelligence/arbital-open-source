@@ -1,4 +1,5 @@
 // updateLensOrderHandler.go handles reordering of lenses
+
 package site
 
 import (
@@ -40,7 +41,7 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageID) {
+	if !core.IsIDValid(data.PageID) {
 		return pages.Fail("PageId isn't valid", nil).Status(http.StatusBadRequest)
 	}
 
@@ -50,7 +51,7 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	queryPart := database.NewQuery(`WHERE l.pageId=?`, data.PageID)
 	err = core.LoadLenses(db, queryPart, nil, func(db *database.DB, lens *core.Lens) error {
 		lenses = append(lenses, lens)
-		core.AddPageIdToMap(lens.PageID, pageMap)
+		core.AddPageIDToMap(lens.PageID, pageMap)
 		return nil
 	})
 	if err != nil {
@@ -81,7 +82,7 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Begin the transaction.
-	var changeLogId int64
+	var changeLogID int64
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Update the lenses
 		statement := db.NewMultipleInsertStatement("lenses", hashmaps, "lensIndex", "updatedBy", "updatedAt").WithTx(tx)
@@ -100,7 +101,7 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err != nil {
 			return sessions.NewError("Couldn't insert changeLog", err)
 		}
-		changeLogId, err = result.LastInsertId()
+		changeLogID, err = result.LastInsertId()
 		if err != nil {
 			return sessions.NewError("Couldn't get new changeLog id", err)
 		}
@@ -108,10 +109,10 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Generate updates for users who are subscribed to the primary page
 		var task tasks.NewUpdateTask
 		task.UpdateType = core.ChangeLogUpdateType
-		task.UserId = u.ID
-		task.ChangeLogId = changeLogId
-		task.SubscribedToId = data.PageID
-		task.GoToPageId = data.PageID
+		task.UserID = u.ID
+		task.ChangeLogID = changeLogID
+		task.SubscribedToID = data.PageID
+		task.GoToPageID = data.PageID
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			return sessions.NewError("Couldn't enqueue a task", err)
 		}

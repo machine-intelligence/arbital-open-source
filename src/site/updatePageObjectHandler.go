@@ -1,4 +1,5 @@
 // updatePageObject.go handles request to update the value of a page object
+
 package site
 
 import (
@@ -39,19 +40,19 @@ func updatePageObjectInternalHandlerFunc(params *pages.HandlerParams, data *upda
 	db := params.DB
 	u := params.U
 
-	if !core.IsIdValid(data.PageID) {
+	if !core.IsIDValid(data.PageID) {
 		return pages.Fail("Invalid page id", nil).Status(http.StatusBadRequest)
 	}
 	if data.Object == "" {
 		return pages.Fail("Object alias isn't set", nil).Status(http.StatusBadRequest)
 	}
-	userId := u.GetSomeId()
-	if userId == "" {
+	userID := u.GetSomeID()
+	if userID == "" {
 		return pages.Fail("No user id or session id", nil).Status(http.StatusBadRequest)
 	}
 
 	hashmap := make(map[string]interface{})
-	hashmap["userId"] = userId
+	hashmap["userId"] = userID
 	hashmap["pageId"] = data.PageID
 	hashmap["edit"] = data.Edit
 	hashmap["object"] = data.Object

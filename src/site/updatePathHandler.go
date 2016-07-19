@@ -1,4 +1,5 @@
 // updatePathHandler.go updates the given path instance
+
 package site
 
 import (
@@ -58,7 +59,7 @@ func updatePathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	sourceIds := make([]string, 0)
 	for _, page := range instance.Pages {
 		pageIds = append(pageIds, page.PageID)
-		sourceIds = append(sourceIds, page.SourceId)
+		sourceIds = append(sourceIds, page.SourceID)
 	}
 
 	// Begin the transaction.

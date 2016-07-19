@@ -1,5 +1,6 @@
 // primaryPageJsonHandler.go contains the handler for returning JSON with data
 // to display a primary page.
+
 package site
 
 import (
@@ -13,32 +14,32 @@ import (
 )
 
 // primaryPageJsonData contains parameters passed in via the request.
-type primaryPageJsonData struct {
+type primaryPageJSONData struct {
 	// Alias of the primary page to load
 	PageAlias string
 	// Optional lens id that was specified in the url
-	LensId string
+	LensID string
 	// Optional mark id that was specified in the url
-	MarkId string
+	MarkID string
 	// Optional path instance id that was specified in the url
-	PathInstanceId string
+	PathInstanceID string
 }
 
 var primaryPageHandler = siteHandler{
 	URI:         "/json/primaryPage/",
-	HandlerFunc: primaryPageJsonHandler,
+	HandlerFunc: primaryPageJSONHandler,
 	Options:     pages.PageOptions{},
 }
 
 // primaryPageJsonHandler handles the request.
-func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
+func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	c := params.C
 	u := params.U
 	returnData := core.NewHandlerData(u).SetResetEverything()
 
 	// Decode data
-	var data primaryPageJsonData
+	var data primaryPageJSONData
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
@@ -46,7 +47,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Get actual page id
-	pageID, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
+	pageID, ok, err := core.LoadAliasToPageID(db, u, data.PageAlias)
 	if err != nil {
 		return pages.Fail("Couldn't convert alias", err)
 	}
@@ -56,15 +57,15 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// If lens id wasn't explicitly set, check to see if this page is a lens for some other page,
 	// and if so, load the primary page.
-	if data.LensId == "" {
-		page := core.AddPageIdToMap(pageID, returnData.PageMap)
+	if data.LensID == "" {
+		page := core.AddPageIDToMap(pageID, returnData.PageMap)
 		err := core.LoadLensParentIds(db, returnData.PageMap, nil)
 		if err != nil {
 			return pages.Fail("Couldn't load lens parent id", err)
-		} else if page.LensParentId != "" {
-			c.Infof("Page %s redirected to its primary page %s", pageID, page.LensParentId)
-			data.LensId = pageID
-			pageID = page.LensParentId
+		} else if page.LensParentID != "" {
+			c.Infof("Page %s redirected to its primary page %s", pageID, page.LensParentID)
+			data.LensID = pageID
+			pageID = page.LensParentID
 		}
 	}
 
@@ -92,7 +93,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			SELECT pi.pageId
 			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 			WHERE pi.createdBy=?`, pageID).Add(`
-				AND pi.seeGroupId=?`, params.PrivateGroupId).Add(`
+				AND pi.seeGroupId=?`, params.PrivateGroupID).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
 			ORDER BY pi.createdAt DESC
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
@@ -108,7 +109,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 			ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
 			WHERE p.creatorId=?`, pageID).Add(`
-				AND pi.seeGroupId=?`, params.PrivateGroupId).Add(`
+				AND pi.seeGroupId=?`, params.PrivateGroupID).Add(`
 				AND pi.type=?`, core.CommentPageType).Add(`
 			ORDER BY pi.createdAt DESC
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
@@ -125,7 +126,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 			ON (p.pageId=pi.pageId)
 			WHERE p.creatorId=?`, pageID).Add(`
-				AND pi.seeGroupId=?`, params.PrivateGroupId).Add(`
+				AND pi.seeGroupId=?`, params.PrivateGroupID).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
 			GROUP BY 1
 			ORDER BY MAX(p.createdAt) DESC
@@ -142,7 +143,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			JOIN likes AS l2
 			ON (pi.likeableId=l2.likeableId)
 			WHERE pi.editGroupId=?`, pageID).Add(`
-				AND pi.seeGroupId=?`, params.PrivateGroupId).Add(`
+				AND pi.seeGroupId=?`, params.PrivateGroupID).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
 			GROUP BY 1
 			ORDER BY SUM(l2.value) DESC
@@ -157,26 +158,26 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Load data
 	returnData.ResultMap["primaryPageId"] = pageID
-	core.AddPageIdToMap("14z", returnData.PageMap)
-	core.AddPageIdToMap("4yg", returnData.PageMap) // "Arbital quality"
-	core.AddPageIdToMap("3hs", returnData.PageMap) // "Author's guide"
-	core.AddPageIdToMap("58l", returnData.PageMap) // "Arbital user groups"
+	core.AddPageIDToMap("14z", returnData.PageMap)
+	core.AddPageIDToMap("4yg", returnData.PageMap) // "Arbital quality"
+	core.AddPageIDToMap("3hs", returnData.PageMap) // "Author's guide"
+	core.AddPageIDToMap("58l", returnData.PageMap) // "Arbital user groups"
 	core.AddPageToMap(pageID, returnData.PageMap, core.PrimaryPageLoadOptions)
-	if data.LensId != "" {
-		returnData.ResultMap["lensId"] = data.LensId
-		core.AddPageToMap(data.LensId, returnData.PageMap, core.LensFullLoadOptions)
+	if data.LensID != "" {
+		returnData.ResultMap["lensId"] = data.LensID
+		core.AddPageToMap(data.LensID, returnData.PageMap, core.LensFullLoadOptions)
 	}
-	if data.MarkId != "" {
-		core.AddMarkToMap(data.MarkId, returnData.MarkMap)
+	if data.MarkID != "" {
+		core.AddMarkToMap(data.MarkID, returnData.MarkMap)
 	}
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
 	}
 
-	if data.PathInstanceId != "" {
+	if data.PathInstanceID != "" {
 		// Load the path instance
-		instance, err := core.LoadPathInstance(db, data.PathInstanceId, u)
+		instance, err := core.LoadPathInstance(db, data.PathInstanceID, u)
 		if err != nil {
 			return pages.Fail("Couldn't load the path instance: %v", err)
 		} else if instance == nil {

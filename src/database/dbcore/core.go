@@ -16,18 +16,18 @@ var (
 	db            *sql.DB // db object - should be accessed through GetDB
 	maxDBFailures = 5     // max number of tries before giving up on acquiring DB
 	maxOpenDBConn = 30    // max open db connections
-	localSql      = fmt.Sprintf(
+	localSQL      = fmt.Sprintf(
 		"%s:%s@/%s",
 		xc.MySQL.User,
 		xc.MySQL.Password,
 		xc.MySQL.Database)
-	liveSql = fmt.Sprintf(
+	liveSQL = fmt.Sprintf(
 		"%s:%s@tcp(%s:3306)/%s?collation=utf8mb4_general_ci",
 		xc.MySQL.User,
 		xc.MySQL.Password,
 		xc.MySQL.Live.Address,
 		xc.MySQL.Database)
-	liveCloudSql = fmt.Sprintf(
+	liveCloudSQL = fmt.Sprintf(
 		"root@cloudsql(%s)/%s?collation=utf8mb4_general_ci",
 		xc.MySQL.Live.Instance,
 		xc.MySQL.Database)
@@ -35,19 +35,19 @@ var (
 
 // GetLocal returns a connection to a local MySQL DB.
 func GetLocal(pl logger.Logger) (*sql.DB, error) {
-	return get(pl, localSql)
+	return get(pl, localSQL)
 }
 
 // GetLiveCloud returns a connection to the live CloudSQL DB.
 //
 // Should only be called on live AppEngine.
 func GetLiveCloud(pl logger.Logger) (*sql.DB, error) {
-	return get(pl, liveCloudSql)
+	return get(pl, liveCloudSQL)
 }
 
 // GetLive returns a connection to the live MySQL DB.
 func GetLive(pl logger.Logger) (*sql.DB, error) {
-	return get(pl, liveSql)
+	return get(pl, liveSQL)
 }
 
 // get returns a DB object, creating it first if necessary.

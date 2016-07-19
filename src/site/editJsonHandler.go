@@ -1,4 +1,5 @@
 // editJsonHandler.go contains the handler for returning JSON with pages data.
+
 package site
 
 import (
@@ -12,14 +13,14 @@ import (
 
 var editHandler = siteHandler{
 	URI:         "/json/edit/",
-	HandlerFunc: editJsonHandler,
+	HandlerFunc: editJSONHandler,
 	Options: pages.PageOptions{
 		RequireLogin: true,
 	},
 }
 
 // editJsonData contains parameters passed in via the request.
-type editJsonData struct {
+type editJSONData struct {
 	PageAlias      string
 	SpecificEdit   int
 	EditLimit      int
@@ -30,27 +31,27 @@ type editJsonData struct {
 }
 
 // editJsonHandler handles the request.
-func editJsonHandler(params *pages.HandlerParams) *pages.Result {
+func editJSONHandler(params *pages.HandlerParams) *pages.Result {
 	// Decode data
-	var data editJsonData
+	var data editJSONData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
-	return editJsonInternalHandler(params, &data)
+	return editJSONInternalHandler(params, &data)
 }
 
-func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *pages.Result {
+func editJSONInternalHandler(params *pages.HandlerParams, data *editJSONData) *pages.Result {
 	db := params.DB
 	u := params.U
 	returnData := core.NewHandlerData(u)
 
 	// Get actual page id
-	pageID, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
+	pageID, ok, err := core.LoadAliasToPageID(db, u, data.PageAlias)
 	if err != nil {
 		return pages.Fail("Couldn't convert alias", err)
 	} else if !ok {
-		if core.IsIdValid(data.PageAlias) {
+		if core.IsIDValid(data.PageAlias) {
 			// We tried to load an edit by id, but it wasn't found
 			return pages.Fail("No such page found", err)
 		} else {
@@ -77,8 +78,8 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	if p == nil {
 		return pages.Fail("Exact page not found", err)
 	}
-	if p.SeeGroupID != params.PrivateGroupId {
-		if core.IsIdValid(p.SeeGroupID) {
+	if p.SeeGroupID != params.PrivateGroupID {
+		if core.IsIDValid(p.SeeGroupID) {
 			return pages.Fail("Trying to edit a private page. Go to the corresponding group", err).Status(http.StatusBadRequest)
 		} else {
 			return pages.Fail("Trying to edit a public page. Go to arbital.com", err).Status(http.StatusBadRequest)
@@ -89,12 +90,12 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	// since they are not stored in the links table. So we manually extract them.
 	if p.IsAutosave || p.IsSnapshot {
 		linkAliases := core.ExtractPageLinks(p.Text, sessions.GetDomain())
-		aliasToIdMap, err := core.LoadAliasToPageIdMap(db, u, linkAliases)
+		aliasToIDMap, err := core.LoadAliasToPageIDMap(db, u, linkAliases)
 		if err != nil {
 			return pages.Fail("Couldn't load links", err)
 		}
-		for _, pageID := range aliasToIdMap {
-			core.AddPageIdToMap(pageID, returnData.PageMap)
+		for _, pageID := range aliasToIDMap {
+			core.AddPageIDToMap(pageID, returnData.PageMap)
 		}
 	}
 
@@ -105,12 +106,12 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	data.AdditionalPageIds = append(data.AdditionalPageIds, "3n", "178", "1ln",
 		"17b", "35z", "370", "187", "185", "3hs", "1rt", "595", "596", "597")
 	for _, pageID := range data.AdditionalPageIds {
-		core.AddPageIdToMap(pageID, returnData.PageMap)
+		core.AddPageIDToMap(pageID, returnData.PageMap)
 	}
 
 	// Load data
 	core.AddPageToMap(pageID, returnData.PageMap, core.PrimaryEditLoadOptions)
-	core.AddPageIdToMap(p.EditGroupId, returnData.PageMap)
+	core.AddPageIDToMap(p.EditGroupID, returnData.PageMap)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
@@ -122,7 +123,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	// the page in pageMap if it hasn't been published yet, so the only "page" on the FE
 	// is the one from editMap
 	livePage := returnData.PageMap[pageID]
-	p.LensParentId = livePage.LensParentId
+	p.LensParentID = livePage.LensParentID
 	p.ChildIds = livePage.ChildIds
 	p.ParentIds = livePage.ParentIds
 	p.TaggedAsIds = livePage.TaggedAsIds

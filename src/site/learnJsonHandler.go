@@ -1,4 +1,5 @@
 // learnJsonHandler.go returns the path of pages needed for understanding some pages
+
 package site
 
 import (
@@ -16,10 +17,10 @@ import (
 
 var learnHandler = siteHandler{
 	URI:         "/json/learn/",
-	HandlerFunc: learnJsonHandler,
+	HandlerFunc: learnJSONHandler,
 }
 
-type learnJsonData struct {
+type learnJSONData struct {
 	PageAliases []string
 	// If set, only learn pages that are marked as wanted
 	OnlyWanted bool
@@ -44,7 +45,7 @@ type requirementNode struct {
 	// Which pages can teach this requirement
 	TutorIds []string `json:"tutorIds"`
 	// Best tutor
-	BestTutorId string `json:"bestTutorId"`
+	BestTutorID string `json:"bestTutorId"`
 	// Cost assigned to learning this node
 	Cost int `json:"cost"`
 	// Set to true when the node has been processed
@@ -85,14 +86,14 @@ func newTutorNode(pageID string) *tutorNode {
 	return &tutorNode{PageID: pageID, RequirementIds: make([]string, 0)}
 }
 
-func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
+func learnJSONHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	c := params.C
 	returnData := core.NewHandlerData(u).SetResetEverything()
 
 	// Decode data
-	var data learnJsonData
+	var data learnJSONData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
@@ -123,7 +124,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Convert aliases to page ids
-	aliasToIdMap, err := core.LoadAliasToPageIdMap(db, u, pageAliases)
+	aliasToIDMap, err := core.LoadAliasToPageIDMap(db, u, pageAliases)
 	if err != nil {
 		return pages.Fail("error while loading group members", err)
 	}
@@ -132,8 +133,8 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	optionsMap := make(map[string]*learnOption)
 	pageIds := make([]string, 0)
 	for _, alias := range pageAliases {
-		pageID := aliasToIdMap[alias]
-		if !core.IsIdValid(pageID) {
+		pageID := aliasToIDMap[alias]
+		if !core.IsIDValid(pageID) {
 			return pages.Fail(fmt.Sprintf("Invalid page id: %s", pageID), nil).Status(http.StatusBadRequest)
 		}
 		pageIds = append(pageIds, pageID)
@@ -142,20 +143,20 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Remove requirements that the user already has
 	masteryMap := make(map[string]*core.Mastery)
-	userId := u.GetSomeId()
-	if len(pageIds) > 0 && userId != "" {
+	userID := u.GetSomeID()
+	if len(pageIds) > 0 && userID != "" {
 		rows := database.NewQuery(`
 			SELECT masteryId,wants,has
 			FROM userMasteryPairs
-			WHERE userId=?`, userId).Add(`AND masteryId IN`).AddArgsGroupStr(pageIds).ToStatement(db).Query()
+			WHERE userId=?`, userID).Add(`AND masteryId IN`).AddArgsGroupStr(pageIds).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var masteryId string
+			var masteryID string
 			var wants, has bool
-			err := rows.Scan(&masteryId, &wants, &has)
+			err := rows.Scan(&masteryID, &wants, &has)
 			if err != nil {
 				return fmt.Errorf("Failed to scan: %v", err)
 			}
-			masteryMap[masteryId] = &core.Mastery{PageID: masteryId, Wants: wants, Has: has}
+			masteryMap[masteryID] = &core.Mastery{PageID: masteryID, Wants: wants, Has: has}
 			return nil
 		})
 		if err != nil {
@@ -190,21 +191,21 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Create the maps which will store all the nodes: page id -> node
 	tutorMap := make(map[string]*tutorNode)
 	requirementMap := make(map[string]*requirementNode)
-	for _, reqId := range requirementIds {
-		requirementMap[reqId] = newRequirementNode(reqId)
+	for _, reqID := range requirementIds {
+		requirementMap[reqID] = newRequirementNode(reqID)
 	}
 
 	// Add a tutor for the tutorMap
-	var addTutor = func(parentId, childId string, lensIndex int) {
+	var addTutor = func(parentID, childID string, lensIndex int) {
 		// Get the requirement node and update its tutors
-		requirementNode := requirementMap[parentId]
-		requirementNode.TutorIds = append(requirementNode.TutorIds, childId)
+		requirementNode := requirementMap[parentID]
+		requirementNode.TutorIds = append(requirementNode.TutorIds, childID)
 		c.Infof("Updated requirement node: %+v", requirementNode)
 		// Recursively load requirements for the tutor, unless we already processed it
-		if _, ok := tutorMap[childId]; !ok {
-			tutorIds = append(tutorIds, childId)
-			tutorMap[childId] = newTutorNode(childId)
-			tutorMap[childId].LensIndex = lensIndex
+		if _, ok := tutorMap[childID]; !ok {
+			tutorIds = append(tutorIds, childID)
+			tutorMap[childID] = newTutorNode(childID)
+			tutorMap[childID].LensIndex = lensIndex
 		}
 	}
 
@@ -224,14 +225,14 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 				AND pp.type=?`, core.SubjectPagePairType).Add(`
 			`).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var parentId, childId string
+			var parentID, childID string
 			var lensIndex int
-			err := rows.Scan(&parentId, &childId, &lensIndex)
+			err := rows.Scan(&parentID, &childID, &lensIndex)
 			if err != nil {
 				return fmt.Errorf("Failed to scan: %v", err)
 			}
-			c.Infof("Found tutor: %s %s", parentId, childId)
-			addTutor(parentId, childId, lensIndex)
+			c.Infof("Found tutor: %s %s", parentID, childID)
+			addTutor(parentID, childID, lensIndex)
 			return nil
 		})
 		if err != nil {
@@ -239,12 +240,12 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 		// If we haven't found a tutor for a page we want to learn, we'll pretend
 		// that the page can teach itself.
-		for reqId, requirementNode := range requirementMap {
-			_, ok := tutorMap[reqId]
+		for reqID, requirementNode := range requirementMap {
+			_, ok := tutorMap[reqID]
 			if len(requirementNode.TutorIds) <= 0 && !ok {
-				c.Infof("No tutor found for %s, so we are making it teach itself.", reqId)
-				addTutor(reqId, reqId, 0)
-				tutorMap[reqId].MadeUp = true
+				c.Infof("No tutor found for %s, so we are making it teach itself.", reqID)
+				addTutor(reqID, reqID, 0)
+				tutorMap[reqID].MadeUp = true
 			}
 		}
 		c.Infof("TutorIds: %+v", tutorIds)
@@ -260,29 +261,29 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 			ON (pp.parentId=pi.pageId)
 			LEFT JOIN userMasteryPairs AS mp
-			ON (pp.parentId=mp.masteryId AND mp.userId=?)`, userId).Add(`
+			ON (pp.parentId=mp.masteryId AND mp.userId=?)`, userID).Add(`
 			LEFT JOIN lenses AS l
 			ON (pi.pageId=l.lensId)
 			WHERE pp.childId IN`).AddArgsGroupStr(tutorIds).Add(`
 				AND pp.type=?`, core.RequirementPagePairType).Add(`
 				AND (NOT mp.has OR ISNULL(mp.has))`).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var parentId, childId string
+			var parentID, childID string
 			var lensIndex int
-			err := rows.Scan(&parentId, &childId, &lensIndex)
+			err := rows.Scan(&parentID, &childID, &lensIndex)
 			if err != nil {
 				return fmt.Errorf("Failed to scan: %v", err)
 			}
-			c.Infof("Found requirement: %s %s", parentId, childId)
+			c.Infof("Found requirement: %s %s", parentID, childID)
 
 			// Get the tutor node and update its requirements
-			tutorNode := tutorMap[childId]
-			tutorNode.RequirementIds = append(tutorNode.RequirementIds, parentId)
+			tutorNode := tutorMap[childID]
+			tutorNode.RequirementIds = append(tutorNode.RequirementIds, parentID)
 			c.Infof("Updated tutor node: %+v", tutorNode)
-			if _, ok := requirementMap[parentId]; !ok {
-				requirementIds = append(requirementIds, parentId)
-				requirementMap[parentId] = newRequirementNode(parentId)
-				requirementMap[parentId].LensIndex = lensIndex
+			if _, ok := requirementMap[parentID]; !ok {
+				requirementIds = append(requirementIds, parentID)
+				requirementMap[parentID] = newRequirementNode(parentID)
+				requirementMap[parentID].LensIndex = lensIndex
 			}
 			return nil
 		})
@@ -351,16 +352,16 @@ func computeLearningPath(pl logger.Logger,
 				for continueCycle {
 					// Get first eligible tutor
 					var cycleTutor *tutorNode
-					for _, tutorId := range req.TutorIds {
-						cycleTutor = tutorMap[tutorId]
+					for _, tutorID := range req.TutorIds {
+						cycleTutor = tutorMap[tutorID]
 						if !cycleTutor.Processed {
 							cycleIds = append(cycleIds, cycleTutor.PageID)
 							break
 						}
 					}
 					// Get first eligible requirement
-					for _, reqId := range cycleTutor.RequirementIds {
-						req = requirementMap[reqId]
+					for _, reqID := range cycleTutor.RequirementIds {
+						req = requirementMap[reqID]
 						if !req.Processed {
 							cycleIds = append(cycleIds, req.PageID)
 							if _, ok := cycleReqMap[req.PageID]; ok {
@@ -376,16 +377,16 @@ func computeLearningPath(pl logger.Logger,
 
 				// Force the picked requirement to be processed
 				req.Processed = true
-				if req.BestTutorId == "" {
+				if req.BestTutorID == "" {
 					if len(req.TutorIds) > 0 {
 						// Just take the first tutor
-						req.BestTutorId = req.TutorIds[0]
+						req.BestTutorID = req.TutorIds[0]
 					}
 					req.Cost = PenaltyCost
 				}
 				req.Cost += req.LensIndex * LensCost
 				core.AddPageToMap(req.PageID, returnData.PageMap, loadOptions)
-				pl.Infof("Requirement '%s' (tutors: %v) forced to processed with cost %d and best tutor '%s'", req.PageID, req.TutorIds, req.Cost, req.BestTutorId)
+				pl.Infof("Requirement '%s' (tutors: %v) forced to processed with cost %d and best tutor '%s'", req.PageID, req.TutorIds, req.Cost, req.BestTutorID)
 				break
 			}
 		}
@@ -398,15 +399,15 @@ func computeLearningPath(pl logger.Logger,
 			}
 			// We can mark a requirement processed when we processed all its tutors
 			allTutorsProcessed := true
-			for _, tutorId := range req.TutorIds {
-				tutor := tutorMap[tutorId]
+			for _, tutorID := range req.TutorIds {
+				tutor := tutorMap[tutorID]
 				if !tutor.Processed {
 					allTutorsProcessed = false
 					continue
 				}
 				if req.Cost > tutor.Cost {
 					req.Cost = tutor.Cost
-					req.BestTutorId = tutorId
+					req.BestTutorID = tutorID
 				}
 			}
 			if allTutorsProcessed {
@@ -414,7 +415,7 @@ func computeLearningPath(pl logger.Logger,
 				req.Processed = true
 				graphChanged = true
 				core.AddPageToMap(req.PageID, returnData.PageMap, loadOptions)
-				pl.Infof("Requirement '%s' (tutors: %v) processed with cost %d and best tutor '%s'", req.PageID, req.TutorIds, req.Cost, req.BestTutorId)
+				pl.Infof("Requirement '%s' (tutors: %v) processed with cost %d and best tutor '%s'", req.PageID, req.TutorIds, req.Cost, req.BestTutorID)
 			}
 		}
 
@@ -426,8 +427,8 @@ func computeLearningPath(pl logger.Logger,
 			// We can mark a tutor processed when we processed all its requirements
 			allReqsProcessed := true
 			tutor.Cost = 0
-			for _, reqId := range tutor.RequirementIds {
-				requirement := requirementMap[reqId]
+			for _, reqID := range tutor.RequirementIds {
+				requirement := requirementMap[reqID]
 				if !requirement.Processed {
 					allReqsProcessed = false
 					continue

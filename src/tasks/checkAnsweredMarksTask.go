@@ -51,23 +51,23 @@ func (task CheckAnsweredMarksTask) Execute(db *database.DB) (delay int, err erro
 		ON (a.questionId=m.resolvedPageId)
 		WHERE NOT m.answered`).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var markId, markPageId, userId string
-		if err := rows.Scan(&markId, &markPageId, &userId); err != nil {
+		var markID, markPageID, userID string
+		if err := rows.Scan(&markID, &markPageID, &userID); err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
-		_, exists := markMap[markId]
+		_, exists := markMap[markID]
 		if !exists {
-			markMap[markId] = true
-			markIds = append(markIds, markId)
+			markMap[markID] = true
+			markIds = append(markIds, markID)
 
 			// Add an update
 			hashmap := make(database.InsertMap)
-			hashmap["userId"] = userId
+			hashmap["userId"] = userID
 			hashmap["type"] = core.AnsweredMarkUpdateType
-			hashmap["groupByPageId"] = markPageId
-			hashmap["subscribedToId"] = markPageId
-			hashmap["goToPageId"] = markPageId
-			hashmap["markId"] = markId
+			hashmap["groupByPageId"] = markPageID
+			hashmap["subscribedToId"] = markPageID
+			hashmap["goToPageId"] = markPageID
+			hashmap["markId"] = markID
 			hashmap["createdAt"] = database.Now()
 			hashmaps = append(hashmaps, hashmap)
 		}

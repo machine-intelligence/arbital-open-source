@@ -1,4 +1,5 @@
 // newExplanationRequestJsonHandler.go handles explantion requests
+
 package site
 
 import (
@@ -21,11 +22,11 @@ type explanationRequestData struct {
 
 var explanationRequestHandler = siteHandler{
 	URI:         "/json/explanationRequest/",
-	HandlerFunc: explanationRequestJsonHandler,
+	HandlerFunc: explanationRequestJSONHandler,
 	Options:     pages.PageOptions{},
 }
 
-func explanationRequestJsonHandler(params *pages.HandlerParams) *pages.Result {
+func explanationRequestJSONHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(u)
@@ -36,7 +37,7 @@ func explanationRequestJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageID) {
+	if !core.IsIDValid(data.PageID) {
 		return pages.Fail("Missing or invalid page id", nil).Status(http.StatusBadRequest)
 	}
 

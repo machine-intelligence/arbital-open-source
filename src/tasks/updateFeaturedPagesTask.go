@@ -51,7 +51,7 @@ func (task UpdateFeaturedPagesTask) Execute(db *database.DB) (delay int, err err
 		ON (pi.pageId=pp.childId)
 		WHERE pi.seeGroupId="" AND pi.featuredAt=0 AND pi.type!=?`, core.CommentPageType).Add(`
 			AND pp.type=?`, core.TagPagePairType).Add(`
-			AND pp.parentId IN (?,?)`, core.AClassPageId, core.BClassPageId).Add(`
+			AND pp.parentId IN (?,?)`, core.AClassPageID, core.BClassPageID).Add(`
 		GROUP BY 1`).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageID string

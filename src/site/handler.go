@@ -1,4 +1,5 @@
 // handler.go: Logic for modifying HTTP handlers.
+
 package site
 
 import (
@@ -29,8 +30,8 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// If live, check that this is an HTTPS request
 		if sessions.Live && r.URL.Scheme != "https" {
-			safeUrl := strings.Replace(r.URL.String(), "http", "https", 1)
-			http.Redirect(w, r, safeUrl, http.StatusSeeOther)
+			safeURL := strings.Replace(r.URL.String(), "http", "https", 1)
+			http.Redirect(w, r, safeURL, http.StatusSeeOther)
 		}
 
 		c := sessions.NewContext(r)
@@ -69,7 +70,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			return
 		}
 		params.U = u
-		params.PrivateGroupId, err = loadSubdomain(r, db, u)
+		params.PrivateGroupID, err = loadSubdomain(r, db, u)
 		if err != nil {
 			fail(http.StatusInternalServerError, "Couldn't load subdomain", err)
 			return
@@ -90,7 +91,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		}
 
 		// Check permissions
-		if h.Options.RequireLogin && !core.IsIdValid(u.ID) {
+		if h.Options.RequireLogin && !core.IsIDValid(u.ID) {
 			fail(http.StatusInternalServerError, "Have to be logged in", nil)
 			return
 		}
@@ -100,13 +101,13 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		}
 
 		// Check if we have access to the private group
-		if core.IsIdValid(params.PrivateGroupId) {
-			if !h.Options.AllowAnyone && !u.IsMemberOfGroup(params.PrivateGroupId) {
+		if core.IsIDValid(params.PrivateGroupID) {
+			if !h.Options.AllowAnyone && !u.IsMemberOfGroup(params.PrivateGroupID) {
 				fail(http.StatusForbidden, "Don't have access to this group", nil)
 				return
 			}
 			// We don't allow personal private groups for now
-			if params.PrivateGroupId == u.ID {
+			if params.PrivateGroupID == u.ID {
 				fail(http.StatusForbidden, "Arbital no longer supports personal private groups", nil)
 			}
 		}
@@ -122,13 +123,13 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			if handlerData.ResetEverything {
 				// Fetch some more global data and pass it to the FE
 				handlerData.GlobalData = &params.GlobalHandlerData
-				handlerData.GlobalData.ImprovementTagIds, err = core.LoadMetaTags(db, core.RequestForEditTagParentPageId)
+				handlerData.GlobalData.ImprovementTagIds, err = core.LoadMetaTags(db, core.RequestForEditTagParentPageID)
 				if err != nil {
 					fail(http.StatusInternalServerError, "Couldn't load improvement tags", err)
 					return
 				}
 
-				if core.IsIdValid(u.ID) {
+				if core.IsIDValid(u.ID) {
 					// Load updates counts. (Loading it afterwards since it could be affected by the page)
 					u.NewNotificationCount, err = core.LoadNotificationCount(db, u.ID, false)
 					if err != nil {
@@ -186,12 +187,12 @@ func loadSubdomain(r *http.Request, db *database.DB, u *core.CurrentUser) (strin
 		return "", nil
 	}
 	// Get actual page id for the group
-	privateGroupId, ok, err := core.LoadAliasToPageId(db, u, subdomain)
+	privateGroupID, ok, err := core.LoadAliasToPageID(db, u, subdomain)
 	if err != nil {
 		return "", fmt.Errorf("Couldn't convert subdomain to id: %v", err)
 	}
 	if !ok {
 		return "", fmt.Errorf("Couldn't find private group %s", subdomain)
 	}
-	return privateGroupId, nil
+	return privateGroupID, nil
 }

@@ -25,20 +25,20 @@ const (
 	Base31Chars             = "0123456789bcdfghjklmnpqrstvwxyz"
 	Base31CharsForFirstChar = "0123456789"
 
-	StubPageId                    = "72"
-	RequestForEditTagParentPageId = "3zj"
-	QualityMetaTagsPageId         = "5dg"
-	MathDomainId                  = "1lw"
-	AClassPageId                  = "4yf"
-	BClassPageId                  = "4yd"
-	FeaturedClassPageId           = "4yl"
+	StubPageID                    = "72"
+	RequestForEditTagParentPageID = "3zj"
+	QualityMetaTagsPageID         = "5dg"
+	MathDomainID                  = "1lw"
+	AClassPageID                  = "4yf"
+	BClassPageID                  = "4yd"
+	FeaturedClassPageID           = "4yl"
 )
 
 // AddPageToMap adds a new page with the given page id to the map if it's not
 // in the map already.
 // Returns the new/existing page.
 func AddPageToMap(pageID string, pageMap map[string]*Page, loadOptions *PageLoadOptions) *Page {
-	if !IsIdValid(pageID) {
+	if !IsIDValid(pageID) {
 		return nil
 	}
 	if p, ok := pageMap[pageID]; ok {
@@ -50,31 +50,31 @@ func AddPageToMap(pageID string, pageMap map[string]*Page, loadOptions *PageLoad
 	pageMap[pageID] = p
 	return p
 }
-func AddPageIdToMap(pageID string, pageMap map[string]*Page) *Page {
+func AddPageIDToMap(pageID string, pageMap map[string]*Page) *Page {
 	return AddPageToMap(pageID, pageMap, EmptyLoadOptions)
 }
 
 // AddUserToMap adds a new user with the given user id to the map if it's not
 // in the map already.
 // Returns the new/existing user.
-func AddUserToMap(userId string, userMap map[string]*User) *User {
-	if !IsIdValid(userId) {
+func AddUserToMap(userID string, userMap map[string]*User) *User {
+	if !IsIDValid(userID) {
 		return nil
 	}
-	if u, ok := userMap[userId]; ok {
+	if u, ok := userMap[userID]; ok {
 		return u
 	}
-	u := &User{ID: userId}
-	userMap[userId] = u
+	u := &User{ID: userID}
+	userMap[userID] = u
 	return u
 }
 
 // Add a markId to the mark map if it's not there already.
-func AddMarkToMap(markId string, markMap map[string]*Mark) *Mark {
-	mark, ok := markMap[markId]
+func AddMarkToMap(markID string, markMap map[string]*Mark) *Mark {
+	mark, ok := markMap[markID]
 	if !ok {
-		mark = &Mark{ID: markId}
-		markMap[markId] = mark
+		mark = &Mark{ID: markID}
+		markMap[markID] = mark
 	}
 	return mark
 }
@@ -311,12 +311,12 @@ func ExtractTodoCount(text string) int {
 }
 
 // GetPageUrl returns the domain relative url for accessing the given page.
-func GetPageUrl(pageID string) string {
+func GetPageURL(pageID string) string {
 	return fmt.Sprintf("/p/%s", pageID)
 }
 
 // GetPageFullUrl returns the full url for accessing the given page.
-func GetPageFullUrl(subdomain string, pageID string) string {
+func GetPageFullURL(subdomain string, pageID string) string {
 	if len(subdomain) > 0 {
 		subdomain += "."
 	}
@@ -325,12 +325,12 @@ func GetPageFullUrl(subdomain string, pageID string) string {
 }
 
 // GetEditPageUrl returns the domain relative url for editing the given page.
-func GetEditPageUrl(pageID string) string {
+func GetEditPageURL(pageID string) string {
 	return fmt.Sprintf("/edit/%s", pageID)
 }
 
 // GetEditPageFullUrl returns the full url for editing the given page.
-func GetEditPageFullUrl(subdomain string, pageID string) string {
+func GetEditPageFullURL(subdomain string, pageID string) string {
 	if len(subdomain) > 0 {
 		subdomain += "."
 	}
@@ -339,7 +339,7 @@ func GetEditPageFullUrl(subdomain string, pageID string) string {
 }
 
 // GetNewPageUrl returns the domain relative url for creating a page with a set alias.
-func GetNewPageUrl(alias string) string {
+func GetNewPageURL(alias string) string {
 	if alias != "" {
 		alias = fmt.Sprintf("?alias=%s", alias)
 	}
@@ -370,7 +370,7 @@ func CorrectPagePairType(pagePairType string) (string, error) {
 	return pagePairType, nil
 }
 
-func IsIdValid(pageID string) bool {
+func IsIDValid(pageID string) bool {
 	if len(pageID) > 0 && pageID[0] > '0' && pageID[0] <= '9' {
 		return true
 	}
@@ -382,19 +382,19 @@ func IsAliasValid(alias string) bool {
 	return regexp.MustCompile("^" + AliasRegexpStr + "$").MatchString(alias)
 }
 
-func IsUser(db *database.DB, userId string) bool {
+func IsUser(db *database.DB, userID string) bool {
 	var userCount int
 	row := db.NewStatement(`
 		SELECT COUNT(id)
 		FROM users
-		WHERE id=?`).QueryRow(userId)
+		WHERE id=?`).QueryRow(userID)
 	row.Scan(&userCount)
 	return userCount > 0
 }
 
 func GetCommentParents(db *database.DB, pageID string) (string, string, error) {
-	var commentParentId string
-	var commentPrimaryPageId string
+	var commentParentID string
+	var commentPrimaryPageID string
 	rows := database.NewQuery(`
 		SELECT pi.pageId,pi.type
 		FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
@@ -404,33 +404,33 @@ func GetCommentParents(db *database.DB, pageID string) (string, string, error) {
 			AND pp.childId=?`, pageID).Add(`
 		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var parentId string
+		var parentID string
 		var pageType string
-		err := rows.Scan(&parentId, &pageType)
+		err := rows.Scan(&parentID, &pageType)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
 		if pageType == CommentPageType {
-			if IsIdValid(commentParentId) {
+			if IsIDValid(commentParentID) {
 				return fmt.Errorf("Can't have more than one comment parent")
 			}
-			commentParentId = parentId
+			commentParentID = parentID
 		} else {
-			if IsIdValid(commentPrimaryPageId) {
+			if IsIDValid(commentPrimaryPageID) {
 				return fmt.Errorf("Can't have more than one non-comment parent for a comment")
 			}
-			commentPrimaryPageId = parentId
+			commentPrimaryPageID = parentID
 		}
 		return nil
 	})
 	if err != nil {
 		return "", "", fmt.Errorf("failed to process rows: %v", err)
 	}
-	if !IsIdValid(commentPrimaryPageId) {
+	if !IsIDValid(commentPrimaryPageID) {
 		return "", "", fmt.Errorf("Comment pages need at least one normal page parent")
 	}
 
-	return commentParentId, commentPrimaryPageId, nil
+	return commentParentID, commentPrimaryPageID, nil
 }
 
 func GetPrimaryParentTitle(db *database.DB, u *CurrentUser, pageID string) (string, error) {
@@ -470,12 +470,12 @@ func LoadDomainsForPages(db *database.DB, pageIds ...interface{}) ([]string, err
 		ON (pi.pageId=pdp.pageId)
 		WHERE pi.pageId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var domainId string
-		err := rows.Scan(&domainId)
+		var domainID string
+		err := rows.Scan(&domainID)
 		if err != nil {
 			return fmt.Errorf("failed to scan for a domain: %v", err)
 		}
-		domainIds = append(domainIds, domainId)
+		domainIds = append(domainIds, domainID)
 		return nil
 	})
 
@@ -495,14 +495,14 @@ func LoadAllDomainIds(db *database.DB, pageMap map[string]*Page) ([]string, erro
 		SELECT DISTINCT domainId
 		FROM pageDomainPairs`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var domainId string
-		err := rows.Scan(&domainId)
+		var domainID string
+		err := rows.Scan(&domainID)
 		if err != nil {
 			return fmt.Errorf("failed to scan for a domain: %v", err)
 		}
-		domainIds = append(domainIds, domainId)
+		domainIds = append(domainIds, domainID)
 		if pageMap != nil {
-			AddPageToMap(domainId, pageMap, TitlePlusLoadOptions)
+			AddPageToMap(domainID, pageMap, TitlePlusLoadOptions)
 		}
 		return nil
 	})
@@ -511,8 +511,8 @@ func LoadAllDomainIds(db *database.DB, pageMap map[string]*Page) ([]string, erro
 
 // Return true iff the string is in the list
 func IsStringInList(str string, list []string) bool {
-	for _, listId := range list {
-		if str == listId {
+	for _, listID := range list {
+		if str == listID {
 			return true
 		}
 	}

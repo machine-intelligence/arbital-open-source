@@ -48,7 +48,7 @@ var (
 type CurrentUser struct {
 	// DB variables
 	ID                     string `json:"id"`
-	FbUserId               string `json:"fbUserId"`
+	FbUserID               string `json:"fbUserId"`
 	Email                  string `json:"email"`
 	FirstName              string `json:"firstName"`
 	LastName               string `json:"lastName"`
@@ -60,7 +60,7 @@ type CurrentUser struct {
 	IsSlackMember          bool   `json:"isSlackMember"`
 
 	// If the user isn't logged in, this is set to their unique session id
-	SessionId string `json:"-"`
+	SessionID string `json:"-"`
 
 	// Computed variables
 	MaxTrustLevel                 int               `json:"maxTrustLevel"`
@@ -78,11 +78,11 @@ type CurrentUser struct {
 
 // Invite is an invitation from a trusted user to another to participate in a domain.
 type Invite struct {
-	FromUserId  string `json:"fromUserId"`
-	DomainId    string `json:"domainId"`
+	FromUserID  string `json:"fromUserId"`
+	DomainID    string `json:"domainId"`
 	ToEmail     string `json:"toEmail"`
 	CreatedAt   string `json:"createdAt"`
-	ToUserId    string `json:"toUserId"`
+	ToUserID    string `json:"toUserId"`
 	ClaimedAt   string `json:"claimedAt"`
 	EmailSentAt string `json:"emailSentAt"`
 }
@@ -99,7 +99,7 @@ type Trust struct {
 
 type CookieSession struct {
 	Email     string
-	SessionId string
+	SessionID string
 
 	// Randomly generated salt (for security/encryption reasons)
 	Random string
@@ -119,20 +119,20 @@ func (user *CurrentUser) FullName() string {
 }
 
 // GetSomeId returns user's id or, if not available, session id, which could still be ""
-func (user *CurrentUser) GetSomeId() string {
+func (user *CurrentUser) GetSomeID() string {
 	if user.ID != "" {
 		return user.ID
 	}
-	return user.SessionId
+	return user.SessionID
 }
 
 // IsMemberOfGroup returns true iff the user is member of the given group.
 // NOTE: we are assuming GroupIds have been loaded.
-func (user *CurrentUser) IsMemberOfGroup(groupId string) bool {
+func (user *CurrentUser) IsMemberOfGroup(groupID string) bool {
 	isMember := false
-	oldGroupIdStr := groupId
-	for _, groupIdStr := range user.GroupIds {
-		if groupIdStr == oldGroupIdStr {
+	oldGroupIDStr := groupID
+	for _, groupIDStr := range user.GroupIds {
+		if groupIDStr == oldGroupIDStr {
 			isMember = true
 			break
 		}
@@ -148,21 +148,21 @@ func SaveCookie(w http.ResponseWriter, r *http.Request, email string) (string, e
 	}
 
 	rand.Seed(time.Now().UnixNano())
-	sessionId := fmt.Sprintf("sid:%d", rand.Int63())
+	sessionID := fmt.Sprintf("sid:%d", rand.Int63())
 	s.Values[sessionKey] = &CookieSession{
 		Email:     email,
-		SessionId: sessionId,
+		SessionID: sessionID,
 		Random:    fmt.Sprintf("%d", rand.Int63()),
 	}
 	err = s.Save(r, w)
 	if err != nil {
 		return "", fmt.Errorf("Failed to save user to session: %v", err)
 	}
-	return sessionId, nil
+	return sessionID, nil
 }
 
 // Load user by id. If u object is given, load data into it. Otherwise create a new user object.
-func LoadCurrentUserFromDb(db *database.DB, userId string, u *CurrentUser) (*CurrentUser, error) {
+func LoadCurrentUserFromDb(db *database.DB, userID string, u *CurrentUser) (*CurrentUser, error) {
 	if u == nil {
 		u = NewCurrentUser()
 	}
@@ -170,8 +170,8 @@ func LoadCurrentUserFromDb(db *database.DB, userId string, u *CurrentUser) (*Cur
 		SELECT id,fbUserId,email,firstName,lastName,isAdmin,isSlackMember,
 			emailFrequency,emailThreshold,ignoreMathjax,showAdvancedEditorMode
 		FROM users
-		WHERE id=?`).QueryRow(userId)
-	exists, err := row.Scan(&u.ID, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
+		WHERE id=?`).QueryRow(userID)
+	exists, err := row.Scan(&u.ID, &u.FbUserID, &u.Email, &u.FirstName, &u.LastName,
 		&u.IsAdmin, &u.IsSlackMember, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
 		&u.ShowAdvancedEditorMode)
 	if err != nil {
@@ -193,24 +193,24 @@ func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (u
 
 	var cookie *CookieSession
 	if cookieStruct, ok := s.Values[sessionKey]; !ok {
-		sessionId, err := SaveCookie(w, r, "")
-		u.SessionId = sessionId
+		sessionID, err := SaveCookie(w, r, "")
+		u.SessionID = sessionID
 		return u, err
 	} else {
 		cookie = cookieStruct.(*CookieSession)
 	}
-	u.SessionId = cookie.SessionId
+	u.SessionID = cookie.SessionID
 	if cookie.Email == "" {
 		return u, err
 	}
 
-	var pretendToBeUserId string
+	var pretendToBeUserID string
 	row := db.NewStatement(`
 		SELECT id,pretendToBeUserId,fbUserId,email,firstName,lastName,isAdmin,
 			isSlackMember,emailFrequency,emailThreshold,ignoreMathjax,showAdvancedEditorMode
 		FROM users
 		WHERE email=?`).QueryRow(cookie.Email)
-	exists, err := row.Scan(&u.ID, &pretendToBeUserId, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
+	exists, err := row.Scan(&u.ID, &pretendToBeUserID, &u.FbUserID, &u.Email, &u.FirstName, &u.LastName,
 		&u.IsAdmin, &u.IsSlackMember, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
 		&u.ShowAdvancedEditorMode)
 	if err != nil {
@@ -220,8 +220,8 @@ func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (u
 	}
 
 	// Admins can pretened to be certain users
-	if u.IsAdmin && pretendToBeUserId != "" {
-		u, err = LoadCurrentUserFromDb(db, pretendToBeUserId, u)
+	if u.IsAdmin && pretendToBeUserID != "" {
+		u, err = LoadCurrentUserFromDb(db, pretendToBeUserID, u)
 		if err != nil {
 			return nil, fmt.Errorf("Couldn't pretend to be a user: %v", err)
 		} else if u == nil {
@@ -237,14 +237,14 @@ func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (u
 }
 
 // LoadUpdateCount returns the number of not seen updates the given user has.
-func LoadUpdateCount(db *database.DB, userId string) (int, error) {
+func LoadUpdateCount(db *database.DB, userID string) (int, error) {
 	editTypes := []string{PageEditUpdateType}
 
 	var editUpdateCount int
 	row := database.NewQuery(`
 		SELECT COUNT(DISTINCT type, subscribedToId, byUserId)
 		FROM updates
-		WHERE NOT seen AND userId=?`, userId).Add(`
+		WHERE NOT seen AND userId=?`, userID).Add(`
 			AND type IN`).AddArgsGroupStr(editTypes).ToStatement(db).QueryRow()
 	_, err := row.Scan(&editUpdateCount)
 	if err != nil {
@@ -255,7 +255,7 @@ func LoadUpdateCount(db *database.DB, userId string) (int, error) {
 	row = database.NewQuery(`
 		SELECT COUNT(*)
 		FROM updates
-		WHERE NOT seen AND userId=?`, userId).Add(`
+		WHERE NOT seen AND userId=?`, userID).Add(`
 			AND type NOT IN`).AddArgsGroupStr(editTypes).ToStatement(db).QueryRow()
 	_, err = row.Scan(&nonEditUpdateCount)
 	if err != nil {
@@ -328,19 +328,19 @@ func LoadNewAchievementCount(db *database.DB, user *CurrentUser) (int, error) {
 	return newLikeCount + newTaughtCount + newChangeLogLikeCount + newAchievementUpdateCount, nil
 }
 
-func LoadNotificationCount(db *database.DB, userId string, includeOldAndDismissed bool) (int, error) {
-	return loadUpdateCountInternal(db, userId, GetNotificationUpdateTypes(), includeOldAndDismissed)
+func LoadNotificationCount(db *database.DB, userID string, includeOldAndDismissed bool) (int, error) {
+	return loadUpdateCountInternal(db, userID, GetNotificationUpdateTypes(), includeOldAndDismissed)
 }
 
-func LoadMaintenanceUpdateCount(db *database.DB, userId string, includeOldAndDismissed bool) (int, error) {
-	return loadUpdateCountInternal(db, userId, GetMaintenanceUpdateTypes(), includeOldAndDismissed)
+func LoadMaintenanceUpdateCount(db *database.DB, userID string, includeOldAndDismissed bool) (int, error) {
+	return loadUpdateCountInternal(db, userID, GetMaintenanceUpdateTypes(), includeOldAndDismissed)
 }
 
-func LoadAchievementUpdateCount(db *database.DB, userId string, includeOldAndDismissed bool) (int, error) {
-	return loadUpdateCountInternal(db, userId, GetAchievementUpdateTypes(), includeOldAndDismissed)
+func LoadAchievementUpdateCount(db *database.DB, userID string, includeOldAndDismissed bool) (int, error) {
+	return loadUpdateCountInternal(db, userID, GetAchievementUpdateTypes(), includeOldAndDismissed)
 }
 
-func loadUpdateCountInternal(db *database.DB, userId string, updateTypes []string, includeOldAndDismissed bool) (int, error) {
+func loadUpdateCountInternal(db *database.DB, userID string, updateTypes []string, includeOldAndDismissed bool) (int, error) {
 	var filterCondition string
 	if includeOldAndDismissed {
 		filterCondition = "true"
@@ -352,7 +352,7 @@ func loadUpdateCountInternal(db *database.DB, userId string, updateTypes []strin
 	row := database.NewQuery(`
 		SELECT COUNT(*)
 		FROM updates
-		WHERE userId=?`, userId).Add(`
+		WHERE userId=?`, userID).Add(`
 			AND type IN`).AddArgsGroupStr(updateTypes).Add(`
 			AND`).Add(filterCondition).ToStatement(db).QueryRow()
 	_, err := row.Scan(&updateCount)
@@ -387,8 +387,8 @@ func LoadInvitesWhere(db *database.DB, wherePart *database.QueryPart) ([]*Invite
 		FROM invites`).AddPart(wherePart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		invite := &Invite{}
-		err := rows.Scan(&invite.FromUserId, &invite.DomainId, &invite.ToEmail,
-			&invite.CreatedAt, &invite.ToUserId, &invite.ClaimedAt, &invite.EmailSentAt)
+		err := rows.Scan(&invite.FromUserID, &invite.DomainID, &invite.ToEmail,
+			&invite.CreatedAt, &invite.ToUserID, &invite.ClaimedAt, &invite.EmailSentAt)
 		if err != nil {
 			return fmt.Errorf("failed to scan an invite: %v", err)
 		}

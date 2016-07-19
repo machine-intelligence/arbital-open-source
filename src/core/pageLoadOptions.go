@@ -42,7 +42,7 @@ type PageLoadOptions struct {
 	// Load options for loading a page for editing
 	ChangeLogs    bool
 	SearchStrings bool
-	LensParentId  bool
+	LensParentID  bool
 
 	// Options for what data to load for the page itself
 	HasDraft        bool
@@ -109,7 +109,7 @@ var (
 		DomainsAndPermissions: true,
 		ChangeLogs:            true,
 		SearchStrings:         true,
-		LensParentId:          true,
+		LensParentID:          true,
 		Links:                 true,
 		LinkedMarkCount:       true,
 		ProposalEditNum:       true,

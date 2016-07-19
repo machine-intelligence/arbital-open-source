@@ -445,7 +445,8 @@ md-list {
   width: auto;
   opacity: 1;
   white-space: nowrap;
-  outline: none; }
+  outline: none;
+  cursor: pointer; }
   .change-speed-button md-icon {
     color: white; }
   .change-speed-button.collapsed {

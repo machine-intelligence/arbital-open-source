@@ -1,4 +1,5 @@
 // signupHandler.go serves the signup page.
+
 package site
 
 import (
@@ -24,10 +25,10 @@ type signupHandlerData struct {
 
 	// Alternatively, signup with Facebook
 	FbAccessToken string
-	FbUserId      string
+	FbUserID      string
 	// Alternatively, signup with FB code token
 	FbCodeToken   string
-	FbRedirectUrl string
+	FbRedirectURL string
 }
 
 var signupHandler = siteHandler{
@@ -49,18 +50,18 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if len(data.FbCodeToken) > 0 && len(data.FbRedirectUrl) > 0 {
+	if len(data.FbCodeToken) > 0 && len(data.FbRedirectURL) > 0 {
 		// Convert FB code token to access token + user id
-		data.FbAccessToken, err = facebook.ProcessCodeToken(c, data.FbCodeToken, data.FbRedirectUrl)
+		data.FbAccessToken, err = facebook.ProcessCodeToken(c, data.FbCodeToken, data.FbRedirectURL)
 		if err != nil {
 			return pages.Fail("Couldn't process FB code token", err)
 		}
-		data.FbUserId, err = facebook.ProcessAccessToken(c, data.FbAccessToken)
+		data.FbUserID, err = facebook.ProcessAccessToken(c, data.FbAccessToken)
 		if err != nil {
 			return pages.Fail("Couldn't process FB token", err)
 		}
 	}
-	if len(data.FbAccessToken) > 0 && len(data.FbUserId) >= 0 {
+	if len(data.FbAccessToken) > 0 && len(data.FbUserID) >= 0 {
 		// Get data from FB
 		account, err := stormpath.CreateNewFbUser(c, data.FbAccessToken)
 		if err != nil {
@@ -82,21 +83,21 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check if this user already exists.
-	var existingFbUserId string
-	var existingId string
+	var existingFbUserID string
+	var existingID string
 	exists, err := db.NewStatement(`
 		SELECT id,fbUserId
 		FROM users
-		WHERE email=?`).QueryRow(data.Email).Scan(&existingId, &existingFbUserId)
+		WHERE email=?`).QueryRow(data.Email).Scan(&existingID, &existingFbUserID)
 	if err != nil {
 		return pages.Fail("Error checking for existing user", err)
 	}
 	if exists {
-		if existingFbUserId != data.FbUserId {
+		if existingFbUserID != data.FbUserID {
 			// Update user's FB id in the DB
 			hashmap := make(database.InsertMap)
-			hashmap["id"] = existingId
-			hashmap["fbUserId"] = data.FbUserId
+			hashmap["id"] = existingID
+			hashmap["fbUserId"] = data.FbUserID
 			statement := db.NewInsertStatement("users", hashmap, "fbUserId")
 			if _, err := statement.Exec(); err != nil {
 				return pages.Fail("Couldn't update user's record", err)
@@ -150,18 +151,18 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Begin the transaction.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 
-		userId, err := core.GetNextAvailableId(tx)
+		userID, err := core.GetNextAvailableID(tx)
 		if err != nil {
 			return sessions.NewError("Couldn't get last insert id for new user", err)
 		}
 
 		// Create new user
 		hashmap := make(database.InsertMap)
-		hashmap["id"] = userId
+		hashmap["id"] = userID
 		hashmap["firstName"] = data.FirstName
 		hashmap["lastName"] = data.LastName
 		hashmap["email"] = data.Email
-		hashmap["fbUserId"] = data.FbUserId
+		hashmap["fbUserId"] = data.FbUserID
 		hashmap["createdAt"] = database.Now()
 		hashmap["lastWebsiteVisit"] = database.Now()
 		hashmap["emailFrequency"] = core.DefaultEmailFrequency
@@ -174,33 +175,33 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Create new group for the user.
 		fullName := fmt.Sprintf("%s %s", data.FirstName, data.LastName)
-		err2 := core.NewUserGroup(tx, userId, fullName, alias)
+		err2 := core.NewUserGroup(tx, userID, fullName, alias)
 		if err2 != nil {
 			return err2
 		}
 
 		// Set the user value in params, since some internal handlers we might call
 		// will expect it to be set
-		u.ID = userId
+		u.ID = userID
 		u.Email = data.Email
 
 		// The user might have some data stored under their session id
-		if u.SessionId != "" {
+		if u.SessionID != "" {
 			statement = database.NewQuery(`
-				UPDATE userMasteryPairs SET userId=? WHERE userId=?`, userId, u.SessionId).ToTxStatement(tx)
+				UPDATE userMasteryPairs SET userId=? WHERE userId=?`, userID, u.SessionID).ToTxStatement(tx)
 			if _, err := statement.Exec(); err != nil {
 				return sessions.NewError("Couldn't delete existing page summaries", err)
 			}
 
 			statement = database.NewQuery(`
-				UPDATE userPageObjectPairs SET userId=? WHERE userId=?`, userId, u.SessionId).ToTxStatement(tx)
+				UPDATE userPageObjectPairs SET userId=? WHERE userId=?`, userID, u.SessionID).ToTxStatement(tx)
 			if _, err := statement.Exec(); err != nil {
 				return sessions.NewError("Couldn't delete existing page summaries", err)
 			}
 		}
 
 		// Signup for the user's own page
-		err2 = addSubscription(tx, userId, userId, true)
+		err2 = addSubscription(tx, userID, userID, true)
 		if err2 != nil {
 			return err2
 		}

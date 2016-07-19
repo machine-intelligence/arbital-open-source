@@ -12,7 +12,7 @@ import (
 
 // PublishPagePairTask is the object that's put into the daemon queue.
 type PublishPagePairTask struct {
-	UserId     string
+	UserID     string
 	PagePairID string
 }
 
@@ -25,7 +25,7 @@ func (task PublishPagePairTask) IsValid() error {
 	if task.PagePairID == "" {
 		return fmt.Errorf("PagePairId needs to be set")
 	}
-	if task.UserId == "" {
+	if task.UserID == "" {
 		return fmt.Errorf("UserId needs to be set")
 	}
 	return nil
@@ -59,8 +59,8 @@ func (task PublishPagePairTask) Execute(db *database.DB) (delay int, err error) 
 
 	// Load all the involved pages
 	pageMap := make(map[string]*core.Page)
-	parent := core.AddPageIdToMap(pagePair.ParentID, pageMap)
-	child := core.AddPageIdToMap(pagePair.ChildID, pageMap)
+	parent := core.AddPageIDToMap(pagePair.ParentID, pageMap)
+	child := core.AddPageIDToMap(pagePair.ChildID, pageMap)
 	err = core.LoadPages(db, nil, pageMap)
 	if err != nil {
 		return -1, fmt.Errorf("Failed to load all the pages: %v", err)
@@ -84,22 +84,22 @@ func (task PublishPagePairTask) Execute(db *database.DB) (delay int, err error) 
 		}
 
 		// Add change log entries to both pages
-		parentChangeLogId, err := addNewRelationshipToParentChangeLog(tx, pagePair, false)
+		parentChangeLogID, err := addNewRelationshipToParentChangeLog(tx, pagePair, false)
 		if err != nil {
 			return sessions.NewError("Couldn't add to changelog of parent", err)
 		}
-		childChangeLogId, err := addNewRelationshipToParentChangeLog(tx, pagePair, true)
+		childChangeLogID, err := addNewRelationshipToParentChangeLog(tx, pagePair, true)
 		if err != nil {
 			return sessions.NewError("Couldn't add to changelog of child", err)
 		}
 
 		// Update people subscribed to the parent
-		err = EnqueuePagePairUpdate(tx.DB.C, pagePair, task.UserId, parentChangeLogId, false)
+		err = EnqueuePagePairUpdate(tx.DB.C, pagePair, task.UserID, parentChangeLogID, false)
 		if err != nil {
 			tx.DB.C.Errorf("Couldn't enqueue a task: %v", err)
 		}
 		// Update people subscribed to the child
-		err = EnqueuePagePairUpdate(tx.DB.C, pagePair, task.UserId, childChangeLogId, true)
+		err = EnqueuePagePairUpdate(tx.DB.C, pagePair, task.UserID, childChangeLogID, true)
 		if err != nil {
 			tx.DB.C.Errorf("Couldn't enqueue a task: %v", err)
 		}
@@ -180,17 +180,17 @@ func addNewRelationshipToParentChangeLog(tx *database.Tx, pagePair *core.PagePai
 	if err != nil {
 		return 0, fmt.Errorf("Could not insert changeLog: %v", err)
 	}
-	changeLogId, err := result.LastInsertId()
+	changeLogID, err := result.LastInsertId()
 	if err != nil {
 		return 0, fmt.Errorf("Could not get changeLogId: %v", err)
 	}
-	return changeLogId, err
+	return changeLogID, err
 }
 
 // Add an update to the queue about the pagePair being added to the parent's changeLog.
 // If forChild is set, the update is about child's changeLog.
-func EnqueuePagePairUpdate(c sessions.Context, pagePair *core.PagePair, userId string, changeLogId int64, forChild bool) error {
-	if changeLogId == 0 {
+func EnqueuePagePairUpdate(c sessions.Context, pagePair *core.PagePair, userID string, changeLogID int64, forChild bool) error {
+	if changeLogID == 0 {
 		return nil
 	}
 	// Don't send updates for pages that are being used as tags or requirements
@@ -199,15 +199,15 @@ func EnqueuePagePairUpdate(c sessions.Context, pagePair *core.PagePair, userId s
 	}
 
 	var task NewUpdateTask
-	task.UserId = userId
-	task.ChangeLogId = changeLogId
+	task.UserID = userID
+	task.ChangeLogID = changeLogID
 	task.UpdateType = core.ChangeLogUpdateType
 	if !forChild {
-		task.SubscribedToId = pagePair.ParentID
-		task.GoToPageId = pagePair.ChildID
+		task.SubscribedToID = pagePair.ParentID
+		task.GoToPageID = pagePair.ChildID
 	} else {
-		task.SubscribedToId = pagePair.ChildID
-		task.GoToPageId = pagePair.ParentID
+		task.SubscribedToID = pagePair.ChildID
+		task.GoToPageID = pagePair.ParentID
 	}
 	return Enqueue(c, &task, nil)
 }

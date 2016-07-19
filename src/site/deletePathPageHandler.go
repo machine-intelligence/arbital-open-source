@@ -1,4 +1,5 @@
 // deletePathPageHandler.go deletes the given lens, while keeping the page as a child
+
 package site
 
 import (
@@ -44,7 +45,7 @@ func deletePathPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check permissions
-	pageIds := []string{pathPage.GuideId}
+	pageIds := []string{pathPage.GuideID}
 	permissionError, err := core.VerifyEditPermissionsForList(db, pageIds, u)
 	if err != nil {
 		return pages.Fail("Error verifying permissions", err)

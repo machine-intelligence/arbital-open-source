@@ -11,18 +11,18 @@ import (
 // DomainWideNewUpdateTask is the object that's put into the daemon queue.
 type DomainWideNewUpdateTask struct {
 	// User who performed an action, e.g. creating a comment
-	UserId     string
+	UserID     string
 	UpdateType string
 
 	// Grouping key. One of these has to set. We'll group all updates by this key
 	// to show in one panel.
 	// Domain for which this update happens
-	DomainId string
+	DomainID string
 
 	// Go to destination. This is where we'll direct
 	// the user if they want to see more info about this update, e.g. to see the
 	// comment someone made.
-	GoToPageId string
+	GoToPageID string
 }
 
 func (task DomainWideNewUpdateTask) Tag() string {
@@ -31,15 +31,15 @@ func (task DomainWideNewUpdateTask) Tag() string {
 
 // Check if this task is valid, and we can safely execute it.
 func (task DomainWideNewUpdateTask) IsValid() error {
-	if !core.IsIdValid(task.UserId) {
-		return fmt.Errorf("User id has to be set: %v", task.UserId)
+	if !core.IsIDValid(task.UserID) {
+		return fmt.Errorf("User id has to be set: %v", task.UserID)
 	} else if task.UpdateType == "" {
 		return fmt.Errorf("Update type has to be set")
-	} else if !core.IsIdValid(task.DomainId) {
+	} else if !core.IsIDValid(task.DomainID) {
 		return fmt.Errorf("Domain id has to be set")
 	}
 
-	if !core.IsIdValid(task.GoToPageId) {
+	if !core.IsIDValid(task.GoToPageID) {
 		return fmt.Errorf("GoToPageId has to be set")
 	}
 
@@ -63,21 +63,21 @@ func (task DomainWideNewUpdateTask) Execute(db *database.DB) (delay int, err err
 	rows := database.NewQuery(`
 		SELECT DISTINCT toUserId
 		FROM invites
-		WHERE domainId=?`, task.DomainId).ToStatement(db).Query()
+		WHERE domainId=?`, task.DomainID).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var userId string
-		err := rows.Scan(&userId)
+		var userID string
+		err := rows.Scan(&userID)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
 
 		// Insert new update
 		hashmap := make(database.InsertMap)
-		hashmap["userId"] = userId
-		hashmap["byUserId"] = task.UserId
+		hashmap["userId"] = userID
+		hashmap["byUserId"] = task.UserID
 		hashmap["type"] = task.UpdateType
-		hashmap["subscribedToId"] = task.DomainId
-		hashmap["goToPageId"] = task.GoToPageId
+		hashmap["subscribedToId"] = task.DomainID
+		hashmap["goToPageId"] = task.GoToPageID
 		hashmap["createdAt"] = database.Now()
 		statement := db.NewInsertStatement("updates", hashmap)
 		if _, err = statement.Exec(); err != nil {

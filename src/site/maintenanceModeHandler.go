@@ -1,4 +1,5 @@
 // maintenanceModeHandler.go serves the /maintain panel (which displays maintenance updates, such as, 'Alexei edited your page').
+
 package site
 
 import (

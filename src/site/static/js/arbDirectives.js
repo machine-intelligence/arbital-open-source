@@ -292,10 +292,14 @@ app.directive('arbPageTitle', function(arb) {
 			showType: '=',
 			// If set, we'll pull the page from the edit map
 			useEditMap: '=',
+			// If true, link to editing the page
+			linkToEdit: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.pageUrl = $scope.customLink ? $scope.customLink : arb.urlService.getPageUrl($scope.pageId);
+			$scope.pageUrl = $scope.customLink ? $scope.customLink :
+							 $scope.linkToEdit ? arb.urlService.getEditPageUrl($scope.pageId) :
+							 		arb.urlService.getPageUrl($scope.pageId);
 
 			$scope.page = arb.stateService.getPageFromSomeMap($scope.pageId, $scope.useEditMap);
 

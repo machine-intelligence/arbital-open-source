@@ -1,4 +1,5 @@
 // marksJsonHandler.go returns marks for a given page.
+
 package site
 
 import (
@@ -10,30 +11,30 @@ import (
 )
 
 // marksJsonData contains parameters passed in via the request.
-type marksJsonData struct {
+type marksJSONData struct {
 	PageID string
 }
 
 var marksHandler = siteHandler{
 	URI:         "/json/marks/",
-	HandlerFunc: marksJsonHandler,
+	HandlerFunc: marksJSONHandler,
 	Options: pages.PageOptions{
 		RequireLogin: true,
 	},
 }
 
 // marksJsonHandler handles the request.
-func marksJsonHandler(params *pages.HandlerParams) *pages.Result {
+func marksJSONHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	returnData := core.NewHandlerData(params.U)
 
 	// Decode data
-	var data marksJsonData
+	var data marksJSONData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageID) {
+	if !core.IsIDValid(data.PageID) {
 		return pages.Fail("Need a valid pageId", err).Status(http.StatusBadRequest)
 	}
 

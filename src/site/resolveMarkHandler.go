@@ -1,4 +1,5 @@
 // resolveMarkHandler.go resolves an existing mark.
+
 package site
 
 import (
@@ -12,11 +13,11 @@ import (
 
 // resolveMarkData contains data given to us in the request.
 type resolveMarkData struct {
-	MarkId string
+	MarkID string
 
 	// Resolve the mark, and this is the page id with the "answer"
 	// If "", it means the mark was dismissed
-	ResolvedPageId string
+	ResolvedPageID string
 	// Text (optional, can only be set by the owner of the mark)
 	Text string
 }
@@ -43,8 +44,8 @@ func resolveMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the mark
-	mark := &core.Mark{ID: data.MarkId}
-	loadData.MarkMap[data.MarkId] = mark
+	mark := &core.Mark{ID: data.MarkID}
+	loadData.MarkMap[data.MarkID] = mark
 	err = core.LoadMarkData(db, loadData.PageMap, loadData.UserMap, loadData.MarkMap, u)
 	if err != nil {
 		return pages.Fail("Couldn't load the mark", err)
@@ -58,8 +59,8 @@ func resolveMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Update existing mark
 	hashmap := make(database.InsertMap)
-	hashmap["id"] = data.MarkId
-	hashmap["resolvedPageId"] = data.ResolvedPageId
+	hashmap["id"] = data.MarkID
+	hashmap["resolvedPageId"] = data.ResolvedPageID
 	hashmap["resolvedBy"] = u.ID
 	hashmap["resolvedAt"] = database.Now()
 	if data.Text != "" {
@@ -75,12 +76,12 @@ func resolveMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// If the mark was resolved for the first time, update the user mark owner
-	if mark.Type != core.QueryMarkType && mark.ResolvedBy == "" && data.ResolvedPageId != "" {
+	if mark.Type != core.QueryMarkType && mark.ResolvedBy == "" && data.ResolvedPageID != "" {
 		hashmap := make(database.InsertMap)
 		hashmap["userId"] = mark.CreatorID
 		hashmap["type"] = core.ResolvedMarkUpdateType
-		hashmap["goToPageId"] = data.ResolvedPageId
-		hashmap["markId"] = data.MarkId
+		hashmap["goToPageId"] = data.ResolvedPageID
+		hashmap["markId"] = data.MarkID
 		hashmap["createdAt"] = database.Now()
 		statement := db.NewInsertStatement("updates", hashmap)
 		_, err = statement.Exec()

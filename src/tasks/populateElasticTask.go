@@ -73,7 +73,7 @@ func populateElasticProcessPage(db *database.DB, rows *database.Rows) error {
 
 	// Load search strings
 	pageMap := make(map[string]*core.Page)
-	p := core.AddPageIdToMap(doc.PageID, pageMap)
+	p := core.AddPageIDToMap(doc.PageID, pageMap)
 	if err := core.LoadSearchStrings(db, pageMap); err != nil {
 		return fmt.Errorf("LoadSearchStrings failed: %v", err)
 	}

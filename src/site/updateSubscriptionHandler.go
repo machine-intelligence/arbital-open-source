@@ -1,4 +1,5 @@
 // Handles requests to update subscriptions
+
 package site
 
 import (
@@ -12,7 +13,7 @@ import (
 )
 
 type updateSubscriptionData struct {
-	ToId         string `json:"toId"`
+	ToID         string `json:"toId"`
 	IsSubscribed bool   `json:"isSubscribed"`
 	AsMaintainer bool   `json:asMaintainer"`
 }
@@ -35,7 +36,7 @@ func updateSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.ToId) {
+	if !core.IsIDValid(data.ToID) {
 		return pages.Fail("ToId has to be set", err).Status(http.StatusBadRequest)
 	}
 
@@ -43,7 +44,7 @@ func updateSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Delete the subscription
 		query := database.NewQuery(`
 			DELETE FROM subscriptions
-			WHERE userId=? AND toId=?`, u.ID, data.ToId)
+			WHERE userId=? AND toId=?`, u.ID, data.ToID)
 		if _, err := query.ToStatement(db).Exec(); err != nil {
 			return pages.Fail("Couldn't delete a subscription", err)
 		}
@@ -52,7 +53,7 @@ func updateSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Otherwise, create/update it
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		return addSubscription(tx, u.ID, data.ToId, data.AsMaintainer)
+		return addSubscription(tx, u.ID, data.ToID, data.AsMaintainer)
 	})
 	if err2 != nil {
 		return pages.FailWith(err2)
@@ -60,10 +61,10 @@ func updateSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	return pages.Success(nil)
 }
 
-func addSubscription(tx *database.Tx, userId string, toPageId string, asMaintainer bool) sessions.Error {
+func addSubscription(tx *database.Tx, userID string, toPageID string, asMaintainer bool) sessions.Error {
 	hashmap := make(map[string]interface{})
-	hashmap["userId"] = userId
-	hashmap["toId"] = toPageId
+	hashmap["userId"] = userID
+	hashmap["toId"] = toPageID
 	hashmap["createdAt"] = database.Now()
 	hashmap["asMaintainer"] = asMaintainer
 	statement := tx.DB.NewInsertStatement("subscriptions", hashmap, "asMaintainer").WithTx(tx)

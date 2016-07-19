@@ -1,4 +1,5 @@
 // Provide data for "continue writing" mode.
+
 package site
 
 import (

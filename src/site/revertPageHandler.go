@@ -1,6 +1,7 @@
 // revertPageHandler.go handles requests for reverting a page. This means marking
 // as deleted all autosaves and snapshots which were created by the current user
 // after the currently live edit.
+
 package site
 
 import (
@@ -38,7 +39,7 @@ func revertPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageID) {
+	if !core.IsIDValid(data.PageID) {
 		return pages.Fail("Missing or invalid page id", nil).Status(http.StatusBadRequest)
 	}
 

@@ -1,4 +1,5 @@
 // newInviteHandler.go adds new invites to db and auto-claims / sends invite emails
+
 package site
 
 import (
@@ -38,8 +39,8 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	for _, domainId := range data.DomainIds {
-		if !core.IsIdValid(domainId) {
+	for _, domainID := range data.DomainIds {
+		if !core.IsIDValid(domainID) {
 			return pages.Fail("One of the domainIds is invalid", nil).Status(http.StatusBadRequest)
 		}
 	}
@@ -48,31 +49,31 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check to make sure user has permissions for all the domains
-	for _, domainId := range data.DomainIds {
-		if u.TrustMap[domainId].Level < core.ArbiterTrustLevel {
+	for _, domainID := range data.DomainIds {
+		if u.TrustMap[domainID].Level < core.ArbiterTrustLevel {
 			return pages.Fail("Don't have permissions to invite to one of the domains", nil).Status(http.StatusBadRequest)
 		}
 	}
 
 	// Check to see if the invitee is already a user in our DB
-	var inviteeUserId string
+	var inviteeUserID string
 	row := db.NewStatement(`
 		SELECT id
 		FROM users
 		WHERE email=?`).QueryRow(data.ToEmail)
-	_, err = row.Scan(&inviteeUserId)
+	_, err = row.Scan(&inviteeUserID)
 	if err != nil {
 		return pages.Fail("Couldn't retrieve a user", err)
 	}
 
 	// Create invite map
 	inviteMap := make(map[string]*core.Invite) // key: domainId
-	for _, domainId := range data.DomainIds {
-		inviteMap[domainId] = &core.Invite{
-			FromUserId: u.ID,
-			DomainId:   domainId,
+	for _, domainID := range data.DomainIds {
+		inviteMap[domainID] = &core.Invite{
+			FromUserID: u.ID,
+			DomainID:   domainID,
 			ToEmail:    data.ToEmail,
-			ToUserId:   inviteeUserId,
+			ToUserID:   inviteeUserID,
 			CreatedAt:  database.Now(),
 		}
 	}
@@ -87,7 +88,7 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't load sent invites", err)
 	}
 	for _, existingInvite := range existingInvites {
-		delete(inviteMap, existingInvite.DomainId)
+		delete(inviteMap, existingInvite.DomainID)
 	}
 	if len(inviteMap) <= 0 {
 		return pages.Success(returnData)
@@ -97,19 +98,19 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 
 		inviteDomainIds := make([]string, 0)
-		for domainId, invite := range inviteMap {
-			if domainId != "" {
-				inviteDomainIds = append(inviteDomainIds, domainId)
+		for domainID, invite := range inviteMap {
+			if domainID != "" {
+				inviteDomainIds = append(inviteDomainIds, domainID)
 			}
 
 			// Create new invite
 			hashmap := make(map[string]interface{})
 			hashmap["fromUserId"] = u.ID
-			hashmap["domainId"] = domainId
+			hashmap["domainId"] = domainID
 			hashmap["toEmail"] = data.ToEmail
 			hashmap["createdAt"] = database.Now()
-			if inviteeUserId != "" {
-				hashmap["toUserId"] = inviteeUserId
+			if inviteeUserID != "" {
+				hashmap["toUserId"] = inviteeUserID
 				hashmap["claimedAt"] = database.Now()
 				invite.ClaimedAt = database.Now()
 			}
@@ -119,13 +120,13 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			}
 
 			// If the user already exists, send them an update
-			if inviteeUserId != "" {
+			if inviteeUserID != "" {
 				hashmap := make(map[string]interface{})
-				hashmap["userId"] = invite.ToUserId
+				hashmap["userId"] = invite.ToUserID
 				hashmap["type"] = core.InviteReceivedUpdateType
 				hashmap["createdAt"] = database.Now()
 				hashmap["subscribedToId"] = u.ID
-				hashmap["goToPageId"] = domainId
+				hashmap["goToPageId"] = domainID
 				hashmap["byUserId"] = u.ID
 				statement := db.NewInsertStatement("updates", hashmap).WithTx(tx)
 				if _, err = statement.Exec(); err != nil {
@@ -134,8 +135,8 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 				// Create/update user trust
 				hashmap = make(map[string]interface{})
-				hashmap["userId"] = inviteeUserId
-				hashmap["domainId"] = domainId
+				hashmap["userId"] = inviteeUserID
+				hashmap["domainId"] = domainID
 				hashmap["editTrust"] = core.BasicKarmaLevel
 				statement = db.NewInsertStatement("userTrust", hashmap, "editTrust")
 				if _, err := statement.WithTx(tx).Exec(); err != nil {
@@ -145,9 +146,9 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// If the user doesn't exist, send them an invite
-		if inviteeUserId == "" {
+		if inviteeUserID == "" {
 			var task tasks.SendInviteTask
-			task.FromUserId = u.ID
+			task.FromUserID = u.ID
 			task.ToEmail = data.ToEmail
 			task.DomainIds = inviteDomainIds
 			if err := tasks.Enqueue(c, &task, nil); err != nil {

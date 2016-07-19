@@ -1,4 +1,5 @@
 // newGroupHandler.go creates a new group.
+
 package site
 
 import (
@@ -18,7 +19,7 @@ type newGroupData struct {
 
 	IsDomain   bool
 	Alias      string
-	RootPageId string
+	RootPageID string
 }
 
 var newGroupHandler = siteHandler{
@@ -48,14 +49,14 @@ func newGroupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Begin the transaction.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		groupId, err := core.GetNextAvailableId(tx)
+		groupID, err := core.GetNextAvailableID(tx)
 		if err != nil {
 			return sessions.NewError("Couldn't get next available Id", err)
 		}
 		if data.IsDomain {
-			return core.NewDomain(tx, groupId, u.ID, data.Name, data.Alias)
+			return core.NewDomain(tx, groupID, u.ID, data.Name, data.Alias)
 		}
-		return core.NewGroup(tx, groupId, u.ID, data.Name, data.Alias)
+		return core.NewGroup(tx, groupID, u.ID, data.Name, data.Alias)
 	})
 	if err2 != nil {
 		return pages.FailWith(err2)
@@ -64,7 +65,7 @@ func newGroupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if data.IsDomain {
 		// Create a task to propagate the domain change to all children
 		var task tasks.PropagateDomainTask
-		task.PageID = data.RootPageId
+		task.PageID = data.RootPageID
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}

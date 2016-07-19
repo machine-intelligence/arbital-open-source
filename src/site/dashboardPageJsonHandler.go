@@ -1,4 +1,5 @@
 // dashboardPage.go serves the dashboard template.
+
 package site
 
 import (
@@ -13,23 +14,23 @@ import (
 
 var dashboardPageHandler = siteHandler{
 	URI:         "/json/dashboardPage/",
-	HandlerFunc: dashboardPageJsonHandler,
+	HandlerFunc: dashboardPageJSONHandler,
 	Options: pages.PageOptions{
 		RequireLogin: true,
 	},
 }
 
-type dashboardPageJsonData struct {
+type dashboardPageJSONData struct {
 }
 
 // dashboardPageJsonHandler renders the dashboard page.
-func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
+func dashboardPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(u).SetResetEverything()
 
 	// Decode data
-	var data dashboardPageJsonData
+	var data dashboardPageJSONData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
@@ -52,7 +53,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
 		WHERE p.creatorId=?`, u.ID).Add(`
-			AND pi.seeGroupId=?`, params.PrivateGroupId).Add(`
+			AND pi.seeGroupId=?`, params.PrivateGroupID).Add(`
 			AND pi.type=?`, core.CommentPageType).Add(`
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
@@ -69,7 +70,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		ON (p.pageId=pi.pageId)
 		WHERE p.creatorId=?`, u.ID).Add(`
-			AND pi.seeGroupId=?`, params.PrivateGroupId).Add(`
+			AND pi.seeGroupId=?`, params.PrivateGroupID).Add(`
 			AND pi.type!=?`, core.CommentPageType).Add(`
 		GROUP BY 1
 		ORDER BY MAX(p.createdAt) DESC
@@ -88,7 +89,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			ON (p.pageId = pi.pageId)
 			WHERE p.creatorId=?`, u.ID).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
-				AND pi.seeGroupId=?`, params.PrivateGroupId).Add(`
+				AND pi.seeGroupId=?`, params.PrivateGroupID).Add(`
 				AND p.edit>pi.currentEdit AND (p.text!="" OR p.title!="")
 			GROUP BY p.pageId
 			ORDER BY p.createdAt DESC
@@ -104,7 +105,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 		core.AddPageToMap(pageID, returnData.PageMap, pageOptions)
 		pagesWithDraftIds = append(pagesWithDraftIds, pageID)
-		page := core.AddPageIdToMap(pageID, returnData.EditMap)
+		page := core.AddPageIDToMap(pageID, returnData.EditMap)
 		if title == "" {
 			title = "*Untitled*"
 		}
@@ -131,7 +132,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		) AS l
 		LEFT JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		ON (l.childAlias=pi.alias OR l.childAlias=pi.pageId)
-		WHERE pi.seeGroupId=?`, params.PrivateGroupId).Add(`
+		WHERE pi.seeGroupId=?`, params.PrivateGroupID).Add(`
 			AND pi.type!=?`, core.CommentPageType).Add(`
 		GROUP BY 1
 		ORDER BY (SUM(ISNULL(pi.pageId)) + MAX(l.parentTodoCount)) DESC

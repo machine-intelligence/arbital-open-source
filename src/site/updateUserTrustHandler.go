@@ -1,4 +1,5 @@
 // updateUserTrustHandler.go updates user's trust values
+
 package site
 
 import (
@@ -13,8 +14,8 @@ import (
 
 // updateSettingsData contains data given to us in the request.
 type updateUserTrustData struct {
-	UserId    string
-	DomainId  string
+	UserID    string
+	DomainID  string
 	EditTrust int
 }
 
@@ -41,8 +42,8 @@ func updateUserTrustHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Create/update user trust.
 		hashmap := make(map[string]interface{})
-		hashmap["userId"] = data.UserId
-		hashmap["domainId"] = data.DomainId
+		hashmap["userId"] = data.UserID
+		hashmap["domainId"] = data.DomainID
 		hashmap["editTrust"] = data.EditTrust
 		statement := db.NewInsertStatement("userTrust", hashmap, "editTrust")
 		if _, err := statement.WithTx(tx).Exec(); err != nil {
@@ -51,11 +52,11 @@ func updateUserTrustHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Send them an update
 		hashmap = make(map[string]interface{})
-		hashmap["userId"] = data.UserId
+		hashmap["userId"] = data.UserID
 		hashmap["type"] = core.UserTrustUpdateType
 		hashmap["createdAt"] = database.Now()
-		hashmap["subscribedToId"] = data.DomainId
-		hashmap["goToPageId"] = data.DomainId
+		hashmap["subscribedToId"] = data.DomainID
+		hashmap["goToPageId"] = data.DomainID
 		hashmap["byUserId"] = u.ID
 		statement = db.NewInsertStatement("updates", hashmap).WithTx(tx)
 		if _, err = statement.Exec(); err != nil {

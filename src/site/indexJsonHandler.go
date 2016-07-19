@@ -1,4 +1,5 @@
 // indexJsonHandler.go serves the index page data.
+
 package site
 
 import (
@@ -7,23 +8,23 @@ import (
 )
 
 type featuredDomain struct {
-	DomainId string   `json:"domainId"`
+	DomainID string   `json:"domainId"`
 	ChildIds []string `json:"childIds"`
 }
 
 var indexHandler = siteHandler{
 	URI:         "/json/index/",
-	HandlerFunc: indexJsonHandler,
+	HandlerFunc: indexJSONHandler,
 	Options:     pages.PageOptions{},
 }
 
-func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
+func indexJSONHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(u).SetResetEverything()
 
 	// Load pages.
-	core.AddPageIdToMap("3hs", returnData.PageMap)
+	core.AddPageIDToMap("3hs", returnData.PageMap)
 	err := core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)

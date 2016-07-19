@@ -1,5 +1,5 @@
 // init.go runs the daemon to process the daemonQueue.
-package queue_daemon
+package queueDaemon
 
 import (
 	"fmt"

@@ -1,4 +1,5 @@
 // userPopoverJsonHandler.go contains the handler for returning JSON with user data
+
 package site
 
 import (
@@ -10,22 +11,22 @@ import (
 )
 
 // userPopoverJsonData contains parameters passed in via the request.
-type userPopoverJsonData struct {
-	UserId string
+type userPopoverJSONData struct {
+	UserID string
 }
 
 var userPopoverHandler = siteHandler{
 	URI:         "/json/userPopover/",
-	HandlerFunc: userPopoverJsonHandler,
+	HandlerFunc: userPopoverJSONHandler,
 }
 
 // userPopoverJsonHandler handles the request.
-func userPopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
+func userPopoverJSONHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	returnData := core.NewHandlerData(params.U)
 
 	// Decode data
-	var data userPopoverJsonData
+	var data userPopoverJSONData
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
@@ -33,9 +34,9 @@ func userPopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load data
-	core.AddUserToMap(data.UserId, returnData.UserMap)
+	core.AddUserToMap(data.UserID, returnData.UserMap)
 	// This page is the user page, this will load user summary
-	core.AddPageToMap(data.UserId, returnData.PageMap, core.IntrasitePopoverLoadOptions)
+	core.AddPageToMap(data.UserID, returnData.PageMap, core.IntrasitePopoverLoadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		pages.Fail("Pipeline error", err)

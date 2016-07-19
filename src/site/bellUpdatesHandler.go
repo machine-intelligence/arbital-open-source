@@ -1,4 +1,5 @@
 // bellUpdatesHandler.go serves the /notifications panel (which displays notifications, such as, 'Alexei replied to your comment').
+
 package site
 
 import (

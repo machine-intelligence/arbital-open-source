@@ -1,4 +1,5 @@
 // deleteAnswerHandler.go deletes an answer to a question
+
 package site
 
 import (
@@ -14,7 +15,7 @@ import (
 
 // deleteAnswerData contains data given to us in the request.
 type deleteAnswerData struct {
-	AnswerId string
+	AnswerID string
 }
 
 var deleteAnswerHandler = siteHandler{
@@ -39,7 +40,7 @@ func deleteAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the existing answer
-	answer, err := core.LoadAnswer(db, data.AnswerId)
+	answer, err := core.LoadAnswer(db, data.AnswerID)
 	if err != nil {
 		return pages.Fail("Couldn't load the existing answer", err)
 	}
@@ -47,7 +48,7 @@ func deleteAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Delete the answer
 		statement := database.NewQuery(`
-			DELETE FROM answers WHERE id=?`, data.AnswerId).ToStatement(db).WithTx(tx)
+			DELETE FROM answers WHERE id=?`, data.AnswerID).ToStatement(db).WithTx(tx)
 		_, err = statement.Exec()
 		if err != nil {
 			return sessions.NewError("Couldn't insert into DB", err)
@@ -55,29 +56,29 @@ func deleteAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Update change logs
 		hashmap := make(database.InsertMap)
-		hashmap["pageId"] = answer.QuestionId
+		hashmap["pageId"] = answer.QuestionID
 		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = core.AnswerChangeChangeLog
-		hashmap["auxPageId"] = answer.AnswerPageId
+		hashmap["auxPageId"] = answer.AnswerPageID
 		hashmap["oldSettingsValue"] = "old"
 		statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
 		resp, err := statement.Exec()
 		if err != nil {
 			return sessions.NewError("Couldn't add to changeLogs", err)
 		}
-		changeLogId, err := resp.LastInsertId()
+		changeLogID, err := resp.LastInsertId()
 		if err != nil {
 			return sessions.NewError("Couldn't get changeLog id", err)
 		}
 
 		// Insert updates
 		var task tasks.NewUpdateTask
-		task.UserId = u.ID
-		task.GoToPageId = answer.AnswerPageId
-		task.SubscribedToId = answer.QuestionId
+		task.UserID = u.ID
+		task.GoToPageID = answer.AnswerPageID
+		task.SubscribedToID = answer.QuestionID
 		task.UpdateType = core.ChangeLogUpdateType
-		task.ChangeLogId = changeLogId
+		task.ChangeLogID = changeLogID
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			return sessions.NewError("Couldn't enqueue a task: %v", err)
 		}
