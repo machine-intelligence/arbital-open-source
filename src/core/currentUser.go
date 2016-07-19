@@ -3,10 +3,11 @@ package core
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
