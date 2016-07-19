@@ -32,7 +32,7 @@ func changeSpeedHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageID) {
+	if !core.IsIDValid(data.PageID) {
 		return pages.Fail("Missing or invalid page id", nil).Status(http.StatusBadRequest)
 	}
 
@@ -47,7 +47,7 @@ func changeSpeedHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages.
-	p := core.AddPageIdToMap(data.PageID, returnData.PageMap)
+	p := core.AddPageIDToMap(data.PageID, returnData.PageMap)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
@@ -82,7 +82,7 @@ func _loadChangeSpeedPagePairs(db *database.DB, slower bool, pageID string, retu
 				AND pp.type=?`, core.SubjectPagePairType)
 	err := core.LoadPagePairs(db, queryPart, func(db *database.DB, pagePair *core.PagePair) error {
 		pagePairs = append(pagePairs, pagePair)
-		core.AddPageIdToMap(pagePair.ChildID, returnData.PageMap)
+		core.AddPageIDToMap(pagePair.ChildID, returnData.PageMap)
 		return nil
 	})
 	return pagePairs, err
