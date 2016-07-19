@@ -2,6 +2,7 @@
 @import "constants.scss";
 @import "ng-material.scss";
 @import "util.scss";
+@import "changeSpeedButton.scss";
 
 body {
 	overflow-x: hidden;
@@ -775,119 +776,6 @@ md-toast {
 		padding-right: $lens-padding;
 	}
 }
-
-// BEGIN STYLES FOR SPEED UP AND SLOW DOWN BUTTONS
-.slow-down-container {
-	margin-left: -32px;
-}
-
-.speed-up-container {
-	margin-left: -68px;
-}
-
-.slow-down-container,
-.speed-up-container {
-	position: fixed;
-}
-
-.slow-down-container,
-.speed-up-container {
-	z-index: 1;
-	transition: all 100ms cubic-bezier(0.55, 0, 0.55, 0.2), top 1ms;
-	opacity: 1;
-}
-
-.slow-down-button,
-.speed-up-button {
-	transition: all 100ms cubic-bezier(0.55, 0, 0.55, 0.2), border-radius 1ms;
-	border-radius: 18px;
-	background-color: $link-color;
-	color: white;
-	min-width: 0;
-	width: auto;
-	opacity: 1;
-	white-space: nowrap;
-	outline: none;
-	cursor: pointer;
-
-	md-icon {
-		color: white;
-	}
-}
-
-.slow-down-button {
-	padding: 6px 8px 6px 6px;
-}
-
-.speed-up-button {
-	padding: 6px 6px 6px 8px;
-}
-
-.slow-down-tray,
-.speed-up-tray {
-	transition: all 100ms cubic-bezier(0.55, 0, 0.55, 0.2);
-	border-left: 0px solid $link-color;
-	width: 0px;
-	height: 0px;
-	padding: 0;
-	max-width: 400px;
-	background-color: white;
-}
-
-.slow-down-container-expanded,
-.speed-up-container-expanded {
-	border-radius: 18px 18px 5px 5px;
-	background-color: white;
-
-	.slow-down-button,
-	.speed-up-button {
-		min-width: 200px;
-		border-radius: 18px 18px 0 0;
-	}
-
-	.slow-down-tray,
-	.speed-up-tray {
-		padding: 8px;
-		width: auto;
-		height: auto;
-		border-radius: 0 0 5px 5px;
-		border-left: 2px solid $link-color;
-		border-right: 2px solid $link-color;
-		border-bottom: 2px solid $link-color;
-	}
-
-	md-input-container {
-		margin-top: 10px;
-		margin-bottom: 0px;
-	}
-
-	.slow-down-free-form-text {
-		width: 300px;
-	}
-}
-
-.slow-down-button-collapsed,
-.speed-up-button-collapsed {
-	width: 24px;
-	opacity: .7;
-
-	md-icon {
-		opacity: .2;
-	}
-}
-
-.slow-down-button-collapsed {
-	border-radius: 18px 0 0 18px;
-	padding-right: 2px;
-}
-
-.speed-up-button-collapsed {
-	border-radius: 0 18px 18px 0;
-	padding-left: 4px;
-	margin-left: 68px;
-}
-
-// END STYLES FOR SPEED UP AND SLOW DOWN BUTTONS
 
 // Container for requirements
 .requirements-container {
