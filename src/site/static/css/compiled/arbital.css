@@ -933,7 +933,8 @@ md-toast md-icon {
   width: auto;
   opacity: 1;
   white-space: nowrap;
-  outline: none; }
+  outline: none;
+  cursor: pointer; }
   .slow-down-button md-icon,
   .speed-up-button md-icon {
     color: white; }
