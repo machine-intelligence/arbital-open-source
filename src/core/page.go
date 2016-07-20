@@ -1755,6 +1755,8 @@ func LoadLearnMore(db *database.DB, u *CurrentUser, pageMap map[string]*Page, op
 	}
 
 	queryPart := database.NewQuery(`
+		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
+		ON (pi.pageId=pp.childId)
 		WHERE pp.parentId IN`).AddArgsGroupStr(subjectIDs).Add(`
 			AND pp.type=?`, RequirementPagePairType)
 	err := LoadPagePairs(db, queryPart, func(db *database.DB, pp *PagePair) error {
