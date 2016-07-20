@@ -16,3 +16,8 @@
 /bower_components
 /node_modules
 /.sass-cache
+
+# (Alexei) I created some sym-links from site directory to static directory for myself
+src/site/html
+src/site/js
+src/site/scss

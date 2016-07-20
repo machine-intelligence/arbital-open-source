@@ -33,6 +33,7 @@ type PageLoadOptions struct {
 	UnresolvedMarks         bool // all unresolved marks
 	AllMarks                bool // just load all marks
 	TrustMap                bool // trust map for this user
+	LearnMore               bool
 
 	// Load options for basic pages
 	Edit                  bool // because otherwise a non-published page id will be deleted from the pageMap
@@ -89,6 +90,7 @@ var (
 		UserMarks:       true,
 		UnresolvedMarks: true,
 		TrustMap:        true,
+		LearnMore:       true,
 		Answers:         true,
 		LinkedMarkCount: true,
 		Mastery:         true,
@@ -126,6 +128,7 @@ var (
 		Requisites:      true,
 		SubmittedTo:     true,
 		UserMarks:       true,
+		LearnMore:       true,
 		UnresolvedMarks: true,
 		Mastery:         true,
 		Creators:        true,

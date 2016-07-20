@@ -1,0 +1,35 @@
+<!-- Learn more section for some page -->
+<a id="learnMore"></a>
+<div layout="column">
+	<md-toolbar class="md-hue-2">
+		<div class="md-toolbar-tools">
+			<h1>Learn more</h1>
+		</div>
+	</md-toolbar>
+
+	<div class="dynamic-hor-padding">
+		<br>
+		<!-- If there isn't anything -->
+		<div class="md-caption">
+			This page is not marked as covering any subjects. Can you add some?
+			This pages covers X subjects, but none of them have pages that rely on it.
+		</div>
+
+		<!-- If there is something -->
+		<div>
+			<div ng-repeat="(subjectId,pagePairs) in page.learnMoreMap">
+				This page covered
+				<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
+				. Here
+				<ng-pluralize count="pagePairs.length"
+						when="{'one': 'is a page that relies', 'other': 'are some pages that rely'}"></ng-pluralize>
+				on that concept:
+				<ul class="no-top-margin">
+					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
+						<arb-page-title page-id="{{::pagePair.parentId}}" is-link="true"></arb-page-title>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
