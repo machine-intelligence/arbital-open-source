@@ -1743,11 +1743,6 @@ func LoadLearnMore(db *database.DB, u *CurrentUser, pageMap map[string]*Page, op
 		sourceMap = pageMap
 	}
 
-	pageIds := PageIdsListFromMap(sourceMap)
-	if len(pageIds) <= 0 {
-		return nil
-	}
-
 	// Compute all subject ids we need to consider
 	var subjectIDs []string
 	for _, page := range sourceMap {
