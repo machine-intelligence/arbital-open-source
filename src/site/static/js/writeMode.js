@@ -143,7 +143,7 @@ app.directive('arbExplanationRequestRow', function(arb) {
 			$scope.prettyName = aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
 			$scope.editUrl = arb.urlService.getEditPageUrl($scope.alias);
 
-			$scope.linkedByPageIds = $scope.row.relationships;
+			$scope.linkedByPageIds = $scope.row.linkedByPageIds;
 
 			var totalViewCount = 0;
 			for (var i = 0; i < $scope.linkedByPageIds.length; ++i) {

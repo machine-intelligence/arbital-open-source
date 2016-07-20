@@ -69,7 +69,7 @@ func loadRelationships(db *database.DB, aliases []string, returnData *core.Commo
 
 	rows := query.ToStatement(db).Query()
 	loadOptions := (&core.PageLoadOptions{}).Add(core.TitlePlusLoadOptions)
-	relationships := make(map[string][]string)
+	relationships := make(map[string][]string) // alias -> ids of pages that link to it
 
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentID, alias string

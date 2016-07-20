@@ -36,9 +36,8 @@ var writeNewModeHandler = siteHandler{
 
 type RedLinkRow struct {
 	core.Likeable
-	Alias         string   `json:"alias"`
-	RefCount      string   `json:"refCount"`
-	Relationships []string `json:"relationships"`
+	Alias           string   `json:"alias"`
+	LinkedByPageIDs []string `json:"linkedByPageIds"`
 }
 
 type StubRow struct {
@@ -102,7 +101,7 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 		WhereFilter: database.NewQuery(`currentEdit>0 OR DATEDIFF(NOW(),createdAt) <= ?`, hideRedLinkIfDraftExistsDays),
 	})
 	rows := selectRandomNFrom(limit, database.NewQuery(`
-		SELECT childAlias,groupedRedLinks.likeableId,refCount
+		SELECT childAlias,groupedRedLinks.likeableId
 		FROM (
 			SELECT l.childAlias,rl.likeableId,COUNT(*) AS refCount
 			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS mathPi
@@ -127,9 +126,9 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 		ORDER BY COALESCE(likeCount,0) DESC, refCount DESC, groupedRedLinks.likeableId
 		LIMIT ?`, varietyDepth*limit)).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var alias, refCount string
+		var alias string
 		var likeableID sql.NullInt64
-		err := rows.Scan(&alias, &likeableID, &refCount)
+		err := rows.Scan(&alias, &likeableID)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		} else if core.IsIDValid(alias) {
@@ -140,7 +139,6 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 		row := &RedLinkRow{
 			Likeable: *core.NewLikeable(core.RedLinkLikeableType),
 			Alias:    alias,
-			RefCount: refCount,
 		}
 		if likeableID.Valid {
 			row.LikeableID = likeableID.Int64
@@ -175,7 +173,7 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 			return nil, fmt.Errorf("Couldn't load relationships: %v", err)
 		}
 		for _, row := range redLinks {
-			row.Relationships = related[row.Alias]
+			row.LinkedByPageIDs = related[row.Alias]
 		}
 	}
 
