@@ -1755,20 +1755,23 @@ func LoadLearnMore(db *database.DB, u *CurrentUser, pageMap map[string]*Page, op
 			subjectIDs = append(subjectIDs, subject.ParentID)
 		}
 	}
+	if len(subjectIDs) <= 0 {
+		return nil
+	}
 
 	queryPart := database.NewQuery(`
-		WHERE pp.childId IN`).AddArgsGroupStr(subjectIDs).Add(`
+		WHERE pp.parentId IN`).AddArgsGroupStr(subjectIDs).Add(`
 			AND pp.type=?`, RequirementPagePairType)
 	err := LoadPagePairs(db, queryPart, func(db *database.DB, pp *PagePair) error {
 		for _, page := range sourceMap {
 			for _, subject := range page.Subjects {
-				if pp.ChildID == subject.ParentID && pp.Level <= subject.Level {
+				if pp.ParentID == subject.ParentID && pp.Level <= subject.Level {
 					page.LearnMoreMap[subject.ParentID] = append(page.LearnMoreMap[subject.ParentID], pp)
 					break
 				}
 			}
 		}
-		AddPageIDToMap(pp.ParentID, pageMap)
+		AddPageIDToMap(pp.ChildID, pageMap)
 		return nil
 	})
 	if err != nil {

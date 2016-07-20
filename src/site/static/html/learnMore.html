@@ -1,6 +1,6 @@
 <!-- Learn more section for some page -->
 <a id="learnMore"></a>
-<div layout="column">
+<div layout="column" ng-if="::hasLearnMore()">
 	<md-toolbar class="md-hue-2">
 		<div class="md-toolbar-tools">
 			<h1>Learn more</h1>
@@ -10,13 +10,22 @@
 	<div class="dynamic-hor-padding">
 		<br>
 		<!-- If there isn't anything -->
-		<div class="md-caption">
-			This page is not marked as covering any subjects. Can you add some?
-			This pages covers X subjects, but none of them have pages that rely on it.
-		</div>
+		<!--<div class="md-caption" ng-if="::!hasLearnMore()">
+			<span ng-if="page.subjects.length <= 0">
+				This page is not marked as covering any subjects. Can you add some?
+			</span>
+			<span ng-if="page.subjects.length > 0">
+				This pages covers
+				<ng-pluralize count="pagePairs.length"
+						when="{'one': 'one subject,', 'other': '{} subjects,'}"></ng-pluralize>
+				but there aren't any pages that rely on
+				<ng-pluralize count="pagePairs.length"
+						when="{'one': 'it', 'other': 'them'}"></ng-pluralize>.
+			</span>
+		</div>-->
 
 		<!-- If there is something -->
-		<div>
+		<div ng-if="::hasLearnMore()">
 			<div ng-repeat="(subjectId,pagePairs) in page.learnMoreMap">
 				This page covered
 				<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
@@ -26,7 +35,7 @@
 				on that concept:
 				<ul class="no-top-margin">
 					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
-						<arb-page-title page-id="{{::pagePair.parentId}}" is-link="true"></arb-page-title>
+						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
 					</li>
 				</ul>
 			</div>
