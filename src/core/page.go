@@ -1382,10 +1382,10 @@ func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, options *LoadE
 	return p, nil
 }
 
-// LoadPageIds from the given query and return an array containing them, while
+// LoadPageIDs from the given query and return an array containing them, while
 // also updating the pageMap as necessary.
 func LoadPageIDs(rows *database.Rows, pageMap map[string]*Page, loadOptions *PageLoadOptions) ([]string, error) {
-	ids := make([]string, 0)
+	ids := []string{}
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageID string
 		err := rows.Scan(&pageID)

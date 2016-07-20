@@ -275,7 +275,7 @@ func (statement *Stmt) Close() error {
 	return statement.stmt.Close()
 }
 
-// ProcessRows calls the given function for every row returned when executing the
+// Process calls the given function for every row returned when executing the
 // given sql statement.
 func (rows *Rows) Process(f ProcessRowCallback) error {
 	defer rows.rows.Close()

@@ -39,25 +39,11 @@ func moreRelationshipsJSONHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Invalid page id or alias", nil).Status(http.StatusBadRequest)
 	}
 
-	// Load pages that link to this page.
-	query := database.NewQuery(`
-		SELECT l.parentId
-		FROM links AS l
-		JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
-		ON (l.parentId=pi.pageId OR l.parentId=pi.alias)`)
-	if data.RestrictToMathDomain {
-		query.Add(`
-			JOIN pageDomainPairs as pdp
-			ON pdp.pageId=l.parentId AND pdp.domainId=?`, core.MathDomainID)
-	}
-	query.Add(`WHERE l.childAlias=?`, data.PageAlias)
-
-	rows := query.ToStatement(db).Query()
-	loadOptions := (&core.PageLoadOptions{}).Add(core.TitlePlusLoadOptions)
-	returnData.ResultMap["moreRelationshipIds"], err = core.LoadPageIDs(rows, returnData.PageMap, loadOptions)
+	m, err := loadRelationships(db, []string{data.PageAlias}, returnData, data.RestrictToMathDomain)
 	if err != nil {
 		return pages.Fail("error while loading links", err)
 	}
+	returnData.ResultMap["moreRelationshipIds"] = m[data.PageAlias]
 
 	// Load pages.
 	err = core.ExecuteLoadPipeline(db, returnData)
@@ -66,4 +52,34 @@ func moreRelationshipsJSONHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	return pages.Success(returnData)
+}
+
+func loadRelationships(db *database.DB, aliases []string, returnData *core.CommonHandlerData, restrictToMathDomain bool) (map[string][]string, error) {
+	query := database.NewQuery(`
+		SELECT l.parentId, l.childAlias
+		FROM links AS l
+		JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
+		ON (l.parentId=pi.pageId OR l.parentId=pi.alias)`)
+	if restrictToMathDomain {
+		query.Add(`
+			JOIN pageDomainPairs as pdp
+			ON pdp.pageId=l.parentId AND pdp.domainId=?`, core.MathDomainID)
+	}
+	query.Add(`WHERE l.childAlias IN`).AddIdsGroupStr(aliases)
+
+	rows := query.ToStatement(db).Query()
+	loadOptions := (&core.PageLoadOptions{}).Add(core.TitlePlusLoadOptions)
+	relationships := make(map[string][]string)
+
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var parentID, alias string
+		if err := rows.Scan(&parentID, &alias); err != nil {
+			return err
+		}
+		core.AddPageToMap(parentID, returnData.PageMap, loadOptions)
+		relationships[alias] = append(relationships[alias], parentID)
+		return nil
+	})
+
+	return relationships, err
 }

@@ -34,11 +34,11 @@ var writeNewModeHandler = siteHandler{
 	Options:     pages.PageOptions{},
 }
 
-// Row to show a redLink
 type RedLinkRow struct {
 	core.Likeable
-	Alias    string `json:"alias"`
-	RefCount string `json:"refCount"`
+	Alias         string   `json:"alias"`
+	RefCount      string   `json:"refCount"`
+	Relationships []string `json:"relationships"`
 }
 
 type StubRow struct {
@@ -63,9 +63,9 @@ func writeNewModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load redlinks in math
-	returnData.ResultMap["redLinks"], err = loadRedLinkRows(db, returnData.User, numPagesToLoad)
+	returnData.ResultMap["redLinks"], err = loadRedLinkRows(db, returnData, numPagesToLoad)
 	if err != nil {
-		return pages.Fail("Error loading drafts", err)
+		return pages.Fail("Error loading red link rows", err)
 	}
 
 	// Load stubs in math
@@ -88,8 +88,9 @@ func selectRandomNFrom(n int, query *database.QueryPart) *database.QueryPart {
 }
 
 // Load pages that are linked to but don't exist
-func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLinkRow, error) {
-	redLinks := make([]*RedLinkRow, 0)
+func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit int) ([]*RedLinkRow, error) {
+	u := returnData.User
+	redLinks := []*RedLinkRow{}
 
 	publishedPageIDs := core.PageInfosTableWithOptions(u, &core.PageInfosOptions{
 		Fields: []string{"pageId"},
@@ -163,12 +164,27 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 		return nil, fmt.Errorf("Couldn't load red link like count: %v", err)
 	}
 
+	// Load related pages
+	{
+		aliases := make([]string, len(redLinks))
+		for i := range aliases {
+			aliases[i] = redLinks[i].Alias
+		}
+		related, err := loadRelationships(db, aliases, returnData, true)
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't load relationships: %v", err)
+		}
+		for _, row := range redLinks {
+			row.Relationships = related[row.Alias]
+		}
+	}
+
 	return redLinks, nil
 }
 
 // Load pages that are marked as stubs
 func loadStubRows(db *database.DB, returnData *core.CommonHandlerData, limit int) ([]*StubRow, error) {
-	stubRows := make([]*StubRow, 0)
+	stubRows := []*StubRow{}
 	rows := selectRandomNFrom(limit, database.NewQuery(`
 		SELECT pi.pageId
 		FROM`).AddPart(core.PageInfosTable(returnData.User)).Add(`AS pi

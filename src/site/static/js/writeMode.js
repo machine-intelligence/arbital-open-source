@@ -143,21 +143,13 @@ app.directive('arbExplanationRequestRow', function(arb) {
 			$scope.prettyName = aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
 			$scope.editUrl = arb.urlService.getEditPageUrl($scope.alias);
 
-			arb.stateService.postData('/json/moreRelationships/',
-				{
-					pageAlias: $scope.alias,
-					restrictToMathDomain: true,
-				},
-				function success(data) {
-					$scope.linkedByPageIds = data.result.moreRelationshipIds;
+			$scope.linkedByPageIds = $scope.row.relationships;
 
-					var totalViewCount = 0;
-					for (var i = 0; i < $scope.linkedByPageIds.length; ++i) {
-						totalViewCount += arb.stateService.pageMap[$scope.linkedByPageIds[i]].viewCount;
-					}
-					$scope.totalViewCount = totalViewCount;
-				}
-			);
+			var totalViewCount = 0;
+			for (var i = 0; i < $scope.linkedByPageIds.length; ++i) {
+				totalViewCount += arb.stateService.pageMap[$scope.linkedByPageIds[i]].viewCount;
+			}
+			$scope.totalViewCount = totalViewCount;
 
 			$scope.toggleExpand = function() {
 				$scope.expanded = !$scope.expanded;
