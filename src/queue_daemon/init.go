@@ -1,5 +1,5 @@
 // init.go runs the daemon to process the daemonQueue.
-package queue_daemon
+package queueDaemon
 
 import (
 	"fmt"
@@ -47,7 +47,6 @@ func processTask(c sessions.Context) error {
 		tasks.PopulateElasticTask{},
 		tasks.PropagateDomainTask{},
 		tasks.PublishPagePairTask{},
-		tasks.ResetPasswordsTask{},
 		tasks.SendFeedbackEmailTask{},
 		tasks.SendInviteTask{},
 		tasks.SendOneEmailTask{},

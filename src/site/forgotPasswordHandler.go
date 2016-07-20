@@ -1,4 +1,5 @@
 // forgotPasswordHandler.go handles requests when the user says they forgot their password
+
 package site
 
 import (

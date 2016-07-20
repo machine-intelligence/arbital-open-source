@@ -1,13 +1,12 @@
 // pageHandler.go has the functions and wrappers for handling pages
+
 package site
 
 import (
 	"fmt"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/taskqueue"
@@ -40,20 +39,19 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// If live, check that this is an HTTPS request
 		if sessions.Live && r.URL.Scheme != "https" {
-			safeUrl := strings.Replace(r.URL.String(), "http", "https", 1)
-			http.Redirect(w, r, safeUrl, http.StatusSeeOther)
+			safeURL := strings.Replace(r.URL.String(), "http", "https", 1)
+			http.Redirect(w, r, safeURL, http.StatusSeeOther)
 		}
 
 		c := sessions.NewContext(r)
 		params := pages.HandlerParams{W: w, R: r, C: c}
-		rand.Seed(time.Now().UnixNano())
 
 		// Redirect www.
 		if mux.Vars(r)["www"] != "" {
 			if sessions.Live {
-				newUrl := strings.Replace(r.URL.String(), "www.", "", -1)
-				c.Debugf("Redirecting '%s' to '%s' because of 'www'", r.URL.String(), newUrl)
-				http.Redirect(w, r, newUrl, http.StatusSeeOther)
+				newURL := strings.Replace(r.URL.String(), "www.", "", -1)
+				c.Debugf("Redirecting '%s' to '%s' because of 'www'", r.URL.String(), newURL)
+				http.Redirect(w, r, newURL, http.StatusSeeOther)
 			} else {
 				subdomainStr := ""
 				if mux.Vars(r)["subdomain"] != "" {
@@ -101,37 +99,37 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		params.U = u
 
 		// Get subdomain info
-		params.PrivateGroupId, err = loadSubdomain(r, db, u)
+		params.PrivateGroupID, err = loadSubdomain(r, db, u)
 		if err != nil {
 			fail(http.StatusInternalServerError, "Couldn't load subdomain", err)
 			return
 		}
 
 		// When in a subdomain, we always have to be logged in
-		if core.IsIdValid(params.PrivateGroupId) && !core.IsIdValid(u.ID) {
+		if core.IsIDValid(params.PrivateGroupID) && !core.IsIDValid(u.ID) {
 			if r.URL.Path != "/login/" {
 				http.Redirect(w, r, fmt.Sprintf("/login/?continueUrl=%s", url.QueryEscape(r.URL.String())), http.StatusSeeOther)
 			}
 		}
-		if userId := u.GetSomeId(); userId != "" {
+		if userID := u.GetSomeID(); userID != "" {
 			statement := db.NewStatement(`
 						UPDATE users
 						SET lastWebsiteVisit=?
 						WHERE id=?`)
-			if _, err := statement.Exec(database.Now(), userId); err != nil {
+			if _, err := statement.Exec(database.Now(), userID); err != nil {
 				fail(http.StatusInternalServerError, "Couldn't update users", err)
 				return
 			}
 		}
 		// Check if we have access to the private group
-		if core.IsIdValid(params.PrivateGroupId) {
-			if !u.IsMemberOfGroup(params.PrivateGroupId) &&
+		if core.IsIDValid(params.PrivateGroupID) {
+			if !u.IsMemberOfGroup(params.PrivateGroupID) &&
 				r.URL.Path != "/login/" {
 				fail(http.StatusForbidden, "Don't have access to this group", nil)
 				return
 			}
 			// We don't allow personal private groups for now
-			if params.PrivateGroupId == u.ID {
+			if params.PrivateGroupID == u.ID {
 				fail(http.StatusForbidden, "Arbital no longer supports personal private groups", nil)
 			}
 		}

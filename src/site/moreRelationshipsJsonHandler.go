@@ -1,4 +1,5 @@
 // moreRelationshipsJsonHandler.go serves JSON data to display on the additional relationships tab in the page editor.
+
 package site
 
 import (
@@ -10,25 +11,25 @@ import (
 	"zanaduu3/src/pages"
 )
 
-type moreRelationshipsJsonData struct {
+type moreRelationshipsJSONData struct {
 	PageAlias            string
 	RestrictToMathDomain bool
 }
 
 var moreRelationshipsHandler = siteHandler{
 	URI:         "/json/moreRelationships/",
-	HandlerFunc: moreRelationshipsJsonHandler,
+	HandlerFunc: moreRelationshipsJSONHandler,
 	Options:     pages.PageOptions{},
 }
 
 // moreRelationshipsJsonHandler handles the request.
-func moreRelationshipsJsonHandler(params *pages.HandlerParams) *pages.Result {
+func moreRelationshipsJSONHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(u)
 
 	// Decode data
-	var data moreRelationshipsJsonData
+	var data moreRelationshipsJSONData
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
@@ -47,13 +48,13 @@ func moreRelationshipsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if data.RestrictToMathDomain {
 		query.Add(`
 			JOIN pageDomainPairs as pdp
-			ON pdp.pageId=l.parentId AND pdp.domainId=?`, core.MathDomainId)
+			ON pdp.pageId=l.parentId AND pdp.domainId=?`, core.MathDomainID)
 	}
 	query.Add(`WHERE l.childAlias=?`, data.PageAlias)
 
 	rows := query.ToStatement(db).Query()
 	loadOptions := (&core.PageLoadOptions{}).Add(core.TitlePlusLoadOptions)
-	returnData.ResultMap["moreRelationshipIds"], err = core.LoadPageIds(rows, returnData.PageMap, loadOptions)
+	returnData.ResultMap["moreRelationshipIds"], err = core.LoadPageIDs(rows, returnData.PageMap, loadOptions)
 	if err != nil {
 		return pages.Fail("error while loading links", err)
 	}

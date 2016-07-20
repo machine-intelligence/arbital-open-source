@@ -1,4 +1,5 @@
 // sendTestEmailHandler.go displays the test email page
+
 package site
 
 import (

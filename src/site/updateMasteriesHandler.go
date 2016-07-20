@@ -1,4 +1,5 @@
 // updateMasteries.go handles request to add and/or delete masteries
+
 package site
 
 import (
@@ -45,34 +46,34 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 	u := params.U
 	returnData := core.NewHandlerData(u)
 
-	userId := u.GetSomeId()
-	if userId == "" {
+	userID := u.GetSomeID()
+	if userID == "" {
 		return pages.Fail("No user id or session id", nil).Status(http.StatusBadRequest)
 	}
 
 	allMasteries := append(append(data.AddMasteries, data.RemoveMasteries...), data.WantsMasteries...)
-	aliasMap, err := core.LoadAliasToPageIdMap(db, u, allMasteries)
+	aliasMap, err := core.LoadAliasToPageIDMap(db, u, allMasteries)
 	if err != nil {
 		return pages.Fail("Couldn't translate aliases to ids", err)
 	}
 
-	subjectIds := make(map[string]bool)
+	subjectIDs := make(map[string]bool)
 	if data.TaughtBy != "" {
 		rows := db.NewStatement(`
 			SELECT parentId from pagePairs
 			WHERE childId=? AND type=?`).Query(data.TaughtBy, core.SubjectPagePairType)
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var subjectId string
-			err := rows.Scan(&subjectId)
+			var subjectID string
+			err := rows.Scan(&subjectID)
 			if err != nil {
 				return fmt.Errorf("Failed to scan: %v", err)
 			}
-			subjectIds[subjectId] = true
+			subjectIDs[subjectID] = true
 			return nil
 		})
 	}
 
-	candidateIds := make([]string, 0)
+	candidateIDs := make([]string, 0)
 	if data.ComputeUnlocked && len(data.AddMasteries) > 0 {
 		// Compute all the pages that rely on at least one of these masteries, that the user can't yet understand
 		rows := database.NewQuery(`
@@ -81,7 +82,7 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 			JOIN pagePairs AS pp2
 			ON (pp1.childId=pp2.childId)
 			JOIN userMasteryPairs AS mp
-			ON (pp2.parentId=mp.masteryId AND mp.userId=?)`, userId).Add(`
+			ON (pp2.parentId=mp.masteryId AND mp.userId=?)`, userID).Add(`
 			WHERE pp1.parentId IN`).AddArgsGroupStr(data.AddMasteries).Add(`
 				AND pp1.type=?`, core.RequirementPagePairType).Add(`
 				AND pp2.type=?`, core.RequirementPagePairType).Add(`
@@ -93,7 +94,7 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 			if err != nil {
 				return fmt.Errorf("Failed to scan: %v", err)
 			}
-			candidateIds = append(candidateIds, pageID)
+			candidateIDs = append(candidateIDs, pageID)
 			return nil
 		})
 		if err != nil {
@@ -102,31 +103,31 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 	}
 
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		snapshotId, err := InsertUserTrustSnapshots(tx, u)
+		snapshotID, err := InsertUserTrustSnapshots(tx, u)
 		if err != nil {
 			return sessions.NewError("Couldn't insert userTrustSnapshot", err)
 		}
 
 		hashmaps := make(database.InsertMaps, 0)
 		for _, masteryAlias := range data.RemoveMasteries {
-			if masteryId, ok := aliasMap[masteryAlias]; ok {
-				hashmap := getHashmapForMasteryInsert(masteryId, userId, false, false, "", snapshotId)
+			if masteryID, ok := aliasMap[masteryAlias]; ok {
+				hashmap := getHashmapForMasteryInsert(masteryID, userID, false, false, "", snapshotID)
 				hashmaps = append(hashmaps, hashmap)
 			}
 		}
 		for _, masteryAlias := range data.WantsMasteries {
-			if masteryId, ok := aliasMap[masteryAlias]; ok {
-				hashmap := getHashmapForMasteryInsert(masteryId, userId, false, true, "", snapshotId)
+			if masteryID, ok := aliasMap[masteryAlias]; ok {
+				hashmap := getHashmapForMasteryInsert(masteryID, userID, false, true, "", snapshotID)
 				hashmaps = append(hashmaps, hashmap)
 			}
 		}
 		for _, masteryAlias := range data.AddMasteries {
-			if masteryId, ok := aliasMap[masteryAlias]; ok {
+			if masteryID, ok := aliasMap[masteryAlias]; ok {
 				var taughtBy = ""
-				if _, ok := subjectIds[masteryId]; ok {
+				if _, ok := subjectIDs[masteryID]; ok {
 					taughtBy = data.TaughtBy
 				}
-				hashmap := getHashmapForMasteryInsert(masteryId, userId, true, false, taughtBy, snapshotId)
+				hashmap := getHashmapForMasteryInsert(masteryID, userID, true, false, taughtBy, snapshotID)
 				hashmaps = append(hashmaps, hashmap)
 			}
 		}
@@ -143,18 +144,18 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 		return pages.FailWith(err2)
 	}
 
-	if len(candidateIds) <= 0 {
+	if len(candidateIDs) <= 0 {
 		return pages.Success(nil)
 	}
 
 	// For the previously computed candidates, check if the user can now understand them
-	unlockedIds := make([]string, 0)
+	unlockedIDs := make([]string, 0)
 	rows := database.NewQuery(`
 		SELECT pp.childId
 		FROM pagePairs AS pp
 		LEFT JOIN userMasteryPairs AS mp
-		ON (pp.parentId=mp.masteryId AND mp.userId=?)`, userId).Add(`
-		WHERE pp.childId IN`).AddArgsGroupStr(candidateIds).Add(`
+		ON (pp.parentId=mp.masteryId AND mp.userId=?)`, userID).Add(`
+		WHERE pp.childId IN`).AddArgsGroupStr(candidateIDs).Add(`
 			AND pp.type=?`, core.RequirementPagePairType).Add(`
 		GROUP BY 1
 		HAVING SUM(1)<=SUM(mp.has)
@@ -165,7 +166,7 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
-		unlockedIds = append(unlockedIds, pageID)
+		unlockedIDs = append(unlockedIDs, pageID)
 		core.AddPageToMap(pageID, returnData.PageMap, core.TitlePlusLoadOptions)
 		return nil
 	})
@@ -179,20 +180,20 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 		return pages.Fail("Pipeline error", err)
 	}
 
-	returnData.ResultMap["unlockedIds"] = unlockedIds
+	returnData.ResultMap["unlockedIds"] = unlockedIDs
 	return pages.Success(returnData)
 }
 
-func getHashmapForMasteryInsert(masteryId string, userId string, has bool, wants bool, taughtBy string, snapshotId int64) database.InsertMap {
+func getHashmapForMasteryInsert(masteryID string, userID string, has bool, wants bool, taughtBy string, snapshotID int64) database.InsertMap {
 	hashmap := make(database.InsertMap)
-	hashmap["masteryId"] = masteryId
-	hashmap["userId"] = userId
+	hashmap["masteryId"] = masteryID
+	hashmap["userId"] = userID
 	hashmap["has"] = has
 	hashmap["wants"] = wants
 	hashmap["createdAt"] = database.Now()
 	hashmap["updatedAt"] = database.Now()
 	hashmap["taughtBy"] = taughtBy
-	hashmap["userTrustSnapshotId"] = snapshotId
+	hashmap["userTrustSnapshotId"] = snapshotID
 
 	return hashmap
 }

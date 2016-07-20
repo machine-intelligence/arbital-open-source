@@ -1,4 +1,5 @@
 // readModeHandler.go serves the /read panel.
+
 package site
 
 import (
@@ -41,16 +42,16 @@ func readModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the page ids
-	var pageIds ModeRows
+	var pageIDs ModeRows
 	if data.Type == FeaturedReadModeType {
-		pageIds, err = loadFeaturedPagesModeRows(db, returnData, data.NumPagesToLoad)
+		pageIDs, err = loadFeaturedPagesModeRows(db, returnData, data.NumPagesToLoad)
 	} else if data.Type == NewReadModeType {
-		pageIds, err = loadNewPagesModeRows(db, returnData, data.NumPagesToLoad)
+		pageIDs, err = loadNewPagesModeRows(db, returnData, data.NumPagesToLoad)
 	}
 	if err != nil {
 		return pages.Fail("failed to load page ids", err)
 	}
-	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, pageIds)
+	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, pageIDs)
 
 	// Load and update LastReadModeView for this user
 	returnData.ResultMap["lastView"], err = core.LoadAndUpdateLastView(db, u, core.LastReadModeView)

@@ -39,7 +39,7 @@ func (task CheckAnsweredMarksTask) Execute(db *database.DB) (delay int, err erro
 	c.Infof("==== CHECK ANSWERED MARK START ====")
 	defer c.Infof("==== CHECK ANSWERED MARK COMPLETED ====")
 
-	markIds := make([]string, 0)
+	markIDs := make([]string, 0)
 	markMap := make(map[string]bool)
 	hashmaps := make(database.InsertMaps, 0)
 
@@ -51,23 +51,23 @@ func (task CheckAnsweredMarksTask) Execute(db *database.DB) (delay int, err erro
 		ON (a.questionId=m.resolvedPageId)
 		WHERE NOT m.answered`).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var markId, markPageId, userId string
-		if err := rows.Scan(&markId, &markPageId, &userId); err != nil {
+		var markID, markPageID, userID string
+		if err := rows.Scan(&markID, &markPageID, &userID); err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
-		_, exists := markMap[markId]
+		_, exists := markMap[markID]
 		if !exists {
-			markMap[markId] = true
-			markIds = append(markIds, markId)
+			markMap[markID] = true
+			markIDs = append(markIDs, markID)
 
 			// Add an update
 			hashmap := make(database.InsertMap)
-			hashmap["userId"] = userId
+			hashmap["userId"] = userID
 			hashmap["type"] = core.AnsweredMarkUpdateType
-			hashmap["groupByPageId"] = markPageId
-			hashmap["subscribedToId"] = markPageId
-			hashmap["goToPageId"] = markPageId
-			hashmap["markId"] = markId
+			hashmap["groupByPageId"] = markPageID
+			hashmap["subscribedToId"] = markPageID
+			hashmap["goToPageId"] = markPageID
+			hashmap["markId"] = markID
 			hashmap["createdAt"] = database.Now()
 			hashmaps = append(hashmaps, hashmap)
 		}
@@ -78,7 +78,7 @@ func (task CheckAnsweredMarksTask) Execute(db *database.DB) (delay int, err erro
 		return -1, fmt.Errorf("Failed to load marks: %v", err)
 	}
 
-	if len(markIds) <= 0 {
+	if len(markIDs) <= 0 {
 		return
 	}
 
@@ -87,7 +87,7 @@ func (task CheckAnsweredMarksTask) Execute(db *database.DB) (delay int, err erro
 		statement := database.NewQuery(`
 			UPDATE marks
 			SET answered=true,answeredAt=NOW()
-			WHERE id IN`).AddArgsGroupStr(markIds).ToTxStatement(tx)
+			WHERE id IN`).AddArgsGroupStr(markIDs).ToTxStatement(tx)
 		if _, err = statement.Exec(); err != nil {
 			return sessions.NewError("Failed to load update marks", err)
 		}

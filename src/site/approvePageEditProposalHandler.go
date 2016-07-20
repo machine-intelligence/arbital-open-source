@@ -1,4 +1,5 @@
 // approvePageEditProposalHandler.go contains the handler for editing pageInfo data.
+
 package site
 
 import (
@@ -42,7 +43,7 @@ func approvePageEditProposalHandlerFunc(params *pages.HandlerParams) *pages.Resu
 	}
 
 	// Load the changelog
-	changelogs, err := core.LoadChangeLogsByIds(db, []string{data.ChangeLogID}, core.NewEditProposalChangeLog)
+	changelogs, err := core.LoadChangeLogsByIDs(db, []string{data.ChangeLogID}, core.NewEditProposalChangeLog)
 	if err != nil {
 		return pages.Fail("Couldn't load changelog", err)
 	}
@@ -104,9 +105,9 @@ func approvePageEditProposalHandlerFunc(params *pages.HandlerParams) *pages.Resu
 
 		// Add an update for the user who submitted the edit
 		if !data.Dismiss {
-			if changeLog.UserId != u.ID {
+			if changeLog.UserID != u.ID {
 				hashmap = make(map[string]interface{})
-				hashmap["userId"] = changeLog.UserId
+				hashmap["userId"] = changeLog.UserID
 				hashmap["byUserId"] = u.ID
 				hashmap["type"] = core.EditProposalAcceptedUpdateType
 				hashmap["subscribedToId"] = proposedEdit.PageID

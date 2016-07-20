@@ -1,4 +1,5 @@
 // newPageHandler.go creates and returns a new page
+
 package site
 
 import (
@@ -22,7 +23,7 @@ var newPageHandler = siteHandler{
 // newPageData contains parameters passed in via the request.
 type newPageData struct {
 	Type            string
-	ParentIds       []string
+	ParentIDs       []string
 	IsEditorComment bool
 	Alias           string
 }
@@ -58,7 +59,7 @@ func newPageInternalHandler(params *pages.HandlerParams, data *newPageData) *pag
 	pageID := ""
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		var err error
-		pageID, err = core.GetNextAvailableId(tx)
+		pageID, err = core.GetNextAvailableID(tx)
 		if err != nil {
 			return sessions.NewError("Couldn't get next available Id", err)
 		}
@@ -75,7 +76,7 @@ func newPageInternalHandler(params *pages.HandlerParams, data *newPageData) *pag
 		hashmap["maxEdit"] = 1
 		hashmap["createdBy"] = u.ID
 		hashmap["createdAt"] = database.Now()
-		hashmap["seeGroupId"] = params.PrivateGroupId
+		hashmap["seeGroupId"] = params.PrivateGroupID
 		hashmap["lockedBy"] = u.ID
 		hashmap["lockedUntil"] = core.GetPageQuickLockedUntilTime()
 		if data.IsEditorComment {
@@ -106,9 +107,9 @@ func newPageInternalHandler(params *pages.HandlerParams, data *newPageData) *pag
 	}
 
 	// Add parents
-	for _, parentIdStr := range data.ParentIds {
+	for _, parentIDStr := range data.ParentIDs {
 		handlerData := newPagePairData{
-			ParentID: parentIdStr,
+			ParentID: parentIDStr,
 			ChildID:  pageID,
 			Type:     core.ParentPagePairType,
 		}
@@ -118,8 +119,8 @@ func newPageInternalHandler(params *pages.HandlerParams, data *newPageData) *pag
 		}
 	}
 
-	editData := &editJsonData{
+	editData := &editJSONData{
 		PageAlias: pageID,
 	}
-	return editJsonInternalHandler(params, editData)
+	return editJSONInternalHandler(params, editData)
 }

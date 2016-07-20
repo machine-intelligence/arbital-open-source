@@ -22,15 +22,15 @@ type User struct {
 // AddUserIdToMap adds a new user with the given user id to the map if it's not
 // in the map already.
 // Returns the new/existing user.
-func AddUserIdToMap(userId string, userMap map[string]*User) *User {
-	if !IsIdValid(userId) {
+func AddUserIDToMap(userID string, userMap map[string]*User) *User {
+	if !IsIDValid(userID) {
 		return nil
 	}
-	if u, ok := userMap[userId]; ok {
+	if u, ok := userMap[userID]; ok {
 		return u
 	}
-	u := &User{ID: userId}
-	userMap[userId] = u
+	u := &User{ID: userID}
+	userMap[userID] = u
 	return u
 }
 
@@ -40,12 +40,12 @@ func (u *User) FullName() string {
 }
 
 // GetUserUrl returns URL for looking at recently created pages by the given user.
-func GetUserUrl(userId string) string {
-	return fmt.Sprintf("/user/%s", userId)
+func GetUserURL(userID string) string {
+	return fmt.Sprintf("/user/%s", userID)
 }
 
 // IdsListFromUserMap returns a list of all user ids in the map.
-func IdsListFromUserMap(userMap map[string]*User) []interface{} {
+func IDsListFromUserMap(userMap map[string]*User) []interface{} {
 	list := make([]interface{}, 0, len(userMap))
 	for id := range userMap {
 		list = append(list, id)
@@ -54,13 +54,13 @@ func IdsListFromUserMap(userMap map[string]*User) []interface{} {
 }
 
 // LoadUsers loads User information (like name) for each user in the given map.
-func LoadUsers(db *database.DB, userMap map[string]*User, currentUserId string) error {
+func LoadUsers(db *database.DB, userMap map[string]*User, currentUserID string) error {
 	if len(userMap) <= 0 {
 		return nil
 	}
-	userIds := make([]interface{}, 0, len(userMap))
+	userIDs := make([]interface{}, 0, len(userMap))
 	for id := range userMap {
-		userIds = append(userIds, id)
+		userIDs = append(userIDs, id)
 	}
 
 	rows := database.NewQuery(`
@@ -68,11 +68,11 @@ func LoadUsers(db *database.DB, userMap map[string]*User, currentUserId string) 
 		FROM (
 			SELECT *
 			FROM users
-			WHERE id IN `).AddArgsGroup(userIds).Add(`
+			WHERE id IN `).AddArgsGroup(userIDs).Add(`
 		) AS u
 		LEFT JOIN (
 			SELECT *
-			FROM subscriptions WHERE userId=?`, currentUserId).Add(`
+			FROM subscriptions WHERE userId=?`, currentUserID).Add(`
 		) AS s
 		ON (u.id=s.toId)`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -86,22 +86,22 @@ func LoadUsers(db *database.DB, userMap map[string]*User, currentUserId string) 
 	})
 	return err
 }
-func LoadUser(db *database.DB, userId string, currentUserId string) (*User, error) {
-	user := &User{ID: userId}
-	userMap := map[string]*User{userId: user}
-	err := LoadUsers(db, userMap, currentUserId)
+func LoadUser(db *database.DB, userID string, currentUserID string) (*User, error) {
+	user := &User{ID: userID}
+	userMap := map[string]*User{userID: user}
+	err := LoadUsers(db, userMap, currentUserID)
 	return user, err
 }
 
 // LoadUserTrust returns the trust that the user has in all domains.
-func LoadUserTrust(db *database.DB, userId string) (map[string]*Trust, error) {
+func LoadUserTrust(db *database.DB, userID string) (map[string]*Trust, error) {
 	trustMap := make(map[string]*Trust)
 	rows := database.NewQuery(`
 		SELECT domainId,max(generalTrust),max(editTrust)
 		FROM (
 			SELECT ut.domainId AS domainId,ut.generalTrust AS generalTrust,ut.editTrust AS editTrust
 			FROM userTrust AS ut
-			WHERE ut.userId=?`, userId).Add(`
+			WHERE ut.userId=?`, userID).Add(`
 			UNION ALL
 			SELECT pi.pageId AS domainId,0 AS generalTrust,0 AS editTrust
 			FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
@@ -110,12 +110,12 @@ func LoadUserTrust(db *database.DB, userId string) (map[string]*Trust, error) {
 		GROUP BY 1`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var trust Trust
-		var domainId string
-		err := rows.Scan(&domainId, &trust.GeneralTrust, &trust.EditTrust)
+		var domainID string
+		err := rows.Scan(&domainID, &trust.GeneralTrust, &trust.EditTrust)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
-		trustMap[domainId] = &trust
+		trustMap[domainID] = &trust
 		if trust.EditTrust >= ArbiterKarmaLevel {
 			trust.Level = ArbiterTrustLevel
 		} else if trust.EditTrust >= ReviewerKarmaLevel {

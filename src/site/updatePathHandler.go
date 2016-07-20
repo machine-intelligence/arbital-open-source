@@ -1,4 +1,5 @@
 // updatePathHandler.go updates the given path instance
+
 package site
 
 import (
@@ -54,11 +55,11 @@ func updatePathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		instance.IsFinished = true
 	}
 
-	pageIds := make([]string, 0)
-	sourceIds := make([]string, 0)
+	pageIDs := make([]string, 0)
+	sourceIDs := make([]string, 0)
 	for _, page := range instance.Pages {
-		pageIds = append(pageIds, page.PageID)
-		sourceIds = append(sourceIds, page.SourceId)
+		pageIDs = append(pageIDs, page.PageID)
+		sourceIDs = append(sourceIDs, page.SourceID)
 	}
 
 	// Begin the transaction.
@@ -68,8 +69,8 @@ func updatePathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["id"] = data.ID
 		hashmap["userId"] = u.ID
 		hashmap["progress"] = instance.Progress
-		hashmap["pageIds"] = strings.Join(pageIds, ",")
-		hashmap["sourcePageIds"] = strings.Join(sourceIds, ",")
+		hashmap["pageIds"] = strings.Join(pageIDs, ",")
+		hashmap["sourcePageIds"] = strings.Join(sourceIDs, ",")
 		hashmap["isFinished"] = instance.IsFinished
 		hashmap["updatedAt"] = database.Now()
 		statement := db.NewInsertStatement("pathInstances", hashmap, hashmap.GetKeys()...).WithTx(tx)

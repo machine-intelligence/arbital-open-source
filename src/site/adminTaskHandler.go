@@ -1,4 +1,5 @@
 // adminTaskHandler.go kicks off the task
+
 package site
 
 import (
@@ -39,16 +40,11 @@ func adminTaskHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			return pages.Fail("Couldn't enqueue a task", err)
 		}
-	} else if task == "resetPasswords" {
-		var task tasks.ResetPasswordsTask
-		if err := tasks.Enqueue(c, &task, nil); err != nil {
-			return pages.Fail("Couldn't enqueue a task", err)
-		}
 	} else if task == "sendInvite" {
 		var task tasks.SendInviteTask
-		task.FromUserId = "1"
+		task.FromUserID = "1"
 		task.ToEmail = "alexei.andreev@gmail.com"
-		task.DomainIds = []string{"1lw", "2v", "3d"}
+		task.DomainIDs = []string{"1lw", "2v", "3d"}
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			return pages.Fail("Couldn't enqueue a task", err)
 		}

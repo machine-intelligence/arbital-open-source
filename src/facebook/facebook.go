@@ -22,15 +22,15 @@ type Account struct {
 }
 
 // ProcessCodeToken takes a code token returned from OAuth, and returns auth_token
-func ProcessCodeToken(c sessions.Context, token, redirectUrl string) (string, error) {
-	fbId := config.XC.Facebook.ID
+func ProcessCodeToken(c sessions.Context, token, redirectURL string) (string, error) {
+	fbID := config.XC.Facebook.ID
 	fbSecret := config.XC.Facebook.Secret
 	if !sessions.Live {
-		fbId = config.XC.Facebook.TestId
+		fbID = config.XC.Facebook.TestID
 		fbSecret = config.XC.Facebook.TestSecret
 	}
-	tokenUrl := fmt.Sprintf("https://graph.facebook.com/v2.5/oauth/access_token?client_id=%s&client_secret=%s&redirect_uri=%s&code=%s", fbId, fbSecret, url.QueryEscape(redirectUrl), token)
-	request, err := http.NewRequest("GET", tokenUrl, bytes.NewBuffer([]byte("")))
+	tokenURL := fmt.Sprintf("https://graph.facebook.com/v2.5/oauth/access_token?client_id=%s&client_secret=%s&redirect_uri=%s&code=%s", fbID, fbSecret, url.QueryEscape(redirectURL), token)
+	request, err := http.NewRequest("GET", tokenURL, bytes.NewBuffer([]byte("")))
 	if err != nil {
 		return "", fmt.Errorf("Couldn't create request: %v", err)
 	}
@@ -54,14 +54,14 @@ func ProcessCodeToken(c sessions.Context, token, redirectUrl string) (string, er
 
 // ProcessAccessToken takes an access token and returns the corresponding account info
 func ProcessAccessToken(c sessions.Context, token string) (string, error) {
-	fbId := config.XC.Facebook.ID
+	fbID := config.XC.Facebook.ID
 	fbSecret := config.XC.Facebook.Secret
 	if !sessions.Live {
-		fbId = config.XC.Facebook.TestId
+		fbID = config.XC.Facebook.TestID
 		fbSecret = config.XC.Facebook.TestSecret
 	}
-	tokenUrl := fmt.Sprintf("https://graph.facebook.com/debug_token?input_token=%s&access_token=%s|%s", token, fbId, fbSecret)
-	request, err := http.NewRequest("GET", tokenUrl, bytes.NewBuffer([]byte("")))
+	tokenURL := fmt.Sprintf("https://graph.facebook.com/debug_token?input_token=%s&access_token=%s|%s", token, fbID, fbSecret)
+	request, err := http.NewRequest("GET", tokenURL, bytes.NewBuffer([]byte("")))
 	if err != nil {
 		return "", fmt.Errorf("Couldn't create request: %v", err)
 	}
@@ -79,8 +79,8 @@ func ProcessAccessToken(c sessions.Context, token string) (string, error) {
 		return "", fmt.Errorf("Couldn't decode json: %v", err)
 	}
 
-	userId := result["data"]["user_id"].(string)
-	return userId, nil
+	userID := result["data"]["user_id"].(string)
+	return userID, nil
 }
 
 // sendRequest sends the given request object to the Stormpath server.

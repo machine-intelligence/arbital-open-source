@@ -25,20 +25,20 @@ const (
 	Base31Chars             = "0123456789bcdfghjklmnpqrstvwxyz"
 	Base31CharsForFirstChar = "0123456789"
 
-	StubPageId                    = "72"
-	RequestForEditTagParentPageId = "3zj"
-	QualityMetaTagsPageId         = "5dg"
-	MathDomainId                  = "1lw"
-	AClassPageId                  = "4yf"
-	BClassPageId                  = "4yd"
-	FeaturedClassPageId           = "4yl"
+	StubPageID                    = "72"
+	RequestForEditTagParentPageID = "3zj"
+	QualityMetaTagsPageID         = "5dg"
+	MathDomainID                  = "1lw"
+	AClassPageID                  = "4yf"
+	BClassPageID                  = "4yd"
+	FeaturedClassPageID           = "4yl"
 )
 
 // AddPageToMap adds a new page with the given page id to the map if it's not
 // in the map already.
 // Returns the new/existing page.
 func AddPageToMap(pageID string, pageMap map[string]*Page, loadOptions *PageLoadOptions) *Page {
-	if !IsIdValid(pageID) {
+	if !IsIDValid(pageID) {
 		return nil
 	}
 	if p, ok := pageMap[pageID]; ok {
@@ -50,37 +50,37 @@ func AddPageToMap(pageID string, pageMap map[string]*Page, loadOptions *PageLoad
 	pageMap[pageID] = p
 	return p
 }
-func AddPageIdToMap(pageID string, pageMap map[string]*Page) *Page {
+func AddPageIDToMap(pageID string, pageMap map[string]*Page) *Page {
 	return AddPageToMap(pageID, pageMap, EmptyLoadOptions)
 }
 
 // AddUserToMap adds a new user with the given user id to the map if it's not
 // in the map already.
 // Returns the new/existing user.
-func AddUserToMap(userId string, userMap map[string]*User) *User {
-	if !IsIdValid(userId) {
+func AddUserToMap(userID string, userMap map[string]*User) *User {
+	if !IsIDValid(userID) {
 		return nil
 	}
-	if u, ok := userMap[userId]; ok {
+	if u, ok := userMap[userID]; ok {
 		return u
 	}
-	u := &User{ID: userId}
-	userMap[userId] = u
+	u := &User{ID: userID}
+	userMap[userID] = u
 	return u
 }
 
 // Add a markId to the mark map if it's not there already.
-func AddMarkToMap(markId string, markMap map[string]*Mark) *Mark {
-	mark, ok := markMap[markId]
+func AddMarkToMap(markID string, markMap map[string]*Mark) *Mark {
+	mark, ok := markMap[markID]
 	if !ok {
-		mark = &Mark{ID: markId}
-		markMap[markId] = mark
+		mark = &Mark{ID: markID}
+		markMap[markID] = mark
 	}
 	return mark
 }
 
 // PageIdsStringFromMap returns a comma separated string of all pageIds in the given map.
-func PageIdsStringFromMap(pageMap map[string]*Page) string {
+func PageIDsStringFromMap(pageMap map[string]*Page) string {
 	var buffer bytes.Buffer
 	for id := range pageMap {
 		buffer.WriteString(fmt.Sprintf("%s,", id))
@@ -93,7 +93,7 @@ func PageIdsStringFromMap(pageMap map[string]*Page) string {
 }
 
 // PageIdsListFromMap returns a comma separated string of all pageIds in the given map.
-func PageIdsListFromMap(pageMap map[string]*Page) []interface{} {
+func PageIDsListFromMap(pageMap map[string]*Page) []interface{} {
 	list := make([]interface{}, 0, len(pageMap))
 	for id := range pageMap {
 		list = append(list, id)
@@ -104,7 +104,7 @@ func PageIdsListFromMap(pageMap map[string]*Page) []interface{} {
 // StandardizeLinks converts all alias links into pageId links.
 func StandardizeLinks(db *database.DB, text string) (string, error) {
 	// Populate a list of all the links
-	aliasesAndIds := make([]string, 0)
+	aliasesAndIDs := make([]string, 0)
 	// Track regexp matches, because ReplaceAllStringFunc doesn't support matching groups
 	matches := make(map[string][]string)
 	extractLinks := func(exp *regexp.Regexp) {
@@ -113,8 +113,8 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 			matches[submatch[0]] = submatch
 			lowerCaseString := strings.ToLower(submatch[2][:1]) + submatch[2][1:]
 			upperCaseString := strings.ToUpper(submatch[2][:1]) + submatch[2][1:]
-			aliasesAndIds = append(aliasesAndIds, lowerCaseString)
-			aliasesAndIds = append(aliasesAndIds, upperCaseString)
+			aliasesAndIDs = append(aliasesAndIDs, lowerCaseString)
+			aliasesAndIDs = append(aliasesAndIDs, upperCaseString)
 		}
 	}
 
@@ -143,7 +143,7 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 		extractLinks(exp)
 	}
 
-	if len(aliasesAndIds) <= 0 {
+	if len(aliasesAndIDs) <= 0 {
 		return text, nil
 	}
 
@@ -152,7 +152,7 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 	rows := database.NewQuery(`
 		SELECT pageId,alias
 		FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
-		WHERE alias IN`).AddArgsGroupStr(aliasesAndIds).ToStatement(db).Query()
+		WHERE alias IN`).AddArgsGroupStr(aliasesAndIDs).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageID, alias string
 		err := rows.Scan(&pageID, &alias)
@@ -212,11 +212,11 @@ func ExtractPageLinks(text string, configAddress string) []string {
 	// Find ids and aliases using [@alias] syntax.
 	extractLinks(regexp.MustCompile("\\[@?(" + AliasRegexpStr + ")\\]"))
 
-	aliasesAndIds := make([]string, 0)
+	aliasesAndIDs := make([]string, 0)
 	for alias := range linkMap {
-		aliasesAndIds = append(aliasesAndIds, alias)
+		aliasesAndIDs = append(aliasesAndIDs, alias)
 	}
-	return aliasesAndIds
+	return aliasesAndIDs
 }
 
 // UpdatePageLinks updates the links table for the given page by parsing the text.
@@ -228,12 +228,12 @@ func UpdatePageLinks(tx *database.Tx, pageID string, text string, configAddress 
 		return fmt.Errorf("Couldn't delete old links: %v", err)
 	}
 
-	aliasesAndIds := ExtractPageLinks(text, configAddress)
-	if len(aliasesAndIds) > 0 {
+	aliasesAndIDs := ExtractPageLinks(text, configAddress)
+	if len(aliasesAndIDs) > 0 {
 		// Populate linkTuples
 		linkMap := make(map[string]bool) // track which aliases we already added to the list
 		valuesList := make([]interface{}, 0)
-		for _, alias := range aliasesAndIds {
+		for _, alias := range aliasesAndIDs {
 			lowercaseAlias := strings.ToLower(alias)
 			if linkMap[lowercaseAlias] {
 				continue
@@ -311,12 +311,12 @@ func ExtractTodoCount(text string) int {
 }
 
 // GetPageUrl returns the domain relative url for accessing the given page.
-func GetPageUrl(pageID string) string {
+func GetPageURL(pageID string) string {
 	return fmt.Sprintf("/p/%s", pageID)
 }
 
 // GetPageFullUrl returns the full url for accessing the given page.
-func GetPageFullUrl(subdomain string, pageID string) string {
+func GetPageFullURL(subdomain string, pageID string) string {
 	if len(subdomain) > 0 {
 		subdomain += "."
 	}
@@ -325,12 +325,12 @@ func GetPageFullUrl(subdomain string, pageID string) string {
 }
 
 // GetEditPageUrl returns the domain relative url for editing the given page.
-func GetEditPageUrl(pageID string) string {
+func GetEditPageURL(pageID string) string {
 	return fmt.Sprintf("/edit/%s", pageID)
 }
 
 // GetEditPageFullUrl returns the full url for editing the given page.
-func GetEditPageFullUrl(subdomain string, pageID string) string {
+func GetEditPageFullURL(subdomain string, pageID string) string {
 	if len(subdomain) > 0 {
 		subdomain += "."
 	}
@@ -339,7 +339,7 @@ func GetEditPageFullUrl(subdomain string, pageID string) string {
 }
 
 // GetNewPageUrl returns the domain relative url for creating a page with a set alias.
-func GetNewPageUrl(alias string) string {
+func GetNewPageURL(alias string) string {
 	if alias != "" {
 		alias = fmt.Sprintf("?alias=%s", alias)
 	}
@@ -370,7 +370,7 @@ func CorrectPagePairType(pagePairType string) (string, error) {
 	return pagePairType, nil
 }
 
-func IsIdValid(pageID string) bool {
+func IsIDValid(pageID string) bool {
 	if len(pageID) > 0 && pageID[0] > '0' && pageID[0] <= '9' {
 		return true
 	}
@@ -382,19 +382,19 @@ func IsAliasValid(alias string) bool {
 	return regexp.MustCompile("^" + AliasRegexpStr + "$").MatchString(alias)
 }
 
-func IsUser(db *database.DB, userId string) bool {
+func IsUser(db *database.DB, userID string) bool {
 	var userCount int
 	row := db.NewStatement(`
 		SELECT COUNT(id)
 		FROM users
-		WHERE id=?`).QueryRow(userId)
+		WHERE id=?`).QueryRow(userID)
 	row.Scan(&userCount)
 	return userCount > 0
 }
 
 func GetCommentParents(db *database.DB, pageID string) (string, string, error) {
-	var commentParentId string
-	var commentPrimaryPageId string
+	var commentParentID string
+	var commentPrimaryPageID string
 	rows := database.NewQuery(`
 		SELECT pi.pageId,pi.type
 		FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
@@ -404,33 +404,33 @@ func GetCommentParents(db *database.DB, pageID string) (string, string, error) {
 			AND pp.childId=?`, pageID).Add(`
 		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var parentId string
+		var parentID string
 		var pageType string
-		err := rows.Scan(&parentId, &pageType)
+		err := rows.Scan(&parentID, &pageType)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
 		if pageType == CommentPageType {
-			if IsIdValid(commentParentId) {
+			if IsIDValid(commentParentID) {
 				return fmt.Errorf("Can't have more than one comment parent")
 			}
-			commentParentId = parentId
+			commentParentID = parentID
 		} else {
-			if IsIdValid(commentPrimaryPageId) {
+			if IsIDValid(commentPrimaryPageID) {
 				return fmt.Errorf("Can't have more than one non-comment parent for a comment")
 			}
-			commentPrimaryPageId = parentId
+			commentPrimaryPageID = parentID
 		}
 		return nil
 	})
 	if err != nil {
 		return "", "", fmt.Errorf("failed to process rows: %v", err)
 	}
-	if !IsIdValid(commentPrimaryPageId) {
+	if !IsIDValid(commentPrimaryPageID) {
 		return "", "", fmt.Errorf("Comment pages need at least one normal page parent")
 	}
 
-	return commentParentId, commentPrimaryPageId, nil
+	return commentParentID, commentPrimaryPageID, nil
 }
 
 func GetPrimaryParentTitle(db *database.DB, u *CurrentUser, pageID string) (string, error) {
@@ -460,59 +460,59 @@ func LoadDomainsForPage(db *database.DB, pageID string) ([]string, error) {
 }
 
 // Look up the domains that these pages are in
-func LoadDomainsForPages(db *database.DB, pageIds ...interface{}) ([]string, error) {
-	domainIds := make([]string, 0)
+func LoadDomainsForPages(db *database.DB, pageIDs ...interface{}) ([]string, error) {
+	domainIDs := make([]string, 0)
 
 	rows := database.NewQuery(`
 		SELECT pdp.domainId
 		FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
 		JOIN pageDomainPairs AS pdp
 		ON (pi.pageId=pdp.pageId)
-		WHERE pi.pageId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
+		WHERE pi.pageId IN`).AddArgsGroup(pageIDs).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var domainId string
-		err := rows.Scan(&domainId)
+		var domainID string
+		err := rows.Scan(&domainID)
 		if err != nil {
 			return fmt.Errorf("failed to scan for a domain: %v", err)
 		}
-		domainIds = append(domainIds, domainId)
+		domainIDs = append(domainIDs, domainID)
 		return nil
 	})
 
 	// For pages with no domain, we consider them to be in the "" domain.
-	if len(domainIds) == 0 {
-		domainIds = append(domainIds, "")
+	if len(domainIDs) == 0 {
+		domainIDs = append(domainIDs, "")
 	}
 
-	return domainIds, err
+	return domainIDs, err
 }
 
 // LoadAllDomainIds loads all the domains that currently exist on Arbital.
 // If pageMap is given, it also adds them to the pageMap.
-func LoadAllDomainIds(db *database.DB, pageMap map[string]*Page) ([]string, error) {
-	domainIds := make([]string, 0)
+func LoadAllDomainIDs(db *database.DB, pageMap map[string]*Page) ([]string, error) {
+	domainIDs := make([]string, 0)
 	rows := database.NewQuery(`
 		SELECT DISTINCT domainId
 		FROM pageDomainPairs`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var domainId string
-		err := rows.Scan(&domainId)
+		var domainID string
+		err := rows.Scan(&domainID)
 		if err != nil {
 			return fmt.Errorf("failed to scan for a domain: %v", err)
 		}
-		domainIds = append(domainIds, domainId)
+		domainIDs = append(domainIDs, domainID)
 		if pageMap != nil {
-			AddPageToMap(domainId, pageMap, TitlePlusLoadOptions)
+			AddPageToMap(domainID, pageMap, TitlePlusLoadOptions)
 		}
 		return nil
 	})
-	return domainIds, err
+	return domainIDs, err
 }
 
 // Return true iff the string is in the list
 func IsStringInList(str string, list []string) bool {
-	for _, listId := range list {
-		if str == listId {
+	for _, listID := range list {
+		if str == listID {
 			return true
 		}
 	}

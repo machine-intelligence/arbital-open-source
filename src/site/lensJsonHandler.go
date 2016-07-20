@@ -1,4 +1,5 @@
 // lensJsonHandler.go contains the handler for returning JSON with data to display a lens.
+
 package site
 
 import (
@@ -10,23 +11,23 @@ import (
 )
 
 // lensJsonData contains parameters passed in via the request.
-type lensJsonData struct {
+type lensJSONData struct {
 	PageAlias string
 }
 
 var lensHandler = siteHandler{
 	URI:         "/json/lens/",
-	HandlerFunc: lensJsonHandler,
+	HandlerFunc: lensJSONHandler,
 }
 
 // lensJsonHandler handles the request.
-func lensJsonHandler(params *pages.HandlerParams) *pages.Result {
+func lensJSONHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(u)
 
 	// Decode data
-	var data lensJsonData
+	var data lensJSONData
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
@@ -34,7 +35,7 @@ func lensJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Get actual page id
-	pageID, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
+	pageID, ok, err := core.LoadAliasToPageID(db, u, data.PageAlias)
 	if err != nil {
 		return pages.Fail("Couldn't convert alias", err)
 	}

@@ -1,4 +1,5 @@
 // recentChangesHandler.go serves the recent changes feed.
+
 package site
 
 import (

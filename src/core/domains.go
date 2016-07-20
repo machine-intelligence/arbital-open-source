@@ -34,8 +34,8 @@ func PropagateDomainsWithTx(tx *database.Tx, pagesToUpdate []string) (map[string
 	// The set of all the parents
 	allParentsSet := make(map[string]bool)
 	for _, parents := range parentMap {
-		for parentId := range parents {
-			allParentsSet[parentId] = true
+		for parentID := range parents {
+			allParentsSet[parentID] = true
 		}
 	}
 
@@ -66,9 +66,9 @@ func PropagateDomainsWithTx(tx *database.Tx, pagesToUpdate []string) (map[string
 	for _, id := range pagesToUpdate {
 		pagesToUpdateSet[id] = true
 	}
-	for parentId := range allParentsSet {
-		if _, toBeUpdated := pagesToUpdateSet[parentId]; !toBeUpdated {
-			pagesWithValidDomainsSet[parentId] = true
+	for parentID := range allParentsSet {
+		if _, toBeUpdated := pagesToUpdateSet[parentID]; !toBeUpdated {
+			pagesWithValidDomainsSet[parentID] = true
 		}
 	}
 
@@ -96,7 +96,7 @@ func PropagateDomainsWithTx(tx *database.Tx, pagesToUpdate []string) (map[string
 }
 
 // Gets a map from a set of pages to sets of their parents
-func _getParentMap(tx *database.Tx, pageIds []string) (map[string]map[string]bool, error) {
+func _getParentMap(tx *database.Tx, pageIDs []string) (map[string]map[string]bool, error) {
 	parentMap := make(map[string]map[string]bool)
 
 	rows := database.NewQuery(`
@@ -105,17 +105,17 @@ func _getParentMap(tx *database.Tx, pageIds []string) (map[string]map[string]boo
 		JOIN`).AddPart(PageInfosTable(nil)).Add(`AS pi
 		ON pp.parentId=pi.pageId
 		WHERE pp.type=?`, ParentPagePairType).Add(`
-			AND childId IN`).AddArgsGroupStr(pageIds).ToTxStatement(tx).Query()
+			AND childId IN`).AddArgsGroupStr(pageIDs).ToTxStatement(tx).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var childId, parentId string
-		if err := rows.Scan(&childId, &parentId); err != nil {
+		var childID, parentID string
+		if err := rows.Scan(&childID, &parentID); err != nil {
 			return fmt.Errorf("failed to scan for pagePair: %v", err)
 		}
-		if _, ok := parentMap[childId]; !ok {
-			parentMap[childId] = make(map[string]bool)
+		if _, ok := parentMap[childID]; !ok {
+			parentMap[childID] = make(map[string]bool)
 		}
 		// Add the parent to this page's set of parents
-		parentMap[childId][parentId] = true
+		parentMap[childID][parentID] = true
 		return nil
 	})
 
@@ -123,12 +123,12 @@ func _getParentMap(tx *database.Tx, pageIds []string) (map[string]map[string]boo
 }
 
 // Gets the set of pages, from among those given, that are domain pages
-func _getDomainPages(tx *database.Tx, pageIds []string) (map[string]bool, error) {
+func _getDomainPages(tx *database.Tx, pageIDs []string) (map[string]bool, error) {
 	domainPagesSet := make(map[string]bool)
 	rows := database.NewQuery(`
 		SELECT pageId
 		FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
-		WHERE pageId IN`).AddArgsGroupStr(pageIds).Add(`
+		WHERE pageId IN`).AddArgsGroupStr(pageIDs).Add(`
 			AND type=?`, DomainPageType).ToTxStatement(tx).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageID string
@@ -144,23 +144,23 @@ func _getDomainPages(tx *database.Tx, pageIds []string) (map[string]bool, error)
 
 // Gets the current set of domains for each of the given pages.
 // Returns a map from page ids to sets of domain ids.
-func _getOriginalDomains(tx *database.Tx, pageIds []string) (map[string]map[string]bool, error) {
+func _getOriginalDomains(tx *database.Tx, pageIDs []string) (map[string]map[string]bool, error) {
 	originalDomainsMap := make(map[string]map[string]bool)
-	for _, id := range pageIds {
+	for _, id := range pageIDs {
 		originalDomainsMap[id] = make(map[string]bool)
 	}
 
 	rows := database.NewQuery(`
 		SELECT pageId, domainId
 		FROM pageDomainPairs
-		WHERE pageId IN`).AddArgsGroupStr(pageIds).ToTxStatement(tx).Query()
+		WHERE pageId IN`).AddArgsGroupStr(pageIDs).ToTxStatement(tx).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageID, domainId string
-		if err := rows.Scan(&pageID, &domainId); err != nil {
+		var pageID, domainID string
+		if err := rows.Scan(&pageID, &domainID); err != nil {
 			return fmt.Errorf("failed to scan for pageDomainPair: %v", err)
 		}
 		// Add the domain to this page's set of original domains
-		originalDomainsMap[pageID][domainId] = true
+		originalDomainsMap[pageID][domainID] = true
 		return nil
 	})
 	if err != nil {
@@ -206,10 +206,10 @@ func _computeDomainsRecursive(pageID string, parentMap map[string]map[string]boo
 
 	// Add the domains from all of this page's parents
 	if parents, ok := parentMap[pageID]; ok {
-		for parentId := range parents {
-			domainsFromParent := _computeDomainsRecursive(parentId, parentMap, domainPagesSet, computedDomainsMap)
-			for domainId := range domainsFromParent {
-				domainsSet[domainId] = true
+		for parentID := range parents {
+			domainsFromParent := _computeDomainsRecursive(parentID, parentMap, domainPagesSet, computedDomainsMap)
+			for domainID := range domainsFromParent {
+				domainsSet[domainID] = true
 			}
 		}
 	}
@@ -230,14 +230,14 @@ func _getDomainsToAddRemove(originalDomainsMap map[string]map[string]bool, compu
 
 		domainsToAddSet := make(map[string]bool)
 		domainsToRemoveSet := make(map[string]bool)
-		for domainId := range computedDomains {
-			if _, alreadyApplied := originalDomains[domainId]; !alreadyApplied {
-				domainsToAddSet[domainId] = true
+		for domainID := range computedDomains {
+			if _, alreadyApplied := originalDomains[domainID]; !alreadyApplied {
+				domainsToAddSet[domainID] = true
 			}
 		}
-		for domainId := range originalDomains {
-			if _, shouldKeep := computedDomains[domainId]; !shouldKeep {
-				domainsToRemoveSet[domainId] = true
+		for domainID := range originalDomains {
+			if _, shouldKeep := computedDomains[domainID]; !shouldKeep {
+				domainsToRemoveSet[domainID] = true
 			}
 		}
 
@@ -257,14 +257,14 @@ func _updateDomains(tx *database.Tx, domainsToAddMap map[string]map[string]bool,
 	removeDomainArgsMap := make(map[string][]interface{}, 0)
 
 	for pageID, domainsToAddSet := range domainsToAddMap {
-		for domainId := range domainsToAddSet {
-			addDomainArgs = append(addDomainArgs, domainId, pageID)
+		for domainID := range domainsToAddSet {
+			addDomainArgs = append(addDomainArgs, domainID, pageID)
 		}
 	}
 	for pageID, domainsToRemoveSet := range domainsToRemoveMap {
 		removeDomainArgs := make([]interface{}, 0)
-		for domainId := range domainsToRemoveSet {
-			removeDomainArgs = append(removeDomainArgs, domainId)
+		for domainID := range domainsToRemoveSet {
+			removeDomainArgs = append(removeDomainArgs, domainID)
 		}
 		if len(removeDomainArgs) > 0 {
 			removeDomainArgsMap[pageID] = removeDomainArgs

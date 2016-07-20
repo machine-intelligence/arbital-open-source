@@ -1,5 +1,6 @@
 // userSearchJsonHandler.go contains the handler for matching a partial query against
 // pages' ids, aliases, and titles.
+
 package site
 
 import (
@@ -15,13 +16,13 @@ import (
 
 var userSearchHandler = siteHandler{
 	URI:         "/json/userSearch/",
-	HandlerFunc: userSearchJsonHandler,
+	HandlerFunc: userSearchJSONHandler,
 }
 
 // userSearchJsonHandler handles the request.
-func userSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
+func userSearchJSONHandler(params *pages.HandlerParams) *pages.Result {
 	// Decode data
-	var data searchJsonData
+	var data searchJSONData
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
@@ -31,7 +32,7 @@ func userSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("No search term specified", nil).Status(http.StatusBadRequest)
 	}
 
-	groupIds := []string{"\"\""}
+	groupIDs := []string{"\"\""}
 	escapedTerm := elastic.EscapeMatchTerm(data.Term)
 
 	// Construct the search JSON
@@ -68,6 +69,6 @@ func userSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 			}
 		},
 		"_source": []
-	}`, escapedTerm, strings.Join(groupIds, ","), core.GroupPageType)
-	return searchJsonInternalHandler(params, jsonStr)
+	}`, escapedTerm, strings.Join(groupIDs, ","), core.GroupPageType)
+	return searchJSONInternalHandler(params, jsonStr)
 }

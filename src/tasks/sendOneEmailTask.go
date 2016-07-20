@@ -13,7 +13,7 @@ import (
 
 // SendOneEmailTask is the object that's put into the daemon queue.
 type SendOneEmailTask struct {
-	UserId string
+	UserID string
 }
 
 func (task SendOneEmailTask) Tag() string {
@@ -22,8 +22,8 @@ func (task SendOneEmailTask) Tag() string {
 
 // Check if this task is valid, and we can safely execute it.
 func (task SendOneEmailTask) IsValid() error {
-	if !core.IsIdValid(task.UserId) {
-		return fmt.Errorf("User id has to be set: %v", task.UserId)
+	if !core.IsIDValid(task.UserID) {
+		return fmt.Errorf("User id has to be set: %v", task.UserID)
 	}
 
 	return nil
@@ -48,12 +48,12 @@ func (task SendOneEmailTask) Execute(db *database.DB) (delay int, err error) {
 		UPDATE users
 		SET updateEmailSentAt=NOW()
 		WHERE id=?`)
-	_, err = statement.Exec(task.UserId)
+	_, err = statement.Exec(task.UserID)
 	if err != nil {
 		return 0, fmt.Errorf("failed to update updateEmailSentAt: %v", err)
 	}
 
-	emailData, err := core.LoadUpdateEmail(db, task.UserId)
+	emailData, err := core.LoadUpdateEmail(db, task.UserID)
 	if err != nil {
 		return 0, fmt.Errorf("Failed to load email text: %v", err)
 	}
@@ -70,14 +70,14 @@ func (task SendOneEmailTask) Execute(db *database.DB) (delay int, err error) {
 
 	if sessions.Live {
 		// Mark loaded updates as emailed
-		updateIds := make([]interface{}, 0)
+		updateIDs := make([]interface{}, 0)
 		for _, row := range emailData.UpdateRows {
-			updateIds = append(updateIds, row.ID)
+			updateIDs = append(updateIDs, row.ID)
 		}
 		statement := database.NewQuery(`
 			UPDATE updates
 			SET emailed=true
-			WHERE id IN`).AddArgsGroup(updateIds).ToStatement(db)
+			WHERE id IN`).AddArgsGroup(updateIDs).ToStatement(db)
 		_, err = statement.Exec()
 		if err != nil {
 			return 0, fmt.Errorf("Couldn't update updates as emailed: %v", err)

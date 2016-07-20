@@ -1,4 +1,5 @@
 // searchJsonHandler.go contains the handler for searching all the pages.
+
 package site
 
 import (
@@ -23,7 +24,7 @@ const (
 	minSearchScore = 0.1
 )
 
-type searchJsonData struct {
+type searchJSONData struct {
 	Term string
 	// If this is set, only pages of this type will be returned
 	PageType string
@@ -33,15 +34,15 @@ type searchJsonData struct {
 
 var searchHandler = siteHandler{
 	URI:         "/json/search/",
-	HandlerFunc: searchJsonHandler,
+	HandlerFunc: searchJSONHandler,
 }
 
 // searchJsonHandler handles the request.
-func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
+func searchJSONHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 
 	// Decode data
-	var data searchJsonData
+	var data searchJSONData
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
@@ -51,11 +52,11 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("No search term specified", nil).Status(http.StatusBadRequest)
 	}
 
-	var groupIds []string
-	for _, id := range u.GroupIds {
-		groupIds = append(groupIds, "\""+id+"\"")
+	var groupIDs []string
+	for _, id := range u.GroupIDs {
+		groupIDs = append(groupIDs, "\""+id+"\"")
 	}
-	groupIds = append(groupIds, "\"\"")
+	groupIDs = append(groupIDs, "\"\"")
 
 	data.Term = elastic.EscapeMatchTerm(data.Term)
 
@@ -167,11 +168,11 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 			}
 		},
 		"_source": []
-	}`, minSearchScore, searchSize, data.Term, strings.Join(groupIds, ","))
-	return searchJsonInternalHandler(params, jsonStr)
+	}`, minSearchScore, searchSize, data.Term, strings.Join(groupIDs, ","))
+	return searchJSONInternalHandler(params, jsonStr)
 }
 
-func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages.Result {
+func searchJSONInternalHandler(params *pages.HandlerParams, query string) *pages.Result {
 	db := params.DB
 	u := params.U
 	returnData := core.NewHandlerData(u)
@@ -208,8 +209,8 @@ func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages
 	for _, hit := range results.Hits.Hits {
 		if page, ok := returnData.PageMap[hit.Source.PageID]; ok {
 			// Adjust the score based on tags
-			for _, tagId := range page.TaggedAsIds {
-				if penalty, ok := penaltyMap[tagId]; ok {
+			for _, tagID := range page.TaggedAsIDs {
+				if penalty, ok := penaltyMap[tagID]; ok {
 					hit.Score *= penalty
 				}
 			}
@@ -222,8 +223,8 @@ func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages
 			}
 			// Adjust the score if the user created the page
 			if u.ID != "" {
-				for _, creatorId := range page.CreatorIds {
-					if creatorId == u.ID {
+				for _, creatorID := range page.CreatorIDs {
+					if creatorID == u.ID {
 						hit.Score *= 1.2
 						break
 					}

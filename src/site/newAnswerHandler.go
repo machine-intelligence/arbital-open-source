@@ -1,4 +1,5 @@
 // newAnswerHandler.go adds an answer to a question
+
 package site
 
 import (
@@ -15,8 +16,8 @@ import (
 
 // newAnswerData contains data given to us in the request.
 type newAnswerData struct {
-	QuestionId   string
-	AnswerPageId string
+	QuestionID   string
+	AnswerPageID string
 }
 
 var newAnswerHandler = siteHandler{
@@ -41,11 +42,11 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.QuestionId) || !core.IsIdValid(data.AnswerPageId) {
+	if !core.IsIDValid(data.QuestionID) || !core.IsIDValid(data.AnswerPageID) {
 		return pages.Fail("One of the passed page ids is invalid", nil).Status(http.StatusBadRequest)
 	}
 
-	page, err := core.LoadFullEdit(db, data.QuestionId, u, nil)
+	page, err := core.LoadFullEdit(db, data.QuestionID, u, nil)
 	if err != nil {
 		return pages.Fail("Couldn't load page", err)
 	}
@@ -56,12 +57,12 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail(page.Permissions.Edit.Reason, nil).Status(http.StatusBadRequest)
 	}
 
-	var newId int64
+	var newID int64
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Add the answer
 		hashmap := make(database.InsertMap)
-		hashmap["questionId"] = data.QuestionId
-		hashmap["answerPageId"] = data.AnswerPageId
+		hashmap["questionId"] = data.QuestionID
+		hashmap["answerPageId"] = data.AnswerPageID
 		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = now
 		statement := db.NewInsertStatement("answers", hashmap).WithTx(tx)
@@ -70,36 +71,36 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return sessions.NewError("Couldn't insert into DB", err)
 		}
 
-		newId, err = resp.LastInsertId()
+		newID, err = resp.LastInsertId()
 		if err != nil {
 			return sessions.NewError("Couldn't get inserted id", err)
 		}
 
 		// Update change logs
 		hashmap = make(database.InsertMap)
-		hashmap["pageId"] = data.QuestionId
+		hashmap["pageId"] = data.QuestionID
 		hashmap["userId"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = core.AnswerChangeChangeLog
-		hashmap["auxPageId"] = data.AnswerPageId
+		hashmap["auxPageId"] = data.AnswerPageID
 		hashmap["newSettingsValue"] = "new"
 		statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
 		resp, err = statement.Exec()
 		if err != nil {
 			return sessions.NewError("Couldn't add to changeLogs", err)
 		}
-		changeLogId, err := resp.LastInsertId()
+		changeLogID, err := resp.LastInsertId()
 		if err != nil {
 			return sessions.NewError("Couldn't get changeLog id", err)
 		}
 
 		// Insert updates
 		var task tasks.NewUpdateTask
-		task.UserId = u.ID
-		task.GoToPageId = data.AnswerPageId
-		task.SubscribedToId = data.QuestionId
+		task.UserID = u.ID
+		task.GoToPageID = data.AnswerPageID
+		task.SubscribedToID = data.QuestionID
 		task.UpdateType = core.ChangeLogUpdateType
-		task.ChangeLogId = changeLogId
+		task.ChangeLogID = changeLogID
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			return sessions.NewError("Couldn't enqueue a task: %v", err)
 		}
@@ -110,13 +111,13 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages.
-	core.AddPageToMap(data.AnswerPageId, returnData.PageMap, core.AnswerLoadOptions)
+	core.AddPageToMap(data.AnswerPageID, returnData.PageMap, core.AnswerLoadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
 	}
 
-	returnData.ResultMap["newAnswer"], err = core.LoadAnswer(db, fmt.Sprintf("%d", newId))
+	returnData.ResultMap["newAnswer"], err = core.LoadAnswer(db, fmt.Sprintf("%d", newID))
 	if err != nil {
 		return pages.Fail("Couldn't load the new answer", err)
 	}

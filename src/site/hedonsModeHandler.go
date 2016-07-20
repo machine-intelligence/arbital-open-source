@@ -1,4 +1,5 @@
 // hedonsModeHandler.go serves the /achievements panel (which displays hedons updates, such as, 'Alexei liked your page').
+
 package site
 
 import (
@@ -74,9 +75,9 @@ func hedonsModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Mark updates as seen.
-	updateIds := make([]string, 0)
+	updateIDs := make([]string, 0)
 	for _, row := range updateRows {
-		updateIds = append(updateIds, row.(*updateModeRow).Update.ID)
+		updateIDs = append(updateIDs, row.(*updateModeRow).Update.ID)
 	}
 	err = core.MarkUpdatesAsSeen(db, u.ID, core.GetAchievementUpdateTypes())
 	if err != nil {

@@ -1,4 +1,5 @@
 // Package site is used to manage our website
+
 package site
 
 import (
@@ -84,10 +85,10 @@ func init() {
 
 	// JSON handlers (API)
 	s.HandleFunc(adminDashboardPageHandler.URI, handlerWrapper(adminDashboardPageHandler)).Methods("POST")
-	s.HandleFunc(alternatePagesHandler.URI, handlerWrapper(alternatePagesHandler)).Methods("POST")
 	s.HandleFunc(approvePageToDomainHandler.URI, handlerWrapper(approvePageToDomainHandler)).Methods("POST")
 	s.HandleFunc(approvePageEditProposalHandler.URI, handlerWrapper(approvePageEditProposalHandler)).Methods("POST")
 	s.HandleFunc(bellUpdatesHandler.URI, handlerWrapper(bellUpdatesHandler)).Methods("POST")
+	s.HandleFunc(changeSpeedHandler.URI, handlerWrapper(changeSpeedHandler)).Methods("POST")
 	s.HandleFunc(childrenHandler.URI, handlerWrapper(childrenHandler)).Methods("POST")
 	s.HandleFunc(commentThreadHandler.URI, handlerWrapper(commentThreadHandler)).Methods("POST")
 	s.HandleFunc(continueWritingModeHandler.URI, handlerWrapper(continueWritingModeHandler)).Methods("POST")
@@ -152,7 +153,6 @@ func init() {
 	s.HandleFunc(searchHandler.URI, handlerWrapper(searchHandler)).Methods("POST")
 	s.HandleFunc(sendSlackInviteHandler.URI, handlerWrapper(sendSlackInviteHandler)).Methods("POST")
 	s.HandleFunc(settingsPageHandler.URI, handlerWrapper(settingsPageHandler)).Methods("POST")
-	s.HandleFunc(slowDownHandler.URI, handlerWrapper(slowDownHandler)).Methods("POST")
 	s.HandleFunc(signupHandler.URI, handlerWrapper(signupHandler)).Methods("POST")
 	s.HandleFunc(similarPageSearchHandler.URI, handlerWrapper(similarPageSearchHandler)).Methods("POST")
 	s.HandleFunc(startPathHandler.URI, handlerWrapper(startPathHandler)).Methods("POST")
@@ -191,7 +191,7 @@ func init() {
 }
 
 // writeJson converts the given map to JSON and writes it to the given writer.
-func writeJson(w http.ResponseWriter, m interface{}) error {
+func writeJSON(w http.ResponseWriter, m interface{}) error {
 	jsonData, err := json.Marshal(m)
 	if err != nil {
 		return fmt.Errorf("Error marshalling data into json:", err)

@@ -84,7 +84,7 @@ func LoadPagePair(db *database.DB, id string) (*PagePair, error) {
 }
 
 // LoadChildIds loads the page ids for all the children of the pages in the given pageMap.
-func LoadChildIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, options *LoadChildIdsOptions) error {
+func LoadChildIDs(db *database.DB, pageMap map[string]*Page, u *CurrentUser, options *LoadChildIdsOptions) error {
 	sourcePageMap := options.ForPages
 	if len(sourcePageMap) <= 0 {
 		return nil
@@ -100,33 +100,33 @@ func LoadChildIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, opt
 		pageTypeFilter = "AND pi.type = '" + options.Type + "'"
 	}
 
-	pageIds := PageIdsListFromMap(sourcePageMap)
+	pageIDs := PageIDsListFromMap(sourcePageMap)
 	rows := database.NewQuery(`
 		SELECT pp.parentId,pp.childId,pp.type,pi.type
 		FROM (
 			SELECT id,parentId,childId,type
 			FROM pagePairs
-			WHERE`).Add(pairTypeFilter).Add(`parentId IN`).AddArgsGroup(pageIds).Add(`
+			WHERE`).Add(pairTypeFilter).Add(`parentId IN`).AddArgsGroup(pageIDs).Add(`
 		) AS pp
 		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
 		ON pi.pageId=pp.childId`).Add(pageTypeFilter).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var parentId, childId string
+		var parentID, childID string
 		var ppType string
 		var piType string
-		err := rows.Scan(&parentId, &childId, &ppType, &piType)
+		err := rows.Scan(&parentID, &childID, &ppType, &piType)
 		if err != nil {
 			return fmt.Errorf("failed to scan for page pairs: %v", err)
 		}
-		newPage := AddPageToMap(childId, pageMap, options.LoadOptions)
+		newPage := AddPageToMap(childID, pageMap, options.LoadOptions)
 
-		parent := sourcePageMap[parentId]
+		parent := sourcePageMap[parentID]
 		if piType == CommentPageType {
-			parent.CommentIds = append(parent.CommentIds, newPage.PageID)
+			parent.CommentIDs = append(parent.CommentIDs, newPage.PageID)
 		} else if piType == QuestionPageType {
-			parent.QuestionIds = append(parent.QuestionIds, newPage.PageID)
+			parent.QuestionIDs = append(parent.QuestionIDs, newPage.PageID)
 		} else if piType == WikiPageType && ppType == ParentPagePairType {
-			parent.ChildIds = append(parent.ChildIds, childId)
+			parent.ChildIDs = append(parent.ChildIDs, childID)
 			parent.HasChildren = true
 			if parent.LoadOptions.HasGrandChildren {
 				newPage.LoadOptions.SubpageCounts = true
@@ -135,7 +135,7 @@ func LoadChildIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, opt
 				newPage.LoadOptions.RedLinkCount = true
 			}
 		} else if piType == WikiPageType && ppType == TagPagePairType {
-			parent.RelatedIds = append(parent.RelatedIds, childId)
+			parent.RelatedIDs = append(parent.RelatedIDs, childID)
 		}
 		return nil
 	})
@@ -143,7 +143,7 @@ func LoadChildIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, opt
 }
 
 // LoadParentIds loads the page ids for all the parents of the pages in the given pageMap.
-func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, options *LoadParentIdsOptions) error {
+func LoadParentIDs(db *database.DB, pageMap map[string]*Page, u *CurrentUser, options *LoadParentIdsOptions) error {
 	sourcePageMap := options.ForPages
 	if len(sourcePageMap) <= 0 {
 		return nil
@@ -154,7 +154,7 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, op
 		pairTypeFilter = "type = '" + options.PagePairType + "' AND"
 	}
 
-	pageIds := PageIdsListFromMap(sourcePageMap)
+	pageIDs := PageIDsListFromMap(sourcePageMap)
 	newPages := make(map[string]*Page)
 
 	rows := database.NewQuery(`
@@ -162,28 +162,28 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, op
 		FROM (
 			SELECT id,parentId,childId,type
 			FROM pagePairs
-			WHERE `).Add(pairTypeFilter).Add(`childId IN`).AddArgsGroup(pageIds).Add(`
+			WHERE `).Add(pairTypeFilter).Add(`childId IN`).AddArgsGroup(pageIDs).Add(`
 		) AS pp
 		JOIN`).AddPart(PageInfosTableAll(u)).Add(`AS pi
 		ON (pi.pageId=pp.parentId)
 		WHERE (pi.currentEdit>0 AND NOT pi.isDeleted) OR pp.parentId=pp.childId
 		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var parentId, childId string
+		var parentID, childID string
 		var ppType string
-		err := rows.Scan(&parentId, &childId, &ppType)
+		err := rows.Scan(&parentID, &childID, &ppType)
 		if err != nil {
 			return fmt.Errorf("failed to scan for page pairs: %v", err)
 		}
-		newPage := AddPageToMap(parentId, pageMap, options.LoadOptions)
-		childPage := sourcePageMap[childId]
+		newPage := AddPageToMap(parentID, pageMap, options.LoadOptions)
+		childPage := sourcePageMap[childID]
 
 		if ppType == ParentPagePairType {
-			childPage.ParentIds = append(childPage.ParentIds, parentId)
+			childPage.ParentIDs = append(childPage.ParentIDs, parentID)
 			childPage.HasParents = true
 			newPages[newPage.PageID] = newPage
 		} else if ppType == TagPagePairType {
-			childPage.TaggedAsIds = append(childPage.TaggedAsIds, parentId)
+			childPage.TaggedAsIDs = append(childPage.TaggedAsIDs, parentID)
 		}
 		return nil
 	})
@@ -193,11 +193,11 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, op
 
 	// Load if parents have parents
 	if options.LoadHasParents && len(newPages) > 0 {
-		pageIds = PageIdsListFromMap(newPages)
+		pageIDs = PageIDsListFromMap(newPages)
 		rows := database.NewQuery(`
 			SELECT childId,sum(1)
 			FROM pagePairs
-			WHERE type=?`, ParentPagePairType).Add(`AND childId IN`).AddArgsGroup(pageIds).Add(`
+			WHERE type=?`, ParentPagePairType).Add(`AND childId IN`).AddArgsGroup(pageIDs).Add(`
 			GROUP BY 1`).ToStatement(db).Query()
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageID string
@@ -224,8 +224,8 @@ func LoadParentIdsForPage(db *database.DB, pageID string, u *CurrentUser) ([]str
 	options := &LoadParentIdsOptions{
 		PagePairType: ParentPagePairType,
 	}
-	err := LoadParentIds(db, pageMap, u, options)
-	return p.ParentIds, err
+	err := LoadParentIDs(db, pageMap, u, options)
+	return p.ParentIDs, err
 }
 
 type LoadReqsOptions struct {
@@ -242,14 +242,14 @@ func LoadRequisites(db *database.DB, pageMap map[string]*Page, u *CurrentUser, o
 	if len(sourcePageMap) <= 0 {
 		return nil
 	}
-	pageIds := PageIdsListFromMap(sourcePageMap)
+	pageIDs := PageIDsListFromMap(sourcePageMap)
 
 	queryPart := database.NewQuery(`
 		JOIN`).AddPart(PageInfosTableAll(u)).Add(`AS pi
 		ON (pi.pageId=pp.parentId)
 		WHERE ((pi.currentEdit>0 AND NOT pi.isDeleted) OR pp.parentId=pp.childId)
 			AND pp.type IN (?,?)`, RequirementPagePairType, SubjectPagePairType).Add(`
-			AND pp.childId IN`).AddArgsGroup(pageIds).Add(`
+			AND pp.childId IN`).AddArgsGroup(pageIDs).Add(`
 		`)
 	err := LoadPagePairs(db, queryPart, func(db *database.DB, pagePair *PagePair) error {
 		childPage := sourcePageMap[pagePair.ChildID]
@@ -298,12 +298,12 @@ func _getChildren(db *database.DB, pageID string) ([]string, error) {
 		FROM pagePairs
 		WHERE parentId=? AND type=?`).Query(pageID, ParentPagePairType)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var childId string
-		if err := rows.Scan(&childId); err != nil {
+		var childID string
+		if err := rows.Scan(&childID); err != nil {
 			return fmt.Errorf("failed to scan for childId: %v", err)
 		}
 
-		children = append(children, childId)
+		children = append(children, childID)
 		return nil
 	})
 	return children, err
@@ -320,12 +320,12 @@ func _getParents(db *database.DB, pageID string) ([]string, error) {
 		ON pp.parentId=pi.pageId
 		WHERE pp.childId=?`, pageID).Add(`AND pp.type=?`, ParentPagePairType).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var parentId string
-		if err := rows.Scan(&parentId); err != nil {
+		var parentID string
+		if err := rows.Scan(&parentID); err != nil {
 			return fmt.Errorf("failed to scan for parentId: %v", err)
 		}
 
-		parents = append(parents, parentId)
+		parents = append(parents, parentID)
 		return nil
 	})
 	return parents, err
@@ -342,12 +342,12 @@ func GetSubjects(db *database.DB, pageID string) ([]string, error) {
 		ON pp.parentId=pi.pageId
 		WHERE pp.childId=?`, pageID).Add(`AND pp.type=?`, SubjectPagePairType).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var subjectId string
-		if err := rows.Scan(&subjectId); err != nil {
+		var subjectID string
+		if err := rows.Scan(&subjectID); err != nil {
 			return fmt.Errorf("failed to scan for subjectId: %v", err)
 		}
 
-		subjects = append(subjects, subjectId)
+		subjects = append(subjects, subjectID)
 		return nil
 	})
 	return subjects, err
@@ -357,24 +357,24 @@ type GetRelatedFunc func(db *database.DB, pageID string) ([]string, error)
 
 // Finds all pages reachable from the source page by recursively following the given getRelated function
 // (see: https://en.wikipedia.org/wiki/Transitive_closure)
-func _getReachablePages(db *database.DB, sourceId string, getRelated GetRelatedFunc) (map[string]bool, error) {
+func _getReachablePages(db *database.DB, sourceID string, getRelated GetRelatedFunc) (map[string]bool, error) {
 	reachablePages := make(map[string]bool)
-	toVisit := []string{sourceId}
+	toVisit := []string{sourceID}
 
 	for len(toVisit) > 0 {
-		currentId := toVisit[0]
+		currentID := toVisit[0]
 		toVisit = toVisit[1:]
 
-		reachablePages[currentId] = true
+		reachablePages[currentID] = true
 
-		relatedPages, err := getRelated(db, currentId)
+		relatedPages, err := getRelated(db, currentID)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, relatedId := range relatedPages {
-			if _, is_visited := reachablePages[relatedId]; !is_visited {
-				toVisit = append(toVisit, relatedId)
+		for _, relatedID := range relatedPages {
+			if _, isVisited := reachablePages[relatedID]; !isVisited {
+				toVisit = append(toVisit, relatedID)
 			}
 		}
 	}
@@ -398,11 +398,11 @@ func GetDescendants(db *database.DB, pageID string) ([]string, error) {
 }
 
 // Checks to see if one page is an ancestor of another
-func IsAncestor(db *database.DB, potentialAncestorId string, potentialDescendantId string) (bool, error) {
-	ancestors, err := _getReachablePages(db, potentialDescendantId, _getParents)
+func IsAncestor(db *database.DB, potentialAncestorID string, potentialDescendantID string) (bool, error) {
+	ancestors, err := _getReachablePages(db, potentialDescendantID, _getParents)
 	if err != nil {
 		return false, err
 	}
-	_, isAncestor := ancestors[potentialAncestorId]
+	_, isAncestor := ancestors[potentialAncestorID]
 	return isAncestor, nil
 }

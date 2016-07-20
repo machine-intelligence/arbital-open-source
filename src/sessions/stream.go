@@ -26,7 +26,7 @@ import (
 )
 
 // HttpStream manages the connection to a Twitter streaming endpoint.
-type HttpStream struct {
+type HTTPStream struct {
 	conn *tls.Conn
 	r    *bufio.Scanner
 	err  error
@@ -52,7 +52,7 @@ var (
 )
 
 // Open opens a new stream.
-func OpenHttpStream(c context.Context, oauthClient *oauth.Client, accessToken *oauth.Credentials, urlStr string, params url.Values) (*HttpStream, error) {
+func OpenHTTPStream(c context.Context, oauthClient *oauth.Client, accessToken *oauth.Credentials, urlStr string, params url.Values) (*HTTPStream, error) {
 	return openInternal(c, oauthClient, accessToken, urlStr, params)
 }
 
@@ -60,7 +60,7 @@ func openInternal(c context.Context,
 	oauthClient *oauth.Client,
 	accessToken *oauth.Credentials,
 	urlStr string,
-	params url.Values) (*HttpStream, error) {
+	params url.Values) (*HTTPStream, error) {
 
 	paramsStr := params.Encode()
 	req, err := http.NewRequest("POST", urlStr, strings.NewReader(paramsStr))
@@ -84,7 +84,7 @@ func openInternal(c context.Context,
 		}
 	}
 
-	ts := &HttpStream{}
+	ts := &HTTPStream{}
 	socketConn, err := socket.DialTimeout(c, "tcp", host+":"+port, time.Minute)
 	if err != nil {
 		return nil, fmt.Errorf("2: %v", err)
@@ -138,7 +138,7 @@ func openInternal(c context.Context,
 	return ts, nil
 }
 
-func (ts *HttpStream) fatal(err error) error {
+func (ts *HTTPStream) fatal(err error) error {
 	if ts.conn != nil {
 		ts.conn.Close()
 	}
@@ -150,18 +150,18 @@ func (ts *HttpStream) fatal(err error) error {
 
 // Close releases the resources used by the stream. It can be called
 // concurrently with Next.
-func (ts *HttpStream) Close() error {
+func (ts *HTTPStream) Close() error {
 	return ts.conn.Close()
 }
 
 // Err returns a non-nil value if the stream has a permanent error.
-func (ts *HttpStream) Err() error {
+func (ts *HTTPStream) Err() error {
 	return ts.err
 }
 
 // Next returns the next line from the stream. The returned slice is
 // overwritten by the next call to Next.
-func (ts *HttpStream) Next() ([]byte, error) {
+func (ts *HTTPStream) Next() ([]byte, error) {
 	if ts.err != nil {
 		return nil, ts.err
 	}
@@ -188,7 +188,7 @@ func (ts *HttpStream) Next() ([]byte, error) {
 // UnmarshalNext reads the next line of from the stream and decodes the line as
 // JSON to data. This is a convenience function for streams with homogeneous
 // entity types.
-func (ts *HttpStream) UnmarshalNext(data interface{}) error {
+func (ts *HTTPStream) UnmarshalNext(data interface{}) error {
 	p, err := ts.Next()
 	if err != nil {
 		return err

@@ -62,7 +62,7 @@ type Rows struct {
 	DB   *DB
 }
 
-func ToSqlNullString(s string) sql.NullString {
+func ToSQLNullString(s string) sql.NullString {
 	return sql.NullString{String: s, Valid: true}
 }
 

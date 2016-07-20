@@ -1,4 +1,5 @@
 // Load and return list of unassessed pages
+
 package site
 
 import (
@@ -44,14 +45,14 @@ func unassessedPagesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			ON (pi.pageId=pdp.pageId)
 			LEFT JOIN pagePairs AS pp
 			ON (pi.pageId=pp.childId)
-			WHERE pdp.domainId=?`, core.MathDomainId).Add(`
+			WHERE pdp.domainId=?`, core.MathDomainID).Add(`
 				/* Check that this page doesn't have a quality tag */
 				AND pp.type=?`, core.TagPagePairType).Add(`
 			GROUP BY 1
 			HAVING SUM(pp.parentId IN (
 					SELECT pp2.childId
 					FROM pagePairs AS pp2
-					WHERE pp2.type=? AND pp2.parentId=?`, core.ParentPagePairType, core.QualityMetaTagsPageId).Add(`
+					WHERE pp2.type=? AND pp2.parentId=?`, core.ParentPagePairType, core.QualityMetaTagsPageID).Add(`
 				)) <= 0
 		) AS t
 		JOIN visits AS v
@@ -59,7 +60,7 @@ func unassessedPagesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		GROUP BY 1
 		ORDER BY SUM(1) DESC
 		LIMIT ?`, numPagesToLoad).ToStatement(db).Query()
-	returnData.ResultMap["pageIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
+	returnData.ResultMap["pageIds"], err = core.LoadPageIDs(rows, returnData.PageMap, pageOptions)
 	if err != nil {
 		return pages.Fail("Error loading pageIds", err)
 	}

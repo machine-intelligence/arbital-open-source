@@ -1,4 +1,5 @@
 // newPathPageHandler.go adds a page to a path
+
 package site
 
 import (
@@ -14,8 +15,8 @@ import (
 
 // newPathPageData contains the data we get in the request
 type newPathPageData struct {
-	GuideId    string
-	PathPageId string
+	GuideID    string
+	PathPageID string
 }
 
 var newPathPageHandler = siteHandler{
@@ -39,8 +40,8 @@ func newPathPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check permissions
-	pageIds := []string{data.GuideId}
-	permissionError, err := core.VerifyEditPermissionsForList(db, pageIds, u)
+	pageIDs := []string{data.GuideID}
+	permissionError, err := core.VerifyEditPermissionsForList(db, pageIDs, u)
 	if err != nil {
 		return pages.Fail("Error verifying permissions", err)
 	} else if permissionError != "" {
@@ -55,7 +56,7 @@ func newPathPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		row := database.NewQuery(`
 			SELECT IFNULL(MAX(pathIndex)+1,0)
 			FROM pathPages
-			WHERE guideId=?`, data.GuideId).ToTxStatement(tx).QueryRow()
+			WHERE guideId=?`, data.GuideID).ToTxStatement(tx).QueryRow()
 		_, err := row.Scan(&pathIndex)
 		if err != nil {
 			return sessions.NewError("Couldn't load pathIndex", err)
@@ -63,8 +64,8 @@ func newPathPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Create the path page
 		hashmap := make(database.InsertMap)
-		hashmap["guideId"] = data.GuideId
-		hashmap["pathPageId"] = data.PathPageId
+		hashmap["guideId"] = data.GuideID
+		hashmap["pathPageId"] = data.PathPageID
 		hashmap["pathIndex"] = pathIndex
 		hashmap["createdBy"] = u.ID
 		hashmap["createdAt"] = database.Now()

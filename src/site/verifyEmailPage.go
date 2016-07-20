@@ -1,4 +1,5 @@
 // verifyEmailPage.go user is directed here when they click on a link to verify email
+
 package site
 
 import (

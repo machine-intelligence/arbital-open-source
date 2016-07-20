@@ -54,7 +54,7 @@ app.directive('arbWriteNewModePanel', function($http, arb) {
 // arb-pending-mode-panel displays a list of edits and pages that are pending approval.
 app.directive('arbPendingModePanel', function($http, arb) {
 	return {
-		templateUrl: 'static/html/pendingPanel.html',
+		templateUrl: versionUrl('static/html/pendingPanel.html'),
 		scope: {
 			numToDisplay: '=',
 			isFullPage: '=',
@@ -76,7 +76,7 @@ app.directive('arbPendingModePanel', function($http, arb) {
 // arb-page-to-domain-submission-row is the directive for showing a page a user submitted to a domain
 app.directive('arbPageToDomainSubmissionRow', function(arb) {
 	return {
-		templateUrl: 'static/html/rows/pageToDomainSubmissionRow.html',
+		templateUrl: versionUrl('static/html/rows/pageToDomainSubmissionRow.html'),
 		scope: {
 			submission: '=',
 		},
@@ -90,7 +90,7 @@ app.directive('arbPageToDomainSubmissionRow', function(arb) {
 // arb-edit-proposal-row is the directive for showing a page a user submitted to a domain
 app.directive('arbEditProposalRow', function(arb) {
 	return {
-		templateUrl: 'static/html/rows/editProposalRow.html',
+		templateUrl: versionUrl('static/html/rows/editProposalRow.html'),
 		scope: {
 			changeLog: '=',
 		},

@@ -52,7 +52,7 @@ func PageInfosTableWithOptions(u *CurrentUser, options *PageInfosOptions) *datab
 
 	q := database.NewQuery(`(SELECT ` + fieldsString + ` FROM pageInfos WHERE true`)
 	if u != nil {
-		allowedGroups := append(u.GroupIds, "")
+		allowedGroups := append(u.GroupIDs, "")
 		q.Add(`AND seeGroupId IN`).AddArgsGroupStr(allowedGroups)
 	}
 	if !options.Unpublished {
@@ -96,39 +96,39 @@ func GetNextBase31Char(c sessions.Context, char rune, isFirstChar bool) (rune, b
 }
 
 // Increment a base31 Id string
-func IncrementBase31Id(c sessions.Context, previousId string) (string, error) {
+func IncrementBase31Id(c sessions.Context, previousID string) (string, error) {
 	// Add 1 to the base36 value, skipping vowels
 	// Start at the last character in the Id string, carrying the 1 as many times as necessary
-	nextAvailableId := previousId
-	index := len(nextAvailableId) - 1
+	nextAvailableID := previousID
+	index := len(nextAvailableID) - 1
 	var newChar rune
 	var err error
 	processNextChar := true
 	for processNextChar {
 		// If we need to carry the 1 all the way to the beginning, then add a 1 at the beginning of the string
 		if index < 0 {
-			nextAvailableId = "1" + nextAvailableId
+			nextAvailableID = "1" + nextAvailableID
 			processNextChar = false
 		} else {
 			// Increment the character at the current index in the Id string
-			newChar, processNextChar, err = GetNextBase31Char(c, rune(nextAvailableId[index]), index == 0)
+			newChar, processNextChar, err = GetNextBase31Char(c, rune(nextAvailableID[index]), index == 0)
 			if err != nil {
 				return "", fmt.Errorf("Error processing id: %v", err)
 			}
-			nextAvailableId = replaceAtIndex(nextAvailableId, newChar, index)
+			nextAvailableID = replaceAtIndex(nextAvailableID, newChar, index)
 			index = index - 1
 		}
 	}
 
-	return nextAvailableId, nil
+	return nextAvailableID, nil
 }
 
 // Call GetNextAvailableId in a new transaction
-func GetNextAvailableIdInNewTransaction(db *database.DB) (string, error) {
+func GetNextAvailableIDInNewTransaction(db *database.DB) (string, error) {
 	var id string
 	err := db.Transaction(func(tx *database.Tx) sessions.Error {
 		var err error
-		id, err = GetNextAvailableId(tx)
+		id, err = GetNextAvailableID(tx)
 		return sessions.PassThrough(err)
 	})
 	if err != nil {
@@ -138,9 +138,9 @@ func GetNextAvailableIdInNewTransaction(db *database.DB) (string, error) {
 }
 
 // Get the next available base36 Id string that doesn't contain vowels
-func GetNextAvailableId(tx *database.Tx) (string, error) {
+func GetNextAvailableID(tx *database.Tx) (string, error) {
 	// Query for the highest used pageId or userId
-	var highestUsedId string
+	var highestUsedID string
 	row := database.NewQuery(`
 		SELECT MAX(pageId)
 		FROM (
@@ -161,9 +161,9 @@ func GetNextAvailableId(tx *database.Tx) (string, error) {
 			) AS combined2
     )
 		`).ToTxStatement(tx).QueryRow()
-	_, err := row.Scan(&highestUsedId)
+	_, err := row.Scan(&highestUsedID)
 	if err != nil {
 		return "", fmt.Errorf("Couldn't load id: %v", err)
 	}
-	return IncrementBase31Id(tx.DB.C, highestUsedId)
+	return IncrementBase31Id(tx.DB.C, highestUsedID)
 }

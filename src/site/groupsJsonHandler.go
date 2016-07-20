@@ -1,4 +1,5 @@
 // groupsJsonHandler.go returns the data about user's groups.
+
 package site
 
 import (
@@ -11,11 +12,11 @@ import (
 
 var groupsHandler = siteHandler{
 	URI:         "/json/groups/",
-	HandlerFunc: groupsJsonHandler,
+	HandlerFunc: groupsJSONHandler,
 	Options:     pages.PageOptions{},
 }
 
-func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
+func groupsJSONHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 	returnData := core.NewHandlerData(u).SetResetEverything()
@@ -29,24 +30,24 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 			FROM groupMembers
 		) AS m
 		ON (p.pageId=m.groupId)
-		WHERE p.pageId IN`).AddArgsGroupStr(u.GroupIds).ToStatement(db).Query()
+		WHERE p.pageId IN`).AddArgsGroupStr(u.GroupIDs).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var groupId string
+		var groupID string
 		var m core.Member
-		err := rows.Scan(&groupId, &m.UserId, &m.CanAddMembers, &m.CanAdmin)
+		err := rows.Scan(&groupID, &m.UserID, &m.CanAddMembers, &m.CanAdmin)
 		if err != nil {
 			return fmt.Errorf("failed to scan a group member: %v", err)
 		}
 
 		// Add group
-		curGroup := core.AddPageIdToMap(groupId, returnData.PageMap)
+		curGroup := core.AddPageIDToMap(groupID, returnData.PageMap)
 		if curGroup.Members == nil {
 			curGroup.Members = make(map[string]*core.Member)
 		}
 
 		// Add member
-		curGroup.Members[m.UserId] = &m
-		returnData.UserMap[m.UserId] = &core.User{ID: m.UserId}
+		curGroup.Members[m.UserID] = &m
+		returnData.UserMap[m.UserID] = &core.User{ID: m.UserID}
 		return nil
 	})
 	if err != nil {

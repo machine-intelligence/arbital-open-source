@@ -42,7 +42,7 @@ type PageLoadOptions struct {
 	// Load options for loading a page for editing
 	ChangeLogs    bool
 	SearchStrings bool
-	LensParentId  bool
+	LensParentID  bool
 
 	// Options for what data to load for the page itself
 	HasDraft        bool
@@ -65,7 +65,7 @@ type PageLoadOptions struct {
 	Summaries bool
 
 	// Options for what data to load after the page's data has been loaded
-	NextPrevIds bool
+	NextPrevIDs bool
 	PageObjects bool
 
 	// Load the page even if it's deleted
@@ -95,7 +95,7 @@ var (
 		UsedAsMastery:   true,
 		Creators:        true,
 		ProposalEditNum: true,
-		NextPrevIds:     true,
+		NextPrevIDs:     true,
 	}).Add(SubpageLoadOptions)
 	// Options for full page edit
 	PrimaryEditLoadOptions = (&PageLoadOptions{
@@ -109,7 +109,7 @@ var (
 		DomainsAndPermissions: true,
 		ChangeLogs:            true,
 		SearchStrings:         true,
-		LensParentId:          true,
+		LensParentID:          true,
 		Links:                 true,
 		LinkedMarkCount:       true,
 		ProposalEditNum:       true,

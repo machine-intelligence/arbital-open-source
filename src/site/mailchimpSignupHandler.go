@@ -1,4 +1,5 @@
 // mailchimpSignupPage.go serves the mailchimpSignup page.
+
 package site
 
 import (

@@ -11,11 +11,11 @@ import (
 // MemberUpdateTask is the object that's put into the daemon queue.
 type MemberUpdateTask struct {
 	// User who performed the action
-	UserId     string
+	UserID     string
 	UpdateType string
 
 	// Member is added to/removed from the given group
-	MemberId string
+	MemberID string
 	GroupID  string
 }
 
@@ -25,9 +25,9 @@ func (task MemberUpdateTask) Tag() string {
 
 // Check if this task is valid, and we can safely execute it.
 func (task MemberUpdateTask) IsValid() error {
-	if !core.IsIdValid(task.UserId) {
+	if !core.IsIDValid(task.UserID) {
 		return fmt.Errorf("UserId has to be set")
-	} else if !core.IsIdValid(task.MemberId) {
+	} else if !core.IsIDValid(task.MemberID) {
 		return fmt.Errorf("MemberId has to be set")
 	} else if task.UpdateType != core.AddedToGroupUpdateType &&
 		task.UpdateType != core.RemovedFromGroupUpdateType {
@@ -49,8 +49,8 @@ func (task MemberUpdateTask) Execute(db *database.DB) (delay int, err error) {
 
 	// Insert new update
 	hashmap := make(map[string]interface{})
-	hashmap["userId"] = task.MemberId
-	hashmap["byUserId"] = task.UserId
+	hashmap["userId"] = task.MemberID
+	hashmap["byUserId"] = task.UserID
 	hashmap["type"] = task.UpdateType
 	hashmap["groupByPageId"] = task.GroupID
 	hashmap["goToPageId"] = task.GroupID

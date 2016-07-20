@@ -4,7 +4,7 @@
 // recursively, allowing the user to recursively explore the page tree.
 app.directive('arbExploreTreeNode', function(RecursionHelper, arb) {
 	return {
-		templateUrl: '/static/html/exploreTreeNode.html',
+		templateUrl: versionUrl('/static/html/exploreTreeNode.html'),
 		scope: {
 			pageId: '@',
 		},

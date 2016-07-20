@@ -1,4 +1,5 @@
 // Provide data for "write new" mode.
+
 package site
 
 import (
@@ -16,6 +17,11 @@ const (
 	// If there is a draft with a given alias that's at most X days old, we won't
 	// show the corresponding red link
 	hideRedLinkIfDraftExistsDays = 3 // days
+
+	// varietyDepth represents how far down we sample the top new pages.
+	// When loading N pages, we will randomly sample them from the top
+	// varietyDepth*N results.
+	varietyDepth = 5
 )
 
 type writeNewModeData struct {
@@ -77,11 +83,15 @@ func writeNewModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	return pages.Success(returnData)
 }
 
+func selectRandomNFrom(n int, query *database.QueryPart) *database.QueryPart {
+	return database.NewQuery("SELECT * FROM (").AddPart(query).Add(") AS T ORDER BY RAND() LIMIT ?", n)
+}
+
 // Load pages that are linked to but don't exist
 func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLinkRow, error) {
 	redLinks := make([]*RedLinkRow, 0)
 
-	publishedPageIds := core.PageInfosTableWithOptions(u, &core.PageInfosOptions{
+	publishedPageIDs := core.PageInfosTableWithOptions(u, &core.PageInfosOptions{
 		Fields: []string{"pageId"},
 	})
 	// NOTE: keep in mind that multiple pages can have the same alias, as long as only one page is published
@@ -90,17 +100,17 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 		Fields:      []string{"alias"},
 		WhereFilter: database.NewQuery(`currentEdit>0 OR DATEDIFF(NOW(),createdAt) <= ?`, hideRedLinkIfDraftExistsDays),
 	})
-	rows := database.NewQuery(`
+	rows := selectRandomNFrom(limit, database.NewQuery(`
 		SELECT childAlias,groupedRedLinks.likeableId,refCount
 		FROM (
 			SELECT l.childAlias,rl.likeableId,COUNT(*) AS refCount
 			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS mathPi
 			JOIN pageDomainPairs AS pdp
 			ON pdp.pageId=mathPi.pageId
-				AND pdp.domainId=?`, core.MathDomainId).Add(`
+				AND pdp.domainId=?`, core.MathDomainID).Add(`
 			JOIN links AS l
 			ON l.parentId=mathPi.pageId
-				AND l.childAlias NOT IN`).AddPart(publishedPageIds).Add(`
+				AND l.childAlias NOT IN`).AddPart(publishedPageIDs).Add(`
 				AND l.childAlias NOT IN`).AddPart(publishedAndRecentAliases).Add(`
 			LEFT JOIN redLinks AS rl
 			ON l.childAlias=rl.alias
@@ -113,15 +123,15 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 		) as likeCounts
 		ON groupedRedLinks.likeableId=likeCounts.likeableId
 		WHERE !COALESCE(hasAnyDownvotes,0)
-		ORDER BY refCount + COALESCE(likeCount,0) DESC, groupedRedLinks.likeableId
-		LIMIT ?`, limit).ToStatement(db).Query()
+		ORDER BY COALESCE(likeCount,0) DESC, refCount DESC, groupedRedLinks.likeableId
+		LIMIT ?`, varietyDepth*limit)).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var alias, refCount string
-		var likeableId sql.NullInt64
-		err := rows.Scan(&alias, &likeableId, &refCount)
+		var likeableID sql.NullInt64
+		err := rows.Scan(&alias, &likeableID, &refCount)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
-		} else if core.IsIdValid(alias) {
+		} else if core.IsIDValid(alias) {
 			// Skip redlinks that are ids
 			return nil
 		}
@@ -131,8 +141,8 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 			Alias:    alias,
 			RefCount: refCount,
 		}
-		if likeableId.Valid {
-			row.LikeableId = likeableId.Int64
+		if likeableID.Valid {
+			row.LikeableID = likeableID.Int64
 		}
 		redLinks = append(redLinks, row)
 		return nil
@@ -144,8 +154,8 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 	// Load likes
 	likeablesMap := make(map[int64]*core.Likeable)
 	for _, redLink := range redLinks {
-		if redLink.LikeableId != 0 {
-			likeablesMap[redLink.LikeableId] = &redLink.Likeable
+		if redLink.LikeableID != 0 {
+			likeablesMap[redLink.LikeableID] = &redLink.Likeable
 		}
 	}
 	err = core.LoadLikes(db, u, likeablesMap, nil, nil)
@@ -159,7 +169,7 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 // Load pages that are marked as stubs
 func loadStubRows(db *database.DB, returnData *core.CommonHandlerData, limit int) ([]*StubRow, error) {
 	stubRows := make([]*StubRow, 0)
-	rows := database.NewQuery(`
+	rows := selectRandomNFrom(limit, database.NewQuery(`
 		SELECT pi.pageId
 		FROM`).AddPart(core.PageInfosTable(returnData.User)).Add(`AS pi
 		JOIN pagePairs AS pp
@@ -168,12 +178,12 @@ func loadStubRows(db *database.DB, returnData *core.CommonHandlerData, limit int
 		ON (pi.pageId=pdp.pageId)
 		LEFT JOIN likes AS l
 		ON (pi.likeableId=l.likeableId)
-		WHERE pp.parentId=?`, core.StubPageId).Add(`
-			AND pdp.domainId=?`, core.MathDomainId).Add(`
+		WHERE pp.parentId=?`, core.StubPageID).Add(`
+			AND pdp.domainId=?`, core.MathDomainID).Add(`
 			AND pi.lockedUntil < NOW()
 		GROUP BY 1
 		ORDER BY SUM(l.value) DESC
-		LIMIT ?`, limit).ToStatement(db).Query()
+		LIMIT ?`, varietyDepth*limit)).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageID string
 		err := rows.Scan(&pageID)
@@ -181,7 +191,7 @@ func loadStubRows(db *database.DB, returnData *core.CommonHandlerData, limit int
 			return fmt.Errorf("failed to scan: %v", err)
 		}
 		stubRows = append(stubRows, &StubRow{PageID: pageID})
-		core.AddPageIdToMap(pageID, returnData.PageMap)
+		core.AddPageIDToMap(pageID, returnData.PageMap)
 		return nil
 	})
 	if err != nil {

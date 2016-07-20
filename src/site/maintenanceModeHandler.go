@@ -1,4 +1,5 @@
 // maintenanceModeHandler.go serves the /maintain panel (which displays maintenance updates, such as, 'Alexei edited your page').
+
 package site
 
 import (
@@ -56,9 +57,9 @@ func maintenanceModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Mark updates as seen.
-	updateIds := make([]string, 0)
+	updateIDs := make([]string, 0)
 	for _, row := range rows {
-		updateIds = append(updateIds, row.(*updateModeRow).Update.ID)
+		updateIDs = append(updateIDs, row.(*updateModeRow).Update.ID)
 	}
 	err = core.MarkUpdatesAsSeen(db, u.ID, core.GetMaintenanceUpdateTypes())
 	if err != nil {

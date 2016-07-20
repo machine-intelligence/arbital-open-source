@@ -1,4 +1,5 @@
 // startPathHandler.go starts the user on the given path
+
 package site
 
 import (
@@ -19,7 +20,7 @@ var startPathHandler = siteHandler{
 }
 
 type startPathData struct {
-	GuideId string
+	GuideID string
 }
 
 func startPathHandlerFunc(params *pages.HandlerParams) *pages.Result {
@@ -33,29 +34,29 @@ func startPathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.GuideId) {
+	if !core.IsIDValid(data.GuideID) {
 		return pages.Fail("Invalid guideId", nil).Status(http.StatusBadRequest)
 	}
 
 	// Load path pages
-	pathPageIds := []string{data.GuideId}
+	pathPageIDs := []string{data.GuideID}
 	queryPart := database.NewQuery(`
-		WHERE pathp.guideId=?`, data.GuideId).Add(`
+		WHERE pathp.guideId=?`, data.GuideID).Add(`
 		ORDER BY pathp.pathIndex`)
 	err = core.LoadPathPages(db, queryPart, nil, func(db *database.DB, pathPage *core.PathPage) error {
-		pathPageIds = append(pathPageIds, pathPage.PathPageId)
+		pathPageIDs = append(pathPageIDs, pathPage.PathPageID)
 		return nil
 	})
 	if err != nil {
 		return pages.Fail("Couldn't load the path pages: %v", err)
-	} else if len(pathPageIds) <= 0 {
+	} else if len(pathPageIDs) <= 0 {
 		return pages.Fail("No path pages found for this guide", nil).Status(http.StatusBadRequest)
 	}
 
 	// Create the sourcePageIds
-	sourcePageIds := make([]string, 0)
-	for range pathPageIds {
-		sourcePageIds = append(sourcePageIds, data.GuideId)
+	sourcePageIDs := make([]string, 0)
+	for range pathPageIDs {
+		sourcePageIDs = append(sourcePageIDs, data.GuideID)
 	}
 
 	// Begin the transaction.
@@ -64,9 +65,9 @@ func startPathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Start the path
 		hashmap := make(database.InsertMap)
 		hashmap["userId"] = u.ID
-		hashmap["guideId"] = data.GuideId
-		hashmap["pageIds"] = strings.Join(pathPageIds, ",")
-		hashmap["sourcePageIds"] = strings.Join(sourcePageIds, ",")
+		hashmap["guideId"] = data.GuideID
+		hashmap["pageIds"] = strings.Join(pathPageIDs, ",")
+		hashmap["sourcePageIds"] = strings.Join(sourcePageIDs, ",")
 		hashmap["progress"] = 1
 		hashmap["createdAt"] = database.Now()
 		hashmap["updatedAt"] = database.Now()

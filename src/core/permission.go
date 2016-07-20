@@ -49,19 +49,19 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 		return
 	}
 
-	if IsIdValid(p.SeeGroupID) && !u.IsMemberOfGroup(p.SeeGroupID) {
+	if IsIDValid(p.SeeGroupID) && !u.IsMemberOfGroup(p.SeeGroupID) {
 		p.Permissions.Edit.Reason = "You don't have group permission to EVEN SEE this page"
 		return
 	}
 
-	if IsIdValid(p.EditGroupId) && !u.IsMemberOfGroup(p.EditGroupId) {
+	if IsIDValid(p.EditGroupID) && !u.IsMemberOfGroup(p.EditGroupID) {
 		p.Permissions.Edit.Reason = "You don't have group permission to edit this page, but you can propose edits"
 		p.Permissions.ProposeEdit.Has = true
 		return
 	}
 
 	// The page creator can always edit the page
-	if p.PageCreatorId == u.ID {
+	if p.PageCreatorID == u.ID {
 		p.Permissions.Edit.Has = true
 		return
 	}
@@ -80,7 +80,7 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 	}
 	// If the page is part of the general domain, only the creator and domain members
 	// can edit it.
-	if len(p.DomainIds) <= 0 {
+	if len(p.DomainIDs) <= 0 {
 		p.Permissions.Edit.Has = u.MaxTrustLevel >= BasicTrustLevel
 		if !p.Permissions.Edit.Has {
 			p.Permissions.Edit.Reason = "Only the creator and domain members can edit an unlisted page, but you can still propose edits"
@@ -89,8 +89,8 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 		return
 	}
 	// Compute whether the user can edit via any of the domains
-	for _, domainId := range p.DomainIds {
-		if u.TrustMap[domainId].Level >= BasicTrustLevel {
+	for _, domainID := range p.DomainIDs {
+		if u.TrustMap[domainID].Level >= BasicTrustLevel {
 			p.Permissions.Edit.Has = true
 			return
 		}
@@ -112,7 +112,7 @@ func (p *Page) computeDeletePermissions(c sessions.Context, u *CurrentUser) {
 	}
 	// If it's a comment, only the creator can delete it
 	if p.Type == CommentPageType {
-		p.Permissions.Delete.Has = p.PageCreatorId == u.ID || u.IsAdmin
+		p.Permissions.Delete.Has = p.PageCreatorID == u.ID || u.IsAdmin
 		if !p.Permissions.Delete.Has {
 			p.Permissions.Delete.Reason = "Can't delete a comment you didn't create"
 		}
@@ -120,16 +120,16 @@ func (p *Page) computeDeletePermissions(c sessions.Context, u *CurrentUser) {
 	}
 	// If the page is part of the general domain, only the creator and domain reviewers
 	// can edit it.
-	if len(p.DomainIds) <= 0 {
-		p.Permissions.Delete.Has = p.PageCreatorId == u.ID || u.MaxTrustLevel >= ReviewerTrustLevel
+	if len(p.DomainIDs) <= 0 {
+		p.Permissions.Delete.Has = p.PageCreatorID == u.ID || u.MaxTrustLevel >= ReviewerTrustLevel
 		if !p.Permissions.Delete.Has {
 			p.Permissions.Delete.Reason = "Only the creator and domain members can delete an unlisted page"
 		}
 		return
 	}
 	// Compute whether the user can delete via any of the domains
-	for _, domainId := range p.DomainIds {
-		if u.TrustMap[domainId].Level >= ReviewerTrustLevel {
+	for _, domainID := range p.DomainIDs {
+		if u.TrustMap[domainID].Level >= ReviewerTrustLevel {
 			p.Permissions.Delete.Has = true
 			return
 		}
@@ -150,8 +150,8 @@ func (p *Page) computeCommentPermissions(c sessions.Context, u *CurrentUser) {
 		return
 	}
 	// Compute whether the user can comment via any of the domains
-	for _, domainId := range p.DomainIds {
-		if u.TrustMap[domainId].Level >= BasicTrustLevel {
+	for _, domainID := range p.DomainIDs {
+		if u.TrustMap[domainID].Level >= BasicTrustLevel {
 			p.Permissions.Comment.Has = true
 			return
 		}
@@ -177,8 +177,8 @@ func ComputePermissionsForMap(c sessions.Context, pageMap map[string]*Page, u *C
 
 // Verify that the user has edit permissions for all the pages in the map.
 func VerifyEditPermissionsForMap(db *database.DB, pageMap map[string]*Page, u *CurrentUser) (string, error) {
-	filteredPageMap := filterPageMap(pageMap, func(p *Page) bool { return len(p.DomainIds) <= 0 })
-	err := LoadDomainIds(db, nil, &LoadDataOptions{
+	filteredPageMap := filterPageMap(pageMap, func(p *Page) bool { return len(p.DomainIDs) <= 0 })
+	err := LoadDomainIDs(db, nil, &LoadDataOptions{
 		ForPages: filteredPageMap,
 	})
 	if err != nil {
@@ -198,10 +198,10 @@ func VerifyEditPermissionsForMap(db *database.DB, pageMap map[string]*Page, u *C
 	}
 	return "", nil
 }
-func VerifyEditPermissionsForList(db *database.DB, pageIds []string, u *CurrentUser) (string, error) {
+func VerifyEditPermissionsForList(db *database.DB, pageIDs []string, u *CurrentUser) (string, error) {
 	pageMap := make(map[string]*Page)
-	for _, pageID := range pageIds {
-		AddPageIdToMap(pageID, pageMap)
+	for _, pageID := range pageIDs {
+		AddPageIDToMap(pageID, pageMap)
 	}
 	return VerifyEditPermissionsForMap(db, pageMap, u)
 }
