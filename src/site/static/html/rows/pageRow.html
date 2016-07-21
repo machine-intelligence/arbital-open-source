@@ -41,11 +41,11 @@
 		<div style="white-space: nowrap" ng-if="::showLastEdit">
 			edited <span ng-bind="::page.editCreatedAt | smartDateTime"></span>
 		</div>
-		<div style="white-space: nowrap" ng-if="::showCreatedAt">
-			<span ng-bind="::page.pageCreatedAt | smartDateTime"></span>
-		</div>
 		<div style="white-space: nowrap" ng-if="::showCreatedBy">
 			<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
+		</div>
+		<div style="white-space: nowrap" ng-if="::showCreatedAt">
+			<span ng-bind="::page.pageCreatedAt | smartDateTime"></span>
 		</div>
 		<div style="white-space: nowrap" ng-if="::showOtherDateTime">
 			<span ng-bind="::otherDateTime | smartDateTime"></span>
