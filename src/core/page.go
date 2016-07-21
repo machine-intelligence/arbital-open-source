@@ -74,7 +74,7 @@ const (
 
 var (
 	// Regexp that strictly matches an alias, and not a page id
-	StrictAliasRegexp = regexp.MustCompile("^[0-9A-Za-z_]*[A-Za-z_][0-9A-Za-z_]*$")
+	StrictAliasRegexp = regexp.MustCompile("^[A-Za-z_][0-9A-Za-z_]*$")
 )
 
 // corePageData has data we load directly from the pages and pageInfos tables.

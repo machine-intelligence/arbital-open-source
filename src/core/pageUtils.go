@@ -17,10 +17,12 @@ const (
 	SpacePrefix   = "(^| |\n)"
 	NoParenSuffix = "($|[^(])"
 
-	// String that can be used inside a regexp to match an a page alias or id
-	AliasOrPageIDRegexpStr          = "[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*"
-	SubdomainAliasOrPageIDRegexpStr = "[A-Za-z0-9_]*"
-	ReplaceRegexpStr                = "[^A-Za-z0-9_]" // used for replacing non-alias characters
+	// Strings that can be used inside a regexp to match on a page alias or id.
+	AliasOrPageIDRegexpStr          = "[0-9A-Za-z_]+\\.?[0-9A-Za-z_]*"
+	SubdomainAliasOrPageIDRegexpStr = "[0-9A-Za-z_]*"
+
+	// Used for replacing non-alias characters.
+	ReplaceRegexpStr = "[^A-Za-z0-9_]"
 
 	Base31Chars             = "0123456789bcdfghjklmnpqrstvwxyz"
 	Base31CharsForFirstChar = "0123456789"
