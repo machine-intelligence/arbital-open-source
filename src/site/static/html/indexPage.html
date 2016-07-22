@@ -1,10 +1,17 @@
 <!-- Welcome / daily message -->
-<div id="index-header" layout="row" layout-align="center center">
-	<div class="shadow-primary-hue-1">
+<div layout="column"
+		layout-gt-sm="row"
+		layout-align="space between"
+		layout-padding>
+	<div class="shadow-primary-hue-1"
+			layout="row"
+			layout-align="start center">
 		<a ng-href="{{::arb.urlService.getPageUrl('3d')}}"
 				class="intrasite-link"
 				page-id="3d">Arbital</a>
+		&nbsp;
 		is the place for crowdsourced, intuitive math
+		&nbsp;
 		<a ng-href="{{::arb.urlService.getPageUrl('4d6')}}"
 				class="intrasite-link"
 				page-id="4d6">explanations</a>.
@@ -26,6 +33,18 @@
 				Thanks! We'll send you an invite within a day.
 			</div>
 		</div>
+	</div>
+	<div layout="row" layout-padding>
+		<md-button ng-href="/recentChanges/" class="md-raised">
+			Recent changes
+		</md-button>
+		<md-button ng-if="arb.userService.userIsLoggedIn()" ng-href="/dashboard/" class="md-raised">
+			Your dashboard
+		</md-button>
+		<arb-edit-button custom-text="Create new page"
+				analytics-desc="front page, new page button"
+				hide-icon="true"
+				primary="true"></arb-edit-button>
 	</div>
 </div>
 
