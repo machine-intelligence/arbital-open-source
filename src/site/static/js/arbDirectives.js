@@ -39,6 +39,8 @@ app.directive('arbEditButton', function(arb) {
 			createText: '=',
 			analyticsDesc: '@',
 			customText: '@',
+			hideIcon: '=',
+			primary: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;

@@ -1,6 +1,10 @@
 <div layout="column" layout-align="start center">
-	<md-button ng-click="processClick($event)" ng-class="::{'md-icon-button': isTinyScreen}">
-		<md-icon>create</md-icon>
+	<md-button ng-click="processClick($event)"
+			ng-class="::{
+					'md-icon-button': isTinyScreen,
+					'md-raised md-primary': primary
+				}">
+		<md-icon ng-if="!hideIcon">create</md-icon>
 		<span ng-bind="getButtonText()" ng-if="::!isTinyScreen"></span>
 	</md-button>
 	<!-- Show a dot if the user has a draft and the screen is small -->

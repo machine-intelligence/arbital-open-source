@@ -1,19 +1,28 @@
 <!-- Welcome / daily message -->
-<div id="index-header" layout="row" layout-align="center center">
-	<div class="shadow-primary-hue-1">
-		<a ng-href="{{::arb.urlService.getPageUrl('3d')}}"
-				class="intrasite-link"
-				page-id="3d">Arbital</a>
-		is the place for crowdsourced, intuitive math
-		<a ng-href="{{::arb.urlService.getPageUrl('4d6')}}"
-				class="intrasite-link"
-				page-id="4d6">explanations</a>.
+<div id="index-header"
+		layout="column"
+		layout-gt-sm="row"
+		layout-align="space between">
+	<div class="shadow-primary-hue-1 arbital-blurb"
+			layout="row"
+			layout-align="start center">
+		<span>
+			<a ng-href="{{::arb.urlService.getPageUrl('3d')}}"
+					class="intrasite-link"
+					page-id="3d">Arbital</a>
+			is the place for crowdsourced, intuitive math
+			<a ng-href="{{::arb.urlService.getPageUrl('4d6')}}"
+					class="intrasite-link"
+					page-id="4d6">explanations</a>.
+		</span>
 		<div layout="row" layout-align="center center" ng-if="::showJoinSlackButton">
 			<md-button class="light" ng-click="joinSlack()" ng-if="!showJoinSlackInput">
 				<md-icon md-svg-icon="slack"></md-icon>
 				Join the Arbital Slack
 			</md-button>
-			<div layout="column" ng-if="showJoinSlackInput && !arb.userService.user.isSlackMember" flex>
+			<span layout="row"
+					layout-align="start center"
+					ng-if="showJoinSlackInput && !arb.userService.user.isSlackMember">
 				<md-input-container class="full-width">
 					<label>Email</label>
 					<input type="email" ng-model="slackInvite.email" required>
@@ -21,11 +30,26 @@
 				<md-button class="md-primary md-raised" ng-click="joinSlackSubmit()">
 					Submit
 				</md-button>
-			</div>
+			</span>
 			<div ng-if="showJoinSlackInput && arb.userService.user.isSlackMember">
 				Thanks! We'll send you an invite within a day.
 			</div>
 		</div>
+	</div>
+	<div layout="row"
+			layout-align="start center"
+			layout-wrap
+			class="horizontal-margin-between-children">
+		<md-button ng-href="/recentChanges/" class="md-raised">
+			Recent changes
+		</md-button>
+		<md-button ng-if="arb.userService.userIsLoggedIn()" ng-href="/dashboard/" class="md-raised">
+			Your dashboard
+		</md-button>
+		<arb-edit-button custom-text="Create new page"
+				analytics-desc="front page, new page button"
+				hide-icon="true"
+				primary="true"></arb-edit-button>
 	</div>
 </div>
 
@@ -45,11 +69,6 @@
 					ng-click="selectReadTab(1)">
 				New
 			</md-button>
-			<md-button class="tab-panel-tab"
-					ng-class="{'active-tab': readTab==2}"
-					ng-click="selectReadTab(2)">
-				Recent changes
-			</md-button>
 		</div>
 		<div arb-read-mode-panel
 				class="support-visited-links"
@@ -63,12 +82,6 @@
 				type="new"
 				is-full-page="true"
 				ng-if="readTab==1"></div>
-		<div arb-recent-changes
-				class="support-visited-links"
-				is-full-page="::false"
-				num-to-display="50"
-				more-link="/recentChanges"
-				ng-if="readTab==2"></div>
 	</div>
 
 	<!-- Right half -->
@@ -81,14 +94,7 @@
 					ng-click="selectWriteTab(0)">
 				New
 			</md-button>
-			<md-button class="tab-panel-tab"
-					ng-class="{'active-tab': writeTab==1}"
-					ng-click="selectWriteTab(1)"
-					ng-if="arb.userService.userIsLoggedIn()">
-				Continue
-			</md-button>
 		</div>
 		<div arb-write-new-mode-panel hide-title="::true" ng-if="writeTab==0"></div>
-		<div arb-continue-writing-mode-panel hide-title="::true" is-full-page="true" ng-if="writeTab==1"></div>
 	</div>
 </div>
