@@ -798,10 +798,9 @@ a:not(.md-button) {
   color: #004D40; }
 
 #index-header {
-  padding: 15px 10px 10px; }
-  #index-header > div {
-    padding: 10px;
-    background-color: white; }
+  padding: 12px; }
+  #index-header .arbital-blurb {
+    padding: 8px; }
   #index-header md-input-container {
     margin-bottom: 0; }
 
@@ -1051,6 +1050,9 @@ arb-intrasite-popover {
 
 .vertical-layout-padding > * {
   margin-top: 16px; }
+
+.horizontal-margin-between-children > *:not(:first-child) {
+  margin-left: 8px !important; }
 
 .page-title-icon {
   font-size: 43px;
