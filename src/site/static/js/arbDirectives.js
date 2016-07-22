@@ -48,7 +48,11 @@ app.directive('arbEditButton', function(arb) {
 				arb.analyticsService.reportEditPageAction(event, $scope.analyticsDesc);
 				arb.signupService.wrapInSignupFlow('edit click:' + $scope.analyticsDesc,
 					function() {
-						arb.urlService.goToUrl(arb.urlService.getEditPageUrl($scope.pageId));
+						if (event.ctrlKey) {
+							window.open(arb.urlService.getEditPageUrl($scope.pageId));
+						} else {
+							arb.urlService.goToUrl(arb.urlService.getEditPageUrl($scope.pageId));
+						}
 					});
 			};
 
