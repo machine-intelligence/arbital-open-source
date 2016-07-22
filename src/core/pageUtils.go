@@ -17,10 +17,12 @@ const (
 	SpacePrefix   = "(^| |\n)"
 	NoParenSuffix = "($|[^(])"
 
-	// String that can be used inside a regexp to match an a page alias or id
-	AliasRegexpStr          = "[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*"
-	SubdomainAliasRegexpStr = "[A-Za-z0-9_]*"
-	ReplaceRegexpStr        = "[^A-Za-z0-9_]" // used for replacing non-alias characters
+	// Strings that can be used inside a regexp to match on a page alias or id.
+	AliasOrPageIDRegexpStr          = "[0-9A-Za-z_]+\\.?[0-9A-Za-z_]*"
+	SubdomainAliasOrPageIDRegexpStr = "[0-9A-Za-z_]*"
+
+	// Used for replacing non-alias characters.
+	ReplaceRegexpStr = "[^A-Za-z0-9_]"
 
 	Base31Chars             = "0123456789bcdfghjklmnpqrstvwxyz"
 	Base31CharsForFirstChar = "0123456789"
@@ -129,15 +131,15 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 	notInBackticks := "([^`]|$)"
 	regexps := []*regexp.Regexp{
 		// Find directly encoded urls
-		regexp.MustCompile("(/p/)(" + AliasRegexpStr + ")" + notInBackticks),
+		regexp.MustCompile("(/p/)(" + AliasOrPageIDRegexpStr + ")" + notInBackticks),
 		// Find ids and aliases using [alias optional text] syntax.
-		regexp.MustCompile("(\\[[\\-\\+]?)(" + AliasRegexpStr + ")( [^\\]]*?)?(\\])([^(`]|$)"),
+		regexp.MustCompile("(\\[[\\-\\+]?)(" + AliasOrPageIDRegexpStr + ")( [^\\]]*?)?(\\])([^(`]|$)"),
 		// Find ids and aliases using [text](alias) syntax.
-		regexp.MustCompile("(\\[[^\\]]+?\\]\\()(" + AliasRegexpStr + ")(\\))" + notInBackticks),
+		regexp.MustCompile("(\\[[^\\]]+?\\]\\()(" + AliasOrPageIDRegexpStr + ")(\\))" + notInBackticks),
 		// Find ids and aliases using [vote: alias] syntax.
-		regexp.MustCompile("(\\[vote: ?)(" + AliasRegexpStr + ")(\\])" + notInBackticks),
+		regexp.MustCompile("(\\[vote: ?)(" + AliasOrPageIDRegexpStr + ")(\\])" + notInBackticks),
 		// Find ids and aliases using [@alias] syntax.
-		regexp.MustCompile("(\\[@)(" + AliasRegexpStr + ")(\\])([^(`]|$)"),
+		regexp.MustCompile("(\\[@)(" + AliasOrPageIDRegexpStr + ")(\\])([^(`]|$)"),
 	}
 	for _, exp := range regexps {
 		extractLinks(exp)
@@ -202,15 +204,15 @@ func ExtractPageLinks(text string, configAddress string) []string {
 		}
 	}
 	// Find directly encoded urls
-	extractLinks(regexp.MustCompile(regexp.QuoteMeta(configAddress) + "/p(?:ages)?/(" + AliasRegexpStr + ")"))
+	extractLinks(regexp.MustCompile(regexp.QuoteMeta(configAddress) + "/p(?:ages)?/(" + AliasOrPageIDRegexpStr + ")"))
 	// Find ids and aliases using [alias optional text] syntax.
-	extractLinks(regexp.MustCompile("\\[[\\-\\+]?(" + AliasRegexpStr + ")(?: [^\\]]*?)?\\](?:[^(]|$)"))
+	extractLinks(regexp.MustCompile("\\[[\\-\\+]?(" + AliasOrPageIDRegexpStr + ")(?: [^\\]]*?)?\\](?:[^(]|$)"))
 	// Find ids and aliases using [text](alias) syntax.
-	extractLinks(regexp.MustCompile("\\[.+?\\]\\((" + AliasRegexpStr + ")\\)"))
+	extractLinks(regexp.MustCompile("\\[.+?\\]\\((" + AliasOrPageIDRegexpStr + ")\\)"))
 	// Find ids and aliases using [vote: alias] syntax.
-	extractLinks(regexp.MustCompile("\\[vote: ?(" + AliasRegexpStr + ")\\]"))
+	extractLinks(regexp.MustCompile("\\[vote: ?(" + AliasOrPageIDRegexpStr + ")\\]"))
 	// Find ids and aliases using [@alias] syntax.
-	extractLinks(regexp.MustCompile("\\[@?(" + AliasRegexpStr + ")\\]"))
+	extractLinks(regexp.MustCompile("\\[@?(" + AliasOrPageIDRegexpStr + ")\\]"))
 
 	aliasesAndIDs := make([]string, 0)
 	for alias := range linkMap {
@@ -379,7 +381,7 @@ func IsIDValid(pageID string) bool {
 
 // Check if the given alias is valid
 func IsAliasValid(alias string) bool {
-	return regexp.MustCompile("^" + AliasRegexpStr + "$").MatchString(alias)
+	return regexp.MustCompile("^" + AliasOrPageIDRegexpStr + "$").MatchString(alias)
 }
 
 func IsUser(db *database.DB, userID string) bool {

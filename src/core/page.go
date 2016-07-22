@@ -74,7 +74,7 @@ const (
 
 var (
 	// Regexp that strictly matches an alias, and not a page id
-	StrictAliasRegexp = regexp.MustCompile("^[0-9A-Za-z_]*[A-Za-z_][0-9A-Za-z_]*$")
+	StrictAliasRegexp = regexp.MustCompile("^[A-Za-z_][0-9A-Za-z_]*$")
 )
 
 // corePageData has data we load directly from the pages and pageInfos tables.
@@ -201,6 +201,9 @@ type Page struct {
 	// Path stuff
 	PathPages Path `json:"pathPages"`
 
+	// Data for showing what pages user can learn after reading this page. subject pageId -> list of pagePairs
+	LearnMoreMap map[string][]*PagePair `json:"learnMoreMap"`
+
 	// TODO: eventually move this to the user object (once we have load
 	// options + pipeline for users)
 	// For user pages, this is the trust map
@@ -269,6 +272,7 @@ func NewPage(pageID string) *Page {
 	p.TrustMap = make(map[string]*Trust)
 	p.Lenses = make(LensList, 0)
 	p.PathPages = make(Path, 0)
+	p.LearnMoreMap = make(map[string][]*PagePair)
 	p.DomainSubmissions = make(map[string]*PageToDomainSubmission)
 	p.Answers = make([]*Answer, 0)
 	p.SearchStrings = make(map[string]string)
@@ -730,6 +734,15 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	})
 	if err != nil {
 		return fmt.Errorf("LoadSummaries failed: %v", err)
+	}
+
+	// Load learn more pages
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.LearnMore })
+	err = LoadLearnMore(db, u, pageMap, &LoadDataOptions{
+		ForPages: filteredPageMap,
+	})
+	if err != nil {
+		return fmt.Errorf("LoadLearnMore failed: %v", err)
 	}
 
 	// Load change logs
@@ -1369,10 +1382,10 @@ func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, options *LoadE
 	return p, nil
 }
 
-// LoadPageIds from the given query and return an array containing them, while
+// LoadPageIDs from the given query and return an array containing them, while
 // also updating the pageMap as necessary.
 func LoadPageIDs(rows *database.Rows, pageMap map[string]*Page, loadOptions *PageLoadOptions) ([]string, error) {
-	ids := make([]string, 0)
+	ids := []string{}
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageID string
 		err := rows.Scan(&pageID)
@@ -1715,6 +1728,51 @@ func LoadLinks(db *database.DB, u *CurrentUser, pageMap map[string]*Page, option
 		if err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// LoadLearnMore loads the "learn more" data for the given pages
+func LoadLearnMore(db *database.DB, u *CurrentUser, pageMap map[string]*Page, options *LoadDataOptions) error {
+	if options == nil {
+		options = &LoadDataOptions{}
+	}
+
+	sourceMap := options.ForPages
+	if sourceMap == nil {
+		sourceMap = pageMap
+	}
+
+	// Compute all subject ids we need to consider
+	var subjectIDs []string
+	for _, page := range sourceMap {
+		for _, subject := range page.Subjects {
+			subjectIDs = append(subjectIDs, subject.ParentID)
+		}
+	}
+	if len(subjectIDs) <= 0 {
+		return nil
+	}
+
+	queryPart := database.NewQuery(`
+		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
+		ON (pi.pageId=pp.childId)
+		WHERE pp.parentId IN`).AddArgsGroupStr(subjectIDs).Add(`
+			AND pp.type=?`, RequirementPagePairType)
+	err := LoadPagePairs(db, queryPart, func(db *database.DB, pp *PagePair) error {
+		for _, page := range sourceMap {
+			for _, subject := range page.Subjects {
+				if pp.ParentID == subject.ParentID && pp.Level <= subject.Level {
+					page.LearnMoreMap[subject.ParentID] = append(page.LearnMoreMap[subject.ParentID], pp)
+					break
+				}
+			}
+		}
+		AddPageIDToMap(pp.ChildID, pageMap)
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 	return nil
 }

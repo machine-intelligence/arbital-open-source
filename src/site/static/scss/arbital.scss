@@ -9,6 +9,12 @@ body {
 	background-color: $background-color;
 }
 
+ul {
+	&.no-top-margin {
+		margin-top: 0;
+	}
+}
+
 // Fix we need to apply to the body for most pages (where content just scrolls down)
 // Edit page is the notable exception
 .body-fix {
@@ -290,7 +296,7 @@ arb-update-row,
 	padding: 2px 6px;
 }
 
-.discussion-container {
+.after-page-container {
 	margin: 20px 0;
 }
 

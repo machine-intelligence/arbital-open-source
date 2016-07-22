@@ -470,6 +470,9 @@ body {
   overflow-x: hidden;
   background-color: #f7f7f7; }
 
+ul.no-top-margin {
+  margin-top: 0; }
+
 .body-fix {
   height: auto; }
 
@@ -654,7 +657,7 @@ arb-update-row .md-button.dismiss-button,
   color: #888 !important;
   padding: 2px 6px; }
 
-.discussion-container {
+.after-page-container {
   margin: 20px 0; }
 
 .page-list-span {

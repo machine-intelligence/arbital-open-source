@@ -7,15 +7,15 @@
 				likeable="row"
 				is-button="true"
 				is-plus-one="true"
-				ng-if="::row.refCount"
+				ng-if="::row.linkedByPageIds"
 				></arb-likes>
 
 			<div class="explanation-text" layout="column" flex>
 				<div layout="row" layout-align="start center">
 					{{::prettyName}} &nbsp;
-					<span ng-if="::row.refCount" class="md-caption">
+					<span ng-if="::row.linkedByPageIds" class="md-caption">
 						referenced on
-						<span class="cursor-pointer underline" ng-click="toggleExpand()">{{::row.refCount}} pages</span>
+						<span class="cursor-pointer underline" ng-click="toggleExpand()">{{::row.linkedByPageIds.length}} pages</span>
 						with {{totalViewCount}} total views
 					</span>
 				</div>

@@ -34,11 +34,10 @@ var writeNewModeHandler = siteHandler{
 	Options:     pages.PageOptions{},
 }
 
-// Row to show a redLink
 type RedLinkRow struct {
 	core.Likeable
-	Alias    string `json:"alias"`
-	RefCount string `json:"refCount"`
+	Alias           string   `json:"alias"`
+	LinkedByPageIDs []string `json:"linkedByPageIds"`
 }
 
 type StubRow struct {
@@ -63,9 +62,9 @@ func writeNewModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load redlinks in math
-	returnData.ResultMap["redLinks"], err = loadRedLinkRows(db, returnData.User, numPagesToLoad)
+	returnData.ResultMap["redLinks"], err = loadRedLinkRows(db, returnData, numPagesToLoad)
 	if err != nil {
-		return pages.Fail("Error loading drafts", err)
+		return pages.Fail("Error loading red link rows", err)
 	}
 
 	// Load stubs in math
@@ -88,8 +87,9 @@ func selectRandomNFrom(n int, query *database.QueryPart) *database.QueryPart {
 }
 
 // Load pages that are linked to but don't exist
-func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLinkRow, error) {
-	redLinks := make([]*RedLinkRow, 0)
+func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit int) ([]*RedLinkRow, error) {
+	u := returnData.User
+	redLinks := []*RedLinkRow{}
 
 	publishedPageIDs := core.PageInfosTableWithOptions(u, &core.PageInfosOptions{
 		Fields: []string{"pageId"},
@@ -101,7 +101,7 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 		WhereFilter: database.NewQuery(`currentEdit>0 OR DATEDIFF(NOW(),createdAt) <= ?`, hideRedLinkIfDraftExistsDays),
 	})
 	rows := selectRandomNFrom(limit, database.NewQuery(`
-		SELECT childAlias,groupedRedLinks.likeableId,refCount
+		SELECT childAlias,groupedRedLinks.likeableId
 		FROM (
 			SELECT l.childAlias,rl.likeableId,COUNT(*) AS refCount
 			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS mathPi
@@ -126,9 +126,9 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 		ORDER BY COALESCE(likeCount,0) DESC, refCount DESC, groupedRedLinks.likeableId
 		LIMIT ?`, varietyDepth*limit)).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var alias, refCount string
+		var alias string
 		var likeableID sql.NullInt64
-		err := rows.Scan(&alias, &likeableID, &refCount)
+		err := rows.Scan(&alias, &likeableID)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		} else if core.IsIDValid(alias) {
@@ -139,7 +139,6 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 		row := &RedLinkRow{
 			Likeable: *core.NewLikeable(core.RedLinkLikeableType),
 			Alias:    alias,
-			RefCount: refCount,
 		}
 		if likeableID.Valid {
 			row.LikeableID = likeableID.Int64
@@ -163,12 +162,27 @@ func loadRedLinkRows(db *database.DB, u *core.CurrentUser, limit int) ([]*RedLin
 		return nil, fmt.Errorf("Couldn't load red link like count: %v", err)
 	}
 
+	// Load related pages
+	{
+		aliases := make([]string, len(redLinks))
+		for i := range aliases {
+			aliases[i] = redLinks[i].Alias
+		}
+		related, err := loadRelationships(db, aliases, returnData, true)
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't load relationships: %v", err)
+		}
+		for _, row := range redLinks {
+			row.LinkedByPageIDs = related[row.Alias]
+		}
+	}
+
 	return redLinks, nil
 }
 
 // Load pages that are marked as stubs
 func loadStubRows(db *database.DB, returnData *core.CommonHandlerData, limit int) ([]*StubRow, error) {
-	stubRows := make([]*StubRow, 0)
+	stubRows := []*StubRow{}
 	rows := selectRandomNFrom(limit, database.NewQuery(`
 		SELECT pi.pageId
 		FROM`).AddPart(core.PageInfosTable(returnData.User)).Add(`AS pi
