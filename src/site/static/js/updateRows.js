@@ -96,12 +96,12 @@ app.directive('arbQuestionMergedUpdateRow', getUpdateRowDirectiveFunc(versionUrl
 	function($scope) {
 		switch ($scope.update.type) {
 			case 'questionMerged':
-				$scope.acquireeId = update.subscribedToId;
-				$scope.acquirerId = update.goToPageId;
+				$scope.acquireeId = $scope.update.subscribedToId;
+				$scope.acquirerId = $scope.update.goToPageId;
 				break;
 			case 'questionMergedReverse':
-				$scope.acquireeId = update.goToPageId;
-				$scope.acquirerId = update.subscribedToId;
+				$scope.acquireeId = $scope.update.goToPageId;
+				$scope.acquirerId = $scope.update.subscribedToId;
 				break;
 		}
 	})
