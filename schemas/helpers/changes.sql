@@ -97,3 +97,5 @@ CREATE TABLE contentRequests (
 
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+alter table visits change column sessionId sessionId VARCHAR(64);

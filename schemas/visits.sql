@@ -6,7 +6,7 @@ CREATE TABLE visits (
 	userId VARCHAR(32) NOT NULL,
 
 	/* Session id. If the user is *not* logged in, this will be the same as userId. */
-	sessionId VARCHAR(32) NOT NULL,
+	sessionId VARCHAR(64) NOT NULL,
 
 	/* IP address of the user's computer. */
 	ipAddress VARCHAR(64) NOT NULL,
