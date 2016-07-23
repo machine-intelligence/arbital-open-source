@@ -195,8 +195,10 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 		var page = stateService.pageMap[pageId];
 		if (page) {
 			url = that.getBaseUrl('edit', pageId, page.alias);
-		} else {
+		} else if (pageId) {
 			url = '/edit/' + pageId + '/';
+		} else {
+			url = '/edit/';
 		}
 		// Add markId argument
 		if (options.markId) {

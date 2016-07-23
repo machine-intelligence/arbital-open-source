@@ -50,7 +50,7 @@ app.directive('arbEditButton', function(arb) {
 				arb.analyticsService.reportEditPageAction(event, $scope.analyticsDesc);
 				arb.signupService.wrapInSignupFlow('edit click:' + $scope.analyticsDesc,
 					function() {
-						if (event.ctrlKey) {
+						if (event.ctrlKey || event.metaKey) {
 							window.open(arb.urlService.getEditPageUrl($scope.pageId));
 						} else {
 							arb.urlService.goToUrl(arb.urlService.getEditPageUrl($scope.pageId));
