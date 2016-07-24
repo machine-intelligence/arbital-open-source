@@ -1443,7 +1443,7 @@ func LoadLikes(db *database.DB, u *CurrentUser, likeablesMap map[int64]*Likeable
 		}
 
 		// Store the like itself for pages that want it
-		if individualLikesPageMap != nil {
+		if value > 0 && individualLikesPageMap != nil {
 			if likeable, ok := individualLikesPageMap[likeableID]; ok {
 				likeable.IndividualLikes = append(likeable.IndividualLikes, userID)
 				AddUserIDToMap(userID, userMap)

@@ -48,8 +48,10 @@ app.service('signupService', function($mdDialog, $timeout, analyticsService, use
 			if (!likeable) return;
 			if (value) {
 				likeable.myLikeValue = value;
+			} else if (likeable.myLikeValue == 0) {
+				likeable.myLikeValue = 1;
 			} else {
-				likeable.myLikeValue = Math.min(1, 1 - likeable.myLikeValue);
+				likeable.myLikeValue = 0;
 			}
 			var data = {
 				likeableId: likeable.likeableId,
