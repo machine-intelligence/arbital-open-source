@@ -120,7 +120,7 @@ var submitForm = function($form, url, data, success, error) {
 		if (!invisibleSubmit) {
 			$form.find('[toggle-on-submit]').toggle();
 		}
-	}).success(function(r) {
+	}).done(function(r) {
 		$errorText.hide();
 		$successText.show();
 		success(r);
