@@ -42,6 +42,7 @@ app.service('signupService', function($mdDialog, $timeout, analyticsService, use
 		if (that.afterSignupFn) that.afterSignupFn();
 	};
 
+	// TODO: Roggie asks: why is this in signupService.js? Why not define the function where it's used and just call signupService.wrapInSignupFlow from there?
 	// Report a like click
 	that.processLikeClick = function(likeable, objectId, value) {
 		that.wrapInSignupFlow('like', function() {
