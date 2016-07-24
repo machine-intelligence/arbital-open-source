@@ -53,16 +53,30 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 		link: function(scope, element, attrs) {
 			var parent = element.parent();
 			var container = angular.element(element.find('.change-speed-container'));
-			var topOfParent = parent[0].getBoundingClientRect().top + 10;
-			container.css('top', topOfParent);
+
+			var positionButton = function() {
+				$timeout(function() {
+					// Stick to the top of the parent unless the top of the parent is off the page
+					var topOfParent = parent[0].getBoundingClientRect().top;
+					scope.stickToTop = topOfParent > 0;
+
+					// Stick to the bottom of the parent if the bottom is near the top of the page
+					var bottomOfParent = parent[0].getBoundingClientRect().bottom;
+					scope.stickToBottom = bottomOfParent < 0;
+					if (bottomOfParent < 0) {
+						container.css('top', parent.offset().top + parent.height());
+					} else {
+						container.css('top', '');
+					}
+				});
+			}
 
 			angular.element($window).bind('scroll', function() {
 				scope.haveScrolled = true;
-
-				// Make the button not go past the bottom of the parent
-				var bottomOfParent = parent[0].getBoundingClientRect().bottom + 20;
-				container.css('top', Math.min(bottomOfParent, topOfParent));
+				positionButton();
 			});
+
+			positionButton();
 		},
 	}
 });

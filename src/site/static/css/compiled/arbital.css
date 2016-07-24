@@ -415,6 +415,8 @@ md-list {
 
 .change-speed-container {
   position: fixed;
+  margin-top: 20px;
+  top: 0px;
   z-index: 1;
   transition: all 100ms cubic-bezier(0.55, 0, 0.55, 0.2), top 1ms;
   opacity: 1; }
@@ -435,6 +437,12 @@ md-list {
     .change-speed-container.expanded md-input-container {
       margin-top: 10px;
       margin-bottom: 0px; }
+
+.change-speed-container.stick-to-top {
+  position: static; }
+
+.change-speed-container.stick-to-bottom {
+  position: absolute; }
 
 .change-speed-button {
   transition: all 100ms cubic-bezier(0.55, 0, 0.55, 0.2), border-radius 1ms;
