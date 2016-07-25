@@ -3,15 +3,20 @@
 		ng-class="{
 				'slow-down-container': goSlow,
 				'speed-up-container': !goSlow,
+				'stick-to-top': stickToTop,
+				'stick-to-bottom': stickToBottom,
 				'expanded': isHovered,
 			}"
 		arb-click-elsewhere="isHovered = false">
 	<div class="md-body-2 change-speed-button"
 			ng-mouseenter="isHovered = true"
 			ng-class="{'collapsed': haveScrolled && !isHovered}">
-		<md-icon>slow_motion_video</md-icon>
+		<md-icon ng-if="goSlow">slow_motion_video</md-icon>
 		<span ng-bind="::goSlow ? 'Say what?' : 'Go faster'"
 				ng-if="!haveScrolled || isHovered"></span>
+		<md-icon ng-if="!goSlow">slow_motion_video</md-icon>
+		<md-tooltip ng-if="goSlow && !isHovered" md-direction="right">Show slower explanations</md-tooltip>
+		<md-tooltip ng-if="!goSlow && !isHovered" md-direction="left">Show faster explanations</md-tooltip>
 	</div>
 	<div class="change-speed-tray md-body-1">
 		<div ng-if="isHovered">
