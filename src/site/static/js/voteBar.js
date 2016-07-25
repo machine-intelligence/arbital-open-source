@@ -78,7 +78,8 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 				scope.voteBuckets[n].normValue = scope.voteBuckets[n].votes.length / scope.page.votes.length;
 				scope.voteBuckets[n].votes.sort(function(a, b) {
 					if (a.value === b.value) {
-						return a.createdAt < b.createdAt;
+						// Sort more recent votes first.
+						return -a.createdAt.localeCompare(b.createdAt);
 					}
 					return a.value - b.value;
 				});
