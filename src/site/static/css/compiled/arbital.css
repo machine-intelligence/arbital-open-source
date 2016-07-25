@@ -397,17 +397,24 @@ md-list {
   background-color: silver; }
 
 .slow-down-container {
-  margin-left: -32px; }
+  margin-left: -32px;
+  margin-right: -500px; }
   .slow-down-container .change-speed-button {
-    padding: 6px 8px 6px 6px; }
+    padding: 6px 8px 6px 6px;
+    width: 94px; }
     .slow-down-container .change-speed-button.collapsed {
       border-radius: 18px 0 0 18px;
       padding-right: 2px; }
 
 .speed-up-container {
-  margin-left: -68px; }
+  margin-left: -68px;
+  margin-right: -34px; }
+  .speed-up-container.expanded {
+    margin-left: -366px; }
   .speed-up-container .change-speed-button {
-    padding: 6px 6px 6px 8px; }
+    padding: 6px 6px 6px 8px;
+    width: 87px;
+    text-align: right; }
     .speed-up-container .change-speed-button.collapsed {
       border-radius: 0 18px 18px 0;
       padding-left: 4px;
@@ -415,15 +422,18 @@ md-list {
 
 .change-speed-container {
   position: fixed;
-  z-index: 1;
-  transition: all 100ms cubic-bezier(0.55, 0, 0.55, 0.2), top 1ms;
+  margin-top: 20px;
+  top: 0px;
+  z-index: 2;
+  transition: opacity 100ms cubic-bezier(0.55, 0, 0.55, 0.2);
   opacity: 1; }
   .change-speed-container.expanded {
     border-radius: 18px 18px 5px 5px;
-    background-color: white; }
+    background-color: white;
+    width: 400px; }
     .change-speed-container.expanded .change-speed-button {
-      min-width: 200px;
-      border-radius: 18px 18px 0 0; }
+      border-radius: 18px 18px 0 0;
+      width: auto; }
     .change-speed-container.expanded .change-speed-tray {
       padding: 8px;
       width: auto;
@@ -436,6 +446,12 @@ md-list {
       margin-top: 10px;
       margin-bottom: 0px; }
 
+.change-speed-container.stick-to-top {
+  position: static; }
+
+.change-speed-container.stick-to-bottom {
+  position: absolute; }
+
 .change-speed-button {
   transition: all 100ms cubic-bezier(0.55, 0, 0.55, 0.2), border-radius 1ms;
   border-radius: 18px;
@@ -446,6 +462,7 @@ md-list {
   opacity: 1;
   white-space: nowrap;
   outline: none;
+  z-index: 2;
   cursor: pointer; }
   .change-speed-button md-icon {
     color: white; }
@@ -462,7 +479,8 @@ md-list {
   height: 0px;
   padding: 0;
   max-width: 400px;
-  background-color: white; }
+  background-color: white;
+  z-index: 2; }
   .change-speed-tray ul {
     margin-top: 0; }
 

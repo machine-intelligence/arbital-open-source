@@ -2,9 +2,11 @@
 
 .slow-down-container {
 	margin-left: -32px;
+	margin-right: -500px;
 
 	.change-speed-button {
 		padding: 6px 8px 6px 6px;
+		width: 94px;
 
 		&.collapsed {
 			border-radius: 18px 0 0 18px;
@@ -15,9 +17,16 @@
 
 .speed-up-container {
 	margin-left: -68px;
+	margin-right: -34px;
+
+	&.expanded {
+		margin-left: -366px;
+	}
 
 	.change-speed-button {
 		padding: 6px 6px 6px 8px;
+		width: 87px;
+		text-align: right;
 
 		&.collapsed {
 			border-radius: 0 18px 18px 0;
@@ -29,19 +38,23 @@
 
 .change-speed-container {
 	position: fixed;
-	z-index: 1;
-	transition: all 100ms cubic-bezier(0.55, 0, 0.55, 0.2), top 1ms;
+	margin-top: 20px;
+	top: 0px;
+	z-index: $changeSpeedZ;
+	transition: opacity 100ms cubic-bezier(0.55, 0, 0.55, 0.2);
 	opacity: 1;
 
 	&.expanded {
+
 		border-radius: 18px 18px 5px 5px;
 		background-color: white;
-	
+		width: 400px;
+
 		.change-speed-button {
-			min-width: 200px;
 			border-radius: 18px 18px 0 0;
+			width: auto;
 		}
-	
+
 		.change-speed-tray {
 			padding: 8px;
 			width: auto;
@@ -51,12 +64,20 @@
 			border-right: 2px solid $link-color;
 			border-bottom: 2px solid $link-color;
 		}
-	
+
 		md-input-container {
 			margin-top: 10px;
 			margin-bottom: 0px;
 		}
 	}
+}
+
+.change-speed-container.stick-to-top {
+	position: static;
+}
+
+.change-speed-container.stick-to-bottom {
+	position: absolute;
 }
 
 .change-speed-button {
@@ -69,6 +90,7 @@
 	opacity: 1;
 	white-space: nowrap;
 	outline: none;
+	z-index: $changeSpeedZ;
 	cursor: pointer;
 
 	md-icon {
@@ -78,7 +100,7 @@
 	&.collapsed {
 		width: 24px;
 		opacity: .7;
-	
+
 		md-icon {
 			opacity: .2;
 		}
@@ -93,6 +115,7 @@
 	padding: 0;
 	max-width: 400px;
 	background-color: white;
+	z-index: $changeSpeedZ;
 
 	ul {
 		margin-top: 0;
