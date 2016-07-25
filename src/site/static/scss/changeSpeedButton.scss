@@ -29,6 +29,8 @@
 
 .change-speed-container {
 	position: fixed;
+	margin-top: 20px;
+	top: 0px;
 	z-index: 1;
 	transition: all 100ms cubic-bezier(0.55, 0, 0.55, 0.2), top 1ms;
 	opacity: 1;
@@ -36,12 +38,12 @@
 	&.expanded {
 		border-radius: 18px 18px 5px 5px;
 		background-color: white;
-	
+
 		.change-speed-button {
 			min-width: 200px;
 			border-radius: 18px 18px 0 0;
 		}
-	
+
 		.change-speed-tray {
 			padding: 8px;
 			width: auto;
@@ -51,12 +53,20 @@
 			border-right: 2px solid $link-color;
 			border-bottom: 2px solid $link-color;
 		}
-	
+
 		md-input-container {
 			margin-top: 10px;
 			margin-bottom: 0px;
 		}
 	}
+}
+
+.change-speed-container.stick-to-top {
+	position: static;
+}
+
+.change-speed-container.stick-to-bottom {
+	position: absolute;
 }
 
 .change-speed-button {
@@ -78,7 +88,7 @@
 	&.collapsed {
 		width: 24px;
 		opacity: .7;
-	
+
 		md-icon {
 			opacity: .2;
 		}
