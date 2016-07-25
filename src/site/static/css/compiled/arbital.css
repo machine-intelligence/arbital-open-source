@@ -422,11 +422,11 @@ md-list {
 
 .change-speed-container {
   position: fixed;
-  margin-top: 20px;
+  margin-top: 8px;
   top: 0px;
   z-index: 2;
-  transition: opacity 100ms cubic-bezier(0.55, 0, 0.55, 0.2);
-  opacity: 1; }
+  opacity: 1;
+  width: 94px; }
   .change-speed-container.expanded {
     border-radius: 18px 18px 5px 5px;
     background-color: white;
@@ -453,7 +453,6 @@ md-list {
   position: absolute; }
 
 .change-speed-button {
-  transition: all 100ms cubic-bezier(0.55, 0, 0.55, 0.2), border-radius 1ms;
   border-radius: 18px;
   background-color: #137abd;
   color: white;
@@ -473,7 +472,6 @@ md-list {
       opacity: .2; }
 
 .change-speed-tray {
-  transition: all 100ms cubic-bezier(0.55, 0, 0.55, 0.2);
   border-left: 0px solid #137abd;
   width: 0px;
   height: 0px;
