@@ -462,7 +462,8 @@ md-list {
   white-space: nowrap;
   outline: none;
   z-index: 2;
-  cursor: pointer; }
+  cursor: pointer;
+  font-weight: 500; }
   .change-speed-button md-icon {
     color: white; }
   .change-speed-button.collapsed {
