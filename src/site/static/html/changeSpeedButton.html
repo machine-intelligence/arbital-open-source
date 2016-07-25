@@ -7,7 +7,7 @@
 			}"
 		arb-click-elsewhere="isHovered = false">
 	<div class="md-body-2 change-speed-button"
-			ng-click="isHovered = true"
+			ng-mouseenter="isHovered = true"
 			ng-class="{'collapsed': haveScrolled && !isHovered}">
 		<md-icon>slow_motion_video</md-icon>
 		<span ng-bind="::goSlow ? 'Say what?' : 'Go faster'"

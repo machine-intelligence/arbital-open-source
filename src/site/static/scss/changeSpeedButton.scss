@@ -2,9 +2,11 @@
 
 .slow-down-container {
 	margin-left: -32px;
+	margin-right: -500px;
 
 	.change-speed-button {
 		padding: 6px 8px 6px 6px;
+		width: 94px;
 
 		&.collapsed {
 			border-radius: 18px 0 0 18px;
@@ -15,9 +17,11 @@
 
 .speed-up-container {
 	margin-left: -68px;
+	margin-right: -34px;
 
 	.change-speed-button {
 		padding: 6px 6px 6px 8px;
+		width: 87px;
 
 		&.collapsed {
 			border-radius: 0 18px 18px 0;
@@ -34,11 +38,12 @@
 	opacity: 1;
 
 	&.expanded {
+
 		border-radius: 18px 18px 5px 5px;
 		background-color: white;
 	
 		.change-speed-button {
-			min-width: 200px;
+			width: 400px;
 			border-radius: 18px 18px 0 0;
 		}
 	

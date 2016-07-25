@@ -397,17 +397,21 @@ md-list {
   background-color: silver; }
 
 .slow-down-container {
-  margin-left: -32px; }
+  margin-left: -32px;
+  margin-right: -500px; }
   .slow-down-container .change-speed-button {
-    padding: 6px 8px 6px 6px; }
+    padding: 6px 8px 6px 6px;
+    width: 94px; }
     .slow-down-container .change-speed-button.collapsed {
       border-radius: 18px 0 0 18px;
       padding-right: 2px; }
 
 .speed-up-container {
-  margin-left: -68px; }
+  margin-left: -68px;
+  margin-right: -34px; }
   .speed-up-container .change-speed-button {
-    padding: 6px 6px 6px 8px; }
+    padding: 6px 6px 6px 8px;
+    width: 87px; }
     .speed-up-container .change-speed-button.collapsed {
       border-radius: 0 18px 18px 0;
       padding-left: 4px;
@@ -422,7 +426,7 @@ md-list {
     border-radius: 18px 18px 5px 5px;
     background-color: white; }
     .change-speed-container.expanded .change-speed-button {
-      min-width: 200px;
+      width: 400px;
       border-radius: 18px 18px 0 0; }
     .change-speed-container.expanded .change-speed-tray {
       padding: 8px;
