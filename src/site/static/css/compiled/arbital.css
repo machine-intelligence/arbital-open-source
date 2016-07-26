@@ -1401,10 +1401,7 @@ arb-explanation-request-row {
   color: #444; }
   arb-list-sub-header .explanation-text,
   arb-explanation-request-row .explanation-text {
-    line-height: 38px; }
-    arb-list-sub-header .explanation-text .expanded-list,
-    arb-explanation-request-row .explanation-text .expanded-list {
-      line-height: normal; }
+    padding-top: 8px; }
 
 .expand-icon {
   transition: all 500ms ease; }
