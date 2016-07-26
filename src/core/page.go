@@ -201,8 +201,11 @@ type Page struct {
 	// Path stuff
 	PathPages Path `json:"pathPages"`
 
-	// Data for showing what pages user can learn after reading this page. subject pageId -> list of pagePairs
-	LearnMoreMap map[string][]*PagePair `json:"learnMoreMap"`
+	// Data for showing what pages user can learn after reading this page.
+	// Map: page id of the subject that was taught/covered -> list of pageIds to read
+	LearnMoreTaughtMap   map[string][]string `json:"learnMoreTaughtMap"`
+	LearnMoreCoveredMap  map[string][]string `json:"learnMoreCoveredMap"`
+	LearnMoreRequiredMap map[string][]string `json:"learnMoreRequiredMap"`
 
 	// TODO: eventually move this to the user object (once we have load
 	// options + pipeline for users)
@@ -272,7 +275,9 @@ func NewPage(pageID string) *Page {
 	p.TrustMap = make(map[string]*Trust)
 	p.Lenses = make(LensList, 0)
 	p.PathPages = make(Path, 0)
-	p.LearnMoreMap = make(map[string][]*PagePair)
+	p.LearnMoreTaughtMap = make(map[string][]string)
+	p.LearnMoreCoveredMap = make(map[string][]string)
+	p.LearnMoreRequiredMap = make(map[string][]string)
 	p.DomainSubmissions = make(map[string]*PageToDomainSubmission)
 	p.Answers = make([]*Answer, 0)
 	p.SearchStrings = make(map[string]string)
@@ -1758,13 +1763,21 @@ func LoadLearnMore(db *database.DB, u *CurrentUser, pageMap map[string]*Page, op
 		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
 		ON (pi.pageId=pp.childId)
 		WHERE pp.parentId IN`).AddArgsGroupStr(subjectIDs).Add(`
-			AND pp.type=?`, RequirementPagePairType)
+			AND (pp.type=? || pp.type=?)`, RequirementPagePairType, SubjectPagePairType)
 	err := LoadPagePairs(db, queryPart, func(db *database.DB, pp *PagePair) error {
 		for _, page := range sourceMap {
 			for _, subject := range page.Subjects {
-				if pp.ParentID == subject.ParentID && pp.Level <= subject.Level {
-					page.LearnMoreMap[subject.ParentID] = append(page.LearnMoreMap[subject.ParentID], pp)
-					break
+				if pp.ParentID != subject.ParentID || pp.Level != subject.Level || pp.ChildID == page.PageID {
+					continue
+				}
+				if pp.Type == SubjectPagePairType && !pp.IsStrong {
+					if subject.IsStrong {
+						page.LearnMoreTaughtMap[subject.ParentID] = append(page.LearnMoreTaughtMap[subject.ParentID], pp.ChildID)
+					} else {
+						page.LearnMoreCoveredMap[subject.ParentID] = append(page.LearnMoreCoveredMap[subject.ParentID], pp.ChildID)
+					}
+				} else if pp.Type == RequirementPagePairType && pp.IsStrong && subject.IsStrong {
+					page.LearnMoreRequiredMap[subject.ParentID] = append(page.LearnMoreRequiredMap[subject.ParentID], pp.ChildID)
 				}
 			}
 		}

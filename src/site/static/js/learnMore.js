@@ -11,7 +11,9 @@ app.directive('arbLearnMore', function($compile, $location, $timeout, arb) {
 
 			// Return true if there are any learn more suggestions to show
 			$scope.hasLearnMore = function() {
-				return Object.keys($scope.page.learnMoreMap).length > 0;
+				return Object.keys($scope.page.learnMoreTaughtMap).length > 0 ||
+						Object.keys($scope.page.learnMoreCoveredMap).length > 0 ||
+						 Object.keys($scope.page.learnMoreRequiredMap).length > 0;
 			};
 		},
 	};

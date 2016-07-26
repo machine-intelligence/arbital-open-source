@@ -117,6 +117,9 @@ app.service('stateService', function($http, $mdMedia, popupService) {
 	//	callCallbacks: if true, call postDataCallbacks
 	// }
 	this.postDataWithOptions = function(url, params, options, successFn, errorFn) {
+		if (typeof params === 'string' || params instanceof String) {
+			console.error('Params should not be a string');
+		}
 		$http({method: 'POST', url: url, data: JSON.stringify(params)})
 			.success(function(data) {
 				console.log(url + ' data:'); console.dir(data);

@@ -77,7 +77,8 @@ func _loadChangeSpeedPagePairs(db *database.DB, slower bool, pageID string, retu
 			ON (pp.parentId=pp2.parentId AND pp.level`+comparison+`pp2.level)
 			JOIN`).AddPart(core.PageInfosTableAll(returnData.User)).Add(`AS pi
 			ON (pi.pageId=pp.childId)
-			WHERE pp2.childId=?`, pageID).Add(`
+			WHERE pp.isStrong AND pp2.isStrong
+				AND pp2.childId=?`, pageID).Add(`
 				AND pp2.type=?`, core.SubjectPagePairType).Add(`
 				AND pp.type=?`, core.SubjectPagePairType)
 	err := core.LoadPagePairs(db, queryPart, func(db *database.DB, pagePair *core.PagePair) error {
