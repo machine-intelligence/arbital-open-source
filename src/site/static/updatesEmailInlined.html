@@ -99,43 +99,43 @@
 							{{range .UpdateRows}}
 								<div class="update-entry" style="margin: 5px 0px 5px 5px;">
 									{{if eq .Type "topLevelComment"}}
-                    <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserId}}</a>
+                    <a href="{{GetUserUrl .ByUserID}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserID}}</a>
 										wrote a new
-										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">comment</a>
+										<a href="{{GetPageUrl .GoToPageID}}" style="text-decoration: none;color: #009688;">comment</a>
 									{{else if eq .Type "reply"}}
-                    <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserId}}</a>
+                    <a href="{{GetUserUrl .ByUserID}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserID}}</a>
 										wrote a new
-										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">comment reply</a>
+										<a href="{{GetPageUrl .GoToPageID}}" style="text-decoration: none;color: #009688;">comment reply</a>
 									{{else if eq .Type "resolvedThread"}}
-                    <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserId}}</a>
+                    <a href="{{GetUserUrl .ByUserID}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserID}}</a>
 										marked a
-										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">comment thread</a>
+										<a href="{{GetPageUrl .GoToPageID}}" style="text-decoration: none;color: #009688;">comment thread</a>
 										as resolved.
 									{{else if eq .Type "pageEdit"}}
-                    <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserId}}</a>
+                    <a href="{{GetUserUrl .ByUserID}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserID}}</a>
 										edited
-                    <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .GoToPageId}}</a>
+                    <a href="{{GetPageUrl .GoToPageID}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .GoToPageID}}</a>
 									{{else if eq .Type "changeLog"}}
-                    <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserId}}</a>
+                    <a href="{{GetUserUrl .ByUserID}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserID}}</a>
 										edited
-                    <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .GoToPageId}}</a>
+                    <a href="{{GetPageUrl .GoToPageID}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .GoToPageID}}</a>
 									{{else if eq .Type "newPageByUser"}}
-                    <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserId}}</a>
+                    <a href="{{GetUserUrl .ByUserID}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserID}}</a>
 										created a new page:
-                    <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .GoToPageId}}</a>
+                    <a href="{{GetPageUrl .GoToPageID}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .GoToPageID}}</a>
 									{{else if eq .Type "atMention"}}
-                    <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserId}}</a>
+                    <a href="{{GetUserUrl .ByUserID}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserID}}</a>
 										mentioned you in a
-										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">comment</a>
+										<a href="{{GetPageUrl .GoToPageID}}" style="text-decoration: none;color: #009688;">comment</a>
 									{{else if eq .Type "addedToGroup"}}
-                    <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserId}}</a>
+                    <a href="{{GetUserUrl .ByUserID}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserID}}</a>
 										added you to the
-										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .GoToPageId}}</a>
+										<a href="{{GetPageUrl .GoToPageID}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .GoToPageID}}</a>
                     group
 									{{else if eq .Type "removedFromGroup"}}
-                    <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserId}}</a>
+                    <a href="{{GetUserUrl .ByUserID}}" style="text-decoration: none;color: #009688;">{{GetUserName .ByUserID}}</a>
 										removed you from the
-										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .GoToPageId}}</a>
+										<a href="{{GetPageUrl .GoToPageID}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .GoToPageID}}</a>
                     group
 									{{else if eq .Type "newMark"}}
 										A confusion mark has been created.
@@ -145,9 +145,9 @@
 										You can now participate in one of the domains.
 									{{else if eq .Type "pageToDomainAccepted"}}
 										Congrats,
-										<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .GoToPageId}}</a>
+										<a href="{{GetPageUrl .GoToPageID}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .GoToPageID}}</a>
 										is now part of the
-										<a href="{{GetPageUrl .SubscribedToId}}" style="text-decoration: none;color: #009688;">{{GetPageTitle .SubscribedToId}}</a>
+										<a href="{{GetPageUrl .SubscribedToIID}" style="text-decoration: none;color: #009688;">{{GetPageTitle .SubscribedToID}}</a>
 										domain.
 									{{else}}
 										A {{.Type}} event happened.

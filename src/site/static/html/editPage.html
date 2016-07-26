@@ -736,7 +736,9 @@
 		</md-list>
 
 		<!-- Live preview -->
-		<md-content class="preview-area" flex ng-show="(fullView || inPreview) && !otherDiff && !sideEdit">
+		<md-content class="preview-area"
+				ng-class="{'hidden': !isPreviewVisible()}"
+				flex>
 			<div class="md-display-3" ng-if="page.title != '' || page.text != ''">
 				<span ng-bind="page.title"></span>
 			</div>

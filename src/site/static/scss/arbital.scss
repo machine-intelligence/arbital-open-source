@@ -169,6 +169,16 @@ arb-markdown, [arb-markdown], .preview-area {
 	.info-text {
 		background-color: rgba(0,0,255,0.15);
 	}
+
+	&.hidden {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		display: initial !important;
+		visibility: hidden !important;
+		z-index: -1;
+	}
 }
 
 // Cap the width of some pages, so they look nicer

@@ -126,6 +126,11 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				$scope.inPreview = show;
 			};
 
+			// Return true if the preview should be shown
+			$scope.isPreviewVisible = function() {
+				return ($scope.fullView || $scope.inPreview) && !$scope.otherDiff && !$scope.sideEdit;
+			};
+
 			// Setup all the settings
 			$scope.isNormalEdit = !($scope.page.isSnapshot || $scope.page.isAutosave);
 

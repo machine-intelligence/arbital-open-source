@@ -579,6 +579,14 @@ arb-markdown, [arb-markdown], .preview-area {
     background-color: rgba(0, 255, 0, 0.15); }
   .preview-area .info-text {
     background-color: rgba(0, 0, 255, 0.15); }
+  .preview-area.hidden {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: initial !important;
+    visibility: hidden !important;
+    z-index: -1; }
 
 .capped-body-width {
   padding-bottom: 100px; }
