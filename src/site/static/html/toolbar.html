@@ -98,10 +98,6 @@
 		</h1>
 	</md-toolbar>
 	<md-content layout="column">
-		<md-subheader>
-			Explore Arbital
-		</md-subheader>
-		<md-button href="/recentChanges/" ng-click="toggleRightMenu()">Recent changes</md-button>
 		<!-- Other buttons -->
 		<md-subheader>
 			Your Account
@@ -128,6 +124,10 @@
 						ng-bind="::(arb.stateService.pageMap[groupId].title | shorten: 30)"></md-button>
 			</div>
 		</div>
+		<md-subheader>
+			Explore Arbital
+		</md-subheader>
+		<md-button href="/recentChanges/" ng-click="toggleRightMenu()">Recent changes</md-button>
 		<md-divider></md-divider>
 
 		<md-button ng-click="logout()" id="logout">Log Out</md-button>

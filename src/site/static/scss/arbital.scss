@@ -565,7 +565,7 @@ a:not(.md-button) {
 
 #index-header {
 	.arbital-blurb {
-		padding: 8px;
+		padding: 8px 16px;
 	}
 
 	md-input-container {
@@ -574,10 +574,23 @@ a:not(.md-button) {
 }
 
 @media (max-width: 599px) {
+	#index-header {
+		> * {
+			padding: 8px 16px;
+		}
+	}
+}
+
+@media (max-width: 599px) {
 	.children-vertical-margin-lt-xs {
 		> *:not(:first-child) {
 			margin-top: 12px;
 		}
+	}
+
+	.match-top-bar-padding-on-mobile {
+		padding-left: 16px;
+		padding-right: 16px;
 	}
 }
 
@@ -1606,6 +1619,13 @@ arb-likes.tiny {
 .tab-panel-title {
 	font-size: 25px;
 	margin-left: 5px;
+}
+
+@media (max-width: 599px) {
+	.tab-panel-header {
+		padding-left: 11px;
+		padding-right: 16px;
+	}
 }
 
 .tab-panel-tab {
