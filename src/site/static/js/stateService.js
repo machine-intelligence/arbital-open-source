@@ -193,11 +193,11 @@ app.service('stateService', function($http, $mdMedia, popupService) {
 	this.isTinyScreen = !$mdMedia('gt-xs');
 
 	// Set the window title
-	this.setWindowTitle = function(title) {
+	this.setTitle = function(title) {
 		var windowTitle = title;
 		if (title !== '') {
 			windowTitle += ' - ';
 		}
 		document.title = windowTitle + 'Arbital';
-	}
+	};
 });

@@ -109,7 +109,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 			var result = callback(data);
 			if (result.error) {
 				$('.global-error').text(result.error).show();
-				arb.stateService.setWindowTitle('Error');
+				arb.stateService.setTitle('Error');
 			}
 
 			if (result.content) {
@@ -156,7 +156,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 			$('body').toggleClass('body-fix', !result.removeBodyFix);
 
 			if (result.title !== undefined) {
-				arb.stateService.setWindowTitle(result.title);
+				arb.stateService.setTitle(result.title);
 			}
 			arb.analyticsService.reportPageView();
 		};
@@ -167,7 +167,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 		return function(data, status) {
 			console.error('Error /json/' + urlPageType + '/:'); console.log(data); console.log(status);
 			arb.popupService.showToast({text: 'Couldn\'t create a new page: ' + data, isError: true});
-			arb.stateService.setWindowTitle('Error');
+			arb.stateService.setTitle('Error');
 		};
 	};
 
