@@ -133,8 +133,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 				var $pageLensBody = $(element).find('.page-lens-body');
 				scope.selectedLens = arb.stateService.pageMap[lensId];
 				
-				var lensTitle = scope.selectedLens.title;
-				arb.stateService.setTitle(lensTitle);
+				arb.stateService.setTitle(scope.selectedLens.title);
 				
 				$pageLensBody.animate({opacity: 0}, 400, 'swing', function() {
 					switchingLenses = true;
