@@ -196,12 +196,6 @@ md-list-item {
 md-list-item + md-list-item {
   margin-top: 10px !important; }
 
-.md-toolbar-tools .arbital-logo {
-  position: relative;
-  top: -4px;
-  width: 48px;
-  height: 48px;
-  margin: 10px 15px 0 0; }
 .md-toolbar-tools a {
   white-space: nowrap; }
 .md-toolbar-tools:not(.md-toolbar-tools-bottom) arb-autocomplete {
@@ -519,11 +513,19 @@ arb-signup .md-button.md-raised.facebook-button {
     background-color: #8b9dc3 !important; }
 
 .beta-label {
-  position: relative;
+  margin-left: 2px;
+  margin-right: 14px;
   font-size: 13px;
-  top: 16px;
-  left: -15px;
   opacity: 0.6; }
+
+.arbital-logo {
+  width: 48px;
+  height: 48px;
+  margin-right: 2px; }
+
+.arbital-logo-sm {
+  width: 30px;
+  height: 30px; }
 
 .math-background {
   background-image: url("/static/images/math.png");
