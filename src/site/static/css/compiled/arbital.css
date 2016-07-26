@@ -829,7 +829,7 @@ a:not(.md-button) {
 
 @media (max-width: 599px) {
   .children-vertical-margin-lt-xs > *:not(:first-child) {
-    margin-top: 8px; } }
+    margin-top: 12px; } }
 @media (min-width: 600px) {
   .padding-gt-xs {
     padding: 4px; }
