@@ -1423,6 +1423,9 @@ md-icon.icon-first,
   width: 24px;
   height: 24px; }
 
+md-list-item arb-likes {
+  margin-left: -4px; }
+
 arb-likes.s20 {
   margin-right: 0px; }
   arb-likes.s20 md-icon {

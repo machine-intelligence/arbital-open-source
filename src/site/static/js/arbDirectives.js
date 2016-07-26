@@ -644,7 +644,7 @@ app.directive('arbPageList', function(arb) {
 });
 
 // Exists to share the template for a row in a md-list of pages
-app.directive('arbPageRow', function(arb) {
+app.directive('arbPageRow', function($mdMedia, arb) {
 	return {
 		templateUrl: versionUrl('static/html/rows/pageRow.html'),
 		replace: true,
@@ -668,6 +668,8 @@ app.directive('arbPageRow', function(arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.page = arb.stateService.getPageFromSomeMap($scope.pageId, $scope.useEditMap);
+
+			$scope.isTinyScreen = !$mdMedia('gt-xs');
 		},
 	};
 });
