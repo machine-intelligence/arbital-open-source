@@ -38,6 +38,21 @@ func updateUserTrustHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 
+	var existingEditTrust int
+	row := database.NewQuery(`
+		SELECT editTrust
+		FROM userTrust
+		WHERE userId=?`, data.UserID).Add(`
+			AND domainId=?`, data.DomainID).ToStatement(db).QueryRow()
+	hasExistingEditTrust, err := row.Scan(&existingEditTrust)
+	if err != nil {
+		return pages.Fail("Couldn't query for existing edit trust", err)
+	}
+	if hasExistingEditTrust && data.EditTrust == existingEditTrust {
+		// If the edit trust for this user and domain hasn't changed, we're done.
+		return pages.Success(nil)
+	}
+
 	// Begin the transaction.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Create/update user trust.
@@ -50,17 +65,19 @@ func updateUserTrustHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return sessions.NewError("Couldn't update/create userTrust row", err)
 		}
 
-		// Send them an update
-		hashmap = make(map[string]interface{})
-		hashmap["userId"] = data.UserID
-		hashmap["type"] = core.UserTrustUpdateType
-		hashmap["createdAt"] = database.Now()
-		hashmap["subscribedToId"] = data.DomainID
-		hashmap["goToPageId"] = data.DomainID
-		hashmap["byUserId"] = u.ID
-		statement = db.NewInsertStatement("updates", hashmap).WithTx(tx)
-		if _, err = statement.Exec(); err != nil {
-			return sessions.NewError("Couldn't add a new update", err)
+		// Send them an update, iff they were promoted to Reviewer.
+		if (!hasExistingEditTrust || existingEditTrust < core.ReviewerKarmaLevel) && core.ReviewerKarmaLevel <= data.EditTrust {
+			hashmap = make(map[string]interface{})
+			hashmap["userId"] = data.UserID
+			hashmap["type"] = core.UserTrustUpdateType
+			hashmap["createdAt"] = database.Now()
+			hashmap["subscribedToId"] = data.DomainID
+			hashmap["goToPageId"] = data.DomainID
+			hashmap["byUserId"] = u.ID
+			statement = db.NewInsertStatement("updates", hashmap).WithTx(tx)
+			if _, err = statement.Exec(); err != nil {
+				return sessions.NewError("Couldn't add a new update", err)
+			}
 		}
 		return nil
 	})
