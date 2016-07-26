@@ -40,7 +40,7 @@ app.directive('arbSignup', function($location, $http, arb) {
 						};
 						arb.stateService.postData(
 							'/signup/',
-							JSON.stringify(data),
+							data,
 							function(data, status) {
 								arb.analyticsService.reportSignupAction('success signup with fb', arb.signupService.attemptedAction);
 								onSignupSuccess();

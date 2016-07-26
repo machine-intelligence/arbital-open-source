@@ -117,6 +117,9 @@ app.service('stateService', function($http, $mdMedia, popupService) {
 	//	callCallbacks: if true, call postDataCallbacks
 	// }
 	this.postDataWithOptions = function(url, params, options, successFn, errorFn) {
+		if (typeof params === 'string' || params instanceof String) {
+			console.error('Params should not be a string');
+		}
 		$http({method: 'POST', url: url, data: JSON.stringify(params)})
 			.success(function(data) {
 				console.log(url + ' data:'); console.dir(data);
@@ -191,4 +194,13 @@ app.service('stateService', function($http, $mdMedia, popupService) {
 
 	this.isSmallScreen = !$mdMedia('gt-sm');
 	this.isTinyScreen = !$mdMedia('gt-xs');
+
+	// Set the window title
+	this.setTitle = function(title) {
+		var windowTitle = title;
+		if (title !== '') {
+			windowTitle += ' - ';
+		}
+		document.title = windowTitle + 'Arbital';
+	};
 });
