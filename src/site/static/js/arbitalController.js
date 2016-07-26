@@ -109,7 +109,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 			var result = callback(data);
 			if (result.error) {
 				$('.global-error').text(result.error).show();
-				document.title = 'Error - Arbital';
+				arb.stateService.setWindowTitle('Error');
 			}
 
 			if (result.content) {
@@ -156,10 +156,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 			$('body').toggleClass('body-fix', !result.removeBodyFix);
 
 			if (result.title !== undefined) {
-				if (result.title !== '') {
-					result.title += ' - ';
-				}
-				document.title = result.title + 'Arbital';
+				arb.stateService.setWindowTitle(result.title);
 			}
 			arb.analyticsService.reportPageView();
 		};
@@ -170,7 +167,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 		return function(data, status) {
 			console.error('Error /json/' + urlPageType + '/:'); console.log(data); console.log(status);
 			arb.popupService.showToast({text: 'Couldn\'t create a new page: ' + data, isError: true});
-			document.title = 'Error - Arbital';
+			arb.stateService.setWindowTitle('Error');
 		};
 	};
 

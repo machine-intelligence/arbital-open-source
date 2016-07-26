@@ -191,4 +191,13 @@ app.service('stateService', function($http, $mdMedia, popupService) {
 
 	this.isSmallScreen = !$mdMedia('gt-sm');
 	this.isTinyScreen = !$mdMedia('gt-xs');
+
+	// Set the window title
+	this.setWindowTitle = function(title) {
+		var windowTitle = title;
+		if (title !== '') {
+			windowTitle += ' - ';
+		}
+		document.title = windowTitle + 'Arbital';
+	}
 });
