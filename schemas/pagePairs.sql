@@ -38,7 +38,7 @@ CREATE TABLE pagePairs (
 
 	/* Determines if the requirement is strong or weak.
 		For requirements this is strong/weak.
-		For subjects this is direct/indirect. */
+		For subjects this is teaches/expands. */
 	isStrong BOOLEAN NOT NULL,
 
 	UNIQUE(parentId, childId, type),
