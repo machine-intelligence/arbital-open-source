@@ -111,7 +111,7 @@ arb-signup {
 }
 
 arb-markdown, [arb-markdown], .preview-area {
-	text-align: justify;
+//	text-align: justify;
 
 	p {
 		margin-top: 0;
@@ -694,11 +694,11 @@ md-toast {
 }
 
 @media (max-width: 599px) {
-	$lens-padding: 5px;
+	$lens-padding: 16px;
 	.lens-text-container {
 		padding: 20px $lens-padding 20px;
 		font-size: 16px;
-		line-height: 20px;
+		line-height: 1.65;
 	}
 	.comment-text-container {
 		padding: 5px 5px;
@@ -1606,7 +1606,7 @@ arb-page-improvement, [arb-page-improvement] {
 
 	.improvement-header {
 		background-color: $accent-hue-1;
-		padding: 5px 20px;
+		padding: 8px 16px;
 		min-height: 46px;
 		border-bottom: 1px solid #efefef;
 	}

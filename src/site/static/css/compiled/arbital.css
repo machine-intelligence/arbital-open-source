@@ -550,21 +550,19 @@ arb-signup .md-button.md-raised.facebook-button {
   left: 50%;
   transform: translate(-50%, 0); }
 
-arb-markdown, [arb-markdown], .preview-area {
-  text-align: justify; }
-  arb-markdown p, [arb-markdown] p, .preview-area p {
-    margin-top: 0;
-    overflow-wrap: break-word; }
-    arb-markdown p:empty, [arb-markdown] p:empty, .preview-area p:empty {
-      margin: 0; }
-  arb-markdown img, [arb-markdown] img, .preview-area img {
-    max-width: 100%; }
-  arb-markdown ul, arb-markdown ol, [arb-markdown] ul, [arb-markdown] ol, .preview-area ul, .preview-area ol {
-    padding-left: 1.5em; }
-  arb-markdown li p, [arb-markdown] li p, .preview-area li p {
-    overflow: inherit; }
-  arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-child {
-    margin-bottom: 0; }
+arb-markdown p, [arb-markdown] p, .preview-area p {
+  margin-top: 0;
+  overflow-wrap: break-word; }
+  arb-markdown p:empty, [arb-markdown] p:empty, .preview-area p:empty {
+    margin: 0; }
+arb-markdown img, [arb-markdown] img, .preview-area img {
+  max-width: 100%; }
+arb-markdown ul, arb-markdown ol, [arb-markdown] ul, [arb-markdown] ol, .preview-area ul, .preview-area ol {
+  padding-left: 1.5em; }
+arb-markdown li p, [arb-markdown] li p, .preview-area li p {
+  overflow: inherit; }
+arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-child {
+  margin-bottom: 0; }
 
 .preview-area {
   padding: 0 15px 40vh;
@@ -912,9 +910,9 @@ md-toast md-icon {
 
 @media (max-width: 599px) {
   .lens-text-container {
-    padding: 20px 5px 20px;
+    padding: 20px 16px 20px;
     font-size: 16px;
-    line-height: 20px; }
+    line-height: 1.65; }
 
   .comment-text-container {
     padding: 5px 5px;
@@ -922,15 +920,15 @@ md-toast md-icon {
     line-height: 18px; }
 
   .dynamic-hor-padding {
-    padding-left: 5px;
-    padding-right: 5px;
+    padding-left: 16px;
+    padding-right: 16px;
     box-sizing: border-box; }
 
   .hidden-text {
-    margin-left: -5px;
-    margin-right: -5px;
-    padding-left: 5px;
-    padding-right: 5px; }
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px; }
 
   .speed-up-container,
   .slow-down-container {
@@ -1555,7 +1553,7 @@ arb-likes.tiny {
 
 arb-page-improvement .improvement-header, [arb-page-improvement] .improvement-header {
   background-color: #FFCCBC;
-  padding: 5px 20px;
+  padding: 8px 16px;
   min-height: 46px;
   border-bottom: 1px solid #efefef; }
 arb-page-improvement .improvement-header.c-class, [arb-page-improvement] .improvement-header.c-class {
