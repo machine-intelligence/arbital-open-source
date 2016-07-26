@@ -823,13 +823,20 @@ a:not(.md-button) {
   color: #004D40; }
 
 #index-header .arbital-blurb {
-  padding: 8px; }
+  padding: 8px 16px; }
 #index-header md-input-container {
   margin-bottom: 0; }
 
 @media (max-width: 599px) {
+  #index-header > * {
+    padding: 8px 16px; } }
+@media (max-width: 599px) {
   .children-vertical-margin-lt-xs > *:not(:first-child) {
-    margin-top: 12px; } }
+    margin-top: 12px; }
+
+  .match-top-bar-padding-on-mobile {
+    padding-left: 16px;
+    padding-right: 16px; } }
 @media (min-width: 600px) {
   .padding-gt-xs {
     padding: 4px; }
@@ -1549,6 +1556,10 @@ arb-likes.tiny {
   font-size: 25px;
   margin-left: 5px; }
 
+@media (max-width: 599px) {
+  .tab-panel-header {
+    padding-left: 11px;
+    padding-right: 16px; } }
 .tab-panel-tab {
   box-shadow: none !important;
   border-radius: 0 !important; }
