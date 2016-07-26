@@ -17,7 +17,7 @@ CREATE TABLE pagePairs (
 		Easy way to memorize: {parentId} is {childId}'s {type}
 		Other way to memorize: for each of the relationships you can add
 		on the relationship tab of the edit page, the page you're editing
-		is the child.*/
+		is the child. */
 	type VARCHAR(32) NOT NULL,
 
 	/* Id of the user who added this relationships. FK into pages. */
@@ -36,7 +36,9 @@ CREATE TABLE pagePairs (
 		required / taught */
 	level INT NOT NULL,
 
-	/* Determines if the requirement is strong or weak. */
+	/* Determines if the requirement is strong or weak.
+		For requirements this is strong/weak.
+		For subjects this is teaches/expands. */
 	isStrong BOOLEAN NOT NULL,
 
 	UNIQUE(parentId, childId, type),
