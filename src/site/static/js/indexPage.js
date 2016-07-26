@@ -1,11 +1,13 @@
 'use strict';
 
 // arb-index directive displays a set of featured domains
-app.directive('arbIndex', function($http, arb) {
+app.directive('arbIndex', function($http, $mdMedia, arb) {
 	return {
 		templateUrl: versionUrl('static/html/indexPage.html'),
 		controller: function($scope) {
 			$scope.arb = arb;
+			$scope.isTinyScreen = !$mdMedia('gt-xs');
+
 			$scope.readTab = 0;
 			$scope.writeTab = 0;
 			$scope.showJoinSlackInput = false;
