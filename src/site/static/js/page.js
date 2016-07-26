@@ -134,12 +134,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 				scope.selectedLens = arb.stateService.pageMap[lensId];
 				
 				var lensTitle = scope.selectedLens.title; 
-				if (lensTitle !== undefined) {
-					if (lensTitle !== '') {
-						lensTitle += ' - ';
-					}
-					document.title = lensTitle + 'Arbital';
-				}
+				document.title = lensTitle + ' - Arbital';
 				
 				$pageLensBody.animate({opacity: 0}, 400, 'swing', function() {
 					switchingLenses = true;
