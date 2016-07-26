@@ -99,3 +99,7 @@ CREATE TABLE contentRequests (
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 alter table visits change column sessionId sessionId VARCHAR(64);
+
+update pagePairs set level=1 where level=2;
+update pagePairs set level=2 where level=3 OR level=4;
+update pagePairs set level=3 where level=5;

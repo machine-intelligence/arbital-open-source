@@ -74,7 +74,8 @@
 						when="{'one': 'the topic', 'other': 'one of the topics'}"></ng-pluralize>
 				this page covers:
 				<ul>
-					<li ng-repeat="subject in page.subjects | orderBy: ['-level']">
+					<li ng-repeat="subject in page.subjects | orderBy: ['-level']"
+							ng-if="subject.parentId != pageId">
 						<arb-page-title page-id="{{::subject.parentId}}" is-link="true"></arb-page-title>
 					</li>
 				</ul>

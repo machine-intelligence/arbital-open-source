@@ -29,6 +29,7 @@
 		</md-button>
 
 		<div flex>
+			<!-- Requirement options -->
 			<div layout="row" layout-align="start center" ng-if="::isRequirementType">
 				<md-input-container class="no-margins" flex>
 					<md-select ng-model="relationship.isStrong"
@@ -42,27 +43,32 @@
 					<md-select ng-model="relationship.level"
 							md-on-close="updateRelationship(relationship)"
 							aria-label="Level">
-						<md-option value="0">loose acquaintance with</md-option>
+						<md-option value="0">loose understanding of</md-option>
 						<md-option value="1">basic understanding of</md-option>
-						<md-option value="2">basic proficiency with</md-option>
-						<md-option value="3">technical understanding of</md-option>
-						<md-option value="4">technical proficiency with</md-option>
-						<md-option value="5">research-level understanding of</md-option>
+						<md-option value="2">technical understanding of</md-option>
+						<md-option value="3">cutting-edge understanding of</md-option>
 					</md-select>
 				</md-input-container>
 			</div>
 
+			<!-- Topic options -->
 			<div layout="row" layout-align="start center" ng-if="::isSubjectType">
+				<md-input-container class="no-margins" flex>
+					<md-select ng-model="relationship.isStrong"
+							md-on-close="updateRelationship(relationship)"
+							aria-label="Teaches or expands">
+						<md-option value="true">Teaches</md-option>
+						<md-option value="false">Expands on</md-option>
+					</md-select>
+				</md-input-container>
 				<md-input-container class="no-margins" flex>
 					<md-select ng-model="relationship.level"
 							md-on-close="updateRelationship(relationship)"
 							aria-label="Level">
-						<md-option value="0">Gives acquaintance with</md-option>
-						<md-option value="1">Gives basic understanding of</md-option>
-						<md-option value="2">Gives basic proficiency with</md-option>
-						<md-option value="3">Gives technical understanding of</md-option>
-						<md-option value="4">Gives technical proficiency with</md-option>
-						<md-option value="5">Gives research-level understanding of</md-option>
+						<md-option value="0">loose understanding of</md-option>
+						<md-option value="1">basic understanding of</md-option>
+						<md-option value="2">technical understanding of</md-option>
+						<md-option value="3">cutting-edge understanding of</md-option>
 					</md-select>
 				</md-input-container>
 			</div>
