@@ -2,7 +2,7 @@
 
 // toolbar directive displays the toolbar at the top of each page
 app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $compile, $rootScope, $timeout,
-		$q, $mdMedia, arb) {
+		$q, $mdMedia, $mdDialog, arb) {
 	return {
 		templateUrl: versionUrl('static/html/toolbar.html'),
 		scope: {
@@ -116,6 +116,16 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 
 				$scope.$on('$locationChangeSuccess', function() {
 					panel.close();
+				});
+			};
+
+			// New feedback button is clicked
+			$scope.newFeedback = function(event) {
+				$mdDialog.show({
+					templateUrl: versionUrl('static/html/feedbackDialog.html'),
+					controller: 'FeedbackDialogController',
+					autoWrap: false,
+					targetEvent: event,
 				});
 			};
 		},

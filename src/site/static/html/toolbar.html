@@ -124,10 +124,14 @@
 						ng-bind="::(arb.stateService.pageMap[groupId].title | shorten: 30)"></md-button>
 			</div>
 		</div>
+		<md-divider></md-divider>
 		<md-subheader>
-			Explore Arbital
+			Arbital
 		</md-subheader>
 		<md-button href="/recentChanges/" ng-click="toggleRightMenu()">Recent changes</md-button>
+		<md-button ng-click="toggleRightMenu(); newFeedback($event);">
+			<md-icon>feedback</md-icon>&nbsp;Leave feedback
+		</md-button>
 		<md-divider></md-divider>
 
 		<md-button ng-click="logout()" id="logout">Log Out</md-button>
