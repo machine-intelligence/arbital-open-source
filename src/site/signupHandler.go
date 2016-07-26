@@ -103,7 +103,12 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				return pages.Fail("Couldn't update user's record", err)
 			}
 		}
-		return pages.Success(nil)
+
+		// Load the user
+		loginData := loginHandlerData{
+			Email: data.Email,
+		}
+		return setUserInternalFunc(params, &loginData)
 	}
 
 	// Compute user's page alias and prevent collisions
