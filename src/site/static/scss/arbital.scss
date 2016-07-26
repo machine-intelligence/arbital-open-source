@@ -564,14 +564,32 @@ a:not(.md-button) {
 }
 
 #index-header {
-	padding: 12px;
-
 	.arbital-blurb {
 		padding: 8px;
 	}
 
 	md-input-container {
 		margin-bottom: 0;
+	}
+}
+
+@media (max-width: 599px) {
+	.children-vertical-margin-lt-xs {
+		> *:not(:first-child) {
+			margin-top: 12px;
+		}
+	}
+}
+
+@media (min-width: 600px) {
+	.padding-gt-xs {
+		padding: 4px;
+	}
+
+	.children-margin-gt-xs {
+		> * {
+			margin: 4px;
+		}
 	}
 }
 
@@ -923,6 +941,12 @@ $triangle-size: 15px;
 .horizontal-margin-between-children {
 	> *:not(:first-child) {
 		margin-left: 8px !important;
+	}
+}
+
+.vertical-margin-between-children {
+	> *:not(:first-child) {
+		margin-top: 8px !important;
 	}
 }
 
