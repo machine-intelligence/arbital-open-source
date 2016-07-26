@@ -828,17 +828,14 @@ a:not(.md-button) {
   margin-bottom: 0; }
 
 @media (max-width: 599px) {
-  .vertical-margin-lt-xs {
-    margin: 8px 0; }
-
-  .children-vertical-margin-lt-xs > * {
-    margin: 8px 0; } }
+  .children-vertical-margin-lt-xs > *:not(:first-child) {
+    margin-top: 8px; } }
 @media (min-width: 600px) {
-  .margin-gt-xs {
-    margin: 8px; }
+  .padding-gt-xs {
+    padding: 4px; }
 
   .children-margin-gt-xs > * {
-    margin: 8px; } }
+    margin: 4px; } }
 #footer {
   font-size: 12px;
   opacity: 0.5;
