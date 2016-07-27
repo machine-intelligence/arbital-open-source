@@ -806,7 +806,7 @@ app.directive('arbLensToolbar', function($window, $mdConstant, $mdUtil, $compile
 
 			// Process click on "Subscribe as maintainer"
 			$scope.toggleMaintainerSub = function() {
-				$scope.selectedLens.isSubscribedAsMaintainer = !$scope.selectedLens.isSubscribedAsMaintainer;
+				$scope.page.isSubscribedAsMaintainer = !$scope.page.isSubscribedAsMaintainer;
 				if ($scope.page.isSubscribedAsMaintainer) {
 					$scope.page.isSubscribed = true;
 				}
