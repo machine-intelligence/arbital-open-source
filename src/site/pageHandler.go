@@ -142,11 +142,12 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			return
 		}
 		if result.Data == nil {
-			result.Data = map[string]string{
+			result.Data = map[string]interface{}{
 				"Title":       "Arbital",
 				"Url":         "https://" + r.Host + r.RequestURI,
 				"Description": "",
 				"VersionId":   appengine.VersionID(c),
+				"IsLive":      !appengine.IsDevAppServer(),
 			}
 		}
 
