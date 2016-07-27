@@ -1433,8 +1433,14 @@ md-icon.icon-first,
 	height: 24px;
 }
 
+md-list-item {
+	arb-likes {
+		margin-left: -4px;
+	}
+}
+
 arb-likes.s20 {
-	margin-right: 0px;
+	margin-right: 4px;
 
 	md-icon {
 		width: 20px;
@@ -1445,6 +1451,25 @@ arb-likes.s20 {
 		min-width: 20px;
 		font-size: 20px;
 		margin-right: 0px !important;
+	}
+}
+
+arb-likes.s18 {
+	margin-right: 6px;
+
+	md-icon {
+		width: 18px;
+		height: 18px;
+	}
+
+	.like-icon {
+		min-width: 18px;
+		font-size: 18px;
+		margin-right: 0px !important;
+	}
+
+	.like-count {
+		font-size: 14px;
 	}
 }
 
@@ -1472,11 +1497,16 @@ arb-likes.tiny {
 	& .page-row-caption {
 			min-width: 0px;
 			overflow: hidden;
-		text-overflow: ellipsis;
-			white-space: nowrap;
+			text-overflow: ellipsis;
+	}
+}
+
+@media (min-width: 600px) {
+	.page-row .page-row-caption {
+		white-space: nowrap;
 	}
 
-	& .page-row-metadata {
+	.page-row-metadata {
 		div + div:before {
 				content: "|";
 			padding: 0 10px
@@ -1606,6 +1636,15 @@ arb-likes.tiny {
 	max-width: 900px;
 	margin-left: auto;
 	margin-right: auto;
+}
+
+
+
+@media (max-width: 600px) {
+	.list-panel md-list-item {
+		padding-top: 8px !important;
+		padding-bottom: 10px !important;
+	}
 }
 
 .tab-panel-header {

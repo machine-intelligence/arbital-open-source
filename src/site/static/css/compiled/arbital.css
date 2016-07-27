@@ -1423,8 +1423,11 @@ md-icon.icon-first,
   width: 24px;
   height: 24px; }
 
+md-list-item arb-likes {
+  margin-left: -4px; }
+
 arb-likes.s20 {
-  margin-right: 0px; }
+  margin-right: 4px; }
   arb-likes.s20 md-icon {
     width: 20px;
     height: 20px; }
@@ -1432,6 +1435,18 @@ arb-likes.s20 {
     min-width: 20px;
     font-size: 20px;
     margin-right: 0px !important; }
+
+arb-likes.s18 {
+  margin-right: 6px; }
+  arb-likes.s18 md-icon {
+    width: 18px;
+    height: 18px; }
+  arb-likes.s18 .like-icon {
+    min-width: 18px;
+    font-size: 18px;
+    margin-right: 0px !important; }
+  arb-likes.s18 .like-count {
+    font-size: 14px; }
 
 arb-likes.tiny {
   line-height: 5px;
@@ -1451,12 +1466,15 @@ arb-likes.tiny {
 .page-row .page-row-caption {
   min-width: 0px;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap; }
-.page-row .page-row-metadata div + div:before {
-  content: "|";
-  padding: 0 10px; }
+  text-overflow: ellipsis; }
 
+@media (min-width: 600px) {
+  .page-row .page-row-caption {
+    white-space: nowrap; }
+
+  .page-row-metadata div + div:before {
+    content: "|";
+    padding: 0 10px; } }
 .dense-panel {
   font-size: 14px; }
   .dense-panel md-toolbar {
@@ -1546,6 +1564,10 @@ arb-likes.tiny {
   .list-panel md-divider {
     border-top-color: rgba(0, 0, 0, 0.04); }
 
+@media (max-width: 600px) {
+  .list-panel md-list-item {
+    padding-top: 8px !important;
+    padding-bottom: 10px !important; } }
 .tab-panel-header {
   border-bottom: #009688 3px solid; }
 
