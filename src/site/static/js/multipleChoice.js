@@ -74,7 +74,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 				$(this).changeElementType('div').addClass('multiple-choice-option')
 				.prepend('<md-radio-button class=\'md-primary\' aria-label=\'Answer ' + answerValue +
 					'\' value=\'' + answerValue + '\'></md-radio-button>');
-				answerValue = String.fromCharCode(answerValue.charCodeAt() + 1);
+				answerValue = String.fromCharCode(answerValue.charCodeAt(0) + 1);
 			});
 			var $ul = element.find('ng-transclude > ul')
 				.changeElementType('md-radio-group')
