@@ -38,7 +38,7 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 					pageId: $scope.page.pageId,
 					requestType: $scope.goSlow ? 'slowDown' : 'speedUp',
 				};
-				arb.stateService.postData('/json/explanationRequest/', erData);
+				arb.stateService.postData('/json/contentRequest/', erData);
 
 				// Submit feedback if there is any text
 				if ($scope.request.freeformText.length > 0) {
