@@ -1,7 +1,7 @@
 'use strict';
 
 var isTouchDevice = 'ontouchstart' in window || // works in most browsers
-	(navigator.MaxTouchPoints > 0) ||
+	(navigator.maxTouchPoints > 0) ||
 	(navigator.msMaxTouchPoints > 0);
 
 // Contains all the services.
