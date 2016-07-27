@@ -13,6 +13,8 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 
 			// Fetch data
 			if (!$scope.page.slowDownMap || !$scope.page.speedUpMap) {
+				$scope.page.slowDownMap = {};
+				$scope.page.speedUpMap = {};
  				arb.stateService.postData('/json/changeSpeed/', {pageId: $scope.pageId});
  			}
 

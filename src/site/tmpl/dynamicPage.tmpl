@@ -43,7 +43,7 @@
 	<script src="/static/js/Markdown.Converter.js?{{.VersionId}}"></script>
 	<script src="/static/js/Markdown.Editor.js?{{.VersionId}}"></script>
 	<script src="/static/js/Markdown.Sanitizer.js?{{.VersionId}}"></script>
-	<script src="/static/js/demo-bundle.js?{{.VersionId}}"></script>
+	<script src="/static/js/lib/demo-bundle.js?{{.VersionId}}"></script>
 
 	<script type="text/x-mathjax-config">
 		MathJax.Hub.Config({
@@ -163,7 +163,7 @@
 	<script>
 		window.fbAsyncInit = function() {
 			FB.init({
-				appId  : isLive() ? '1064531780272247' : '1064555696936522',
+				appId  : {{.IsLive}} ? '1064531780272247' : '1064555696936522',
 				cookie: true,
 				xfbml  : true,
 				version: 'v2.5'

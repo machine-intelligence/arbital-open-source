@@ -73,7 +73,7 @@ app.directive('arbUpdatesPanel', function($http, arb) {
 					case 'undeletePage':
 						return 'deletedPage';
 				}
-				return false;
+				return '';
 			};
 		},
 	};
