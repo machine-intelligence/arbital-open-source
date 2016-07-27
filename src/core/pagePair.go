@@ -260,6 +260,7 @@ func LoadRequisites(db *database.DB, pageMap map[string]*Page, u *CurrentUser, o
 			childPage.Subjects = append(childPage.Subjects, pagePair)
 			options.MasteryMap[pagePair.ParentID] = &Mastery{PageID: pagePair.ParentID}
 		}
+		AddPageIDToMap(pagePair.ParentID, pageMap)
 		return nil
 	})
 	if err != nil {
