@@ -16,8 +16,8 @@ import (
 
 // explanationRequestData is the data received from the request.
 type explanationRequestData struct {
-	PageID string
-	Type   core.ContentRequestType
+	PageID      string
+	RequestType core.ContentRequestType
 }
 
 var explanationRequestHandler = siteHandler{
@@ -40,13 +40,13 @@ func explanationRequestJSONHandler(params *pages.HandlerParams) *pages.Result {
 	if !core.IsIDValid(data.PageID) {
 		return pages.Fail("Missing or invalid page id", nil).Status(http.StatusBadRequest)
 	}
-	if !core.IsContentRequestTypeValid(data.Type) {
-		return pages.Fail(fmt.Sprintf("Invalid content request type: %s", data.Type), nil).Status(http.StatusBadRequest)
+	if !core.IsContentRequestTypeValid(data.RequestType) {
+		return pages.Fail(fmt.Sprintf("Invalid content request type: %v", data.RequestType), nil).Status(http.StatusBadRequest)
 	}
 
 	// Add the request.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		return plusOneToExplanationRequest(tx, u, data.PageID, data.Type)
+		return plusOneToExplanationRequest(tx, u, data.PageID, data.RequestType)
 	})
 	if err2 != nil {
 		return pages.FailWith(err2)
