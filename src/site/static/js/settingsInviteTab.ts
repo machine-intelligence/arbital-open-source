@@ -1,5 +1,8 @@
 'use strict';
 
+import app from './angular.ts';
+import {cleanEmails} from './util.ts';
+
 // Directive for the Settings page.
 app.directive('arbSettingsInviteTab', function($http, $filter, arb) {
 	return {

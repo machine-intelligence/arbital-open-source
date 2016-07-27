@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for rhsButtons that appear in $mdBottomSheet
 app.controller('RhsButtonsController', function($scope, $mdMedia, $mdBottomSheet, arb) {
 	$scope.arb = arb;

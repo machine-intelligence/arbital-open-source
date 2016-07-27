@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for the Requisites page.
 app.directive('arbRequisitesPage', function(arb) {
 	return {

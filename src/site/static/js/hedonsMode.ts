@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // arb-hedons-mode-panel directive displays a list of new hedonic updates
 app.directive('arbHedonsModePanel', function($http, arb) {
 	return {

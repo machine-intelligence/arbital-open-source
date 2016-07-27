@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for showing a standard Arbital page.
 app.directive('arbPage', function($http, $location, $compile, $timeout, $interval, $mdMedia, arb) {
 	return {
@@ -123,7 +125,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 				arb.stateService.postDataWithoutProcessing('/json/updateUserTrust/', data);
 			};
 		},
-		link: function(scope, element, attrs) {
+		link: function(scope: any, element, attrs) {
 			// Manage switching between lenses, including loading the necessary data.
 			var switchingLenses = false;
 			var switchToLens = function(lensId) {

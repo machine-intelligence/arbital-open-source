@@ -1,5 +1,8 @@
 'use strict';
 
+import app from './angular.ts';
+import {isLive} from './util.ts';
+
 // Directive for the Signup page.
 app.directive('arbSignup', function($location, $http, arb) {
 	return {
@@ -51,7 +54,7 @@ app.directive('arbSignup', function($location, $http, arb) {
 				});
 			};
 
-			// Allow access to global isLive().
+			// Allow access to util.isLive().
 			$scope.isLive = isLive;
 		},
 	};

@@ -1,6 +1,8 @@
 'use strict';
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 
+import app from './angular.ts';
+
 // Directive for the actual DOM elements which allows the user to edit a page.
 app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $http, $mdDialog, $mdMedia, arb) {
 	return {
@@ -289,8 +291,8 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			var computeAutosaveData = function() {
 				// We have to pull the text from textarea directly, because if it's changed by
 				// Markdown library, AngularJS doesn't notice it and page.text isn't updated.
-				$scope.page.text = $('#wmd-input' + $scope.pageId)[0].value;
-				var data = {
+				$scope.page.text = ($('#wmd-input' + $scope.pageId)[0] as HTMLTextAreaElement).value;
+				var data: any = {
 					pageId: $scope.pageId,
 					prevEdit: $scope.page.currentEdit,
 					currentEdit: $scope.page.currentEdit,
@@ -609,7 +611,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				var originalPageInfo = arb.stateService.pageMap[$scope.pageId].getPageInfo();
 				var newPageInfo = $scope.page.getPageInfo();
 				var changed = !angular.equals(originalPageInfo, newPageInfo);
-				$scope.isReviewingProposal &= !changed;
+				$scope.isReviewingProposal = $scope.isReviewingProposal && !changed;
 				return changed;
 			};
 
@@ -642,7 +644,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				$scope.showPublishingOptionsPanel = !$scope.showPublishingOptionsPanel;
 			};
 		},
-		link: function(scope, element, attrs) {
+		link: function(scope: any, element, attrs) {
 			// Do autosave every so often.
 			var autosaveInterval = $interval(scope.autosaveFunc, 5000);
 			// When this element is destroyed, do one last autosave just in case.

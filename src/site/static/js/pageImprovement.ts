@@ -1,5 +1,15 @@
 'use strict';
 
+import app from './angular.ts';
+
+// TypeScript doesn't currently include Array.prototype.includes from ES7.
+// Declare it ourselves for now.
+declare global {
+	interface Array<T> {
+		includes(search: T): boolean;
+	}
+}
+
 // arb-page-improvement is the directive which shows what improvements should be made for a page.
 app.directive('arbPageImprovement', function($timeout, $http, $compile, arb) {
 	return {

@@ -1,3 +1,5 @@
+import app from './angular.ts';
+
 // FeedbackDialogController is used for submitting feedback via mdDialog.
 app.controller('FeedbackDialogController', function($scope, $mdDialog, $timeout, $http, arb) {
 	$scope.arb = arb;

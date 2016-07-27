@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for the list of answers
 app.directive('arbAnswers', function($timeout, $http, $compile, arb) {
 	return {

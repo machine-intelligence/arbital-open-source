@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for multiple choice
 app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 	return {
@@ -33,7 +35,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 				arb.pathService.extendPath($scope.index, $scope.path[$scope.choice]);
 			};
 		},
-		link: function(scope, element, attrs) {
+		link: function(scope: any, element, attrs) {
 			var iconHtml = '<md-icon class=\'question-icon\'>help_outline</md-icon>';
 			element.find('ng-transclude > p').prepend($compile(iconHtml)(scope));
 			var answerValue = 'a';

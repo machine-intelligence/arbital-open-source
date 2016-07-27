@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for navigating the path
 app.directive('arbPathNav', function($location, arb) {
 	return {

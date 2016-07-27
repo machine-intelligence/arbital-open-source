@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for showing a window for creating/editing a query
 app.directive('arbQueryInfo', function($interval, arb) {
 	return {
@@ -133,7 +135,7 @@ app.directive('arbQueryInfo', function($interval, arb) {
 				$scope.hidePopup({dismiss: true});
 			};
 		},
-		link: function(scope, element, attrs) {
+		link: function(scope: any, element, attrs) {
 			// Hide current popup, if it makes sense.
 			scope.hidePopup = function(result) {
 				if (scope.inPopup) {

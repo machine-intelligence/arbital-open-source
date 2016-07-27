@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // ArbitalCtrl is the top level controller. It never gets unloaded.
 app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, $interval, $http, $compile, $anchorScroll, arb) {
 	$scope.arb = arb;
@@ -21,7 +23,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 			var scrollTop = this.scrollTop;
 			var scrollHeight = this.scrollHeight;
 			var height = $this.innerHeight();
-			var delta = (ev.type == 'DOMMouseScroll' ?	ev.originalEvent.detail * -40 : ev.originalEvent.wheelDelta);
+			var delta = (ev.type == 'DOMMouseScroll' ? (ev.originalEvent as any).detail * -40 : (ev.originalEvent as any).wheelDelta);
 			var up = delta > 0;
 			// Don't prevent body scrolling if there is no scroll bar
 			if (scrollHeight <= this.clientHeight) {
@@ -172,7 +174,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 	};
 
 	// The URL rule match for the current page
-	var currentLocation = {};
+	var currentLocation: any = {};
 	function resolveUrl() {
 		// Get subdomain if any
 		$scope.subdomain = undefined;

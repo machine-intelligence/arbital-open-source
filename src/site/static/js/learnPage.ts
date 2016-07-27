@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for the learn page.
 app.directive('arbLearnPage', function($location, $compile, arb) {
 	return {
@@ -94,7 +96,7 @@ app.directive('arbLearnPage', function($location, $compile, arb) {
 			};
 			$scope.toggleView();
 		},
-		link: function(scope, element, attrs) {
+		link: function(scope: any, element, attrs) {
 			// Change which tutor to use for learning the given requisite.
 			scope.changeTutor = function(reqId, newTutorId) {
 				scope.requirementMap[reqId].bestTutorId = newTutorId;

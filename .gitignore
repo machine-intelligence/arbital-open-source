@@ -21,3 +21,6 @@
 src/site/html
 src/site/js
 src/site/scss
+
+bundle.js
+src/site/static/js/typings/

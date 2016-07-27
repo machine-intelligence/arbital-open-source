@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for the Settings page.
 app.directive('arbSettingsPage', function($http, arb) {
 	return {

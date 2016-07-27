@@ -1,3 +1,7 @@
+import app from './angular.ts';
+
+import {aliasMatch} from './markdownService.ts';
+
 // Directive to show the discussion section for a page
 app.directive('arbPageDiscussion', function($compile, $location, $timeout, arb) {
 	return {

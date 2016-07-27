@@ -1,3 +1,5 @@
+import app from './angular.ts';
+
 // Directive for showing a vote bar.
 app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 	return {
@@ -6,7 +8,7 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 			pageId: '@',
 			isEmbedded: '=',
 		},
-		link: function(scope, element, attrs) {
+		link: function(scope: any, element, attrs) {
 			scope.arb = arb;
 			scope.page = arb.stateService.pageMap[scope.pageId];
 			scope.isTinyScreen = !$mdMedia('gt-xs');

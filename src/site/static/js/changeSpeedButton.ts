@@ -1,3 +1,5 @@
+import app from './angular.ts';
+
 // arb-change-speed-button
 app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 	return {
@@ -52,7 +54,7 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 				}
 			};
 		},
-		link: function(scope, element, attrs) {
+		link: function(scope: any, element, attrs) {
 			var parent = element.parent();
 			var container = angular.element(element.find('.change-speed-container'));
 

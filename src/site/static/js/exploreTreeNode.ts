@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // exploreTreeNode displays the corresponding page and its node children
 // recursively, allowing the user to recursively explore the page tree.
 app.directive('arbExploreTreeNode', function(RecursionHelper, arb) {

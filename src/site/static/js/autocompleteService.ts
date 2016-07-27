@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Autocomplete service provides data for autocompletion.
 app.service('autocompleteService', function($http, $compile, pageService, stateService) {
 	var that = this;

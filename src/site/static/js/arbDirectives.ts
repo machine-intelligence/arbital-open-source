@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // userName directive displayes a user's name.
 app.directive('arbUserName', function(arb) {
 	return {
@@ -108,7 +110,7 @@ app.directive('arbIntrasitePopover', function($timeout, arb) {
 			// is not safe (since it will be evaluated to true before isLoaded is set).
 			$scope.isLoaded = undefined;
 		},
-		link: function(scope, element, attrs) {
+		link: function(scope: any, element, attrs) {
 			// Fix to prevent errors when we go to another page while popover is loading.
 			// TODO: abort all http requests when switching to another page
 			var isDestroyed = false;
@@ -194,7 +196,7 @@ app.directive('arbUserPopover', function($timeout, arb) {
 			// is not safe (since it will be evaluated to true before isLoaded is set).
 			$scope.isLoaded = undefined;
 		},
-		link: function(scope, element, attrs) {
+		link: function(scope: any, element, attrs) {
 			// Fix to prevent errors when we go to another page while popover is loading.
 			// TODO: abort all http requests when switching to another page
 			var isDestroyed = false;
@@ -259,7 +261,7 @@ app.directive('arbTextPopover', function($compile, $timeout, arb) {
 				return {'left': +$scope.arrowOffset};
 			};
 		},
-		link: function(scope, element, attrs) {
+		link: function(scope: any, element, attrs) {
 			element.find('.popover-tab-body').html(decodeURIComponent(scope.encodedHtml));
 			arb.markdownService.compileChildren(scope, element);
 		},
@@ -565,7 +567,7 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 				}
 			};
 		},
-		link: function(scope, element, attrs) {
+		link: function(scope: any, element, attrs) {
 			$timeout(function() {
 				var $input = element.find('input');
 				$input.on('blur', function(event) {
@@ -698,7 +700,7 @@ app.directive('arbUserCheck', function($compile, $mdToast, arb) {
 				arb.popupService.showToast({text: message, isError: true});
 			};
 		},
-		compile: function compile(element, attrs) {
+		compile: function compile(element, attrs: any) {
 			var check = attrs.arbUserCheck;
 			var failMessage = '';
 			if (!arb.userService.userIsLoggedIn()) {
@@ -820,7 +822,7 @@ app.directive('arbLensToolbar', function($window, $mdConstant, $mdUtil, $compile
 				})});
 			};
 		},
-		link: function(scope, element) {
+		link: function(scope: any, element) {
 			var staticBar = angular.element(element.find('#static-toolbar'));
 			var floaterBar = angular.element(element.find('#floater-toolbar'));
 

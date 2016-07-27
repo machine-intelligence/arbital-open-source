@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for a checkbox
 app.directive('arbCheckbox', function($timeout, $http, $compile, arb) {
 	return {
@@ -41,7 +43,7 @@ app.directive('arbCheckbox', function($timeout, $http, $compile, arb) {
 				arb.pathService.extendPath($scope.index, $scope.path[$scope.letterChoice]);
 			};
 		},
-		link: function(scope, element, attrs) {
+		link: function(scope: any, element, attrs) {
 			var buttonHtml = '<md-button class=\'md-icon-button small-button\' ng-click=\'toggleChoice()\' aria-label=\'Toggle\'>' +
 			'	<md-icon ng-if=\'choice\'>' +
 			'		check_box' +

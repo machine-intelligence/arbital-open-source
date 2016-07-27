@@ -1,5 +1,8 @@
 'use strict';
 
+import app from './angular.ts';
+import {isLive} from './util.ts';
+
 // User service.
 app.service('userService', function($http, $location, $rootScope, analyticsService, stateService) {
 	var that = this;
@@ -85,6 +88,7 @@ app.service('userService', function($http, $location, $rootScope, analyticsServi
 	if (fbCode) {
 		var data = {
 			fbCodeToken: fbCode,
+			fbRedirectUrl: '',
 		};
 		$location.search('code', undefined);
 		// FB inserts this hash if there was no hash. It's a security thing. We need
@@ -92,7 +96,6 @@ app.service('userService', function($http, $location, $rootScope, analyticsServi
 		if ($location.hash() == '_=_') {
 			$location.hash('');
 		}
-		data.fbRedirectUrl = $location.absUrl();
 		data.fbRedirectUrl = 'https://' + window.location.host;
 		if (data.fbRedirectUrl.indexOf('?') < 0 && data.fbRedirectUrl[data.fbRedirectUrl.length - 1] != '/') {
 			data.fbRedirectUrl += '/';

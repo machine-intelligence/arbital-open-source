@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for editing the parents, tags, requirements, or subjects.
 app.directive('arbRelationships', function($q, $timeout, $interval, $http, arb) {
 	return {

@@ -1,5 +1,8 @@
 'use strict';
 
+import app from './angular.ts';
+import {isTouchDevice} from './util.ts';
+
 // Popover service is used to display the intrasite popover.
 app.service('popoverService', function($rootScope, $compile, $timeout, pageService, userService, stateService) {
 	var that = this;
@@ -10,8 +13,8 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 	var largePopoverWidth = 600; // pixels
 	var awayFromEdge = 20; // min distance from edge of the screen in pixels
 
-	var mousePageX;
-	var mousePageY;
+	var mousePageX: number;
+	var mousePageY: number;
 
 	var linkTypeIntrasite = 'intrasite';
 	var linkTypeUser = 'user';

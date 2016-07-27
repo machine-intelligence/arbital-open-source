@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for showing a subpage.
 app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $mdMedia, $anchorScroll, arb, RecursionHelper) {
 	return {
@@ -150,7 +152,7 @@ app.directive('arbInlineComment', function($compile, $timeout, $location, $mdToa
 				$scope.isExpanded = !$scope.isExpanded;
 			};
 		},
-		link: function(scope, element, attrs) {
+		link: function(scope: any, element, attrs) {
 			var content = element.find('.inline-subpage');
 			scope.showExpandButton = function() {
 				return content.get(0).scrollHeight > content.height() && !scope.isExpanded;

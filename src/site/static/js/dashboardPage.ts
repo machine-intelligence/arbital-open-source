@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for the Dashboard page.
 app.directive('arbDashboardPage', function(arb) {
 	return {

@@ -1,0 +1,13 @@
+{
+  "dependencies": {},
+  "globalDependencies": {
+    "angular": "registry:dt/angular#1.5.0+20160720071806",
+    "diff-match-patch": "registry:dt/diff-match-patch#1.0.0+20160316155526",
+    "fbsdk": "registry:dt/fbsdk#0.0.0+20160524084205",
+    "jquery": "registry:dt/jquery#1.10.0+20160704162008",
+    "js-cookie": "registry:dt/js-cookie#2.0.0+20160317120654",
+    "mathjax": "registry:dt/mathjax#0.0.0+20160317120654",
+    "moment": "registry:dt/moment#2.8.0+20160316155526",
+    "moment-node": "registry:dt/moment-node#2.11.1+20160511043338"
+  }
+}

@@ -1,5 +1,8 @@
 'use strict';
 
+import app from './angular.ts';
+import {createInlineCommentHighlight} from './inlineCommentUtil.ts';
+
 // Directive for rendering markdown text.
 app.directive('arbMarkdown', function($compile, $timeout, arb) {
 	return {
@@ -16,7 +19,7 @@ app.directive('arbMarkdown', function($compile, $timeout, arb) {
 			$scope.page = !!$scope.pageId ? arb.stateService.pageMap[$scope.pageId] : undefined;
 			$scope.mark = !!$scope.markId ? arb.markService.markMap[$scope.markId] : undefined;
 		},
-		link: function(scope, element, attrs) {
+		link: function(scope: any, element, attrs) {
 			element.addClass('markdown-text reveal-after-render invisible');
 
 			// Convert page text to html.

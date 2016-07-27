@@ -1,3 +1,5 @@
+import app from './angular.ts';
+
 // Directive to show the discussion section for a page
 app.directive('arbLearnMore', function($compile, $location, $timeout, arb) {
 	return {

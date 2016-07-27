@@ -3,6 +3,7 @@
 // Set up angular module.
 var app = angular.module('arbital', ['ngMaterial', 'ngResource',
 		'ngMessages', 'ngSanitize', 'RecursionHelper', 'as.sortable']);
+export default app;
 
 app.config(function($locationProvider, $mdIconProvider, $mdThemingProvider) {
 	// Convert "rgb(#,#,#)" color to "#hex"
@@ -184,7 +185,7 @@ app.run(function($http, $location, arb) {
 					pageAlias: pageAlias,
 					additionalPageIds: quickParentId ? [quickParentId] : undefined,
 					specificEdit: $location.search().edit ? +$location.search().edit : 0,
-					success: $scope.getSuccessFunc(function() {
+					success: $scope.getSuccessFunc(function(): any {
 						// Find the page in the editMap (have to search through it manually
 						// because we don't index pages by alias in editmap)
 						var page;
@@ -284,7 +285,7 @@ app.run(function($http, $location, arb) {
 			// Need to call /default/ in case we are creating a new page
 			// TODO(alexei): have /newPage/ return /default/ data along with /edit/ data
 			$http({method: 'POST', url: '/json/default/'})
-			.success($scope.getSuccessFunc(function(data) {
+			.success($scope.getSuccessFunc(function(data): any {
 				// Redirect non-logged in users to sign up
 				if (!arb.userService.userIsLoggedIn()) {
 					arb.urlService.goToUrl('/signup?continueUrl=' + encodeURIComponent($location.url()), true);
@@ -448,7 +449,7 @@ app.run(function($http, $location, arb) {
 				pathInstanceId: arb.stateService.path ? undefined : $location.search().pathId,
 			};
 			$http({method: 'POST', url: '/json/primaryPage/', data: JSON.stringify(postData)})
-			.success($scope.getSuccessFunc(function(data) {
+			.success($scope.getSuccessFunc(function(data): any {
 				var primaryPageId = data.result.primaryPageId;
 				var page = arb.stateService.pageMap[primaryPageId];
 				var pageTemplate = '<arb-primary-page></arb-primary-page>';

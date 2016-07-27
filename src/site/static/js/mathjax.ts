@@ -1,7 +1,7 @@
 // jscs:disable
 'use strict';
 
-var InitMathjax = (function() {
+export var InitMathjax = (function() {
 	var ready   = false;  // true after initial typeset is complete
 	var pending = false;  // true when MathJax has been requested
 	var preview = null;   // the preview container
@@ -134,7 +134,7 @@ var InitMathjax = (function() {
 	//   to handle escaping the math.
 	//  Create a preview refresh hook to handle starting MathJax.
 	//
-	function prepareWmdForMathJax(converterObject, editorObject, wmdId) {
+	function prepareWmdForMathJax(converterObject, editorObject = null, wmdId = '') {
 		if (!editorObject) {
 			//converterObject.hooks.chain('preConversion',removeMath);
 			//converterObject.hooks.chain('postConversion',replaceMath);
@@ -164,7 +164,15 @@ var InitMathjax = (function() {
 //
 //  Set up MathJax to allow canceling of typesetting, if it
 //    doesn't already have that.
-//
+declare global {
+	namespace jax {
+		export interface IMathJaxHub {
+			cancelTypeset: boolean;
+			Cancel();
+			processError(error: any, state: any, type: any): any;
+		}
+	}
+}
 (function() {
 	var HUB = MathJax.Hub;
 
@@ -194,7 +202,7 @@ var InitMathjax = (function() {
 		});
 
 		HUB.Register.StartupHook('TeX Jax Config',function() {
-			var TEX = MathJax.InputJax.TeX, TRANSLATE = TEX.Translate;
+			var TEX = (MathJax.InputJax as any).TeX, TRANSLATE = TEX.Translate;
 			TEX.Augment({
 				Translate: function(script, state) {
 					if (HUB.cancelTypeset || state.cancelled) {throw Error(CANCELMESSAGE);}

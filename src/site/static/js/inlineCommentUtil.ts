@@ -1,10 +1,12 @@
+import app from './angular.ts';
+
 // Just a wrapper to get node's class name, but convert undefined into "".
 var getNodeClassName = function(node) {
 	return node.className || '';
 };
 
 // Return the parent node that's just under markdown-text and contains the given node.
-var getParagraphNode = function(node) {
+export var getParagraphNode = function(node) {
 	var paragraphNode = node.parentNode;
 	while (paragraphNode.parentNode != null) {
 		if (getNodeClassName(paragraphNode.parentNode).indexOf('markdown-text') >= 0) {
@@ -17,16 +19,18 @@ var getParagraphNode = function(node) {
 
 // Called when the user selects markdown text.
 // Return true if it's a valid selection.
-var processSelectedParagraphText = function(containingElement) {
+export var processSelectedParagraphText = function(containingElement) {
 	var selection = getStartEndSelection();
 	if (!selection) return false;
 
 	// Check that at least the start of the selection is within the containing element
-	return $.contains(containingElement.get(0), selection.startContainer.parentNode);
+	// It might be possible that selection.startContainer.parentNode is not an Element. JQuery probably
+	// does something reasonable in that case, so we just type cast it here.
+	return $.contains(containingElement.get(0), (selection.startContainer.parentNode as Element));
 };
 
 // Wrap the given range in a a higlight node. That node gets the optinal nodeClass.
-var highlightRange = function(range, nodeClass) {
+var highlightRange = function(range, nodeClass = null) {
 	var parentNodeName = range.startContainer.parentNode.nodeName;
 	if (parentNodeName === 'SCRIPT') return;
 	var startNodeName = range.startContainer.nodeName;
@@ -43,7 +47,7 @@ var highlightRange = function(range, nodeClass) {
 // Return {context: paragraph text, text: selected text} object or null based
 // on current user text selection.
 // cachedSelection - if set, will use this selection instead of the current one
-var getSelectedParagraphText = function(cachedSelection, skipHighlight) {
+export var getSelectedParagraphText = function(cachedSelection, skipHighlight = false) {
 	var selection = cachedSelection || getStartEndSelection();
 	if (!selection) return null;
 
@@ -56,7 +60,7 @@ var getSelectedParagraphText = function(cachedSelection, skipHighlight) {
 
 // Return {context: paragraph text, text: selected text} object or null based
 // on the given selection.
-var getParagraphText = function(paragraphNode, selection, skipHighlight) {
+export var getParagraphText = function(paragraphNode, selection = null, skipHighlight = false) {
 	var result = {text: '', context: '', offset: 0, paragraphNode: paragraphNode};
 	// Whether the nodes we are visiting right now are inside the selection
 	var insideText = false;
@@ -64,7 +68,7 @@ var getParagraphText = function(paragraphNode, selection, skipHighlight) {
 	var ranges = [];
 	// Compute context and text.
 	recursivelyVisitChildren(paragraphNode, function(node, nodeText, needsEscaping) {
-		var getEscapedText = function(start, end) {
+		var getEscapedText = function(start = 0, end = undefined) {
 			if (!needsEscaping) return nodeText.substring(start, end);
 			return escapeMarkdownChars(nodeText.substring(start, end));
 		};
@@ -168,7 +172,7 @@ var	recursivelyVisitChildren = function(node, callback) {
 };
 
 // Return our type of Selection object.
-var getStartEndSelection = function() {
+export var getStartEndSelection = function() {
 	var selection = window.getSelection();
 	if (selection.isCollapsed) return null;
 
@@ -198,7 +202,9 @@ var getStartEndSelection = function() {
 	parentNode = r.endContainer.parentNode;
 	while (parentNode != null) {
 		if (isNodeMathJax(parentNode)) {
-			var match = parentNode.id.match(/(MathJax-Element-[0-9]+)-Frame/);
+			// NOTE: I haven't actually verified that this is always an Element. I'm just adding this assertion
+			// as a quick way to get TypeScript working.
+			var match = (parentNode as Element).id.match(/(MathJax-Element-[0-9]+)-Frame/);
 			if (match) {
 				r.setEnd(document.getElementById(match[1]), 0); // <script>
 			}
@@ -219,7 +225,7 @@ var unescapeMarkdownChars = function(s) {
 
 // Inline comments
 // Create the inline comment highlight spans for the given paragraph.
-var createInlineCommentHighlight = function(paragraphNode, start, end, nodeClass) {
+ export var createInlineCommentHighlight = function(paragraphNode, start, end, nodeClass) {
 	// How many characters we passed in the anchor context (which has escaped characters).
 	var charCount = 0;
 	// Store ranges we want to highlight.

@@ -1,5 +1,8 @@
 'use strict';
 
+import app from './angular.ts';
+import {submitForm} from './util.ts';
+
 // Directive for the Login page.
 app.directive('arbLogin', function($location, $http, arb) {
 	return {

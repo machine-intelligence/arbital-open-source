@@ -1,6 +1,6 @@
 'use strict';
 
-var escapeHtml = function(s) {
+export var escapeHtml = function(s) {
 	var entityMap = {
 		'&': '&amp;',
 		'<': '&lt;',
@@ -14,10 +14,10 @@ var escapeHtml = function(s) {
 	});
 };
 
-var subdomainRegexpStr = '[A-Za-z0-9]+\\.';
+export var subdomainRegexpStr = '[A-Za-z0-9]+\\.';
 
 // Return a regex that handles all 4 possible cases for subdomains in the URL
-var getHostMatchRegex = function(host) {
+export var getHostMatchRegex = function(host) {
 	// host can be either arbital.com or pagesubdomain.arbital.com, but we currently don't have a way to tell which from here
 	// Also, when testing locally, instead of arbital.com, the url can be either localhost:8012 or a specific IP address
 	// We want to match arbital.com and linksubdomain.arbital.com
@@ -45,7 +45,7 @@ var getHostMatchRegex = function(host) {
 };
 
 // Return true if we are in the live/production environment. (False if it's staging.)
-var isLive = function() {
+export var isLive = function() {
 	return window.location.host.indexOf('arbital.com') >= 0;
 };
 
@@ -72,7 +72,7 @@ var isLive = function() {
 // 1) Instant callback if the delay is met
 // 2) Otherwise, wait to call the callback until delay is met
 // 3) If we are waiting on the delay, don't stack additional calls
-var createThrottledCallback = function(callback, delay) {
+export var createThrottledCallback = function(callback, delay) {
 	// waitLock is set when we are waiting on the delay.
 	var waitLock = false;
 	// Timeout is set when we need to do the callback after the delay
@@ -100,7 +100,7 @@ var createThrottledCallback = function(callback, delay) {
 
 // submitForm handles the common functionality in submitting a form like
 // showing/hiding UI elements and doing the AJAX call.
-var submitForm = function($form, url, data, success, error) {
+export var submitForm = function($form, url, data, success, error = () => {}) {
 	var $errorText = $form.find('.submit-form-error');
 	var $successText = $form.find('.submit-form-success');
 	var invisibleSubmit = data.__invisibleSubmit;
@@ -130,14 +130,14 @@ var submitForm = function($form, url, data, success, error) {
 		$errorText.text(r.statusText + ': ' + r.responseText);
 		$successText.hide();
 		console.error(r);
-		if (error) error();
+		error();
 	});
 };
 
 // Validate email addresses, get rid of whitespace & duplicates.
 // emailStr - comma separated list of emails.
 // Returns object with array of valid emails and array with invalid emails
-var cleanEmails = function(emailStr) {
+export var cleanEmails = function(emailStr) {
 	var dirtyArray = emailStr.split(',');
 	var cleanedArray = [];
 	var invalidEmails = [];
@@ -156,7 +156,7 @@ var cleanEmails = function(emailStr) {
 };
 
 // Validate email addresses. Based on RFC 2822.
-var isValidEmail = function(email) {
+export var isValidEmail = function(email) {
 	var re = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
 	return re.test(email);
 };
@@ -180,10 +180,14 @@ var formatListForDisplay = function(list, singularThing, pluralThing) {
 		((numExtra == 1) ? singularThing : pluralThing);
 };
 
-var formatUsersForDisplay = function(list) {
+export var formatUsersForDisplay = function(list) {
 	return formatListForDisplay(list, 'person', 'people');
 };
 
-var formatReqsForDisplay = function(list) {
+export var formatReqsForDisplay = function(list) {
 	return formatListForDisplay(list, 'requisite', 'requisites');
 };
+
+export var isTouchDevice = 'ontouchstart' in window || // works in most browsers
+	(navigator.maxTouchPoints > 0) ||
+	(navigator.msMaxTouchPoints > 0);

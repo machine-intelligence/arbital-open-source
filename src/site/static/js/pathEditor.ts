@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for editing a path
 app.directive('arbPathEditor', function($q, $timeout, $interval, $http, arb) {
 	return {

@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Manages marks
 app.service('markService', function(stateService) {
 	var that = this;

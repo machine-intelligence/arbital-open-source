@@ -1,5 +1,8 @@
 'use strict';
 
+import app from './angular.ts';
+import {escapeHtml} from './util.ts';
+
 // Takes care of all popup and toast related functionality
 app.service('popupService', function($http, $compile, $location, $mdToast, $rootScope, $interval) {
 	var that = this;
@@ -94,7 +97,7 @@ app.service('popupService', function($http, $compile, $location, $mdToast, $root
 			templateHtml += '</md-button>';
 		}
 		templateHtml += '</div></md-toast>';
-		var toastOptions = {
+		var toastOptions: any = {
 			template: templateHtml,
 			autoWrap: false,
 			parent: $('#fixed-overlay'),

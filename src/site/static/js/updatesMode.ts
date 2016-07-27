@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // arb-updates-panel directive displays a list of new maintenance updates
 app.directive('arbUpdatesPanel', function($http, arb) {
 	return {

@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for showing a window for creating/editing a mark
 app.directive('arbMarkInfo', function($interval, arb) {
 	return {
@@ -37,7 +39,7 @@ app.directive('arbMarkInfo', function($interval, arb) {
 				$scope.hidePopup({dismiss: true});
 			};
 		},
-		link: function(scope, element, attrs) {
+		link: function(scope: any, element, attrs) {
 			// Hide current event window, if it makes sense.
 			scope.hidePopup = function(result) {
 				if (scope.isOnPage) {

@@ -1,8 +1,7 @@
 'use strict';
 
-var isTouchDevice = 'ontouchstart' in window || // works in most browsers
-	(navigator.maxTouchPoints > 0) ||
-	(navigator.msMaxTouchPoints > 0);
+import app from './angular.ts';
+import {isTouchDevice} from './util.ts';
 
 // Contains all the services.
 app.service('arb', function(analyticsService, autocompleteService, diffService, markService, markdownService,

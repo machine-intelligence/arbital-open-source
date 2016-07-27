@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for showing a diff for a newEdit changeLog.
 app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 	return {

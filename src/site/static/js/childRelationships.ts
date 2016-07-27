@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for editing the children and lenses
 app.directive('arbChildRelationships', function($q, $timeout, $interval, $http, arb) {
 	return {

@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // arb-recent-changes displays a list of recent changes
 app.directive('arbRecentChanges', function($http, arb) {
 	return {

@@ -1,5 +1,8 @@
 'use strict';
 
+import app from './angular.ts';
+import {isLive} from './util.ts';
+
 // arb.urlService handles working with URLs
 app.service('urlService', function($http, $location, $rootScope, stateService) {
 	var that = this;

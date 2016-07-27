@@ -1,3 +1,5 @@
+import app from './angular.ts';
+
 // EditPageDialogController is used for editing a page in an mdDialog
 app.controller('EditPageDialogController', function($scope, $mdDialog, $timeout, arb, parentIds, resumePageId) {
 	$scope.arb = arb;

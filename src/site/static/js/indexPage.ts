@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // arb-index directive displays a set of featured domains
 app.directive('arbIndex', function($http, $mdMedia, arb) {
 	return {

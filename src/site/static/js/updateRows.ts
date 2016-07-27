@@ -1,5 +1,12 @@
 'use strict';
 
+import app from './angular.ts';
+
+import {
+	formatUsersForDisplay,
+	formatReqsForDisplay,
+} from './util.ts';
+
 // directive for an update expand button
 app.directive('arbUpdateRowExpandButton', function(arb) {
 	return {
@@ -36,7 +43,7 @@ app.directive('arbUpdateTimestamp', function(arb) {
 	};
 });
 
-var getUpdateRowDirectiveFunc = function(templateUrl, controllerInternal) {
+var getUpdateRowDirectiveFunc = function(templateUrl, controllerInternal = null) {
 	return function(arb) {
 		return {
 			templateUrl: templateUrl,

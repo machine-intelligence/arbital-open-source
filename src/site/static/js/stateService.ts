@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Manages common state for services
 // NOTE: stateService should be includable by any service that relies on any kind of app state
 app.service('stateService', function($http, $mdMedia, popupService) {

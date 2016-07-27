@@ -1,6 +1,18 @@
 'use strict';
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 
+import app from './angular.ts';
+
+import * as DiffMatchPatch from 'diff-match-patch';
+
+import {
+	getParagraphText,
+	processSelectedParagraphText,
+	createInlineCommentHighlight,
+	getStartEndSelection,
+	getSelectedParagraphText,
+} from './inlineCommentUtil.ts';
+
 // Directive to show a lens' content
 app.directive('arbLens', function($http, $location, $compile, $timeout, $interval,
 			$mdMedia, $mdBottomSheet, $rootScope, arb) {
@@ -161,7 +173,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				$scope.$emit('showTagsPanel');
 			};
 		},
-		link: function(scope, element, attrs) {
+		link: function(scope: any, element, attrs) {
 			var processInlineEverything = function() {
 				var inlineCommentButtonHeight = 40;
 				var inlineIconShiftLeft = inlineCommentButtonHeight * ($mdMedia('gt-md') ? 0.5 : 1.1);
@@ -172,7 +184,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				scope.inlineComments = {};
 				scope.inlineMarks = {};
 				var orderedInlineButtons = [];
-				var dmp = new diff_match_patch(); // jscs:ignore requireCapitalizedConstructors
+				var dmp: any = new DiffMatchPatch.diff_match_patch(); // jscs:ignore requireCapitalizedConstructors
 				dmp.Match_MaxBits = 10000;
 				dmp.Match_Distance = 10000;
 
@@ -458,7 +470,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 
 					// Called when the fab is clicked when text is selected.
 					scope.$on('fabClicked', function() {
-						scope.newInlineComment()
+						scope.newInlineComment();
 						// TODO: bring back the following when we bring back query marks
 						// $mdBottomSheet.show({
 						// 	templateUrl: versionUrl('static/html/rhsButtons.html'),

@@ -24,9 +24,6 @@
 	<link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet" type="text/css">
 	<link href="https://fonts.googleapis.com/css?family=Roboto+Slab:100,300,400,700" rel="stylesheet" type="text/css">
 
-	<!-- Our style sheets -->
-	<link href="/static/css/compiled/arbital.css?{{.VersionId}}" rel="stylesheet">
-
 	<!-- 3rd party scripts -->
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 
@@ -40,9 +37,6 @@
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-material/1.0.9/angular-material.min.js"></script>
 
-	<script src="/static/js/Markdown.Converter.js?{{.VersionId}}"></script>
-	<script src="/static/js/Markdown.Editor.js?{{.VersionId}}"></script>
-	<script src="/static/js/Markdown.Sanitizer.js?{{.VersionId}}"></script>
 	<script src="/static/js/lib/demo-bundle.js?{{.VersionId}}"></script>
 
 	<script type="text/x-mathjax-config">
@@ -60,94 +54,18 @@
 		});
 	</script>
 	<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_SVG-full"></script>
-	<script src="/static/js/lib/diff_match_patch.min.js"></script>
 	<script src="/static/js/lib/moment.min.js"></script>
 	<script src="/static/js/lib/ng-sortable.min.js"></script>
 	<script src="/static/js/lib/js.cookie.js"></script>
 
-	<!-- General scripts -->
+	<!-- Webpack bundle. -->
 	<script>
 		var versionId = '{{.VersionId}}';
 		var versionUrl = function(url) {
 			return url + '?' + versionId;
 		};
 	</script>
-	<script src="/static/js/angular.js?{{.VersionId}}"></script>
-
-	<script src="/static/js/analyticsService.js?{{.VersionId}}"></script>
-	<script src="/static/js/autocompleteService.js?{{.VersionId}}"></script>
-	<script src="/static/js/diffService.js?{{.VersionId}}"></script>
-	<script src="/static/js/markService.js?{{.VersionId}}"></script>
-	<script src="/static/js/markdownService.js?{{.VersionId}}"></script>
-	<script src="/static/js/masteryService.js?{{.VersionId}}"></script>
-	<script src="/static/js/pageService.js?{{.VersionId}}"></script>
-	<script src="/static/js/pathService.js?{{.VersionId}}"></script>
-	<script src="/static/js/popoverService.js?{{.VersionId}}"></script>
-	<script src="/static/js/popupService.js?{{.VersionId}}"></script>
-	<script src="/static/js/signupService.js?{{.VersionId}}"></script>
-	<script src="/static/js/stateService.js?{{.VersionId}}"></script>
-	<script src="/static/js/urlService.js?{{.VersionId}}"></script>
-	<script src="/static/js/userService.js?{{.VersionId}}"></script>
-	<script src="/static/js/arbService.js?{{.VersionId}}"></script>
-
-	<script src="/static/js/arbitalController.js?{{.VersionId}}"></script>
-	<script src="/static/js/util.js?{{.VersionId}}"></script>
-	<script src="/static/js/inlineCommentUtil.js?{{.VersionId}}"></script>
-	<script src="/static/js/mathjax.js?{{.VersionId}}"></script>
-	<script src="/static/js/arbDirectives.js?{{.VersionId}}"></script>
-	<script src="/static/js/markdown.js?{{.VersionId}}"></script>
-	<script src="/static/js/toolbar.js?{{.VersionId}}"></script>
-	<script src="/static/js/voteBar.js?{{.VersionId}}"></script>
-	<script src="/static/js/page.js?{{.VersionId}}"></script>
-	<script src="/static/js/lens.js?{{.VersionId}}"></script>
-	<script src="/static/js/editPageDialog.js?{{.VersionId}}"></script>
-	<script src="/static/js/feedbackDialog.js?{{.VersionId}}"></script>
-	<script src="/static/js/pageDiscussion.js?{{.VersionId}}"></script>
-	<script src="/static/js/subpage.js?{{.VersionId}}"></script>
-	<script src="/static/js/pageImprovement.js?{{.VersionId}}"></script>
-	<script src="/static/js/relationships.js?{{.VersionId}}"></script>
-	<script src="/static/js/reqRelationships.js?{{.VersionId}}"></script>
-	<script src="/static/js/childRelationships.js?{{.VersionId}}"></script>
-	<script src="/static/js/masteryList.js?{{.VersionId}}"></script>
-	<script src="/static/js/multipleChoice.js?{{.VersionId}}"></script>
-	<script src="/static/js/checkbox.js?{{.VersionId}}"></script>
-	<script src="/static/js/tableOfContents.js?{{.VersionId}}"></script>
-	<script src="/static/js/queryInfo.js?{{.VersionId}}"></script>
-	<script src="/static/js/markInfo.js?{{.VersionId}}"></script>
-	<script src="/static/js/answers.js?{{.VersionId}}"></script>
-	<script src="/static/js/marks.js?{{.VersionId}}"></script>
-	<script src="/static/js/rhsButtons.js?{{.VersionId}}"></script>
-	<script src="/static/js/hiddenText.js?{{.VersionId}}"></script>
-	<script src="/static/js/editDiff.js?{{.VersionId}}"></script>
-	<script src="/static/js/exploreTreeNode.js?{{.VersionId}}"></script>
-	<script src="/static/js/pathEditor.js?{{.VersionId}}"></script>
-	<script src="/static/js/pathNav.js?{{.VersionId}}"></script>
-	<script src="/static/js/learnMore.js?{{.VersionId}}"></script>
-	<script src="/static/js/changeSpeedButton.js?{{.VersionId}}"></script>
-
-	<!-- Page specific scripts -->
-	<script src="/static/js/primaryPage.js?{{.VersionId}}"></script>
-	<script src="/static/js/editPage.js?{{.VersionId}}"></script>
-	<script src="/static/js/hedonsMode.js?{{.VersionId}}"></script>
-	<script src="/static/js/writeMode.js?{{.VersionId}}"></script>
-	<script src="/static/js/indexPage.js?{{.VersionId}}"></script>
-	<script src="/static/js/groupsPage.js?{{.VersionId}}"></script>
-	<script src="/static/js/userPage.js?{{.VersionId}}"></script>
-	<script src="/static/js/dashboardPage.js?{{.VersionId}}"></script>
-	<script src="/static/js/loginPage.js?{{.VersionId}}"></script>
-	<script src="/static/js/signupPage.js?{{.VersionId}}"></script>
-	<script src="/static/js/requisitesPage.js?{{.VersionId}}"></script>
-	<script src="/static/js/learnPage.js?{{.VersionId}}"></script>
-	<script src="/static/js/settingsPage.js?{{.VersionId}}"></script>
-	<script src="/static/js/settingsInviteTab.js?{{.VersionId}}"></script>
-	<script src="/static/js/adminDashboardPage.js?{{.VersionId}}"></script>
-	<script src="/static/js/readMode.js?{{.VersionId}}"></script>
-	<script src="/static/js/recentChanges.js?{{.VersionId}}"></script>
-	<script src="/static/js/discussionMode.js?{{.VersionId}}"></script>
-	<script src="/static/js/newsletterPage.js?{{.VersionId}}"></script>
-	<script src="/static/js/explorePage.js?{{.VersionId}}"></script>
-	<script src="/static/js/updateRows.js?{{.VersionId}}"></script>
-	<script src="/static/js/updatesMode.js?{{.VersionId}}"></script>
+	<script src="/static/js/bundle.js?{{.VersionId}}"></script>
 
 	<!-- Google Analytics -->
 	<script>

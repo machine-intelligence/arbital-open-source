@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for hidden text (usually for homework problems)
 app.directive('arbHiddenText', function($compile, $timeout, arb) {
 	return {
@@ -9,7 +11,7 @@ app.directive('arbHiddenText', function($compile, $timeout, arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 		},
-		link: function(scope, element, attrs) {
+		link: function(scope: any, element, attrs) {
 			if (!scope.buttonText) return;
 
 			$timeout(function() {

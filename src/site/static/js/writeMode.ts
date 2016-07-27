@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // arb-continue-writing-mode-panel directive displays a list of things that prompt a user
 // to continue writing, like their drafts or stubs
 app.directive('arbContinueWritingModePanel', function($http, arb) {

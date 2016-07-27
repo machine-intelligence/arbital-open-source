@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for listing masteries and allowing the user to claim them.
 app.directive('arbMasteryList', function($timeout, $http, arb) {
 	return {

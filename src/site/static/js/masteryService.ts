@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Manages masteries
 app.service('masteryService', function($http, $compile, $location, $mdToast, $rootScope, $interval, stateService, pageService) {
 	var that = this;

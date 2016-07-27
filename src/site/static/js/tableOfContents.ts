@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for table of contents
 app.directive('arbTableOfContents', function($timeout, $http, $compile, arb) {
 	return {
@@ -13,7 +15,7 @@ app.directive('arbTableOfContents', function($timeout, $http, $compile, arb) {
 			$scope.showToc = true;
 			$scope.toc = [];
 		},
-		link: function(scope, element, attrs) {
+		link: function(scope: any, element, attrs) {
 			var $parent = element.closest('arb-markdown');
 
 			// We compute sections in a bit of a weird way because we can have H3 or H2 come

@@ -1,5 +1,14 @@
 'use strict';
 
+import app from './angular.ts';
+
+import {
+	complexLinkRegexp,
+	forwardLinkRegexp,
+	simpleLinkRegexp,
+	atAliasRegexp,
+} from './markdownService.ts';
+
 // pages stores all the loaded pages and provides multiple helper functions for
 // working with pages.
 app.service('pageService', function($http, $compile, $location, $rootScope, $interval, stateService, userService, urlService) {

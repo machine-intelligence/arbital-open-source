@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // arb-read-mode-page hosts the arb-read-mode-panel
 app.directive('arbReadModePage', function($http, arb) {
 	return {

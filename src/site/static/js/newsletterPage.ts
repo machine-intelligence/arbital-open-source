@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // arbNewsletter directive displays a way for the user to edit their newsletter preferences
 app.directive('arbNewsletter', function($http, arb) {
 	return {

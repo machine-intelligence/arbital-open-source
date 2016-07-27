@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive to show the marks section for a page
 app.directive('arbMarks', function($compile, $location, $timeout, $rootScope, arb) {
 	return {

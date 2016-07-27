@@ -1,5 +1,10 @@
 'use strict';
 
+import app from './angular.ts';
+import {isLive} from './util.ts';
+
+declare var ga: any;
+
 // arb.analyticsService is a wrapper for Google Analytics
 app.service('analyticsService', function($http, $location, stateService) {
 	var that = this;

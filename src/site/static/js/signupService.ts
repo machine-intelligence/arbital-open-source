@@ -1,6 +1,8 @@
 // The code for the signup flow
 'use strict';
 
+import app from './angular.ts';
+
 app.service('signupService', function($mdDialog, $timeout, analyticsService, userService, stateService) {
 	var that = this;
 

@@ -1,26 +1,34 @@
 'use strict';
 
+import app from './angular.ts';
+import {Editor} from './Markdown.Editor.ts';
+import {getSanitizingConverter} from './Markdown.Sanitizer.ts';
+import {InitMathjax} from './mathjax.ts';
+
+// From demo-bundle.js
+declare function loadAllDemos();
+
 var notEscaped = '(^|\\\\`|\\\\\\[|(?:[^A-Za-z0-9_`[\\\\]|\\\\\\\\))';
 var noParen = '(?=$|[^(])';
 var nakedAliasMatch = '[\\-\\+]?[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*';
-var aliasMatch = '(' + nakedAliasMatch + ')';
+export var aliasMatch = '(' + nakedAliasMatch + ')';
 var anyUrlMatch = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i;
 
 // [vote: alias]
-var voteEmbedRegexp = new RegExp(notEscaped +
+export var voteEmbedRegexp = new RegExp(notEscaped +
 		'\\[vote: ?' + aliasMatch + '\\]' + noParen, 'g');
 // [alias/url text]
-var forwardLinkRegexp = new RegExp(notEscaped +
+export var forwardLinkRegexp = new RegExp(notEscaped +
 		'\\[([^ \\]]+?) (?![^\\]]*?\\\\\\])([^\\]]+?)\\]' + noParen, 'g');
 // [alias]
-var simpleLinkRegexp = new RegExp(notEscaped +
+export var simpleLinkRegexp = new RegExp(notEscaped +
 		'\\[' + aliasMatch + '\\]' + noParen, 'g');
 // [text](alias)
-var complexLinkRegexp = new RegExp(notEscaped +
+export var complexLinkRegexp = new RegExp(notEscaped +
 		'\\[([^\\]]+?)\\]' + // match [Text]
 		'\\(' + aliasMatch + '\\)', 'g'); // match (Alias)
 // [@alias]
-var atAliasRegexp = new RegExp(notEscaped +
+export var atAliasRegexp = new RegExp(notEscaped +
 		'\\[@' + aliasMatch + '\\]' + noParen, 'g');
 
 // markdownService provides a constructor you can use to create a markdown converter,
@@ -49,11 +57,11 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 	};
 
 	// Pass in a pageId to create an editor for that page
-	var createConverterInternal = function(scope, pageId, isEditor) {
+	var createConverterInternal = function(scope, pageId, isEditor = false) {
 		// NOTE: not using $location, because we need port number
 		var host = window.location.host;
-		var converter = Markdown.getSanitizingConverter();
-		var editor = isEditor ? new Markdown.Editor(converter, pageId) : undefined;
+		var converter = getSanitizingConverter();
+		var editor = isEditor ? new Editor(converter, pageId) : undefined;
 		var markdownPage = undefined;
 		if (!isEditor && (pageId in stateService.pageMap)) {
 			markdownPage = stateService.pageMap[pageId];
@@ -65,7 +73,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		// link will be red.
 		// text - optional text value for the url. If none is given, page's title will be used.
 		//	If page is not found, page's alias will be used.
-		var getLinkHtml = function(editor, alias, text) {
+		var getLinkHtml = function(editor, alias, text = null) {
 			var firstAliasChar = alias.substring(0, 1);
 			var trimmedAlias = trimAlias(alias);
 			var classText = 'intrasite-link';

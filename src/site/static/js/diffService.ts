@@ -1,6 +1,9 @@
 'use strict';
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 
+import app from './angular.ts';
+import * as DiffMatchPatch from 'diff-match-patch';
+
 // Service for creating diffs.
 app.service('diffService', function() {
 	var that = this;
@@ -14,7 +17,7 @@ app.service('diffService', function() {
 	this.getDiffHtml = function(thisEdit, thatEdit, opt_expandDiffs) {
 		var thisText = that.getTextToDiff(thisEdit);
 		var thatText = that.getTextToDiff(thatEdit);
-		var dmp = new diff_match_patch(); // jscs:ignore requireCapitalizedConstructors
+		var dmp = new DiffMatchPatch.diff_match_patch(); // jscs:ignore requireCapitalizedConstructors
 		var diffs = dmp.diff_main(thisText, thatText);
 		dmp.diff_cleanupSemantic(diffs);
 

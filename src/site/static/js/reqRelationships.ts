@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive for editing the requirements or subjects.
 app.directive('arbReqRelationships', function($q, $timeout, $interval, $http, arb) {
 	return {

@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Takes care of all path related functionality
 app.service('pathService', function($http, $compile, $location, $mdToast, $rootScope, $interval, stateService, pageService, urlService) {
 	var that = this;

@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // arb-discussion-mode-page hosts the arb-discussion-mode-panel
 app.directive('arbDiscussionModePage', function($http, arb) {
 	return {
