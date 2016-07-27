@@ -199,8 +199,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		var hiddenBlockRegexp = new RegExp('^(%+)hidden\\(([\\s\\S]+?)\\): ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(hiddenBlockRegexp, function(whole, bars, buttonText, text) {
-				var blockText = text + '\n\n';
-				var blockText = runBlockGamut(blockText);
+				var blockText = runBlockGamut(text + '\n\n');
 				var divClass = 'hidden-text';
 				if (!isEditor) {
 					divClass += ' display-none';
