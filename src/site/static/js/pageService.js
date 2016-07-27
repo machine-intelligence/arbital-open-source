@@ -214,7 +214,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 			return function(aId, bId) {
 				var diff = pageMap[bId].likeScore() - pageMap[aId].likeScore();
 				if (diff === 0) {
-					return pageMap[bId].pageCreatedAt > pageMap[aId].pageCreatedAt;
+					return pageMap[bId].pageCreatedAt.localeCompare(pageMap[aId].pageCreatedAt);
 				}
 				return diff;
 			};
