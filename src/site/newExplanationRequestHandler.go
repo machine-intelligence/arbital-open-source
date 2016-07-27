@@ -17,7 +17,7 @@ import (
 // explanationRequestData is the data received from the request.
 type explanationRequestData struct {
 	PageID string
-	Type   string
+	Type   core.ContentRequestType
 }
 
 var explanationRequestHandler = siteHandler{
@@ -40,6 +40,9 @@ func explanationRequestJSONHandler(params *pages.HandlerParams) *pages.Result {
 	if !core.IsIDValid(data.PageID) {
 		return pages.Fail("Missing or invalid page id", nil).Status(http.StatusBadRequest)
 	}
+	if !core.IsContentRequestTypeValid(data.Type) {
+		return pages.Fail(fmt.Sprintf("Invalid content request type: %s", data.Type), nil).Status(http.StatusBadRequest)
+	}
 
 	// Add the request.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
@@ -59,7 +62,7 @@ func explanationRequestJSONHandler(params *pages.HandlerParams) *pages.Result {
 }
 
 // Add a like to the explanation request for the given (page, type) pair.
-func plusOneToExplanationRequest(tx *database.Tx, u *core.CurrentUser, pageID string, requestType string) sessions.Error {
+func plusOneToExplanationRequest(tx *database.Tx, u *core.CurrentUser, pageID string, requestType core.ContentRequestType) sessions.Error {
 	// Check to see if there's already an explanation request for this (page, type) pair.
 	alreadyExists, id, err := _lookupExplanationRequest(tx.DB, u, pageID, requestType)
 	if err != nil {
@@ -80,14 +83,14 @@ func plusOneToExplanationRequest(tx *database.Tx, u *core.CurrentUser, pageID st
 }
 
 // Find the id of the explanation request for the given (page, type) pair.
-func _lookupExplanationRequest(db *database.DB, u *core.CurrentUser, pageID string, requestType string) (bool, string, error) {
+func _lookupExplanationRequest(db *database.DB, u *core.CurrentUser, pageID string, requestType core.ContentRequestType) (bool, string, error) {
 	var id string
 
 	row := database.NewQuery(`
 		SELECT id
 		FROM contentRequests AS er
 		WHERE er.pageId=?`, pageID).Add(`
-			AND er.type=?`, requestType).ToStatement(db).QueryRow()
+			AND er.type=?`, string(requestType)).ToStatement(db).QueryRow()
 	exists, err := row.Scan(&id)
 	if err != nil {
 		return false, "", fmt.Errorf("failed to scan an explanation request id: %v", err)
@@ -97,10 +100,10 @@ func _lookupExplanationRequest(db *database.DB, u *core.CurrentUser, pageID stri
 }
 
 // Insert a new explanation request row into the table.
-func _createExplanationRequest(tx *database.Tx, u *core.CurrentUser, pageID string, requestType string) (int64, error) {
+func _createExplanationRequest(tx *database.Tx, u *core.CurrentUser, pageID string, requestType core.ContentRequestType) (int64, error) {
 	hashmap := make(map[string]interface{})
 	hashmap["pageId"] = pageID
-	hashmap["type"] = requestType
+	hashmap["type"] = string(requestType)
 	hashmap["createdAt"] = database.Now()
 	statement := tx.DB.NewInsertStatement("contentRequests", hashmap)
 	result, err := statement.WithTx(tx).Exec()
