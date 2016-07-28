@@ -22,18 +22,6 @@ import (
 // Handler serves HTTP.
 type handler http.HandlerFunc
 
-// commonPageData contains data that is common between all pages.
-type commonPageData struct {
-	// Logged in user
-	User *core.CurrentUser
-	// Map of page id -> currently live version of the page
-	PageMap map[string]*core.Page
-	// Map of page id -> some edit of the page
-	EditMap    map[string]*core.Page
-	UserMap    map[string]*core.User
-	MasteryMap map[string]*core.Mastery
-}
-
 // pageHandlerWrapper wraps one of our page handlers.
 func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
