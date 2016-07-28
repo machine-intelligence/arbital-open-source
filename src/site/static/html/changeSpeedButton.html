@@ -25,29 +25,35 @@
 			<!-- Go slower stuff -->
 
 			<!-- Learn a subject at an easier level -->
-			<div ng-repeat="(subjectId,pagePairs) in page.slowDownMap" ng-if="::goSlow">
-				<div>
-					This page teaches
-					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-					<span class="comma">.</span>
-					You can learn it at a lower level:
-				</div>
+			<div ng-if="::page.subjects.length > 0 && goSlow">
+				This page teaches:
 				<ul>
-					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
-						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
+					<li ng-repeat="(subjectId,pagePairs) in page.slowDownMap">
+						<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
 					</li>
 				</ul>
 			</div>
 
 			<!-- Learn one of the requirements -->
 			<div ng-if="::page.requirements.length > 0 && goSlow">
-				You can learn
-				<ng-pluralize count="page.requirements.length"
-						when="{'one': 'the concept', 'other': 'one of the concepts'}"></ng-pluralize>
-				this page relies on:
+				This page relies on:
 				<ul>
 					<li ng-repeat="requirement in page.requirements | orderBy: ['-isStrong', '-level']">
 						<arb-page-title page-id="{{::requirement.parentId}}" is-link="true"></arb-page-title>
+					</li>
+				</ul>
+			</div>
+
+			<!-- Learn a subject at an easier level -->
+			<div ng-repeat="(subjectId,pagePairs) in page.slowDownMap" ng-if="::goSlow">
+				<div>
+					Less technical teachers for
+					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
+					<span class="comma">:</span>
+				</div>
+				<ul>
+					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
+						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
 					</li>
 				</ul>
 			</div>
@@ -86,18 +92,33 @@
 			<!-- Request a different explanation -->
 			<div>
 				<div>
-					<span ng-if="hasSomeSuggestions()">Not helpful?</span>
-					<span ng-if="!hasSomeSuggestions()">Looks like Arbital doesn't have any suggestions for this page yet.</span>
-					Help us by making a request:
+					<span ng-if="hasSomeSuggestions()">
+						Want something else?
+					</span>
+					<span ng-if="!hasSomeSuggestions()">
+						Want a different explanation?
+					</span>
 				</div>
-				<div layout="row">
-					<md-input-container flex>
-						<input ng-model="request.freeformText"
-								aria-label="Alternate page request"
-								placeholder="Optional request text"
-								flex>
-					</md-input-container>
-					<md-button ng-click="submitExplanationRequest()">submit</md-button>
+				<div layout="column" layout-align="start start">
+					<div layout="row" layout-align="start center">
+						<md-button class="short button" ng-click="submitExplanationRequest()">+1</md-button>&nbsp;
+						a less technical explanation
+					</div>
+
+					<div layout="row" layout-align="start center">
+						<md-button class="short button" ng-click="submitExplanationRequest()">+1</md-button>&nbsp;
+						an explanation with more words
+					</div>
+
+					<div layout="row" layout-align="start center">
+						<md-input-container flex>
+							<input ng-model="request.freeformText"
+									aria-label="Alternate page request"
+									placeholder="Other"
+									flex>
+						</md-input-container>
+						<md-button ng-click="submitExplanationRequest()">submit</md-button>
+					</div>
 				</div>
 			</div>
 		</div>
