@@ -23,8 +23,7 @@ import (
 )
 
 var (
-	BaseTemplate        = "base"                                     // Name of top-level template to invoke for each page.
-	BadRequestMsg       = "Invalid request. Please try again later." // Message to display if ShowError is called.
+	BaseTemplate        = "base" // Name of top-level template to invoke for each page.
 	StatusBadRequest    = Result{ResponseCode: http.StatusBadRequest}
 	StatusUnauthorized  = Result{ResponseCode: http.StatusUnauthorized}
 	StatusNotFound      = Result{ResponseCode: http.StatusNotFound}
@@ -137,20 +136,6 @@ func RedirectWith(uri string) *Result {
 func (r *Result) Status(status int) *Result {
 	r.ResponseCode = status
 	return r
-}
-
-// ShowError redirects to the index page with the "error" param set to
-// a static error message.
-//
-// Provided error is logged, but not displayed to the user.
-func ShowError(w http.ResponseWriter, r *http.Request, err error) {
-	l := logger.GetLogger(r)
-	q := url.Values{
-		"error_msg": []string{BadRequestMsg},
-	}
-	nextURL := fmt.Sprintf("/?%s", q.Encode())
-	l.Errorf("returning StatusBadRequest and redirecting to %q: %v\n", nextURL, err)
-	http.Redirect(w, r, nextURL, http.StatusSeeOther)
 }
 
 // Values are simple URL params.
