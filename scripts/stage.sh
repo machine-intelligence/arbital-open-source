@@ -22,7 +22,16 @@ appserver_PID=$!
 # Start webpack-dev-server to serve webpack bundles. The dev server
 # will watch for updates to files that the bundles depends on and
 # hot-reload them in the browser.
-npm run webpack-dev-server -- --inline --progress --color --port 8014 --hot &
+#
+# Keep the --port flag in sync with pageHandler.go.
+npm run webpack-dev-server -- \
+    --inline \
+    --progress \
+    --color \
+    --port 8014 \
+    --output-public-path "http://localhost:8014/static/js/" \
+    --hot \
+    &
 webpack_server_PID=$!
 
 # Kill both dev servers on ctrl-c.
