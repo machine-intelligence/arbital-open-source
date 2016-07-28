@@ -19,10 +19,6 @@ func NewError(message string, err error) Error {
 	return &internalError{Message: message, Err: err}
 }
 
-func NewErrorf(format string, args []interface{}) Error {
-	return &internalError{Err: fmt.Errorf(format, args...)}
-}
-
 func PassThrough(err error) Error {
 	if err == nil {
 		return nil

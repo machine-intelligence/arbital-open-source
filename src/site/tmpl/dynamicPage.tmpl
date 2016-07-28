@@ -62,7 +62,7 @@
 	<script>
 		var versionId = '{{.VersionID}}';
 		var versionUrl = function(url) {
-			return url + '?' + versionId;
+			return url;
 		};
 	</script>
 	<script src="{{.MaybeServerPrefix}}/static/js/bundle.js?{{.VersionID}}"></script>

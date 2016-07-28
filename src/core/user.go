@@ -39,20 +39,6 @@ func (u *User) FullName() string {
 	return fmt.Sprintf("%s %s", u.FirstName, u.LastName)
 }
 
-// GetUserUrl returns URL for looking at recently created pages by the given user.
-func GetUserURL(userID string) string {
-	return fmt.Sprintf("/user/%s", userID)
-}
-
-// IdsListFromUserMap returns a list of all user ids in the map.
-func IDsListFromUserMap(userMap map[string]*User) []interface{} {
-	list := make([]interface{}, 0, len(userMap))
-	for id := range userMap {
-		list = append(list, id)
-	}
-	return list
-}
-
 // LoadUsers loads User information (like name) for each user in the given map.
 func LoadUsers(db *database.DB, userMap map[string]*User, currentUserID string) error {
 	if len(userMap) <= 0 {

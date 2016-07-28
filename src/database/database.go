@@ -62,10 +62,6 @@ type Rows struct {
 	DB   *DB
 }
 
-func ToSQLNullString(s string) sql.NullString {
-	return sql.NullString{String: s, Valid: true}
-}
-
 // Now returns the present date and time in a format suitable for SQL insertion.
 func Now() string {
 	return time.Now().UTC().Format(TimeLayout)

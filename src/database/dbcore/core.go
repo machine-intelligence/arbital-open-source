@@ -45,11 +45,6 @@ func GetLiveCloud(pl logger.Logger) (*sql.DB, error) {
 	return get(pl, liveCloudSQL)
 }
 
-// GetLive returns a connection to the live MySQL DB.
-func GetLive(pl logger.Logger) (*sql.DB, error) {
-	return get(pl, liveSQL)
-}
-
 // get returns a DB object, creating it first if necessary.
 //
 // get calls db.Ping() on each call to ensure a valid connection.
