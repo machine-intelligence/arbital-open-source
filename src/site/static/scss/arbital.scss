@@ -808,6 +808,11 @@ md-toast {
 		display: none;
 	}
 }
+
+.lens-text-container {
+	width: 100%;
+}
+
 @media (min-width: 1100px) {
 	$lens-padding: 100px;
 	.lens-text-container {
