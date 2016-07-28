@@ -7,6 +7,8 @@ module.exports = {
 	entry: './entry.js',
 	output: {
 		path: '../static/js',
+		// Keep port in sync with pageHandler.go
+		publicPath: 'http://localhost:8014/static/js/',
 		filename: 'bundle.js',
 	},
 	module: {

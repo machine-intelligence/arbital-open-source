@@ -142,12 +142,18 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			return
 		}
 		if result.Data == nil {
+			isLive := !appengine.IsDevAppServer()
+			devPrefix := "http://localhost:8014" // Keep in sync with webpack.config.js
+			if isLive {
+				devPrefix = ""
+			}
 			result.Data = map[string]interface{}{
-				"Title":       "Arbital",
-				"Url":         "https://" + r.Host + r.RequestURI,
-				"Description": "",
-				"VersionId":   appengine.VersionID(c),
-				"IsLive":      !appengine.IsDevAppServer(),
+				"Title":             "Arbital",
+				"Url":               "https://" + r.Host + r.RequestURI,
+				"Description":       "",
+				"VersionId":         appengine.VersionID(c),
+				"IsLive":            isLive,
+				"MaybeServerPrefix": devPrefix,
 			}
 		}
 
