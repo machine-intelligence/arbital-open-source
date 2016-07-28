@@ -22,10 +22,7 @@ appserver_PID=$!
 # Start webpack-dev-server to serve webpack bundles. The dev server
 # will watch for updates to files that the bundles depends on and
 # hot-reload them in the browser.
-(
-    cd src/site/webpack;
-    webpack-dev-server --inline --progress --color --port 8014 --hot
-) &
+npm run webpack-dev-server -- --inline --progress --color --port 8014 --hot &
 webpack_server_PID=$!
 
 # Kill both dev servers on ctrl-c.
