@@ -17,7 +17,17 @@ import (
 	"zanaduu3/src/sessions"
 
 	"github.com/gorilla/mux"
+	"github.com/imdario/mergo"
 )
+
+type dynamicPageTmplData struct {
+	Title             string
+	URL               string
+	Description       string
+	VersionID         string
+	IsLive            bool
+	MaybeServerPrefix string
+}
 
 // Handler serves HTTP.
 type handler http.HandlerFunc
@@ -131,21 +141,22 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			fail(result.ResponseCode, result.Err.Message, result.Err.Err)
 			return
 		}
-		// if result.Data == nil {
-		isLive := !appengine.IsDevAppServer()
-		devPrefix := "http://localhost:8014" // Keep in sync with webpack.config.js
-		if isLive {
-			devPrefix = ""
+
+		if d, ok := result.Data.(dynamicPageTmplData); ok || result.Data == nil {
+			isLive := !appengine.IsDevAppServer()
+			devPrefix := "http://localhost:8014" // Keep in sync with webpack.config.js
+			if isLive {
+				devPrefix = ""
+			}
+			mergo.Merge(&d, dynamicPageTmplData{
+				Title:             "Arbital",
+				URL:               "https://" + r.Host + r.RequestURI,
+				VersionID:         appengine.VersionID(c),
+				IsLive:            isLive,
+				MaybeServerPrefix: devPrefix,
+			})
+			result.Data = d
 		}
-		result.Data = map[string]interface{}{
-			"Title":             "Arbital",
-			"Url":               "https://" + r.Host + r.RequestURI,
-			"Description":       "",
-			"VersionId":         appengine.VersionID(c),
-			"IsLive":            isLive,
-			"MaybeServerPrefix": devPrefix,
-		}
-		// }
 
 		p.ServeHTTP(w, r, result)
 		c.Inc(fmt.Sprintf("%s-success", r.URL.Path))

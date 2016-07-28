@@ -13,7 +13,7 @@
 
 	<!-- Open graph settings -->
 	<meta property="og:title" content="{{.Title}}"/>
-	<meta property="og:url" content="{{.Url}}"/>
+	<meta property="og:url" content="{{.URL}}"/>
 	<meta property="og:description" content="{{.Description}}"/>
 	<meta property="og:type" content="article"/>
 	<meta property="fb:app_id" content="1064531780272247"/>
@@ -37,7 +37,7 @@
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-material/1.0.9/angular-material.min.js"></script>
 
-	<script src="/static/js/lib/demo-bundle.js?{{.VersionId}}"></script>
+	<script src="/static/js/lib/demo-bundle.js?{{.VersionID}}"></script>
 
 	<script type="text/x-mathjax-config">
 		MathJax.Hub.Config({
@@ -60,12 +60,12 @@
 
 	<!-- Webpack bundle. -->
 	<script>
-		var versionId = '{{.VersionId}}';
+		var versionId = '{{.VersionID}}';
 		var versionUrl = function(url) {
 			return url + '?' + versionId;
 		};
 	</script>
-	<script src="{{.MaybeServerPrefix}}/static/js/bundle.js?{{.VersionId}}"></script>
+	<script src="{{.MaybeServerPrefix}}/static/js/bundle.js?{{.VersionID}}"></script>
 
 	<!-- Google Analytics -->
 	<script>
