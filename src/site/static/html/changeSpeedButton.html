@@ -99,25 +99,25 @@
 						Want a different explanation?
 					</span>
 				</div>
-				<div layout="column" layout-align="start start">
+				<div class="change-speed-something-else" layout="column" layout-align="start start">
 					<div layout="row" layout-align="start center">
-						<md-button class="short button" ng-click="submitExplanationRequest('lessTechnical')">+1</md-button>&nbsp;
+						<md-button class="short-button" ng-click="submitExplanationRequest('lessTechnical')">+1</md-button>
 						a less technical explanation
 					</div>
 
 					<div layout="row" layout-align="start center">
-						<md-button class="short button" ng-click="submitExplanationRequest('moreWords')">+1</md-button>&nbsp;
+						<md-button class="short-button" ng-click="submitExplanationRequest('moreWords')">+1</md-button>
 						an explanation with more words
 					</div>
 
 					<div layout="row" layout-align="start center">
-						<md-input-container flex>
+						<md-input-container md-no-float flex>
 							<input ng-model="request.freeformText"
 									aria-label="Alternate page request"
 									placeholder="Other"
 									flex>
 						</md-input-container>
-						<md-button ng-click="submitExplanationRequest()">submit</md-button>
+						<md-button class="short-button" ng-click="submitExplanationRequest()">submit</md-button>
 					</div>
 				</div>
 			</div>
