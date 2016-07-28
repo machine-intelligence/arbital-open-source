@@ -25,8 +25,7 @@
 			<div ng-if="::page.subjects.length > 0">
 				This page teaches:
 				<ul>
-					<li ng-repeat="subject in page.subjects | orderBy: ['-level']"
-							ng-if="subject.parentId != pageId">
+					<li ng-repeat="subject in page.subjects | orderBy: ['-level']">
 						<arb-page-title page-id="{{::subject.parentId}}" is-link="true"></arb-page-title>
 					</li>
 				</ul>
@@ -83,9 +82,9 @@
 					</span>
 				</div>
 
-				<div class="change-speed-something-else" layout="column" layout-align="start start" ng-if="goSlow">
+				<div class="change-speed-something-else" layout="column" layout-align="start start">
 					<!-- Other slow down things -->
-					<div layout="row" layout-align="start center" ng-if="goSlow">
+					<div layout="row" layout-align="start center" ng-if="::goSlow">
 						<span ng-if="!requested['lessTechnical']">
 							<md-button class="short-button" ng-click="submitExplanationRequest('lessTechnical')">+1</md-button>
 							a less technical explanation
@@ -95,7 +94,7 @@
 						</span>
 					</div>
 
-					<div layout="row" layout-align="start center" ng-if="goSlow">
+					<div layout="row" layout-align="start center" ng-if="::goSlow">
 						<span ng-if="!requested.moreWords">
 							<md-button class="short-button" ng-click="submitExplanationRequest('moreWords')">+1</md-button>
 							an explanation with more words
@@ -106,7 +105,7 @@
 					</div>
 
 					<!-- Other speed up things -->
-					<div layout="row" layout-align="start center" ng-if="!goSlow">
+					<div layout="row" layout-align="start center" ng-if="::!goSlow">
 						<span ng-if="!requested['moreTechnical']">
 							<md-button class="short-button" ng-click="submitExplanationRequest('moreTechnical')">+1</md-button>
 							a more technical explanation
@@ -116,7 +115,7 @@
 						</span>
 					</div>
 
-					<div layout="row" layout-align="start center" ng-if="!goSlow">
+					<div layout="row" layout-align="start center" ng-if="::!goSlow">
 						<span ng-if="!requested.lessWords">
 							<md-button class="short-button" ng-click="submitExplanationRequest('lessWords')">+1</md-button>
 							an explanation with fewer words
