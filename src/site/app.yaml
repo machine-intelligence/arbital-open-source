@@ -10,10 +10,12 @@ instance_class: F2
 handlers:
 - url: /static
   static_dir: static
+  secure: always
 
 - url: /favicon.ico
   static_files: static/icons/favicon.ico
   upload: static/icons/favicon.ico
+  secure: always
 
 - url: /.*
   script: _go_app
