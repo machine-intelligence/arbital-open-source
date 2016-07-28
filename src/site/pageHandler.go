@@ -41,6 +41,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		if sessions.Live && r.URL.Scheme != "https" {
 			safeURL := strings.Replace(r.URL.String(), "http", "https", 1)
 			http.Redirect(w, r, safeURL, http.StatusSeeOther)
+			return
 		}
 
 		c := sessions.NewContext(r)
@@ -109,6 +110,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		if core.IsIDValid(params.PrivateGroupID) && !core.IsIDValid(u.ID) {
 			if r.URL.Path != "/login/" {
 				http.Redirect(w, r, fmt.Sprintf("/login/?continueUrl=%s", url.QueryEscape(r.URL.String())), http.StatusSeeOther)
+				return
 			}
 		}
 		if userID := u.GetSomeID(); userID != "" {
