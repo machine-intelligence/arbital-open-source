@@ -13,7 +13,13 @@ module.exports = {
 			{ test: /\.tsx?$/, loader: 'ts-loader' },
 
 			// SCSS
-			{ test: /\.scss$/, loaders: ['style', 'css', 'sass'] }
+			{ test: /\.scss$/, loaders: ['style', 'css', 'sass'] },
+
+			// Angular Templates
+			{
+				test: /\.html$/,
+				loader: 'ngtemplate?relativeTo=site/!html',
+			},
 		]
 	},
 	resolve: {
