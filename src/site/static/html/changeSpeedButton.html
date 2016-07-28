@@ -21,22 +21,20 @@
 	</div>
 	<div class="change-speed-tray md-body-1">
 		<div ng-if="isHovered">
-
-			<!-- Go slower stuff -->
-
 			<!-- Learn a subject at an easier level -->
-			<div ng-if="::page.subjects.length > 0 && goSlow">
+			<div ng-if="::page.subjects.length > 0">
 				This page teaches:
 				<ul>
-					<li ng-repeat="(subjectId,pagePairs) in page.slowDownMap">
-						<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
+					<li ng-repeat="subject in page.subjects | orderBy: ['-level']"
+							ng-if="subject.parentId != pageId">
+						<arb-page-title page-id="{{::subject.parentId}}" is-link="true"></arb-page-title>
 					</li>
 				</ul>
 			</div>
 
 			<!-- Learn one of the requirements -->
-			<div ng-if="::page.requirements.length > 0 && goSlow">
-				This page relies on:
+			<div ng-if="::page.requirements.length > 0">
+				This page assumes:
 				<ul>
 					<li ng-repeat="requirement in page.requirements | orderBy: ['-isStrong', '-level']">
 						<arb-page-title page-id="{{::requirement.parentId}}" is-link="true"></arb-page-title>
@@ -63,28 +61,13 @@
 			<!-- Learn a subject at a harder level -->
 			<div ng-repeat="(subjectId,pagePairs) in page.speedUpMap" ng-if="::!goSlow">
 				<div>
-					This page teaches
+					More technical teachers for
 					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-					<span class="comma">.</span>
-					You can learn it at a higher level:
+					<span class="comma">:</span>
 				</div>
 				<ul>
 					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
 						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
-					</li>
-				</ul>
-			</div>
-
-			<!-- Learn one of the requirements -->
-			<div ng-if="::page.subjects.length > 0 && !goSlow">
-				You can read about
-				<ng-pluralize count="page.subjects.length"
-						when="{'one': 'the concept', 'other': 'one of the concepts'}"></ng-pluralize>
-				this page covers:
-				<ul>
-					<li ng-repeat="subject in page.subjects | orderBy: ['-level']"
-							ng-if="subject.parentId != pageId">
-						<arb-page-title page-id="{{::subject.parentId}}" is-link="true"></arb-page-title>
 					</li>
 				</ul>
 			</div>
@@ -99,8 +82,10 @@
 						Want a different explanation?
 					</span>
 				</div>
-				<div class="change-speed-something-else" layout="column" layout-align="start start">
-					<div layout="row" layout-align="start center">
+
+				<div class="change-speed-something-else" layout="column" layout-align="start start" ng-if="goSlow">
+					<!-- Other slow down things -->
+					<div layout="row" layout-align="start center" ng-if="goSlow">
 						<span ng-if="!requested['lessTechnical']">
 							<md-button class="short-button" ng-click="submitExplanationRequest('lessTechnical')">+1</md-button>
 							a less technical explanation
@@ -110,7 +95,7 @@
 						</span>
 					</div>
 
-					<div layout="row" layout-align="start center">
+					<div layout="row" layout-align="start center" ng-if="goSlow">
 						<span ng-if="!requested.moreWords">
 							<md-button class="short-button" ng-click="submitExplanationRequest('moreWords')">+1</md-button>
 							an explanation with more words
@@ -120,6 +105,28 @@
 						</span>
 					</div>
 
+					<!-- Other speed up things -->
+					<div layout="row" layout-align="start center" ng-if="!goSlow">
+						<span ng-if="!requested['moreTechnical']">
+							<md-button class="short-button" ng-click="submitExplanationRequest('moreTechnical')">+1</md-button>
+							a more technical explanation
+						</span>
+						<span ng-if="requested['moreTechnical']">
+							Thanks for requesting a more technical explanation!
+						</span>
+					</div>
+
+					<div layout="row" layout-align="start center" ng-if="!goSlow">
+						<span ng-if="!requested.lessWords">
+							<md-button class="short-button" ng-click="submitExplanationRequest('lessWords')">+1</md-button>
+							an explanation with fewer words
+						</span>
+						<span ng-if="requested.moreWords">
+							Thanks for requesting an explanation with fewer words!
+						</span>
+					</div>
+
+					<!-- Freeform text -->
 					<div layout="row" layout-align="start center">
 						<span ng-if="!submittedFreeform">
 							<md-input-container md-no-float flex>
