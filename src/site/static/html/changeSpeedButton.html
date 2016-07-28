@@ -101,23 +101,38 @@
 				</div>
 				<div class="change-speed-something-else" layout="column" layout-align="start start">
 					<div layout="row" layout-align="start center">
-						<md-button class="short-button" ng-click="submitExplanationRequest('lessTechnical')">+1</md-button>
-						a less technical explanation
+						<span ng-if="!requested['lessTechnical']">
+							<md-button class="short-button" ng-click="submitExplanationRequest('lessTechnical')">+1</md-button>
+							a less technical explanation
+						</span>
+						<span ng-if="requested['lessTechnical']">
+							Thanks for requesting a less technical explanation!
+						</span>
 					</div>
 
 					<div layout="row" layout-align="start center">
-						<md-button class="short-button" ng-click="submitExplanationRequest('moreWords')">+1</md-button>
-						an explanation with more words
+						<span ng-if="!requested.moreWords">
+							<md-button class="short-button" ng-click="submitExplanationRequest('moreWords')">+1</md-button>
+							an explanation with more words
+						</span>
+						<span ng-if="requested.moreWords">
+							Thanks for requesting an explanation with more words!
+						</span>
 					</div>
 
 					<div layout="row" layout-align="start center">
-						<md-input-container md-no-float flex>
-							<input ng-model="request.freeformText"
-									aria-label="Alternate page request"
-									placeholder="Other"
-									flex>
-						</md-input-container>
-						<md-button class="short-button" ng-click="submitExplanationRequest()">submit</md-button>
+						<span ng-if="!submittedFreeform">
+							<md-input-container md-no-float flex>
+								<input ng-model="request.freeformText"
+										aria-label="Alternate page request"
+										placeholder="Other"
+										flex>
+							</md-input-container>
+							<md-button class="short-button" ng-click="submitExplanationRequest()">submit</md-button>
+						</span>
+						<span ng-if="submittedFreeform">
+							Thanks for your feedback!
+						</span>
 					</div>
 				</div>
 			</div>
