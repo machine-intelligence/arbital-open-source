@@ -43,4 +43,4 @@ function ctrl_c() {
 }
 
 # https://stackoverflow.com/questions/2935183/bash-infinite-sleep-infinite-blocking
-sleep infinity
+cat
