@@ -3,6 +3,10 @@ var webpack = require('webpack');
 
 module.exports = {
 	plugins: [
+		new webpack.optimize.UglifyJsPlugin({
+			mangle: false, // Mangling currently breaks Angular.
+			compress: {warnings: false} // The warnings are too verbose.
+		}),
 	],
 	entry: './entry.js',
 	output: {
