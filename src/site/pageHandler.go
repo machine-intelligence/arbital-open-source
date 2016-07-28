@@ -131,21 +131,21 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			fail(result.ResponseCode, result.Err.Message, result.Err.Err)
 			return
 		}
-		if result.Data == nil {
-			isLive := !appengine.IsDevAppServer()
-			devPrefix := "http://localhost:8014" // Keep in sync with webpack.config.js
-			if isLive {
-				devPrefix = ""
-			}
-			result.Data = map[string]interface{}{
-				"Title":             "Arbital",
-				"Url":               "https://" + r.Host + r.RequestURI,
-				"Description":       "",
-				"VersionId":         appengine.VersionID(c),
-				"IsLive":            isLive,
-				"MaybeServerPrefix": devPrefix,
-			}
+		//if result.Data == nil {
+		isLive := !appengine.IsDevAppServer()
+		devPrefix := "http://localhost:8014" // Keep in sync with webpack.config.js
+		if isLive {
+			devPrefix = ""
 		}
+		result.Data = map[string]interface{}{
+			"Title":             "Arbital",
+			"Url":               "https://" + r.Host + r.RequestURI,
+			"Description":       "",
+			"VersionId":         appengine.VersionID(c),
+			"IsLive":            isLive,
+			"MaybeServerPrefix": devPrefix,
+		}
+		//}
 
 		p.ServeHTTP(w, r, result)
 		c.Inc(fmt.Sprintf("%s-success", r.URL.Path))

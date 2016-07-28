@@ -77,7 +77,7 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 
 			angular.element($window).bind('scroll', function() {
 				scope.haveScrolled = true;
-				positionButton();
+				// positionButton();
 			});
 
 			positionButton();
