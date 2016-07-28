@@ -34,13 +34,13 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 			$scope.request = {
 				freeformText: '',
 			};
-			$scope.submitExplanationRequest = function() {
+			$scope.submitExplanationRequest = function(requestType) {
 				$scope.clickedRequestButton = true;
 
 				// Register the +1 to request
 				var erData = {
 					pageId: $scope.page.pageId,
-					requestType: $scope.goSlow ? 'slowDown' : 'speedUp',
+					requestType: requestType || ($scope.goSlow ? 'slowDown' : 'speedUp'),
 				};
 				arb.stateService.postData('/json/contentRequest/', erData);
 

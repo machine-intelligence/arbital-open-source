@@ -3,14 +3,18 @@ package core
 type ContentRequestType string
 
 const (
-	SlowDown    ContentRequestType = "slowDown"
-	SpeedUp     ContentRequestType = "speedUp"
-	ImproveStub ContentRequestType = "improveStub"
+	SlowDown      ContentRequestType = "slowDown"
+	SpeedUp       ContentRequestType = "speedUp"
+	LessTechnical ContentRequestType = "lessTechnical"
+	MoreWords     ContentRequestType = "moreWords"
+	ImproveStub   ContentRequestType = "improveStub"
 )
 
 var _allContentRequestTypes = []ContentRequestType{
 	SlowDown,
 	SpeedUp,
+	LessTechnical,
+	MoreWords,
 	ImproveStub,
 }
 
