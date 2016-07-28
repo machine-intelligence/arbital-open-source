@@ -11,10 +11,8 @@
 package pages
 
 import (
-	"fmt"
 	"html/template"
 	"net/http"
-	"net/url"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -140,20 +138,6 @@ func (r *Result) Status(status int) *Result {
 
 // Values are simple URL params.
 type Values map[string]string
-
-// UrlValues returns the simplifies values as url.Values.
-func (vs Values) URLValues() url.Values {
-	q := url.Values{}
-	for k, v := range vs {
-		q[k] = []string{v}
-	}
-	return q
-}
-
-// AddTo adds the Values to specified URI.
-func (v Values) AddTo(uri string) string {
-	return fmt.Sprintf("%s?%s", uri, v.URLValues().Encode())
-}
 
 // ServeHTTP serves HTTP for the page.
 //

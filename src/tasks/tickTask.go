@@ -1,12 +1,7 @@
 // tick.go updates all the computed values in our database.
 package tasks
 
-import (
-	"database/sql"
-
-	"zanaduu3/src/database"
-	"zanaduu3/src/sessions"
-)
+import "zanaduu3/src/database"
 
 const (
 	tickPeriod = 5 * 60 // 5 minutes
@@ -49,8 +44,4 @@ func (task TickTask) Execute(db *database.DB) (delay int, err error) {
 	c.Infof("==== TICK START ====")
 	defer c.Infof("==== TICK COMPLETED ====")
 	return
-}
-
-func processQuestion(c sessions.Context, rows *sql.Rows) error {
-	return nil
 }

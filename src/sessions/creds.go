@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/garyburd/go-oauth/oauth"
-	"github.com/gorilla/sessions"
 )
 
 var (
@@ -17,20 +16,6 @@ var (
 
 type Credentials struct {
 	*oauth.Credentials
-}
-
-// LoadCreds returns the credentials from session, if available.
-func LoadCreds(c Context, s *sessions.Session) (*Credentials, error) {
-	if s.Values[credsKey] == nil {
-		c.Debugf("no credentials in session\n")
-		return nil, nil
-	}
-	creds := s.Values[credsKey].(*Credentials)
-	if *creds == emptyCreds {
-		c.Inc("empty_credentials_fail")
-		return nil, fmt.Errorf("empty credentials in session")
-	}
-	return creds, nil
 }
 
 // Save stores the credentials in session.

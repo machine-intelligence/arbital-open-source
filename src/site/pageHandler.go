@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/taskqueue"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -28,9 +27,6 @@ type dynamicPageTmplData struct {
 	IsLive            bool
 	MaybeServerPrefix string
 }
-
-// Handler serves HTTP.
-type handler http.HandlerFunc
 
 // pageHandlerWrapper wraps one of our page handlers.
 func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
@@ -165,27 +161,4 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 // newPage returns a new page using default options.
 func newPage(renderer pages.Renderer, tmpls []string) pages.Page {
 	return pages.Add("", renderer, pages.PageOptions{}, tmpls...)
-}
-
-// monitor sends counters added within the handler off to monitoring.
-func (fn handler) monitor() handler {
-	return func(w http.ResponseWriter, r *http.Request) {
-		c := sessions.NewContext(r)
-		fn(w, r)
-		// At end of each request, add task to reporting queue.
-		t, err := c.Report()
-		if err != nil {
-			c.Errorf("failed to create monitoring task: %v\n", err)
-			return
-		}
-		if t == nil {
-			// no monitoring task, nothing to do.
-			return
-		}
-		_, err = taskqueue.Add(c, t, "report-monitoring")
-		if err != nil {
-			c.Errorf("failed to add monitoring POST task to queue: %v\n", err)
-			return
-		}
-	}
 }
