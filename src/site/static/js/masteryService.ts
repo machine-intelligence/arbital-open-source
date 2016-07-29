@@ -118,9 +118,9 @@ app.service('masteryService', function($http, $compile, $location, $mdToast, $ro
 			taughtBy: pageService.getCurrentPageId(),
 		};
 		if (callback) {
-			stateService.postData('/updateMasteries/', data, callback);
+			stateService.postData('/updateMasteriesOld/', data, callback);
 		} else {
-			stateService.postDataWithoutProcessing('/updateMasteries/', data);
+			stateService.postDataWithoutProcessing('/updateMasteriesOld/', data);
 		}
 	};
 
@@ -160,6 +160,46 @@ app.service('masteryService', function($http, $compile, $location, $mdToast, $ro
 	// Check if the user doesn't have or want the mastery
 	this.nullMastery = function(masteryId) {
 		return this.getMasteryStatus(masteryId) === '';
+	};
+
+	// ===== Hub content helpers ======
+
+	// Returns true if the current user can learn something new by reading this page
+	this.doesPageTeachUnknownReqs = function(pageId) {
+		return stateService.pageMap[pageId].subjects.some(function(subject) {
+			if (!subject.isStrong) return false;
+			var subjectId = subject.parentId;
+			if (!(subjectId in that.masteryMap)) return false;
+			var currentUserLevel = -1;
+			if (that.masteryMap[subjectId].has) {
+				currentUserLevel = that.masteryMap[subjectId].level;
+			}
+			return subject.level > currentUserLevel;
+		});
+	};
+
+	// Sort pageIds in the given page's hubContent
+	this.sortHubContent = function(page) {
+		for (var n = 0; n < page.hubContent.boostPageIds.length; n++) {
+			page.hubContent.boostPageIds[n].sort(function(pageId1, pageId2) {
+				return (that.doesPageTeachUnknownReqs(pageId2) ? 1 : 0) -
+						(that.doesPageTeachUnknownReqs(pageId1) ? 1 : 0);
+			});
+			page.hubContent.learnPageIds[n].sort(function(pageId1, pageId2) {
+				return (that.doesPageTeachUnknownReqs(pageId2) ? 1 : 0) -
+						(that.doesPageTeachUnknownReqs(pageId1) ? 1 : 0);
+			});
+		}
+	};
+
+	// Return true if there is at least one boost page where the user will learn something new
+	this.hasUnreadBoostPages = function(page, level, ignorePageId) {
+		return page.hubContent.boostPageIds[level].some(function(pageId) {
+			if (pageId == ignorePageId) return false;
+			if (that.doesPageTeachUnknownReqs(pageId)) {
+				return true;
+			}
+		});
 	};
 
 	// =========== Questionnaire helpers ====================

@@ -59,6 +59,7 @@ require('js/pathEditor.ts');
 require('js/pathNav.ts');
 require('js/learnMore.ts');
 require('js/changeSpeedButton.ts');
+require('js/hubPageGui.ts');
 
 // AngularJS controllers
 require('js/arbitalController.ts');

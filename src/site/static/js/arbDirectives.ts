@@ -52,11 +52,7 @@ app.directive('arbEditButton', function(arb) {
 				arb.analyticsService.reportEditPageAction(event, $scope.analyticsDesc);
 				arb.signupService.wrapInSignupFlow('edit click:' + $scope.analyticsDesc,
 					function() {
-						if (event.ctrlKey || event.metaKey) {
-							window.open(arb.urlService.getEditPageUrl($scope.pageId));
-						} else {
-							arb.urlService.goToUrl(arb.urlService.getEditPageUrl($scope.pageId));
-						}
+						arb.urlService.goToUrl(arb.urlService.getEditPageUrl($scope.pageId), {event: event});
 					});
 			};
 
@@ -428,9 +424,9 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 				$scope.data.isOpen = false;
 			};
 
-			$scope.triggerClicked = function($event) {
+			$scope.triggerClicked = function(event) {
 				// Prevent angular material from doing its stuff.
-				$event.stopPropagation();
+				event.stopPropagation();
 
 				// If we're in the "inline response" mode, kick off the response.
 				if ($scope.showInlineVersion()) {
@@ -440,11 +436,7 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 
 				// If it's open, execute the "New page" click.
 				if ($scope.data.isOpen) {
-					if ($event.ctrlKey) {
-						window.open($scope.newPageUrl);
-					} else {
-						arb.urlService.goToUrl($scope.newPageUrl);
-					}
+					arb.urlService.goToUrl($scope.newPageUrl, {event: event});
 				}
 
 				// Toggle the menu.

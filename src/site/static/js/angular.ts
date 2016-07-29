@@ -276,7 +276,7 @@ app.run(function($http, $location, arb) {
 					success: function(newPageId) {
 						arb.urlService.goToUrl(arb.urlService.getEditPageUrl(newPageId, {
 							parentId: $location.search().parentId,
-						}), true);
+						}), {replace: true});
 					},
 					error: $scope.getErrorFunc('newPage'),
 				});
@@ -288,7 +288,7 @@ app.run(function($http, $location, arb) {
 			.success($scope.getSuccessFunc(function(data): any {
 				// Redirect non-logged in users to sign up
 				if (!arb.userService.userIsLoggedIn()) {
-					arb.urlService.goToUrl('/signup?continueUrl=' + encodeURIComponent($location.url()), true);
+					arb.urlService.goToUrl('/signup?continueUrl=' + encodeURIComponent($location.url()), {replace: true});
 					return {};
 				}
 
@@ -445,6 +445,7 @@ app.run(function($http, $location, arb) {
 				pageAlias: args.alias,
 				lensId: $location.search().l,
 				markId: $location.search().markId,
+				hubId: $location.search().hubId,
 				// Load the path if it's not loaded already
 				pathInstanceId: arb.stateService.path ? undefined : $location.search().pathId,
 			};
@@ -484,7 +485,7 @@ app.run(function($http, $location, arb) {
 				// For comments, redirect to the primary page
 				if (page.isComment()) {
 					// TODO: allow BE to catch this case and send correct data, so we don't have to reload
-					arb.urlService.goToUrl(arb.urlService.getPageUrl(page.getCommentParentPage().pageId), true);
+					arb.urlService.goToUrl(arb.urlService.getPageUrl(page.getCommentParentPage().pageId), {replace: true});
 					return {};
 				}
 

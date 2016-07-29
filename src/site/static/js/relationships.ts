@@ -31,7 +31,7 @@ app.directive('arbRelationships', function($q, $timeout, $interval, $http, arb) 
 			if ($scope.isParentType) {
 				$scope.idsSource = $scope.page.parentIds;
 			} else if ($scope.isTagType) {
-				$scope.idsSource = $scope.page.taggedAsIds;
+				$scope.idsSource = $scope.page.tagIds;
 			}
 
 			// Set up search

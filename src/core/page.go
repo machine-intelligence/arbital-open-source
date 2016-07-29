@@ -72,6 +72,15 @@ const (
 	PageLockDuration      = 30 * 60 // in seconds
 )
 
+const (
+	LooseMasteryLevel     = iota
+	BasicMasteryLevel     = iota
+	TechnicalMasteryLevel = iota
+	ResearchMasteryLevel  = iota
+
+	MasteryLevelCount = iota
+)
+
 var (
 	// Regexp that strictly matches an alias, and not a page id
 	StrictAliasRegexp = regexp.MustCompile("^[A-Za-z_][0-9A-Za-z_]*$")
@@ -174,6 +183,9 @@ type Page struct {
 	// What actions the current user can perform with this page
 	Permissions *Permissions `json:"permissions"`
 
+	// If the page is a "hub", this is the data for it
+	HubContent *HubPageContent `json:"hubContent"`
+
 	// === Other data ===
 	// This data is included under "Full data", but can also be loaded along side "Auxillary data".
 	Summaries map[string]string `json:"summaries"`
@@ -185,7 +197,7 @@ type Page struct {
 	ParentIDs   []string `json:"parentIds"`
 	CommentIDs  []string `json:"commentIds"`
 	QuestionIDs []string `json:"questionIds"`
-	TaggedAsIDs []string `json:"taggedAsIds"`
+	TagIDs      []string `json:"tagIds"`
 	RelatedIDs  []string `json:"relatedIds"`
 	DomainIDs   []string `json:"domainIds"`
 	MarkIDs     []string `json:"markIds"`
@@ -263,7 +275,7 @@ func NewPage(pageID string) *Page {
 	p.CreatorIDs = make([]string, 0)
 	p.CommentIDs = make([]string, 0)
 	p.QuestionIDs = make([]string, 0)
-	p.TaggedAsIDs = make([]string, 0)
+	p.TagIDs = make([]string, 0)
 	p.RelatedIDs = make([]string, 0)
 	p.Requirements = make([]*PagePair, 0)
 	p.Subjects = make([]*PagePair, 0)
@@ -427,6 +439,7 @@ type Mastery struct {
 	PageID    string `json:"pageId"`
 	Has       bool   `json:"has"`
 	Wants     bool   `json:"wants"`
+	Level     int    `json:"level"`
 	UpdatedAt string `json:"updatedAt"`
 }
 
@@ -454,6 +467,26 @@ type Mark struct {
 	// Marks are anonymous, so the only info FE gets is whether this mark is owned
 	// by the current user.
 	CreatorID string `json:"-"`
+}
+
+// HubPageContent is data loaded for hub pages
+type HubPageContent struct {
+	// Level -> list of pageIds that will teach the user to that level
+	LearnPageIDs [][]string `json:"learnPageIds"`
+	// Level -> list of pageIds that will boost the understanding at that level
+	BoostPageIDs [][]string `json:"boostPageIds"`
+}
+
+func NewHubPageContent() *HubPageContent {
+	content := HubPageContent{
+		LearnPageIDs: make([][]string, MasteryLevelCount, MasteryLevelCount),
+		BoostPageIDs: make([][]string, MasteryLevelCount, MasteryLevelCount),
+	}
+	for n := 0; n < MasteryLevelCount; n++ {
+		content.LearnPageIDs[n] = make([]string, 0)
+		content.BoostPageIDs[n] = make([]string, 0)
+	}
+	return &content
 }
 
 // PageObject stores some information for an object embedded in a page
@@ -610,7 +643,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	}
 
 	// Load tags
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Tags })
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Tags || p.LoadOptions.HubContent })
 	err = LoadParentIDs(db, pageMap, u, &LoadParentIdsOptions{
 		ForPages:     filteredPageMap,
 		PagePairType: TagPagePairType,
@@ -648,6 +681,26 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	})
 	if err != nil {
 		return fmt.Errorf("LoadPathForPages failed: %v", err)
+	}
+
+	// Load hub content
+	hubContentPageMap := filterPageMap(pageMap, func(p *Page) bool {
+		if !p.LoadOptions.HubContent {
+			return false
+		}
+		// Make sure the page has the necessary "Hub" meta tag
+		for _, tagId := range p.TagIDs {
+			if tagId == HubPageID {
+				return true
+			}
+		}
+		return false
+	})
+	err = LoadHubContent(db, u, pageMap, &LoadDataOptions{
+		ForPages: hubContentPageMap,
+	})
+	if err != nil {
+		return fmt.Errorf("LoadHubContent failed: %v", err)
 	}
 
 	// Load requisites
@@ -935,6 +988,16 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	if err != nil {
 		return fmt.Errorf("LoadMasteries failed: %v", err)
 	}
+	// For HUB pages, make sure we have the mastery object, even if the user doesn't have the mastery
+	for pageID := range hubContentPageMap {
+		if _, ok := masteryMap[pageID]; !ok {
+			masteryMap[pageID] = &Mastery{
+				PageID:    pageID,
+				Level:     -1,
+				UpdatedAt: database.Now(),
+			}
+		}
+	}
 
 	// Load all the users
 	userMap[u.ID] = &User{ID: u.ID}
@@ -983,12 +1046,12 @@ func LoadMasteries(db *database.DB, u *CurrentUser, masteryMap map[string]*Maste
 	}
 
 	rows := database.NewQuery(`
-		SELECT masteryId,updatedAt,has,wants
+		SELECT masteryId,updatedAt,has,wants,level
 		FROM userMasteryPairs
 		WHERE userId=?`, userID).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var mastery Mastery
-		err := rows.Scan(&mastery.PageID, &mastery.UpdatedAt, &mastery.Has, &mastery.Wants)
+		err := rows.Scan(&mastery.PageID, &mastery.UpdatedAt, &mastery.Has, &mastery.Wants, &mastery.Level)
 		if err != nil {
 			return fmt.Errorf("failed to scan for mastery: %v", err)
 		}
@@ -1782,6 +1845,46 @@ func LoadLearnMore(db *database.DB, u *CurrentUser, pageMap map[string]*Page, op
 			}
 		}
 		AddPageIDToMap(pp.ChildID, pageMap)
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// LoadHubContent loads the content to populate hub pages
+func LoadHubContent(db *database.DB, u *CurrentUser, pageMap map[string]*Page, options *LoadDataOptions) error {
+	if options == nil {
+		options = &LoadDataOptions{}
+	}
+
+	sourceMap := options.ForPages
+	if sourceMap == nil {
+		sourceMap = pageMap
+	}
+
+	pageIDs := PageIDsListFromMap(sourceMap)
+	if len(pageIDs) <= 0 {
+		return nil
+	}
+
+	queryPart := database.NewQuery(`
+		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
+		ON (pi.pageId=pp.childId)
+		WHERE pp.parentId IN`).AddArgsGroup(pageIDs).Add(`
+			AND pp.type=?`, SubjectPagePairType)
+	err := LoadPagePairs(db, queryPart, func(db *database.DB, pp *PagePair) error {
+		if sourceMap[pp.ParentID].HubContent == nil {
+			sourceMap[pp.ParentID].HubContent = NewHubPageContent()
+		}
+		hubContent := sourceMap[pp.ParentID].HubContent
+		if pp.IsStrong {
+			hubContent.LearnPageIDs[pp.Level] = append(hubContent.LearnPageIDs[pp.Level], pp.ChildID)
+		} else {
+			hubContent.BoostPageIDs[pp.Level] = append(hubContent.BoostPageIDs[pp.Level], pp.ChildID)
+		}
+		AddPageToMap(pp.ChildID, pageMap, &PageLoadOptions{Requisites: true})
 		return nil
 	})
 	if err != nil {

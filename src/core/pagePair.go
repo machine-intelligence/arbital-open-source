@@ -183,7 +183,7 @@ func LoadParentIDs(db *database.DB, pageMap map[string]*Page, u *CurrentUser, op
 			childPage.HasParents = true
 			newPages[newPage.PageID] = newPage
 		} else if ppType == TagPagePairType {
-			childPage.TaggedAsIDs = append(childPage.TaggedAsIDs, parentID)
+			childPage.TagIDs = append(childPage.TagIDs, parentID)
 		}
 		return nil
 	})
