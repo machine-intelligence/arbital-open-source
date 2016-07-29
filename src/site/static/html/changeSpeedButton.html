@@ -22,7 +22,7 @@
 	<div class="change-speed-tray md-body-1">
 		<div ng-if="isHovered">
 			<!-- Learn a subject at an easier level -->
-			<div ng-if="::page.subjects.length > 0">
+			<div ng-if="::page.subjects.length > 0 && !goSlow">
 				This page teaches:
 				<ul>
 					<li ng-repeat="subject in page.subjects | orderBy: ['-level']">
@@ -32,7 +32,7 @@
 			</div>
 
 			<!-- Learn one of the requirements -->
-			<div ng-if="::page.requirements.length > 0">
+			<div ng-if="::page.requirements.length > 0 && goSlow">
 				This page assumes:
 				<ul>
 					<li ng-repeat="requirement in page.requirements | orderBy: ['-isStrong', '-level']">
@@ -97,10 +97,10 @@
 					<div layout="row" layout-align="start center" ng-if="::goSlow">
 						<span ng-if="!page.contentRequests.moreWords.myLikeValue">
 							<md-button class="short-button" ng-click="submitExplanationRequest('moreWords', $event)">+1</md-button>
-							an explanation with more words
+							a more detailed explanation
 						</span>
 						<span ng-if="page.contentRequests.moreWords.myLikeValue">
-							Thanks for requesting an explanation with more words!
+							Thanks for requesting a more detailed explanation!
 						</span>
 					</div>
 
@@ -118,10 +118,10 @@
 					<div layout="row" layout-align="start center" ng-if="::!goSlow">
 						<span ng-if="!page.contentRequests.fewerWords.myLikeValue">
 							<md-button class="short-button" ng-click="submitExplanationRequest('fewerWords', $event)">+1</md-button>
-							an explanation with fewer words
+							a more concise explanation
 						</span>
 						<span ng-if="page.contentRequests.fewerWords.myLikeValue">
-							Thanks for requesting an explanation with fewer words!
+							Thanks for requesting a more concise explanation!
 						</span>
 					</div>
 
