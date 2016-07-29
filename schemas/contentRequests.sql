@@ -7,7 +7,7 @@ CREATE TABLE contentRequests (
 	/* The page the request was made for. FK into pages. */
 	pageId VARCHAR(32) NOT NULL,
 
-	/* Type of request. Either slowDown or speedUp */
+	/* Type of request. E.g. slowDown, speedUp, etc. */
 	type VARCHAR(32) NOT NULL,
 
 	/* Id by which we track likes. FK into likes. */

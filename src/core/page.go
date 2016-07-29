@@ -253,6 +253,8 @@ type Page struct {
 	// PagePairs for "go slower/faster" suggestions; subjectId -> list of pagePairs
 	SlowDownMap map[string][]*PagePair `json:"slowDownMap"`
 	SpeedUpMap  map[string][]*PagePair `json:"speedUpMap"`
+
+	ContentRequests []*ContentRequest `json:"contentRequests"`
 }
 
 // NewPage returns a pointer to a new page object created with the given page id
@@ -287,6 +289,7 @@ func NewPage(pageID string) *Page {
 	p.ImprovementTagIDs = make([]string, 0)
 	p.NonMetaTagIDs = make([]string, 0)
 	p.Todos = make([]string, 0)
+	p.ContentRequests = make([]*ContentRequest, 0)
 
 	// Some fields are explicitly nil until they are loaded, so we can differentiate
 	// between "not loaded" and "loaded, but empty"
@@ -490,6 +493,21 @@ type SearchString struct {
 	ID     int64
 	PageID string
 	Text   string
+}
+
+type ContentRequest struct {
+	Likeable
+
+	ID          int64  `json:"id,string"`
+	PageID      string `json:"pageId"`
+	RequestType string `json:"requestType"`
+	CreatedAt   string `json:"createdAt"`
+}
+
+func NewContentRequest() *ContentRequest {
+	var cr ContentRequest
+	cr.Likeable = *NewLikeable(ContentRequestLikeableType)
+	return &cr
 }
 
 // GlobalHandlerData includes misc data that we send to the FE with each request
@@ -757,6 +775,15 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	})
 	if err != nil {
 		return fmt.Errorf("LoadChangeLogsForPages failed: %v", err)
+	}
+
+	// Load content requests
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.ContentRequests })
+	err = LoadContentRequestsForPages(db, u, data, &LoadDataOptions{
+		ForPages: filteredPageMap,
+	})
+	if err != nil {
+		return fmt.Errorf("LoadContentRequestsForPages failed: %v", err)
 	}
 
 	// Load search strings
@@ -1236,6 +1263,57 @@ func LoadLikesForChangeLogs(db *database.DB, u *CurrentUser, changeLogs []*Chang
 	for _, changeLog := range changeLogs {
 		if changeLog.LikeableID != 0 {
 			likeablesMap[changeLog.LikeableID] = &changeLog.Likeable
+		}
+	}
+	return LoadLikes(db, u, likeablesMap, nil, nil)
+}
+
+// LoadContentRequestsForPages loads content requests for the given pages.
+func LoadContentRequestsForPages(db *database.DB, u *CurrentUser, resultData *CommonHandlerData, options *LoadDataOptions) error {
+	sourcePageMap := options.ForPages
+	if len(sourcePageMap) <= 0 {
+		return nil
+	}
+
+	pageIDs := make([]string, 0)
+	for id := range sourcePageMap {
+		pageIDs = append(pageIDs, id)
+	}
+
+	rows := database.NewQuery(`
+		SELECT id, pageId, type, likeableId, createdAt
+		FROM contentRequests
+		WHERE pageId IN`).AddArgsGroupStr(pageIDs).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		cr := NewContentRequest()
+		err := rows.Scan(&cr.ID, &cr.PageID, &cr.RequestType, &cr.LikeableID, &cr.CreatedAt)
+		if err != nil {
+			return fmt.Errorf("Failed to scan: %v", err)
+		}
+
+		p := resultData.PageMap[cr.PageID]
+		p.ContentRequests = append(p.ContentRequests, cr)
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	allCRs := make([]*ContentRequest, 0)
+	for id := range sourcePageMap {
+		p := resultData.PageMap[id]
+		allCRs = append(allCRs, p.ContentRequests...)
+	}
+	return LoadLikesForContentRequests(db, u, allCRs)
+}
+
+// ROGTODO: refactor so that this and LoadLikesForChangeLogs are one method
+// Load LikeCount and MyLikeValue for a set of ContentRequests
+func LoadLikesForContentRequests(db *database.DB, u *CurrentUser, contentRequests []*ContentRequest) error {
+	likeablesMap := make(map[int64]*Likeable)
+	for _, cr := range contentRequests {
+		if cr.LikeableID != 0 {
+			likeablesMap[cr.LikeableID] = &cr.Likeable
 		}
 	}
 	return LoadLikes(db, u, likeablesMap, nil, nil)
