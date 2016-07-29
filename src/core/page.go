@@ -254,6 +254,7 @@ type Page struct {
 	SlowDownMap map[string][]*PagePair `json:"slowDownMap"`
 	SpeedUpMap  map[string][]*PagePair `json:"speedUpMap"`
 
+	// Map from request type to a ContentRequest object for that type.
 	ContentRequests map[string]*ContentRequest `json:"contentRequests"`
 }
 
@@ -495,6 +496,9 @@ type SearchString struct {
 	Text   string
 }
 
+// ContentRequest is unique to a page,requestType pair. Each time a user makes a content
+// request (e.g. slowDown, moreWords) on a page, their vote is counted as a like on the
+// corresponding ContentRequest's likeable.
 type ContentRequest struct {
 	Likeable
 
@@ -1271,19 +1275,15 @@ func LoadLikesForChangeLogs(db *database.DB, u *CurrentUser, changeLogs []*Chang
 // LoadContentRequestsForPages loads content requests for the given pages.
 func LoadContentRequestsForPages(db *database.DB, u *CurrentUser, resultData *CommonHandlerData, options *LoadDataOptions) error {
 	sourcePageMap := options.ForPages
-	if len(sourcePageMap) <= 0 {
+	pageIDs := PageIDsListFromMap(sourcePageMap)
+	if len(pageIDs) <= 0 {
 		return nil
-	}
-
-	pageIDs := make([]string, 0)
-	for id := range sourcePageMap {
-		pageIDs = append(pageIDs, id)
 	}
 
 	rows := database.NewQuery(`
 		SELECT id, pageId, type, likeableId, createdAt
 		FROM contentRequests
-		WHERE pageId IN`).AddArgsGroupStr(pageIDs).ToStatement(db).Query()
+		WHERE pageId IN`).AddArgsGroup(pageIDs).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		cr := NewContentRequest()
 		err := rows.Scan(&cr.ID, &cr.PageID, &cr.RequestType, &cr.LikeableID, &cr.CreatedAt)
@@ -1309,7 +1309,7 @@ func LoadContentRequestsForPages(db *database.DB, u *CurrentUser, resultData *Co
 	return LoadLikesForContentRequests(db, u, allCRs)
 }
 
-// ROGTODO: refactor so that this and LoadLikesForChangeLogs are one method
+// TODO: refactor so that this and LoadLikesForChangeLogs are one method
 // Load LikeCount and MyLikeValue for a set of ContentRequests
 func LoadLikesForContentRequests(db *database.DB, u *CurrentUser, contentRequests []*ContentRequest) error {
 	likeablesMap := make(map[int64]*Likeable)

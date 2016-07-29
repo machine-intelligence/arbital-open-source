@@ -21,7 +21,6 @@ var changeSpeedHandler = siteHandler{
 	Options:     pages.PageOptions{},
 }
 
-// ROGTODO: why does this have its own handler -- don't we load this information for every primary page?
 func changeSpeedHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB

@@ -136,7 +136,6 @@ var (
 		Creators:        true,
 		UsedAsMastery:   true,
 		ProposalEditNum: true,
-		// ROGTODO: is this needed for lens? I think probably yes. But what's the difference between lens and primary page load options?
 		ContentRequests: true,
 	}).Add(SubpageLoadOptions)
 	// Options for loading a subpage (like a comment)

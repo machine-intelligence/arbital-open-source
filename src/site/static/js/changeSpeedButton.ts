@@ -36,7 +36,7 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 			};
 
 			$scope.submitExplanationRequest = function(requestType, event) {
-				// ROGTODO: trigger signup for non-logged-in users and wrap with wrapInSignupFlow?
+				// TODO: trigger signup for non-logged-in users and wrap with wrapInSignupFlow?
 
 				$scope.page.contentRequests[requestType] = $scope.page.contentRequests[requestType] || {};
 				$scope.page.contentRequests[requestType].myLikeValue = true;
