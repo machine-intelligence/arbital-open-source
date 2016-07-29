@@ -143,7 +143,7 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 		}
 		$popoverElement.css('left', left)
 			.css('position', '') // IE fix, because it sets position to "relative"
-			.width(isTouchDevice ? $('body').width() : popoverWidth);
+			.width(isTouchDevice ? $('body').width() - 6 : popoverWidth);
 
 		var thisPopoverElement = $popoverElement;
 		$popoverElement.on('mouseenter', function(event) {
