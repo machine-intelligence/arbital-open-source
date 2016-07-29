@@ -85,42 +85,42 @@
 				<div class="change-speed-something-else" layout="column" layout-align="start start">
 					<!-- Other slow down things -->
 					<div layout="row" layout-align="start center" ng-if="::goSlow">
-						<span ng-if="!requested['lessTechnical']">
-							<md-button class="short-button" ng-click="submitExplanationRequest('lessTechnical')">+1</md-button>
+						<span ng-if="!page.contentRequests.lessTechnical.myLikeValue">
+							<md-button class="short-button" ng-click="submitExplanationRequest('lessTechnical', $event)">+1</md-button>
 							a less technical explanation
 						</span>
-						<span ng-if="requested['lessTechnical']">
+						<span ng-if="page.contentRequests.lessTechnical.myLikeValue">
 							Thanks for requesting a less technical explanation!
 						</span>
 					</div>
 
 					<div layout="row" layout-align="start center" ng-if="::goSlow">
-						<span ng-if="!requested.moreWords">
-							<md-button class="short-button" ng-click="submitExplanationRequest('moreWords')">+1</md-button>
+						<span ng-if="!page.contentRequests.moreWords.myLikeValue">
+							<md-button class="short-button" ng-click="submitExplanationRequest('moreWords', $event)">+1</md-button>
 							an explanation with more words
 						</span>
-						<span ng-if="requested.moreWords">
+						<span ng-if="page.contentRequests.moreWords.myLikeValue">
 							Thanks for requesting an explanation with more words!
 						</span>
 					</div>
 
 					<!-- Other speed up things -->
 					<div layout="row" layout-align="start center" ng-if="::!goSlow">
-						<span ng-if="!requested['moreTechnical']">
-							<md-button class="short-button" ng-click="submitExplanationRequest('moreTechnical')">+1</md-button>
+						<span ng-if="!page.contentRequests.moreTechnical.myLikeValue">
+							<md-button class="short-button" ng-click="submitExplanationRequest('moreTechnical', $event)">+1</md-button>
 							a more technical explanation
 						</span>
-						<span ng-if="requested['moreTechnical']">
+						<span ng-if="page.contentRequests.moreTechnical.myLikeValue">
 							Thanks for requesting a more technical explanation!
 						</span>
 					</div>
 
 					<div layout="row" layout-align="start center" ng-if="::!goSlow">
-						<span ng-if="!requested.lessWords">
-							<md-button class="short-button" ng-click="submitExplanationRequest('lessWords')">+1</md-button>
+						<span ng-if="!page.contentRequests.fewerWords.myLikeValue">
+							<md-button class="short-button" ng-click="submitExplanationRequest('fewerWords', $event)">+1</md-button>
 							an explanation with fewer words
 						</span>
-						<span ng-if="requested.moreWords">
+						<span ng-if="page.contentRequests.fewerWords.myLikeValue">
 							Thanks for requesting an explanation with fewer words!
 						</span>
 					</div>
@@ -134,7 +134,7 @@
 										placeholder="Other"
 										flex>
 							</md-input-container>
-							<md-button class="short-button" ng-click="submitExplanationRequest()">submit</md-button>
+							<md-button class="short-button" ng-click="submitExplanationRequest('', $event)">submit</md-button>
 						</span>
 						<span ng-if="submittedFreeform">
 							Thanks for your feedback!

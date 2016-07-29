@@ -7,6 +7,8 @@ const (
 	SpeedUp       ContentRequestType = "speedUp"
 	LessTechnical ContentRequestType = "lessTechnical"
 	MoreWords     ContentRequestType = "moreWords"
+	MoreTechnical ContentRequestType = "moreTechnical"
+	FewerWords    ContentRequestType = "fewerWords"
 	ImproveStub   ContentRequestType = "improveStub"
 )
 
@@ -15,6 +17,8 @@ var _allContentRequestTypes = []ContentRequestType{
 	SpeedUp,
 	LessTechnical,
 	MoreWords,
+	MoreTechnical,
+	FewerWords,
 	ImproveStub,
 }
 

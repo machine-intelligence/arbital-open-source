@@ -35,15 +35,12 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 				freeformText: '',
 			};
 
-			// The requests the user has made for this page
-			$scope.requested = {
-				lessTechnical: false,
-				moreWords: false,
-			};
-
-			$scope.submitExplanationRequest = function(requestType) {
+			$scope.submitExplanationRequest = function(requestType, event) {
 				// ROGTODO: trigger signup for non-logged-in users and wrap with wrapInSignupFlow?
-				$scope.requested[requestType] = true;
+
+				$scope.page.contentRequests[requestType] = $scope.page.contentRequests[requestType] || {};
+				$scope.page.contentRequests[requestType].myLikeValue = true;
+
 				if ($scope.request.freeformText) {
 					$scope.submittedFreeform = true;
 				}
@@ -65,6 +62,8 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 					)
 					$scope.request.freeformText = '';
 				}
+
+				event.stopPropagation();
 			};
 		},
 		link: function(scope: any, element, attrs) {
