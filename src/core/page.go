@@ -254,7 +254,7 @@ type Page struct {
 	SlowDownMap map[string][]*PagePair `json:"slowDownMap"`
 	SpeedUpMap  map[string][]*PagePair `json:"speedUpMap"`
 
-	ContentRequests []*ContentRequest `json:"contentRequests"`
+	ContentRequests map[string]*ContentRequest `json:"contentRequests"`
 }
 
 // NewPage returns a pointer to a new page object created with the given page id
@@ -289,7 +289,7 @@ func NewPage(pageID string) *Page {
 	p.ImprovementTagIDs = make([]string, 0)
 	p.NonMetaTagIDs = make([]string, 0)
 	p.Todos = make([]string, 0)
-	p.ContentRequests = make([]*ContentRequest, 0)
+	p.ContentRequests = make(map[string]*ContentRequest)
 
 	// Some fields are explicitly nil until they are loaded, so we can differentiate
 	// between "not loaded" and "loaded, but empty"
@@ -1292,7 +1292,7 @@ func LoadContentRequestsForPages(db *database.DB, u *CurrentUser, resultData *Co
 		}
 
 		p := resultData.PageMap[cr.PageID]
-		p.ContentRequests = append(p.ContentRequests, cr)
+		p.ContentRequests[cr.RequestType] = cr
 		return nil
 	})
 	if err != nil {
@@ -1302,7 +1302,9 @@ func LoadContentRequestsForPages(db *database.DB, u *CurrentUser, resultData *Co
 	allCRs := make([]*ContentRequest, 0)
 	for id := range sourcePageMap {
 		p := resultData.PageMap[id]
-		allCRs = append(allCRs, p.ContentRequests...)
+		for _, cr := range p.ContentRequests {
+			allCRs = append(allCRs, cr)
+		}
 	}
 	return LoadLikesForContentRequests(db, u, allCRs)
 }
