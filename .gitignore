@@ -24,3 +24,5 @@ src/site/scss
 
 bundle.js
 src/site/static/js/typings/
+
+.last_deps_update
