@@ -1,5 +1,7 @@
 'use strict';
 
+import app from './angular.ts';
+
 // Directive to show the GUI for a hub page
 app.directive('arbHubPageGui', function($compile, $timeout, arb) {
 	return {
