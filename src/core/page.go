@@ -201,8 +201,11 @@ type Page struct {
 	// Path stuff
 	PathPages Path `json:"pathPages"`
 
-	// Data for showing what pages user can learn after reading this page. subject pageId -> list of pagePairs
-	LearnMoreMap map[string][]*PagePair `json:"learnMoreMap"`
+	// Data for showing what pages user can learn after reading this page.
+	// Map: page id of the subject that was taught/covered -> list of pageIds to read
+	LearnMoreTaughtMap   map[string][]string `json:"learnMoreTaughtMap"`
+	LearnMoreCoveredMap  map[string][]string `json:"learnMoreCoveredMap"`
+	LearnMoreRequiredMap map[string][]string `json:"learnMoreRequiredMap"`
 
 	// TODO: eventually move this to the user object (once we have load
 	// options + pipeline for users)
@@ -272,7 +275,9 @@ func NewPage(pageID string) *Page {
 	p.TrustMap = make(map[string]*Trust)
 	p.Lenses = make(LensList, 0)
 	p.PathPages = make(Path, 0)
-	p.LearnMoreMap = make(map[string][]*PagePair)
+	p.LearnMoreTaughtMap = make(map[string][]string)
+	p.LearnMoreCoveredMap = make(map[string][]string)
+	p.LearnMoreRequiredMap = make(map[string][]string)
 	p.DomainSubmissions = make(map[string]*PageToDomainSubmission)
 	p.Answers = make([]*Answer, 0)
 	p.SearchStrings = make(map[string]string)
@@ -1758,13 +1763,21 @@ func LoadLearnMore(db *database.DB, u *CurrentUser, pageMap map[string]*Page, op
 		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
 		ON (pi.pageId=pp.childId)
 		WHERE pp.parentId IN`).AddArgsGroupStr(subjectIDs).Add(`
-			AND pp.type=?`, RequirementPagePairType)
+			AND (pp.type=? || pp.type=?)`, RequirementPagePairType, SubjectPagePairType)
 	err := LoadPagePairs(db, queryPart, func(db *database.DB, pp *PagePair) error {
 		for _, page := range sourceMap {
 			for _, subject := range page.Subjects {
-				if pp.ParentID == subject.ParentID && pp.Level <= subject.Level {
-					page.LearnMoreMap[subject.ParentID] = append(page.LearnMoreMap[subject.ParentID], pp)
-					break
+				if pp.ParentID != subject.ParentID || pp.Level != subject.Level || pp.ChildID == page.PageID {
+					continue
+				}
+				if pp.Type == SubjectPagePairType && !pp.IsStrong {
+					if subject.IsStrong {
+						page.LearnMoreTaughtMap[subject.ParentID] = append(page.LearnMoreTaughtMap[subject.ParentID], pp.ChildID)
+					} else {
+						page.LearnMoreCoveredMap[subject.ParentID] = append(page.LearnMoreCoveredMap[subject.ParentID], pp.ChildID)
+					}
+				} else if pp.Type == RequirementPagePairType && pp.IsStrong && subject.IsStrong {
+					page.LearnMoreRequiredMap[subject.ParentID] = append(page.LearnMoreRequiredMap[subject.ParentID], pp.ChildID)
 				}
 			}
 		}
@@ -2123,135 +2136,6 @@ func LoadCommentIDs(db *database.DB, u *CurrentUser, pageMap map[string]*Page, o
 	return err
 }
 
-// loadOrderedChildrenIds loads and returns ordered list of children for the
-// given parent page
-func loadOrderedChildrenIDs(db *database.DB, u *CurrentUser, parentID string, sortType string) ([]string, error) {
-	orderClause := ""
-	if sortType == RecentFirstChildSortingOption {
-		orderClause = "pi.createdAt DESC"
-	} else if sortType == OldestFirstChildSortingOption {
-		orderClause = "pi.createdAt"
-	} else if sortType == AlphabeticalChildSortingOption {
-		orderClause = "p.title"
-	} else {
-		return nil, nil
-	}
-	childrenIDs := make([]string, 0)
-	rows := database.NewQuery(`
-		SELECT pp.childId
-		FROM pagePairs AS pp
-		JOIN pages AS p
-		ON (pp.childId=p.pageId)
-		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
-		ON (pi.pageId=p.pageId)
-		WHERE p.isLiveEdit
-			AND pi.type!=? AND pi.type!=?`, CommentPageType, QuestionPageType).Add(`
-			AND pp.type=?`, ParentPagePairType).Add(`AND pp.parentId=?`, parentID).Add(`
-		ORDER BY ` + orderClause).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var childID string
-		err := rows.Scan(&childID)
-		if err != nil {
-			return fmt.Errorf("failed to scan for childId: %v", err)
-		}
-		childrenIDs = append(childrenIDs, childID)
-		return nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("Failed to load children: %v", err)
-	}
-	return childrenIDs, nil
-}
-
-// loadSiblingId loads the next/prev sibling page id, based on the "parent"
-// relationships. We search recursively up the hierarchy if necessary.
-func loadSiblingID(db *database.DB, u *CurrentUser, pageID string, useNextSibling bool) (string, error) {
-	// Load the parent and the sorting order
-	var parentID string
-	var sortType string
-	var parentCount int
-	row := database.NewQuery(`
-		SELECT
-			ifnull(max(pp.parentId), 0),
-			ifnull(max(pi.sortChildrenBy), ""),
-			count(*)
-		FROM pagePairs AS pp
-		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
-		ON (pp.parentId=pi.pageId)
-		WHERE pp.type=?`, ParentPagePairType).Add(`AND pp.childId=?`, pageID).ToStatement(db).QueryRow()
-	found, err := row.Scan(&parentID, &sortType, &parentCount)
-	if err != nil {
-		return "", err
-	} else if !found || parentCount != 1 {
-		return "", nil
-	}
-
-	// Load the sibling pages in order
-	orderedSiblingIDs, err := loadOrderedChildrenIDs(db, u, parentID, sortType)
-	if err != nil {
-		return "", fmt.Errorf("Failed to load children: %v", err)
-	}
-
-	// Find where the current page sits in the ordered sibling list
-	pageSiblingIndex := -1
-	for i, childID := range orderedSiblingIDs {
-		if childID == pageID {
-			pageSiblingIndex = i
-			break
-		}
-	}
-	// Then get the next / prev sibling accordingly
-	if useNextSibling {
-		if pageSiblingIndex < len(orderedSiblingIDs)-1 {
-			return orderedSiblingIDs[pageSiblingIndex+1], nil
-		} else if pageSiblingIndex == len(orderedSiblingIDs)-1 {
-			// It's the last child, so we need to recurse
-			return loadSiblingID(db, u, parentID, useNextSibling)
-		}
-	} else {
-		if pageSiblingIndex > 0 {
-			return orderedSiblingIDs[pageSiblingIndex-1], nil
-		} else if pageSiblingIndex == 0 {
-			// It's the first child, so just return the parent
-			return parentID, nil
-		}
-	}
-	return "", nil
-}
-
-// LoadNextPrevPageIds loads the pages that come before / after the given page
-// in the learning list.
-func LoadNextPrevPageIDs(db *database.DB, u *CurrentUser, options *LoadDataOptions) error {
-	if len(options.ForPages) > 1 {
-		db.C.Warningf("LoadNextPrevPageIds called with more than one page")
-	}
-	for _, p := range options.ForPages {
-		var err error
-		p.PrevPageID, err = loadSiblingID(db, u, p.PageID, false)
-		if err != nil {
-			return fmt.Errorf("Error while loading prev page id: %v", err)
-		}
-
-		// NextPageId will be the first child if there are children
-		orderedChildrenIDs, err := loadOrderedChildrenIDs(db, u, p.PageID, p.SortChildrenBy)
-		if err != nil {
-			return fmt.Errorf("Error getting first child: %v", err)
-		}
-		if len(orderedChildrenIDs) > 0 {
-			p.NextPageID = orderedChildrenIDs[0]
-		}
-
-		// If there are no children, then get the next sibling
-		if !IsIDValid(p.NextPageID) {
-			p.NextPageID, err = loadSiblingID(db, u, p.PageID, true)
-			if err != nil {
-				return fmt.Errorf("Error while loading next page id: %v", err)
-			}
-		}
-	}
-	return nil
-}
-
 // LoadDraftExistence computes for each page whether or not the user has an
 // autosave draft for it.
 // This only makes sense to call for pages which were loaded for isLiveEdit=true.
@@ -2471,23 +2355,6 @@ func LoadAliasToPageID(db *database.DB, u *CurrentUser, alias string) (string, b
 	}
 	pageID, ok := aliasToIDMap[strings.ToLower(alias)]
 	return pageID, ok, nil
-}
-
-// LoadAliasAndPageId returns both the alias and the pageId for a given alias or pageId.
-func LoadAliasAndPageID(db *database.DB, u *CurrentUser, alias string) (string, string, bool, error) {
-	aliasToIDMap, err := LoadAliasToPageIDMap(db, u, []string{alias})
-	if err != nil {
-		return "", "", false, err
-	}
-
-	// return the matching alias->pageId entry, but not the matching pageId->pageId entry
-	for nextAlias, nextPageID := range aliasToIDMap {
-		if (nextAlias == strings.ToLower(alias) || nextPageID == strings.ToLower(alias)) && nextAlias != nextPageID {
-			return nextAlias, nextPageID, true, err
-		}
-	}
-
-	return "", "", false, err
 }
 
 type ProcessLensCallback func(db *database.DB, lens *Lens) error

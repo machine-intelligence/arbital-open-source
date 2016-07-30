@@ -248,35 +248,6 @@ func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (u
 	return u, nil
 }
 
-// LoadUpdateCount returns the number of not seen updates the given user has.
-func LoadUpdateCount(db *database.DB, userID string) (int, error) {
-	editTypes := []string{PageEditUpdateType}
-
-	var editUpdateCount int
-	row := database.NewQuery(`
-		SELECT COUNT(DISTINCT type, subscribedToId, byUserId)
-		FROM updates
-		WHERE NOT seen AND userId=?`, userID).Add(`
-			AND type IN`).AddArgsGroupStr(editTypes).ToStatement(db).QueryRow()
-	_, err := row.Scan(&editUpdateCount)
-	if err != nil {
-		return -1, err
-	}
-
-	var nonEditUpdateCount int
-	row = database.NewQuery(`
-		SELECT COUNT(*)
-		FROM updates
-		WHERE NOT seen AND userId=?`, userID).Add(`
-			AND type NOT IN`).AddArgsGroupStr(editTypes).ToStatement(db).QueryRow()
-	_, err = row.Scan(&nonEditUpdateCount)
-	if err != nil {
-		return -1, err
-	}
-
-	return editUpdateCount + nonEditUpdateCount, err
-}
-
 // Load the number of new achievements for this user
 func LoadNewAchievementCount(db *database.DB, user *CurrentUser) (int, error) {
 	lastAchievementsView, err := LoadLastView(db, user, LastAchievementsModeView)

@@ -132,7 +132,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		c.Debugf("UpdateFeaturedPagesTask enqueue error: %v", err)
 	}
 
-	for true {
+	for {
 		if err := processTask(c); err != nil {
 			c.Debugf("ERROR: %v", err)
 			c.Errorf("%v", err)

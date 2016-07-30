@@ -49,12 +49,12 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 		return
 	}
 
-	if IsIDValid(p.SeeGroupID) && !u.IsMemberOfGroup(p.SeeGroupID) {
+	if IsIDValid(p.SeeGroupID) && !u.IsMemberOfGroup(p.SeeGroupID) && !u.IsAdmin {
 		p.Permissions.Edit.Reason = "You don't have group permission to EVEN SEE this page"
 		return
 	}
 
-	if IsIDValid(p.EditGroupID) && !u.IsMemberOfGroup(p.EditGroupID) {
+	if IsIDValid(p.EditGroupID) && !u.IsMemberOfGroup(p.EditGroupID) && !u.IsAdmin {
 		p.Permissions.Edit.Reason = "You don't have group permission to edit this page, but you can propose edits"
 		p.Permissions.ProposeEdit.Has = true
 		return

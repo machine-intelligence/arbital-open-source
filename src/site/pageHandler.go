@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/taskqueue"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -17,21 +16,16 @@ import (
 	"zanaduu3/src/sessions"
 
 	"github.com/gorilla/mux"
+	"github.com/imdario/mergo"
 )
 
-// Handler serves HTTP.
-type handler http.HandlerFunc
-
-// commonPageData contains data that is common between all pages.
-type commonPageData struct {
-	// Logged in user
-	User *core.CurrentUser
-	// Map of page id -> currently live version of the page
-	PageMap map[string]*core.Page
-	// Map of page id -> some edit of the page
-	EditMap    map[string]*core.Page
-	UserMap    map[string]*core.User
-	MasteryMap map[string]*core.Mastery
+type dynamicPageTmplData struct {
+	Title             string
+	URL               string
+	Description       string
+	VersionID         string
+	IsLive            bool
+	MaybeServerPrefix string
 }
 
 // pageHandlerWrapper wraps one of our page handlers.
@@ -41,6 +35,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		if sessions.Live && r.URL.Scheme != "https" {
 			safeURL := strings.Replace(r.URL.String(), "http", "https", 1)
 			http.Redirect(w, r, safeURL, http.StatusSeeOther)
+			return
 		}
 
 		c := sessions.NewContext(r)
@@ -109,6 +104,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		if core.IsIDValid(params.PrivateGroupID) && !core.IsIDValid(u.ID) {
 			if r.URL.Path != "/login/" {
 				http.Redirect(w, r, fmt.Sprintf("/login/?continueUrl=%s", url.QueryEscape(r.URL.String())), http.StatusSeeOther)
+				return
 			}
 		}
 		if userID := u.GetSomeID(); userID != "" {
@@ -141,13 +137,20 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			fail(result.ResponseCode, result.Err.Message, result.Err.Err)
 			return
 		}
-		if result.Data == nil {
-			result.Data = map[string]string{
-				"Title":       "Arbital",
-				"Url":         "https://" + r.Host + r.RequestURI,
-				"Description": "",
-				"VersionId":   appengine.VersionID(c),
+		if d, ok := result.Data.(dynamicPageTmplData); ok || result.Data == nil {
+			isLive := !appengine.IsDevAppServer()
+			devPrefix := "http://localhost:8014" // Keep in sync with webpack.config.js
+			if isLive {
+				devPrefix = ""
 			}
+			mergo.Merge(&d, dynamicPageTmplData{
+				Title:             "Arbital",
+				URL:               "https://" + r.Host + r.RequestURI,
+				VersionID:         appengine.VersionID(c),
+				IsLive:            isLive,
+				MaybeServerPrefix: devPrefix,
+			})
+			result.Data = d
 		}
 
 		p.ServeHTTP(w, r, result)
@@ -158,27 +161,4 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 // newPage returns a new page using default options.
 func newPage(renderer pages.Renderer, tmpls []string) pages.Page {
 	return pages.Add("", renderer, pages.PageOptions{}, tmpls...)
-}
-
-// monitor sends counters added within the handler off to monitoring.
-func (fn handler) monitor() handler {
-	return func(w http.ResponseWriter, r *http.Request) {
-		c := sessions.NewContext(r)
-		fn(w, r)
-		// At end of each request, add task to reporting queue.
-		t, err := c.Report()
-		if err != nil {
-			c.Errorf("failed to create monitoring task: %v\n", err)
-			return
-		}
-		if t == nil {
-			// no monitoring task, nothing to do.
-			return
-		}
-		_, err = taskqueue.Add(c, t, "report-monitoring")
-		if err != nil {
-			c.Errorf("failed to add monitoring POST task to queue: %v\n", err)
-			return
-		}
-	}
 }

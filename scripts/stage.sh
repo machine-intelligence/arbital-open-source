@@ -16,4 +16,31 @@ cp -v config.yaml src/queue_daemon/
 dev_appserver.py \
 	src/site/app.yaml \
 	src/queue_daemon/module.yaml \
-	--admin_port 8011 --port 8012 --host 0.0.0.0 --enable_sendmail=yes
+	--admin_port 8011 --port 8012 --host 0.0.0.0 --enable_sendmail=yes &
+appserver_PID=$!
+
+# Start webpack-dev-server to serve webpack bundles. The dev server
+# will watch for updates to files that the bundles depends on and
+# hot-reload them in the browser.
+#
+# Keep the port in sync with pageHandler.go.
+npm run webpack-dev-server -- \
+    --inline \
+    --progress \
+    --color \
+    --port 8014 \
+    --output-public-path "http://localhost:8014/static/js/" \
+    --hot \
+    --config dev.config.js \
+    &
+webpack_server_PID=$!
+
+# Kill both dev servers on ctrl-c.
+trap ctrl_c INT
+function ctrl_c() {
+    kill $appserver_PID
+    kill $webpack_server_PID
+}
+
+# https://stackoverflow.com/questions/2935183/bash-infinite-sleep-infinite-blocking
+cat

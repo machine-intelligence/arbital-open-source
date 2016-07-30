@@ -64,9 +64,9 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't load page", err)
 	}
 
-	return pages.Success(map[string]string{
-		"Title":       p.Title,
-		"Url":         "https://" + params.R.Host + params.R.RequestURI,
-		"Description": p.Clickbait,
+	return pages.Success(dynamicPageTmplData{
+		Title:       p.Title,
+		URL:         "https://" + params.R.Host + params.R.RequestURI,
+		Description: p.Clickbait,
 	})
 }

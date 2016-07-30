@@ -2,7 +2,6 @@
 package core
 
 import (
-	"bytes"
 	"fmt"
 	"regexp"
 	"strings"
@@ -79,19 +78,6 @@ func AddMarkToMap(markID string, markMap map[string]*Mark) *Mark {
 		markMap[markID] = mark
 	}
 	return mark
-}
-
-// PageIdsStringFromMap returns a comma separated string of all pageIds in the given map.
-func PageIDsStringFromMap(pageMap map[string]*Page) string {
-	var buffer bytes.Buffer
-	for id := range pageMap {
-		buffer.WriteString(fmt.Sprintf("%s,", id))
-	}
-	str := buffer.String()
-	if len(str) >= 1 {
-		str = str[0 : len(str)-1]
-	}
-	return str
 }
 
 // PageIdsListFromMap returns a comma separated string of all pageIds in the given map.
@@ -312,11 +298,6 @@ func ExtractTodoCount(text string) int {
 	return todoCount + len(submatches)
 }
 
-// GetPageUrl returns the domain relative url for accessing the given page.
-func GetPageURL(pageID string) string {
-	return fmt.Sprintf("/p/%s", pageID)
-}
-
 // GetPageFullUrl returns the full url for accessing the given page.
 func GetPageFullURL(subdomain string, pageID string) string {
 	if len(subdomain) > 0 {
@@ -326,11 +307,6 @@ func GetPageFullURL(subdomain string, pageID string) string {
 	return fmt.Sprintf("http://%s%s/p/%s", subdomain, domain, pageID)
 }
 
-// GetEditPageUrl returns the domain relative url for editing the given page.
-func GetEditPageURL(pageID string) string {
-	return fmt.Sprintf("/edit/%s", pageID)
-}
-
 // GetEditPageFullUrl returns the full url for editing the given page.
 func GetEditPageFullURL(subdomain string, pageID string) string {
 	if len(subdomain) > 0 {
@@ -338,14 +314,6 @@ func GetEditPageFullURL(subdomain string, pageID string) string {
 	}
 	domain := strings.TrimPrefix(sessions.GetRawDomain(), "http://")
 	return fmt.Sprintf("http://%s%s/edit/%s", subdomain, domain, pageID)
-}
-
-// GetNewPageUrl returns the domain relative url for creating a page with a set alias.
-func GetNewPageURL(alias string) string {
-	if alias != "" {
-		alias = fmt.Sprintf("?alias=%s", alias)
-	}
-	return fmt.Sprintf("/edit/%s", alias)
 }
 
 // CorrectPageType converts the page type to lowercase and checks that it's
@@ -382,16 +350,6 @@ func IsIDValid(pageID string) bool {
 // Check if the given alias is valid
 func IsAliasValid(alias string) bool {
 	return regexp.MustCompile("^" + AliasOrPageIDRegexpStr + "$").MatchString(alias)
-}
-
-func IsUser(db *database.DB, userID string) bool {
-	var userCount int
-	row := db.NewStatement(`
-		SELECT COUNT(id)
-		FROM users
-		WHERE id=?`).QueryRow(userID)
-	row.Scan(&userCount)
-	return userCount > 0
 }
 
 func GetCommentParents(db *database.DB, pageID string) (string, string, error) {
@@ -433,60 +391,6 @@ func GetCommentParents(db *database.DB, pageID string) (string, string, error) {
 	}
 
 	return commentParentID, commentPrimaryPageID, nil
-}
-
-func GetPrimaryParentTitle(db *database.DB, u *CurrentUser, pageID string) (string, error) {
-	parentTitle := ""
-	found, err := database.NewQuery(`
-		SELECT primaryParents.title
-		FROM`).AddPart(PageInfosTable(u)).Add(`AS primaryParentInfos
-		JOIN pagePairs AS pp
-		ON primaryParentInfos.pageId=pp.parentId
-		JOIN pages AS primaryParents
-		ON primaryParentInfos.pageId=primaryParents.pageId
-		WHERE primaryParentInfos.type!=?`, CommentPageType).Add(`
-			AND primaryParents.isLiveEdit AND pp.type=?`, ParentPagePairType).Add(`
-			AND pp.childId=?`, pageID).ToStatement(db).QueryRow().Scan(&parentTitle)
-	if err != nil {
-		return "", fmt.Errorf("Couldn't load primary parent", err)
-	} else if !found {
-		return "", fmt.Errorf("Couldn't find a primary parent")
-	} else {
-		return parentTitle, nil
-	}
-}
-
-// Look up the domains that this page is in
-func LoadDomainsForPage(db *database.DB, pageID string) ([]string, error) {
-	return LoadDomainsForPages(db, pageID)
-}
-
-// Look up the domains that these pages are in
-func LoadDomainsForPages(db *database.DB, pageIDs ...interface{}) ([]string, error) {
-	domainIDs := make([]string, 0)
-
-	rows := database.NewQuery(`
-		SELECT pdp.domainId
-		FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
-		JOIN pageDomainPairs AS pdp
-		ON (pi.pageId=pdp.pageId)
-		WHERE pi.pageId IN`).AddArgsGroup(pageIDs).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var domainID string
-		err := rows.Scan(&domainID)
-		if err != nil {
-			return fmt.Errorf("failed to scan for a domain: %v", err)
-		}
-		domainIDs = append(domainIDs, domainID)
-		return nil
-	})
-
-	// For pages with no domain, we consider them to be in the "" domain.
-	if len(domainIDs) == 0 {
-		domainIDs = append(domainIDs, "")
-	}
-
-	return domainIDs, err
 }
 
 // LoadAllDomainIds loads all the domains that currently exist on Arbital.

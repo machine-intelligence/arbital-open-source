@@ -9,36 +9,46 @@
 
 	<div class="dynamic-hor-padding">
 		<br>
-		<!-- If there isn't anything -->
-		<!--<div class="md-caption" ng-if="::!hasLearnMore()">
-			<span ng-if="page.subjects.length <= 0">
-				This page is not marked as covering any subjects. Can you add some?
-			</span>
-			<span ng-if="page.subjects.length > 0">
-				This pages covers
-				<ng-pluralize count="pagePairs.length"
-						when="{'one': 'one subject,', 'other': '{} subjects,'}"></ng-pluralize>
-				but there aren't any pages that rely on
-				<ng-pluralize count="pagePairs.length"
-						when="{'one': 'it', 'other': 'them'}"></ng-pluralize>.
-			</span>
-		</div>-->
 
-		<!-- If there is something -->
-		<div ng-if="::hasLearnMore()">
-			<div ng-repeat="(subjectId,pagePairs) in page.learnMoreMap">
-				This page covered
-				<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-				. Here
-				<ng-pluralize count="pagePairs.length"
-						when="{'one': 'is a page that relies', 'other': 'are some pages that rely'}"></ng-pluralize>
-				on that concept:
-				<ul class="no-top-margin">
-					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
-						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
-					</li>
-				</ul>
-			</div>
+		<!-- Taught -->
+		<div ng-repeat="(subjectId,pageIds) in page.learnMoreTaughtMap">
+			This page taught
+			<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
+			<span class="comma">.</span>
+			Read a page that expands on that concept:
+			<ul class="no-top-margin">
+				<li ng-repeat="pageId in pageIds">
+					<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
+				</li>
+			</ul>
 		</div>
+
+		<!-- Required -->
+		<div ng-repeat="(subjectId,pageIds) in page.learnMoreRequiredMap">
+			This page taught
+			<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
+			<span class="comma">.<span>
+			Read a page that relies on that concept:
+			<ul class="no-top-margin">
+				<li ng-repeat="pageId in pageIds">
+					<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
+				</li>
+			</ul>
+		</div>
+
+		<!-- Covered -->
+		<div ng-repeat="(subjectId,pageIds) in page.learnMoreCoveredMap">
+			This page covered
+			<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
+			<span class="comma">.<span>
+			Read a page that expands on that concept:
+			<ul class="no-top-margin">
+				<li ng-repeat="pageId in pageIds">
+					<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
+				</li>
+			</ul>
+		</div>
+
+		<br>
 	</div>
 </div>

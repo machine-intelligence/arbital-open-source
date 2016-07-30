@@ -216,18 +216,6 @@ func LoadParentIDs(db *database.DB, pageMap map[string]*Page, u *CurrentUser, op
 	return nil
 }
 
-// LoadParentIds loads the page ids for the given page
-func LoadParentIdsForPage(db *database.DB, pageID string, u *CurrentUser) ([]string, error) {
-	p := NewPage(pageID)
-	pageMap := make(map[string]*Page)
-	pageMap[pageID] = p
-	options := &LoadParentIdsOptions{
-		PagePairType: ParentPagePairType,
-	}
-	err := LoadParentIDs(db, pageMap, u, options)
-	return p.ParentIDs, err
-}
-
 type LoadReqsOptions struct {
 	// If set, the parents will be loaded for these pages, but added to the
 	// map passed in as the argument.
@@ -260,6 +248,7 @@ func LoadRequisites(db *database.DB, pageMap map[string]*Page, u *CurrentUser, o
 			childPage.Subjects = append(childPage.Subjects, pagePair)
 			options.MasteryMap[pagePair.ParentID] = &Mastery{PageID: pagePair.ParentID}
 		}
+		AddPageIDToMap(pagePair.ParentID, pageMap)
 		return nil
 	})
 	if err != nil {
@@ -329,28 +318,6 @@ func _getParents(db *database.DB, pageID string) ([]string, error) {
 		return nil
 	})
 	return parents, err
-}
-
-// Returns the ids of all the subjects taught by the given page (does *not* include deleted and unpublished subjects)
-func GetSubjects(db *database.DB, pageID string) ([]string, error) {
-	subjects := make([]string, 0)
-
-	rows := database.NewQuery(`
-		SELECT parentId
-		FROM pagePairs AS pp
-		JOIN`).AddPart(PageInfosTable(nil)).Add(`AS pi
-		ON pp.parentId=pi.pageId
-		WHERE pp.childId=?`, pageID).Add(`AND pp.type=?`, SubjectPagePairType).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var subjectID string
-		if err := rows.Scan(&subjectID); err != nil {
-			return fmt.Errorf("failed to scan for subjectId: %v", err)
-		}
-
-		subjects = append(subjects, subjectID)
-		return nil
-	})
-	return subjects, err
 }
 
 type GetRelatedFunc func(db *database.DB, pageID string) ([]string, error)

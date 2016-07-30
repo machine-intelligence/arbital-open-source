@@ -123,20 +123,6 @@ func IncrementBase31Id(c sessions.Context, previousID string) (string, error) {
 	return nextAvailableID, nil
 }
 
-// Call GetNextAvailableId in a new transaction
-func GetNextAvailableIDInNewTransaction(db *database.DB) (string, error) {
-	var id string
-	err := db.Transaction(func(tx *database.Tx) sessions.Error {
-		var err error
-		id, err = GetNextAvailableID(tx)
-		return sessions.PassThrough(err)
-	})
-	if err != nil {
-		return "", err.Err
-	}
-	return id, nil
-}
-
 // Get the next available base36 Id string that doesn't contain vowels
 func GetNextAvailableID(tx *database.Tx) (string, error) {
 	// Query for the highest used pageId or userId

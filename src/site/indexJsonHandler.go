@@ -7,11 +7,6 @@ import (
 	"zanaduu3/src/pages"
 )
 
-type featuredDomain struct {
-	DomainID string   `json:"domainId"`
-	ChildIDs []string `json:"childIds"`
-}
-
 var indexHandler = siteHandler{
 	URI:         "/json/index/",
 	HandlerFunc: indexJSONHandler,

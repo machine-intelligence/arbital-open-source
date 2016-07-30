@@ -125,6 +125,16 @@
 			</div>
 		</div>
 		<md-divider></md-divider>
+		<md-subheader>
+			Arbital
+		</md-subheader>
+		<md-button ng-href="{{arb.urlService.getNewPageUrl({parentId: arb.pageService.getCurrentPageId()})}}"
+				ng-click="toggleRightMenu()">Create new page</md-button>
+		<md-button href="/recentChanges/" ng-click="toggleRightMenu()">Recent changes</md-button>
+		<md-button ng-click="toggleRightMenu(); newFeedback($event);">
+			Leave feedback
+		</md-button>
+		<md-divider></md-divider>
 
 		<md-button ng-click="logout()" id="logout">Log Out</md-button>
 

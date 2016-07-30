@@ -30,6 +30,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		if sessions.Live && r.URL.Scheme != "https" {
 			safeURL := strings.Replace(r.URL.String(), "http", "https", 1)
 			http.Redirect(w, r, safeURL, http.StatusSeeOther)
+			return
 		}
 
 		c := sessions.NewContext(r)

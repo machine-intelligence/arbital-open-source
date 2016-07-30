@@ -3,7 +3,6 @@
 package site
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -17,18 +16,6 @@ import (
 var (
 	dynamicTmpls = []string{"tmpl/dynamicPage.tmpl"}
 )
-
-// notFoundHandler serves HTTP 404 when no matching handler is registered.
-func notFoundHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: serve static error page here, once we have one.
-
-	// Note that URLs that we have registered but that fail to match,
-	// e.g. because of missing URL params or the wrong HTTP method also
-	// end up here.
-	c := sessions.NewContext(r)
-	c.Warningf("Serving 404 on %q\n", r.URL)
-	http.NotFound(w, r)
-}
 
 func ahHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
@@ -112,7 +99,7 @@ func init() {
 	s.HandleFunc(editHandler.URI, handlerWrapper(editHandler)).Methods("POST")
 	s.HandleFunc(editPageHandler.URI, handlerWrapper(editPageHandler)).Methods("POST")
 	s.HandleFunc(editPageInfoHandler.URI, handlerWrapper(editPageInfoHandler)).Methods("POST")
-	s.HandleFunc(explanationRequestHandler.URI, handlerWrapper(explanationRequestHandler)).Methods("POST")
+	s.HandleFunc(contentRequestHandler.URI, handlerWrapper(contentRequestHandler)).Methods("POST")
 	s.HandleFunc(exploreHandler.URI, handlerWrapper(exploreHandler)).Methods("POST")
 	s.HandleFunc(feedbackHandler.URI, handlerWrapper(feedbackHandler)).Methods("POST")
 	s.HandleFunc(forgotPasswordHandler.URI, handlerWrapper(forgotPasswordHandler)).Methods("POST")
@@ -192,16 +179,4 @@ func init() {
 	http.HandleFunc("/sendTestEmail/", sendTestEmailHandler)
 
 	http.Handle("/", r)
-}
-
-// writeJson converts the given map to JSON and writes it to the given writer.
-func writeJSON(w http.ResponseWriter, m interface{}) error {
-	jsonData, err := json.Marshal(m)
-	if err != nil {
-		return fmt.Errorf("Error marshalling data into json:", err)
-	}
-	// Write some stuff for "JSON Vulnerability Protection"
-	w.Write([]byte(")]}',\n"))
-	w.Write(jsonData)
-	return nil
 }

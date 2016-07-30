@@ -1,6 +1,6 @@
 <md-list-item layout="column" layout-align="center" ng-if="!row || row.myLikeValue >= 0">
 	<div layout="row" layout-align="start center">
-		<div layout="row" layout-align="start center" flex>
+		<div layout="row" layout-align="start start" layout-wrap flex>
 
 			<arb-likes
 				object-id="{{::row.alias}}"
@@ -10,19 +10,15 @@
 				ng-if="::row.linkedByPageIds"
 				></arb-likes>
 
-			<div class="explanation-text" layout="column" flex>
-				<div layout="row" layout-align="start center">
-					{{::prettyName}} &nbsp;
-					<span ng-if="::row.linkedByPageIds" class="md-caption">
-						referenced on
-						<span class="cursor-pointer underline" ng-click="toggleExpand()">{{::row.linkedByPageIds.length}} pages</span>
-						with {{totalViewCount}} total views
-					</span>
-				</div>
+			<div class="explanation-text" flex>
+				{{::prettyName}}
+				<span ng-if="::row.linkedByPageIds" class="md-caption">
+					referenced on
+					<span class="cursor-pointer underline" ng-click="toggleExpand()">{{::row.linkedByPageIds.length}} pages</span>
+					with {{totalViewCount}} total views
+				</span>
 			</div>
-		</div>
 
-		<div layout="row" layout-align="center center">
 			<!-- Edit -->
 			<arb-edit-button class="icon-last"
 					page-id="{{row.alias}}"

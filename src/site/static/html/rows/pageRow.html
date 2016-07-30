@@ -1,67 +1,72 @@
 <div class="page-row" layout="row" layout-align="start center" flex>
-	<arb-likes object-id="{{::page.pageId}}" ng-if="::!hideLikes"></arb-likes>
+	<arb-likes object-id="{{::page.pageId}}"
+			ng-class="{'s18': isTinyScreen}"
+			ng-if="::!hideLikes"></arb-likes>
 
 	<!-- Page title and caption -->
 	<div layout="column" layout-align="center" flex>
-		<div layout="row" layout-align="start center" flex>
+		<div layout="row" layout-align="space between" flex>
 			<arb-page-title page-id="{{::page.pageId}}"
 					is-link="true"
 					use-edit-map="::useEditMap"
 					link-to-edit="::markAsDraft"
 					flex></arb-page-title>
 
+			<!-- Metadata and quick edit button -->
+			<div class="md-caption page-row-metadata"
+					layout="column"
+					layout-gt-xs="row"
+					layout-align="end end"
+					layout-align-gt-xs="start center">
+				<div style="white-space: nowrap" ng-if="::showRedLinkCount">
+					<md-tooltip>Number of manual todos in text + number of broken links</md-tooltip>
+					<span ng-if="::(page.todoCount > 0 || page.redLinkCount > 0)">
+						<span ng-bind="::page.todoCount"></span> + <span ng-bind="::page.redLinkCount"></span>
+					</span>
+					<span ng-if="::(page.todoCount <= 0 && page.redLinkCount <= 0)">
+						No TODOs
+					</span>
+				</div>
+				<div style="white-space: nowrap" ng-if="::showTextLength">
+					<span ng-bind="::(page.textLength | numSuffix)"></span> characters
+				</div>
+				<div style="white-space: nowrap" ng-if="::(page.type === 'question')">
+					<md-icon>font_download</md-icon>
+					<span ng-bind="::page.answerCount"></span>
+				</div>
+				<div style="white-space: nowrap" ng-if="::showCommentCount && page.commentCount > 0">
+					<md-icon>comment</md-icon>
+					<span ng-bind="::page.commentCount"></span>
+				</div>
+				<div style="white-space: nowrap" ng-if="::showLastEdit">
+					edited <span ng-bind="::page.editCreatedAt | smartDateTime"></span>
+				</div>
+				<div style="white-space: nowrap" ng-if="::showCreatedBy">
+					<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
+				</div>
+				<div style="white-space: nowrap" ng-if="::showCreatedAt">
+					<span ng-bind="::page.pageCreatedAt | smartDateTime"></span>
+				</div>
+				<div style="white-space: nowrap" ng-if="::showOtherDateTime">
+					<span ng-bind="::otherDateTime | smartDateTime"></span>
+				</div>
+				<div style="white-space: nowrap" ng-if="showTags">
+					<span ng-repeat="tag in page.taggedAsIds">
+						<arb-tag tag-id="{{::tag}}"></arb-tag>
+					</span>
+				</div>
+				<div style="white-space: nowrap" ng-if="::markAsDraft">
+					draft from <span ng-bind="::(page.editCreatedAt | smartDateTime)"></span>
+				</div>
+				<md-button ng-href="{{::arb.urlService.getEditPageUrl(page.pageId)}}"
+						class="md-icon-button icon-last"
+						ng-if="::showQuickEdit">
+					<md-icon>create</md-icon>
+				</md-button>
+			</div>
 		</div>
 		<div class="md-caption page-row-caption" flex>
 			{{::page.clickbait}}
 		</div>
-	</div>
-
-	<!-- Metadata and quick edit button -->
-	<div class="md-caption page-row-metadata" layout="row" layout-align="start center">
-		<div style="white-space: nowrap" ng-if="::showRedLinkCount">
-			<md-tooltip>Number of manual todos in text + number of broken links</md-tooltip>
-			<span ng-if="::(page.todoCount > 0 || page.redLinkCount > 0)">
-				<span ng-bind="::page.todoCount"></span> + <span ng-bind="::page.redLinkCount"></span>
-			</span>
-			<span ng-if="::(page.todoCount <= 0 && page.redLinkCount <= 0)">
-				No TODOs
-			</span>
-		</div>
-		<div style="white-space: nowrap" ng-if="::showTextLength">
-			<span ng-bind="::(page.textLength | numSuffix)"></span> characters
-		</div>
-		<div style="white-space: nowrap" ng-if="::(page.type === 'question')">
-			<md-icon>font_download</md-icon>
-			<span ng-bind="::page.answerCount"></span>
-		</div>
-		<div style="white-space: nowrap" ng-if="::showCommentCount && page.commentCount > 0">
-			<md-icon>comment</md-icon>
-			<span ng-bind="::page.commentCount"></span>
-		</div>
-		<div style="white-space: nowrap" ng-if="::showLastEdit">
-			edited <span ng-bind="::page.editCreatedAt | smartDateTime"></span>
-		</div>
-		<div style="white-space: nowrap" ng-if="::showCreatedBy">
-			<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
-		</div>
-		<div style="white-space: nowrap" ng-if="::showCreatedAt">
-			<span ng-bind="::page.pageCreatedAt | smartDateTime"></span>
-		</div>
-		<div style="white-space: nowrap" ng-if="::showOtherDateTime">
-			<span ng-bind="::otherDateTime | smartDateTime"></span>
-		</div>
-		<div style="white-space: nowrap" ng-if="showTags">
-			<span ng-repeat="tag in page.taggedAsIds">
-				<arb-tag tag-id="{{::tag}}"></arb-tag>
-			</span>
-		</div>
-		<div style="white-space: nowrap" ng-if="::markAsDraft">
-			draft from <span ng-bind="::(page.editCreatedAt | smartDateTime)"></span>
-		</div>
-		<md-button ng-href="{{::arb.urlService.getEditPageUrl(page.pageId)}}"
-				class="md-icon-button icon-last"
-				ng-if="::showQuickEdit">
-			<md-icon>create</md-icon>
-		</md-button>
 	</div>
 </div>
