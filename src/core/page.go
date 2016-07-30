@@ -1299,23 +1299,14 @@ func LoadContentRequestsForPages(db *database.DB, u *CurrentUser, resultData *Co
 		return err
 	}
 
-	allCRs := make([]*ContentRequest, 0)
+	likeablesMap := make(map[int64]*Likeable)
 	for id := range sourcePageMap {
 		p := resultData.PageMap[id]
 		for _, cr := range p.ContentRequests {
-			allCRs = append(allCRs, cr)
-		}
-	}
-	return LoadLikesForContentRequests(db, u, allCRs)
-}
-
-// TODO: refactor so that this and LoadLikesForChangeLogs are one method
-// Load LikeCount and MyLikeValue for a set of ContentRequests
-func LoadLikesForContentRequests(db *database.DB, u *CurrentUser, contentRequests []*ContentRequest) error {
-	likeablesMap := make(map[int64]*Likeable)
-	for _, cr := range contentRequests {
-		if cr.LikeableID != 0 {
-			likeablesMap[cr.LikeableID] = &cr.Likeable
+			l := &cr.Likeable
+			if l.LikeableID != 0 {
+				likeablesMap[l.LikeableID] = l
+			}
 		}
 	}
 	return LoadLikes(db, u, likeablesMap, nil, nil)
