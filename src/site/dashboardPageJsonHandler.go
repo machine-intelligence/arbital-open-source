@@ -64,11 +64,6 @@ func dashboardListJSONHandlerWrapper(params *pages.HandlerParams, loadFunction L
 			return pages.Fail("Pipeline error", err)
 		}
 
-		err = loadStats(db, returnData.ResultMap, u)
-		if err != nil {
-			return pages.Fail("error loading stats", err)
-		}
-
 		return pages.Success(returnData)
 	}
 }
