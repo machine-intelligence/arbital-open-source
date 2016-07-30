@@ -29,7 +29,9 @@
 
 	<!-- Page's text. Populated by markdown. -->
 	<div layout="row">
-		<arb-change-speed-button page-id="{{::page.pageId}}" go-slow="::true"></arb-change-speed-button>
+		<arb-change-speed-button page-id="{{::page.pageId}}"
+				go-slow="::true"
+				ng-if="::!isHub()"></arb-change-speed-button>
 		<div class="lens-text-container">
 
 			<!-- Page title -->
@@ -51,6 +53,8 @@
 						ng-if="::arb.userService.userMap[page.editGroupId]"></arb-user-name>
 			</div>
 
+			<arb-hub-page-gui page-id="{{::pageId}}" ng-if="::isHub()"></arb-hub-page-gui>
+
 			<!-- Body text -->
 			<arb-markdown class="lens-text"
 					page-id="{{::page.pageId}}"></arb-markdown>
@@ -68,6 +72,11 @@
 							user-id="{{::creatorId}}"></arb-user-name>
 				</span>
 			</div>
+
+			<!-- HUB navigation -->
+			<arb-hub-page-footer page-id="{{::pageId}}"
+					hub-page-id="{{::hubPageId}}"
+					ng-if="::hubPageId"></arb-hub-page-footer>
 
 			<div layout-gt-xs="row" layout-align="start end">
 				<!-- Subjects taught -->
@@ -100,10 +109,10 @@
 					</md-button>
 				</div>
 
-				<arb-next-prev page-id="{{::lensParentId}}"
-						extra-info="!showQuickContinue()"></arb-next-prev>
+				<div arb-next-prev page-id="{{::lensParentId}}"
+						extra-info="!showQuickContinue()"></div>
 
-				<arb-path-nav page-id="{{::pageId}}"></arb-path-nav>
+				<div arb-path-nav page-id="{{::pageId}}"></div>
 			</div>
 
 			<!-- You can now read... -->
@@ -115,7 +124,9 @@
 				</span>
 			</div>
 		</div>
-		<arb-change-speed-button page-id="{{::page.pageId}}" go-slow="::false"></arb-change-speed-button>
+		<arb-change-speed-button page-id="{{::page.pageId}}"
+				go-slow="::false"
+				ng-if="::!isHub()"></arb-change-speed-button>
 	</div>
 
 	<!-- Action bar -->

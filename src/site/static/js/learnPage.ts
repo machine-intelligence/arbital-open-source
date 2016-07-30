@@ -26,7 +26,7 @@ app.directive('arbLearnPage', function($location, $compile, arb) {
 
 			// Check to see if the given page has "Just a Requisite" (22t) tag.
 			var isJustARequisite = function(pageId) {
-				return arb.stateService.pageMap[pageId].taggedAsIds.indexOf('22t') >= 0;
+				return arb.stateService.pageMap[pageId].tagIds.indexOf('22t') >= 0;
 			};
 
 			// Figure our the order of pages through which to take the user

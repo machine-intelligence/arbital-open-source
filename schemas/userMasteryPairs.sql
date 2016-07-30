@@ -19,6 +19,9 @@ CREATE TABLE userMasteryPairs (
 	/* Set if the user wants to read this. */
 	wants BOOLEAN NOT NULL,
 
+	/* Level of understanding. */
+	level INT NOT NULL,
+
 	/* Id of the page where the user marked the mastery learned */
 	taughtBy VARCHAR(32) NOT NULL,
 

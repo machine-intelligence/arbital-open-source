@@ -143,6 +143,30 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		isInDomain: function(domainId) {
 			return this.domainIds.indexOf(domainId) >= 0;
 		},
+		// Helper function for getBest...Url functions
+		_getBestPageUrl: function(pageIds, currentLevel, excludePageId) {
+			var pageId = undefined;
+			for (var n = 0; n < pageIds.length; n++) {
+				if (pageIds[n] != excludePageId) {
+					pageId = pageIds[n];
+					break;
+				}
+			}
+			if (!pageId) return undefined;
+			return urlService.getPageUrl(pageId, {hubId: this.pageId});
+		},
+		// Return url most suited for this user to boost understanding of this page
+		getBestBoostPageUrl: function(currentLevel, excludePageId) {
+			if (currentLevel <= 0) return '';
+			var pageIds = this.hubContent.boostPageIds[currentLevel];
+			return this._getBestPageUrl(pageIds, currentLevel, excludePageId);
+		},
+		// Return url most suited for this user to learn the next level of this page
+		getBestLearnPageUrl: function(currentLevel, excludePageId) {
+			if (currentLevel >= this.hubContent.learnPageIds.length - 1) return '';
+			var pageIds = this.hubContent.learnPageIds[currentLevel + 1];
+			return this._getBestPageUrl(pageIds, currentLevel, excludePageId);
+		},
 	};
 
 	// Massage page's variables to be easier to deal with.

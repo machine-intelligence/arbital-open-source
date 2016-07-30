@@ -209,7 +209,7 @@ func searchJSONInternalHandler(params *pages.HandlerParams, query string) *pages
 	for _, hit := range results.Hits.Hits {
 		if page, ok := returnData.PageMap[hit.Source.PageID]; ok {
 			// Adjust the score based on tags
-			for _, tagID := range page.TaggedAsIDs {
+			for _, tagID := range page.TagIDs {
 				if penalty, ok := penaltyMap[tagID]; ok {
 					hit.Score *= penalty
 				}

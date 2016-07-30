@@ -1,0 +1,86 @@
+<!-- GUI that appears at the top of a HUB page -->
+<div layout="column">
+	<div>
+		Arbital thinks you
+		<md-input-container class="inline-md-select no-margins">
+			<md-select ng-model="level"
+					md-on-close="updateLevel()"
+					aria-label="Level">
+				<md-option value="0">haven't heard of</md-option>
+				<md-option value="1">have a loose understanding of</md-option>
+				<md-option value="2">have a basic understanding of</md-option>
+				<md-option value="3">have a technical understanding of</md-option>
+				<md-option value="4">have a research level understanding of</md-option>
+			</md-select>
+		</md-input-container>
+		this concept.
+	</div>
+
+	<div>
+		<!-- Start learning -->
+		<div ng-if="getIntLevel()==0">
+			<div ng-if="page.hubContent.learnPageIds[getIntLevel() + 1].length > 0">
+				<md-button class="md-primary md-raised" ng-click="goLearn($event)">Start learning</md-button>
+				<br>
+				Or pick a page that introduces this concept:
+				<ul class="no-top-margin">
+					<li ng-repeat="pageId in page.hubContent.learnPageIds[getIntLevel() + 1]">
+						<arb-page-title page-id="{{::pageId}}" is-link="true" hub-id="{{::page.pageId}}"></arb-page-title>
+					</li>
+				</ul>
+			</div>
+			<div ng-if="page.hubContent.learnPageIds[getIntLevel() + 1].length <= 0">
+				<div>Unfortunately there are no pages on Arbital that introduce this concept to beginners.</div>
+				<!-- TODO: hook up this button -->
+				<md-button class="md-raised">I want it</md-button>
+			</div>
+		</div>
+
+		<div ng-if="getIntLevel()>0">
+			<!-- Boost understanding -->
+			<div>
+				<div ng-if="page.hubContent.boostPageIds[getIntLevel()].length > 0">
+					<md-button class="md-primary md-raised"
+							ng-click="goBoost($event)"
+							ng-if="arb.masteryService.hasUnreadBoostPages(page, getIntLevel())">Boost understanding</md-button>
+					<!-- TODO: hook up this button -->
+					<md-button class="md-raised"
+							ng-if="!arb.masteryService.hasUnreadBoostPages(page, getIntLevel())">I want more</md-button>
+					<br>
+					Or pick a page that boosts your understanding:
+					<ul class="no-top-margin">
+						<li ng-repeat="pageId in page.hubContent.boostPageIds[getIntLevel()]"
+								ng-class="{'md-caption': !arb.masteryService.doesPageTeachUnknownReqs(pageId)}">
+							<arb-page-title page-id="{{::pageId}}" is-link="true" hub-id="{{::page.pageId}}"></arb-page-title>
+						</li>
+					</ul>
+				</div>
+				<div ng-if="page.hubContent.boostPageIds[getIntLevel()].length <= 0">
+					<div>Unfortunately there are no pages on Arbital that boost understanding of this concept at this level.</div>
+					<!-- TODO: hook up this button -->
+					<md-button class="md-raised">I want it</md-button>
+				</div>
+			</div>
+
+			<!-- Next level -->
+			<div ng-if="getIntLevel() < page.hubContent.learnPageIds.length - 1">
+				<div ng-if="page.hubContent.learnPageIds[getIntLevel() + 1].length > 0">
+					<md-button class="md-primary md-raised" ng-click="goLearn($event)">Next level</md-button>
+					<br>
+					Or pick a page that teaches the next level of this concept:
+					<ul class="no-top-margin">
+						<li ng-repeat="pageId in page.hubContent.learnPageIds[getIntLevel() + 1]">
+							<arb-page-title page-id="{{::pageId}}" is-link="true" hub-id="{{::page.pageId}}"></arb-page-title>
+						</li>
+					</ul>
+				</div>
+				<div ng-if="page.hubContent.learnPageIds[getIntLevel() + 1].length <= 0">
+					<div>Unfortunately there are no pages on Arbital that teach the next level of this concept.</div>
+					<!-- TODO: hook up this button -->
+					<md-button class="md-raised">I want it</md-button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<hr></hr>
+</div>

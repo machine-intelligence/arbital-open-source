@@ -33,6 +33,7 @@ const (
 	AClassPageID                  = "4yf"
 	BClassPageID                  = "4yd"
 	FeaturedClassPageID           = "4yl"
+	HubPageID                     = "5ls"
 )
 
 // AddPageToMap adds a new page with the given page id to the map if it's not

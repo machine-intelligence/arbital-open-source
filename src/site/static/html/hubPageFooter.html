@@ -1,0 +1,41 @@
+<!-- Footer that appears at the bottom of the page if the user is exploring from a HUB page -->
+<div>
+	<hr>
+	<div>
+		<div>
+			Currently learning about:
+			<arb-page-title page-id="{{::hubPageId}}" is-link="true"></arb-page-title>
+		</div>
+		<div ng-if="levelUpMasteryCount > 1">
+			Arbital will remember your improved understanding of these concepts:
+		</div>
+		<div ng-repeat="(masteryId,level) in levelUpMasteries">
+			<md-checkbox class="md-primary no-margins"
+					ng-model="levelUpMasteries[masteryId]"
+					aria-label="Level up?">
+				<span ng-if="levelUpMasteryCount <= 1">
+					Arbital will remember your improved understanding of
+				<span ng-if="masteryId==hubPageId">that concept</span>
+				</span>
+				<arb-page-title page-id="{{::masteryId}}"
+						is-link="true"
+						ng-if="masteryId!=hubPageId || levelUpMasteryCount > 1"></arb-page-title>
+			</md-checkbox>
+		</div>
+	</div>
+	<div layout="row">
+		<md-button class="md-primary md-raised"
+				ng-href="{{getBoostUrl()}}"
+				ng-click="doLevelUp()"
+				ng-if="getBoostUrl()">Boost understanding</md-button>
+		<md-button class="md-primary"
+				ng-class="{'md-raised': !getBoostUrl()}"
+				ng-href="{{getLearnUrl()}}"
+				ng-click="doLevelUp()"
+				ng-if="getLearnUrl()">Learn at next level</md-button>
+		<div flex ng-if="getBoostUrl() || getLearnUrl()"></div>
+		<md-button ng-href="{{arb.urlService.getPageUrl(hubPageId, {hubId: hubPageId})}}"
+				ng-click="doLevelUp()"
+				ng-class="{'md-primary md-raised': !getBoostUrl() && !getLearnUrl()}">Back to hub page</md-button>
+	</div>
+</div>
