@@ -647,7 +647,7 @@ app.directive('arbPageList', function(arb) {
             }
 
 			$scope.fetchMore = function() {
-				var postUrl = '/json/dashboardPage/' + $scope.listName + '/';
+				var postUrl = '/json/' + $scope.listName + '/';
 
 				$scope.loadItemsTotal += $scope.loadItemsIncrement;
 				$scope.fetchingMore = true;
