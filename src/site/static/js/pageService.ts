@@ -157,7 +157,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		},
 		// Return url most suited for this user to boost understanding of this page
 		getBestBoostPageUrl: function(currentLevel, excludePageId) {
-			if (currentLevel < 0) return '';
+			if (currentLevel <= 0) return '';
 			var pageIds = this.hubContent.boostPageIds[currentLevel];
 			return this._getBestPageUrl(pageIds, currentLevel, excludePageId);
 		},

@@ -2,7 +2,7 @@
 
 import app from './angular.ts';
 
-// Directive to show the GUI for a hub page
+// Directive to show the GUI at the top of a HUB page
 app.directive('arbHubPageGui', function($compile, $timeout, arb) {
 	return {
 		templateUrl: versionUrl('static/html/hubPageGui.html'),
@@ -15,7 +15,7 @@ app.directive('arbHubPageGui', function($compile, $timeout, arb) {
 			arb.masteryService.sortHubContent($scope.page);
 
 			// Track current user's the mastery level for this requisite
-			$scope.level = '-1';
+			$scope.level = '0';
 			if (arb.masteryService.masteryMap[$scope.pageId].has) {
 				$scope.level = '' + arb.masteryService.masteryMap[$scope.pageId].level;
 			}

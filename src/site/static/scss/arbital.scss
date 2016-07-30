@@ -344,17 +344,7 @@ arb-update-row,
 };
 
 .next-prev-nav {
-	//min-height: 50px;
 	padding: 0 10px;
-}
-
-// Hack to allow us to use 100% height inside dynamic-view
-$toolbar-height: 64px;
-#dynamic-view {
-	/* position: relative;
-	top: -$toolbar-height;
-	padding-top: $toolbar-height;
-	box-sizing: border-box;*/
 }
 
 .sidenav-email {

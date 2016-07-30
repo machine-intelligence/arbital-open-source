@@ -1,3 +1,4 @@
+<!-- GUI that appears at the top of a HUB page -->
 <div layout="column">
 	<div>
 		Arbital thinks you
@@ -5,11 +6,11 @@
 			<md-select ng-model="level"
 					md-on-close="updateLevel()"
 					aria-label="Level">
-				<md-option value="-1">haven't heard of</md-option>
-				<md-option value="0">have a loose understanding of</md-option>
-				<md-option value="1">have a basic understanding of</md-option>
-				<md-option value="2">have a technical understanding of</md-option>
-				<md-option value="3">have a research level understanding of</md-option>
+				<md-option value="0">haven't heard of</md-option>
+				<md-option value="1">have a loose understanding of</md-option>
+				<md-option value="2">have a basic understanding of</md-option>
+				<md-option value="3">have a technical understanding of</md-option>
+				<md-option value="4">have a research level understanding of</md-option>
 			</md-select>
 		</md-input-container>
 		this concept.
@@ -17,14 +18,14 @@
 
 	<div>
 		<!-- Start learning -->
-		<div ng-if="getIntLevel()==-1">
+		<div ng-if="getIntLevel()==0">
 			<div ng-if="page.hubContent.learnPageIds[getIntLevel() + 1].length > 0">
 				<md-button class="md-primary md-raised" ng-click="goLearn($event)">Start learning</md-button>
 				<br>
 				Or pick a page that introduces this concept:
 				<ul class="no-top-margin">
 					<li ng-repeat="pageId in page.hubContent.learnPageIds[getIntLevel() + 1]">
-						<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
+						<arb-page-title page-id="{{::pageId}}" is-link="true" hub-id="{{::page.pageId}}"></arb-page-title>
 					</li>
 				</ul>
 			</div>
@@ -35,7 +36,7 @@
 			</div>
 		</div>
 
-		<div ng-if="getIntLevel()>-1">
+		<div ng-if="getIntLevel()>0">
 			<!-- Boost understanding -->
 			<div>
 				<div ng-if="page.hubContent.boostPageIds[getIntLevel()].length > 0">
@@ -50,7 +51,7 @@
 					<ul class="no-top-margin">
 						<li ng-repeat="pageId in page.hubContent.boostPageIds[getIntLevel()]"
 								ng-class="{'md-caption': !arb.masteryService.doesPageTeachUnknownReqs(pageId)}">
-							<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
+							<arb-page-title page-id="{{::pageId}}" is-link="true" hub-id="{{::page.pageId}}"></arb-page-title>
 						</li>
 					</ul>
 				</div>
@@ -69,7 +70,7 @@
 					Or pick a page that teaches the next level of this concept:
 					<ul class="no-top-margin">
 						<li ng-repeat="pageId in page.hubContent.learnPageIds[getIntLevel() + 1]">
-							<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
+							<arb-page-title page-id="{{::pageId}}" is-link="true" hub-id="{{::page.pageId}}"></arb-page-title>
 						</li>
 					</ul>
 				</div>

@@ -93,7 +93,7 @@ app.directive('arbReqRelationships', function($q, $timeout, $interval, $http, ar
 				};
 				arb.pageService.deletePagePair(params, function success() {
 					var indexToRemove;
-					for (var i=0; i<$scope.source.length; ++i) {
+					for (var i = 0; i < $scope.source.length; i++) {
 						if ($scope.source[i].parentId == params.parentId) {
 							indexToRemove = i;
 							break;

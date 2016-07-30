@@ -170,7 +170,7 @@ app.service('masteryService', function($http, $compile, $location, $mdToast, $ro
 			if (!subject.isStrong) return false;
 			var subjectId = subject.parentId;
 			if (!(subjectId in that.masteryMap)) return false;
-			var currentUserLevel = -1;
+			var currentUserLevel = 0;
 			if (that.masteryMap[subjectId].has) {
 				currentUserLevel = that.masteryMap[subjectId].level;
 			}

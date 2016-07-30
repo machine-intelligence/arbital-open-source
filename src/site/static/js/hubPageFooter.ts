@@ -2,7 +2,7 @@
 
 import app from './angular.ts';
 
-// Directive to show the footer for HUB pages
+// Footer that appears at the bottom of the page if the user is exploring from a HUB page
 app.directive('arbHubPageFooter', function($compile, $timeout, arb) {
 	return {
 		templateUrl: versionUrl('static/html/hubPageFooter.html'),
@@ -21,7 +21,7 @@ app.directive('arbHubPageFooter', function($compile, $timeout, arb) {
 			$scope.levelUpMasteries = {}; // masteryId -> whether to perform the level up
 			$scope.page.subjects.forEach(function(subject) {
 				if (!subject.isStrong) return;
-				var currentLevel = -1;
+				var currentLevel = 0;
 				if (!(subject.parentId in arb.masteryService.masteryMap)) {
 					currentLevel = arb.masteryService.masteryMap[subject.parentId].level;
 				}

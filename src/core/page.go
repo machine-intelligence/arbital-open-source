@@ -73,11 +73,13 @@ const (
 )
 
 const (
+	NoMasteryLevel        = iota
 	LooseMasteryLevel     = iota
 	BasicMasteryLevel     = iota
 	TechnicalMasteryLevel = iota
 	ResearchMasteryLevel  = iota
 
+	// Total count of different mastery levels
 	MasteryLevelCount = iota
 )
 
@@ -1024,7 +1026,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		if _, ok := masteryMap[pageID]; !ok {
 			masteryMap[pageID] = &Mastery{
 				PageID:    pageID,
-				Level:     -1,
+				Level:     NoMasteryLevel,
 				UpdatedAt: database.Now(),
 			}
 		}

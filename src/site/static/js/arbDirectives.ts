@@ -299,12 +299,14 @@ app.directive('arbPageTitle', function(arb) {
 			useEditMap: '=',
 			// If true, link to editing the page
 			linkToEdit: '=',
+			// If set, the link will be computed with this hubId
+			hubId: '@',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.pageUrl = $scope.customLink ? $scope.customLink :
 							 $scope.linkToEdit ? arb.urlService.getEditPageUrl($scope.pageId) :
-							 		arb.urlService.getPageUrl($scope.pageId);
+							 		arb.urlService.getPageUrl($scope.pageId, {hubId: $scope.hubId});
 
 			$scope.page = arb.stateService.getPageFromSomeMap($scope.pageId, $scope.useEditMap);
 
