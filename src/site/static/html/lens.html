@@ -62,8 +62,8 @@
 			<div class="md-caption page-list-span">
 				<!-- Contributors -->
 				<div class="author-list"
-						ng-if="::(page.creatorIds.length > 0 &&
-							!(page.editGroupId === page.creatorIds[0] && page.creatorIds.length == 1))">
+						ng-if="::page.creatorIds.length > 0 && page.seeGroupId &&
+							!(page.editGroupId === page.creatorIds[0] && page.creatorIds.length == 1)">
 					<br>
 					<ng-pluralize count="::page.creatorIds.length"
 							when="{'one': 'Contributor:', 'other': 'Contributors:'}"></ng-pluralize>
