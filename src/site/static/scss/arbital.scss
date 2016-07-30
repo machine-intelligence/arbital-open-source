@@ -732,7 +732,7 @@ md-toast {
 @media (max-width: 599px) {
 	$lens-padding: 16px;
 	.lens-text-container {
-		padding: 20px $lens-padding 20px;
+		padding: 50px $lens-padding 20px;
 		font-size: 16px;
 		line-height: 1.65;
 	}
@@ -752,15 +752,11 @@ md-toast {
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
 	}
-	.speed-up-container,
-	.slow-down-container {
-		display: none;
-	}
 }
 @media (min-width: 600px) and (max-width: 959px) {
 	$lens-padding: 50px;
 	.lens-text-container {
-		padding: 20px $lens-padding 20px;
+		padding: 30px $lens-padding 20px;
 		font-size: 18px;
 		line-height: 22px;
 	}
@@ -780,15 +776,11 @@ md-toast {
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
 	}
-	.speed-up-container,
-	.slow-down-container {
-		display: none;
-	}
 }
 @media (min-width: 960px) and (max-width: 1099px) {
 	$lens-padding: 90px;
 	.lens-text-container {
-		padding: 20px $lens-padding 60px;
+		padding: 30px $lens-padding 60px;
 		font-size: 18px;
 		line-height: 26px;
 	}
@@ -808,20 +800,12 @@ md-toast {
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
 	}
-	.speed-up-container,
-	.slow-down-container {
-		display: none;
-	}
-}
-
-.lens-text-container {
-	width: 100%;
 }
 
 @media (min-width: 1100px) {
 	$lens-padding: 100px;
 	.lens-text-container {
-		padding: 20px $lens-padding 80px;
+		padding: 30px $lens-padding 80px;
 		font-size: 18px;
 		line-height: 30px;
 	}
@@ -841,6 +825,10 @@ md-toast {
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
 	}
+}
+
+.lens-text-container {
+	width: 100%;
 }
 
 // Container for requirements

@@ -61,6 +61,7 @@ type PageLoadOptions struct {
 	Creators        bool
 	EditHistory     bool
 	ProposalEditNum bool
+	ContentRequests bool
 
 	// Options for what fields to load from pages table
 	Text      bool
@@ -100,6 +101,7 @@ var (
 		Creators:        true,
 		ProposalEditNum: true,
 		NextPrevIDs:     true,
+		ContentRequests: true,
 	}).Add(SubpageLoadOptions)
 	// Options for full page edit
 	PrimaryEditLoadOptions = (&PageLoadOptions{
@@ -137,6 +139,7 @@ var (
 		Creators:        true,
 		UsedAsMastery:   true,
 		ProposalEditNum: true,
+		ContentRequests: true,
 	}).Add(SubpageLoadOptions)
 	// Options for loading a subpage (like a comment)
 	SubpageLoadOptions = (&PageLoadOptions{

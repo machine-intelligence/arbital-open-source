@@ -34,24 +34,37 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 			$scope.request = {
 				freeformText: '',
 			};
-			$scope.submitExplanationRequest = function() {
-				// Register the +1 to request
-				var erData = {
-					pageId: $scope.page.pageId,
-					requestType: $scope.goSlow ? 'slowDown' : 'speedUp',
-				};
-				arb.stateService.postData('/json/contentRequest/', erData);
 
-				// Submit feedback if there is any text
-				if ($scope.request.freeformText.length > 0) {
-					var text = $scope.goSlow ? 'Slower' : 'Faster';
-					text += ' explanation request for page ' + $scope.page.pageId + ':\n' + $scope.request.freeformText;
-					arb.stateService.postData(
-						'/feedback/',
-						{text: text}
-					)
-					$scope.request.freeformText = '';
-				}
+			$scope.submitExplanationRequest = function(requestType, event) {
+				arb.signupService.wrapInSignupFlow(requestType, function() {
+
+					$scope.page.contentRequests[requestType] = $scope.page.contentRequests[requestType] || {};
+					$scope.page.contentRequests[requestType].myLikeValue = true;
+
+					if ($scope.request.freeformText) {
+						$scope.submittedFreeform = true;
+					}
+
+					// Register the +1 to request
+					var erData = {
+						pageId: $scope.page.pageId,
+						requestType: requestType || ($scope.goSlow ? 'slowDown' : 'speedUp'),
+					};
+					arb.stateService.postData('/json/contentRequest/', erData);
+
+					// Submit feedback if there is any text
+					if ($scope.request.freeformText.length > 0) {
+						var text = $scope.goSlow ? 'Slower' : 'Faster';
+						text += ' explanation request for page ' + $scope.page.pageId + ':\n' + $scope.request.freeformText;
+						arb.stateService.postData(
+							'/feedback/',
+							{text: text}
+						)
+						$scope.request.freeformText = '';
+					}
+
+					event.stopPropagation();
+				});
 			};
 		},
 		link: function(scope: any, element, attrs) {
