@@ -4,6 +4,8 @@
 
 source init.sh || exit
 
+check_deps.go || exit
+
 # Copy over the config into the AE app's directory, since we need it
 # there for deployment.
 cp -v config.yaml src/site/
