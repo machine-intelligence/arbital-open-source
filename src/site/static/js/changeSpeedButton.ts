@@ -36,34 +36,35 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 			};
 
 			$scope.submitExplanationRequest = function(requestType, event) {
-				// TODO: trigger signup for non-logged-in users and wrap with wrapInSignupFlow?
+				arb.signupService.wrapInSignupFlow(requestType, function() {
 
-				$scope.page.contentRequests[requestType] = $scope.page.contentRequests[requestType] || {};
-				$scope.page.contentRequests[requestType].myLikeValue = true;
+					$scope.page.contentRequests[requestType] = $scope.page.contentRequests[requestType] || {};
+					$scope.page.contentRequests[requestType].myLikeValue = true;
 
-				if ($scope.request.freeformText) {
-					$scope.submittedFreeform = true;
-				}
+					if ($scope.request.freeformText) {
+						$scope.submittedFreeform = true;
+					}
 
-				// Register the +1 to request
-				var erData = {
-					pageId: $scope.page.pageId,
-					requestType: requestType || ($scope.goSlow ? 'slowDown' : 'speedUp'),
-				};
-				arb.stateService.postData('/json/contentRequest/', erData);
+					// Register the +1 to request
+					var erData = {
+						pageId: $scope.page.pageId,
+						requestType: requestType || ($scope.goSlow ? 'slowDown' : 'speedUp'),
+					};
+					arb.stateService.postData('/json/contentRequest/', erData);
 
-				// Submit feedback if there is any text
-				if ($scope.request.freeformText.length > 0) {
-					var text = $scope.goSlow ? 'Slower' : 'Faster';
-					text += ' explanation request for page ' + $scope.page.pageId + ':\n' + $scope.request.freeformText;
-					arb.stateService.postData(
-						'/feedback/',
-						{text: text}
-					)
-					$scope.request.freeformText = '';
-				}
+					// Submit feedback if there is any text
+					if ($scope.request.freeformText.length > 0) {
+						var text = $scope.goSlow ? 'Slower' : 'Faster';
+						text += ' explanation request for page ' + $scope.page.pageId + ':\n' + $scope.request.freeformText;
+						arb.stateService.postData(
+							'/feedback/',
+							{text: text}
+						)
+						$scope.request.freeformText = '';
+					}
 
-				event.stopPropagation();
+					event.stopPropagation();
+				});
 			};
 		},
 		link: function(scope: any, element, attrs) {
