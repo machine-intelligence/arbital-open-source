@@ -60,6 +60,7 @@ require('js/pathNav.ts');
 require('js/learnMore.ts');
 require('js/changeSpeedButton.ts');
 require('js/hubPageGui.ts');
+require('js/hubPageFooter.ts');
 
 // AngularJS controllers
 require('js/arbitalController.ts');

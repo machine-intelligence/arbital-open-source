@@ -51,7 +51,7 @@
 					<span ng-bind="::otherDateTime | smartDateTime"></span>
 				</div>
 				<div style="white-space: nowrap" ng-if="showTags">
-					<span ng-repeat="tag in page.taggedAsIds">
+					<span ng-repeat="tag in page.tagIds">
 						<arb-tag tag-id="{{::tag}}"></arb-tag>
 					</span>
 				</div>

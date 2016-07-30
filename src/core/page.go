@@ -1887,10 +1887,7 @@ func LoadHubContent(db *database.DB, u *CurrentUser, pageMap map[string]*Page, o
 		AddPageToMap(pp.ChildID, pageMap, &PageLoadOptions{Requisites: true})
 		return nil
 	})
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 type ProcessLoadPageToDomainSubmissionCallback func(db *database.DB, submission *PageToDomainSubmission) error
