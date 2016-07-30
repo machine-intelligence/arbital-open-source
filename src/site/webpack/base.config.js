@@ -1,6 +1,7 @@
+var merge = require('deepmerge');
 var path = require('path');
 
-module.exports = {
+var config = {
 	entry: './entry.js',
 	output: {
 		path: '../static/js',
@@ -29,3 +30,7 @@ module.exports = {
 		],
 	},
 };
+
+exports.merge = function(extra) {
+	return merge(config, extra);
+}

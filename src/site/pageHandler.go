@@ -137,6 +137,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			fail(result.ResponseCode, result.Err.Message, result.Err.Err)
 			return
 		}
+
 		if d, ok := result.Data.(dynamicPageTmplData); ok || result.Data == nil {
 			isLive := !appengine.IsDevAppServer()
 			devPrefix := "http://localhost:8014" // Keep in sync with webpack.config.js

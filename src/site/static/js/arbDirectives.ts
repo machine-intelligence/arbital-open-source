@@ -21,6 +21,7 @@ app.directive('arbClickElsewhere', function ($parse, $window) {
 	return {
 		restrict: 'A',
 		link: function (scope, element, attr) {
+			var element = element;
 			var onClickElsewhereFn = $parse(attr['arbClickElsewhere']);
 			angular.element($window).on('click', function (event) {
 				var clickTarget = angular.element(event.target);

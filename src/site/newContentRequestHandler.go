@@ -23,7 +23,9 @@ type contentRequestData struct {
 var contentRequestHandler = siteHandler{
 	URI:         "/json/contentRequest/",
 	HandlerFunc: contentRequestJSONHandler,
-	Options:     pages.PageOptions{},
+	Options: pages.PageOptions{
+		RequireLogin: true,
+	},
 }
 
 func contentRequestJSONHandler(params *pages.HandlerParams) *pages.Result {

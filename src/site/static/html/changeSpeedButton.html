@@ -9,45 +9,48 @@
 			}"
 		arb-click-elsewhere="isHovered = false">
 	<div class="md-body-2 change-speed-button"
-			ng-mouseenter="isHovered = true"
-			ng-click="isHovered = false"
-			ng-class="{'collapsed': haveScrolled && !isHovered}">
+			ng-mouseenter="isHovered = !arb.isTouchDevice"
+			ng-click="isHovered = !isHovered"
+			ng-class="{'collapsed': haveScrolled && !isHovered && false}">
 		<md-icon ng-if="goSlow">slow_motion_video</md-icon>
 		<span ng-bind="::goSlow ? 'Say what?' : 'Go faster'"
-				ng-if="!haveScrolled || isHovered"></span>
+				ng-if="true || !haveScrolled || isHovered"></span>
 		<md-icon ng-if="!goSlow">slow_motion_video</md-icon>
 		<md-tooltip ng-if="goSlow && !isHovered" md-direction="right">Show slower explanations</md-tooltip>
 		<md-tooltip ng-if="!goSlow && !isHovered" md-direction="left">Show faster explanations</md-tooltip>
 	</div>
 	<div class="change-speed-tray md-body-1">
 		<div ng-if="isHovered">
-
-			<!-- Go slower stuff -->
-
 			<!-- Learn a subject at an easier level -->
-			<div ng-repeat="(subjectId,pagePairs) in page.slowDownMap" ng-if="::goSlow">
-				<div>
-					This page teaches
-					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-					<span class="comma">.</span>
-					You can learn it at a lower level:
-				</div>
+			<div ng-if="::page.subjects.length > 0 && !goSlow">
+				This page teaches:
 				<ul>
-					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
-						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
+					<li ng-repeat="subject in page.subjects | orderBy: ['-level']">
+						<arb-page-title page-id="{{::subject.parentId}}" is-link="true"></arb-page-title>
 					</li>
 				</ul>
 			</div>
 
 			<!-- Learn one of the requirements -->
 			<div ng-if="::page.requirements.length > 0 && goSlow">
-				You can learn
-				<ng-pluralize count="page.requirements.length"
-						when="{'one': 'the concept', 'other': 'one of the concepts'}"></ng-pluralize>
-				this page relies on:
+				This page assumes:
 				<ul>
 					<li ng-repeat="requirement in page.requirements | orderBy: ['-isStrong', '-level']">
 						<arb-page-title page-id="{{::requirement.parentId}}" is-link="true"></arb-page-title>
+					</li>
+				</ul>
+			</div>
+
+			<!-- Learn a subject at an easier level -->
+			<div ng-repeat="(subjectId,pagePairs) in page.slowDownMap" ng-if="::goSlow">
+				<div>
+					Less technical teachers for
+					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
+					<span class="comma">:</span>
+				</div>
+				<ul>
+					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
+						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
 					</li>
 				</ul>
 			</div>
@@ -57,10 +60,9 @@
 			<!-- Learn a subject at a harder level -->
 			<div ng-repeat="(subjectId,pagePairs) in page.speedUpMap" ng-if="::!goSlow">
 				<div>
-					This page teaches
+					More technical teachers for
 					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-					<span class="comma">.</span>
-					You can learn it at a higher level:
+					<span class="comma">:</span>
 				</div>
 				<ul>
 					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
@@ -69,35 +71,75 @@
 				</ul>
 			</div>
 
-			<!-- Learn one of the requirements -->
-			<div ng-if="::page.subjects.length > 0 && !goSlow">
-				You can read about
-				<ng-pluralize count="page.subjects.length"
-						when="{'one': 'the concept', 'other': 'one of the concepts'}"></ng-pluralize>
-				this page covers:
-				<ul>
-					<li ng-repeat="subject in page.subjects | orderBy: ['-level']"
-							ng-if="subject.parentId != pageId">
-						<arb-page-title page-id="{{::subject.parentId}}" is-link="true"></arb-page-title>
-					</li>
-				</ul>
-			</div>
-
 			<!-- Request a different explanation -->
 			<div>
 				<div>
-					<span ng-if="hasSomeSuggestions()">Not helpful?</span>
-					<span ng-if="!hasSomeSuggestions()">Looks like Arbital doesn't have any suggestions for this page yet.</span>
-					Help us by making a request:
+					<span ng-if="hasSomeSuggestions()">
+						Want something else?
+					</span>
+					<span ng-if="!hasSomeSuggestions()">
+						Want a different explanation?
+					</span>
 				</div>
-				<div layout="row">
-					<md-input-container flex>
-						<input ng-model="request.freeformText"
-								aria-label="Alternate page request"
-								placeholder="Optional request text"
-								flex>
-					</md-input-container>
-					<md-button ng-click="submitExplanationRequest()">submit</md-button>
+
+				<div class="change-speed-something-else" layout="column" layout-align="start start">
+					<!-- Other slow down things -->
+					<div layout="row" layout-align="start center" ng-if="::goSlow">
+						<span ng-if="!page.contentRequests.lessTechnical.myLikeValue">
+							<md-button class="short-button" ng-click="submitExplanationRequest('lessTechnical', $event)">+1</md-button>
+							a less technical explanation
+						</span>
+						<span ng-if="page.contentRequests.lessTechnical.myLikeValue">
+							Thanks for requesting a less technical explanation!
+						</span>
+					</div>
+
+					<div layout="row" layout-align="start center" ng-if="::goSlow">
+						<span ng-if="!page.contentRequests.moreWords.myLikeValue">
+							<md-button class="short-button" ng-click="submitExplanationRequest('moreWords', $event)">+1</md-button>
+							a more detailed explanation
+						</span>
+						<span ng-if="page.contentRequests.moreWords.myLikeValue">
+							Thanks for requesting a more detailed explanation!
+						</span>
+					</div>
+
+					<!-- Other speed up things -->
+					<div layout="row" layout-align="start center" ng-if="::!goSlow">
+						<span ng-if="!page.contentRequests.moreTechnical.myLikeValue">
+							<md-button class="short-button" ng-click="submitExplanationRequest('moreTechnical', $event)">+1</md-button>
+							a more technical explanation
+						</span>
+						<span ng-if="page.contentRequests.moreTechnical.myLikeValue">
+							Thanks for requesting a more technical explanation!
+						</span>
+					</div>
+
+					<div layout="row" layout-align="start center" ng-if="::!goSlow">
+						<span ng-if="!page.contentRequests.fewerWords.myLikeValue">
+							<md-button class="short-button" ng-click="submitExplanationRequest('fewerWords', $event)">+1</md-button>
+							a more concise explanation
+						</span>
+						<span ng-if="page.contentRequests.fewerWords.myLikeValue">
+							Thanks for requesting a more concise explanation!
+						</span>
+					</div>
+
+					<!-- Freeform text -->
+					<div layout="row" layout-align="start center">
+						<span ng-if="!submittedFreeform">
+							<md-input-container md-no-float flex>
+								<input ng-model="request.freeformText"
+										aria-label="Alternate page request"
+										placeholder="Other"
+										flex>
+							</md-input-container>
+							<md-button class="short-button" ng-click="submitExplanationRequest('', $event)">submit</md-button>
+						</span>
+						<span ng-if="submittedFreeform">
+							Thanks for your feedback!
+						</span>
+					</div>
 				</div>
 			</div>
 		</div>
