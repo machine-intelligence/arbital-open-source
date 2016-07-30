@@ -44,7 +44,6 @@ app.service('signupService', function($mdDialog, $timeout, analyticsService, use
 		if (that.afterSignupFn) that.afterSignupFn();
 	};
 
-	// TODO: Roggie asks: why is this in signupService.js? Why not define the function where it's used and just call signupService.wrapInSignupFlow from there?
 	// Report a like click
 	that.processLikeClick = function(likeable, objectId, value) {
 		that.wrapInSignupFlow('like', function() {
@@ -63,6 +62,21 @@ app.service('signupService', function($mdDialog, $timeout, analyticsService, use
 				value: likeable.myLikeValue,
 			};
 			stateService.postDataWithoutProcessing('/newLike/', data);
+		});
+	};
+
+	// Submit a request for content (e.g. less technical explanation, improving a stub, et cetera)
+	that.submitContentRequest = function(requestType, page) {
+		that.wrapInSignupFlow(requestType, function() {
+			page.contentRequests[requestType] = page.contentRequests[requestType] || {};
+			page.contentRequests[requestType].myLikeValue = true;
+
+			// Register the +1 to request
+			var erData = {
+				pageId: page.pageId,
+				requestType: requestType,
+			};
+			stateService.postData('/json/contentRequest/', erData);
 		});
 	};
 });

@@ -590,4 +590,33 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 			changeLog.type = 'newEdit';
 		});
 	};
+
+	this.getQualityTag = function(tagIds: string[]): string {
+		if (tagIds.includes('4v')) {
+			return 'wip';
+		}
+		if (tagIds.includes('4v4')) {
+			return 'still-needs-work';
+		}
+		if (tagIds.includes('72')) {
+			return 'stub';
+		}
+		if (tagIds.includes('3rk')) {
+			return 'start';
+		}
+		if (tagIds.includes('4y7')) {
+			return 'c-class';
+		}
+		if (tagIds.includes('4yd')) {
+			return 'b-class';
+		}
+		if (tagIds.includes('4yf')) {
+			return 'a-class';
+		}
+		if (tagIds.includes('4yl')) {
+			return 'featured';
+		}
+
+		return 'unassessed'
+	}
 });
