@@ -12,9 +12,9 @@ import (
 	"zanaduu3/src/pages"
 )
 
-var recentlyEditedHandler = siteHandler{
-	URI:         "/json/dashboardPage/recentlyEdited/",
-	HandlerFunc: recentlyEditedJSONHandler,
+var dashboardPageHandler = siteHandler{
+	URI:         "/json/dashboardPage/",
+	HandlerFunc: dashboardPageJSONHandler,
 	Options: pages.PageOptions{
 		RequireLogin: true,
 	},
@@ -313,6 +313,14 @@ func dashboardListJSONHandlerWrapper(params *pages.HandlerParams, loadFunction L
 	}
 }
 
+var recentlyEditedHandler = siteHandler{
+	URI:         "/json/dashboardPage/recentlyEdited/",
+	HandlerFunc: recentlyEditedJSONHandler,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+	},
+}
+
 func recentlyEditedJSONHandler(params *pages.HandlerParams) *pages.Result {
 	return dashboardListJSONHandlerWrapper(params, loadRecentlyEdited, "recentlyEditedIds")(params)
 }
@@ -446,12 +454,4 @@ func loadPagesWithDraft(u *core.CurrentUser, privateGroupID string, numToLoad in
 		return nil
 	})
 	return pagesWithDraftIDs, err
-}
-
-var dashboardPageHandler = siteHandler{
-	URI:         "/json/dashboardPage/",
-	HandlerFunc: dashboardPageJSONHandler,
-	Options: pages.PageOptions{
-		RequireLogin: true,
-	},
 }
