@@ -627,6 +627,8 @@ app.directive('arbPageList', function(arb) {
 			showTextLength: '=',
 			// If set, we'll pull the page from the editMap instead of pageMap
 			useEditMap: '=',
+            // If set, we'll call this end-point to fetch the data
+            sourceUrl: '@',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -635,7 +637,15 @@ app.directive('arbPageList', function(arb) {
 			$scope.getPage = function(pageId) {
 				return arb.stateService.getPageFromSomeMap(pageId, $scope.useEditMap);
 			};
-			
+
+            if ($scope.sourceUrl) {
+                arb.stateService.postData($scope.sourceUrl, {}, 
+                    function(data) {
+                        $scope.pageIds = data.result.pageIds;
+                    }
+                );
+            }
+
 			$scope.fetchMore = function() {
 				var postUrl = '/json/dashboardPage/' + $scope.listName + '/';
 
