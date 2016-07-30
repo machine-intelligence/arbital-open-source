@@ -6,7 +6,7 @@
 	</md-toolbar>
 	<md-list>
 		<md-list-item ng-repeat="pageId in pageIds">
-			<arb-page-row page-id="{{pageId}}"
+			<arb-page-row page-id="{{::pageId}}"
 					hide-likes="hideLikes"
 					show-last-edit="showLastEdit"
 					show-created-at="showCreatedAt"
@@ -19,7 +19,7 @@
 		</md-list-item>
 		
 		<md-divider></md-divider>
-		<md-list-item ng-if="pageIds && fetchMore">
+		<md-list-item ng-if="pageIds">
 			<md-progress-circular md-mode="indeterminate" ng-if="fetchingMore"></md-progress-circular>
 			<md-button ng-click="fetchMore()" ng-if="!fetchingMore">Load more</md-button>
 		</md-list-item>

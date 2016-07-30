@@ -655,8 +655,7 @@ app.directive('arbPageList', function(arb) {
 				arb.stateService.postData(postUrl, {
 						numToLoad: $scope.loadItemsTotal
 					}, function(data) {
-						$scope.data = data.result;
-						$scope.pageIds = $scope.data[$scope.listName + 'Ids'];
+						$scope.pageIds = data.result[$scope.listName + 'Ids'];
 						$scope.fetchingMore = false;
 					});
 			};
