@@ -33,16 +33,23 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 			}
 
 			// Process meta tags
-			$scope.page.nonMetaTagIds = $scope.page.taggedAsIds.filter(function(tagId) {
+			$scope.page.nonMetaTagIds = $scope.page.tagIds.filter(function(tagId) {
 				return arb.stateService.globalData.improvementTagIds.indexOf(tagId) < 0;
 			});
-			$scope.page.improvementTagIds = $scope.page.taggedAsIds.filter(function(tagId) {
+			$scope.page.improvementTagIds = $scope.page.tagIds.filter(function(tagId) {
 				return arb.stateService.globalData.improvementTagIds.indexOf(tagId) >= 0;
 			});
 
 			$scope.mastery = arb.masteryService.masteryMap[$scope.pageId];
 			if (!$scope.mastery) {
 				$scope.mastery = {has: false};
+			}
+
+			// Compute HUB stuff
+			$scope.hubPageId = $location.search().hubId;
+			if ($scope.hubPageId == $scope.pageId) {
+				$location.search('hubId', undefined);
+				$scope.hubPageId = undefined;
 			}
 
 			// Compute how many visible comments there are.
@@ -63,6 +70,13 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					else if (event.keyCode == 85) $scope.newQueryMark(); // U
 				});
 			});
+
+			// Returns true iff this page is a Hub.
+			$scope.isHub = function() {
+				return $scope.page.tagIds.some(function(tagId) {
+					return tagId == '5ls';
+				});
+			};
 
 			// ============ Masteries ====================
 

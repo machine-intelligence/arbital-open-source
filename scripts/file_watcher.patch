@@ -1,0 +1,16 @@
+diff --git a/google/appengine/tools/devappserver2/watcher_common.py b/google/appengine/tools/devappserver2/watcher_common.py
+index 6cf7fcd..7104b86 100644
+--- a/google/appengine/tools/devappserver2/watcher_common.py
++++ b/google/appengine/tools/devappserver2/watcher_common.py
+@@ -21,7 +21,10 @@
+ import os
+ 
+ # A prefix for files and directories that we should not watch at all.
+-_IGNORED_PREFIX = '.'
++_IGNORED_PREFIX = (
++    '.',
++    'node_modules',
++)
+ # File suffixes that should be ignored.
+ _IGNORED_FILE_SUFFIXES = (
+     # Python temporaries

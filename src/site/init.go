@@ -153,6 +153,7 @@ func init() {
 	s.HandleFunc(updateLensOrderHandler.URI, handlerWrapper(updateLensOrderHandler)).Methods("POST")
 	s.HandleFunc(updateMarkHandler.URI, handlerWrapper(updateMarkHandler)).Methods("POST")
 	s.HandleFunc(updateMasteriesHandler.URI, handlerWrapper(updateMasteriesHandler)).Methods("POST")
+	s.HandleFunc(updateMasteriesOldHandler.URI, handlerWrapper(updateMasteriesOldHandler)).Methods("POST")
 	s.HandleFunc(updateMemberHandler.URI, handlerWrapper(updateMemberHandler)).Methods("POST")
 	s.HandleFunc(updatePageObjectHandler.URI, handlerWrapper(updatePageObjectHandler)).Methods("POST")
 	s.HandleFunc(updatePagePairHandler.URI, handlerWrapper(updatePagePairHandler)).Methods("POST")

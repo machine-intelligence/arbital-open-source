@@ -7,6 +7,16 @@ automatic_scaling:
   max_pending_latency: 0.5s
 instance_class: F2
 
+skip_files:
+# AppEngine defaults
+- ^(.*/)?#.*#$
+- ^(.*/)?.*~$
+- ^(.*/)?.*\.py[co]$
+- ^(.*/)?.*/RCS/.*$
+- ^(.*/)?\..*$
+# Our additions
+- node_modules
+
 handlers:
 - url: /static
   static_dir: static

@@ -85,7 +85,7 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 	this.ensureCanonPath = function(canonPath) {
 		var hash = $location.hash();
 		var search = $location.search();
-		this.goToUrl(canonPath, true);
+		this.goToUrl(canonPath, {replace: true});
 		$location.hash(hash);
 		for (var k in search) {
 			$location.search(k, search[k]);
@@ -93,7 +93,13 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 	};
 
 	// Go to the given url. If there is a domain switch, we refresh the page.
-	this.goToUrl = function(url, replace) {
+	// options = {
+	//	replace: if true, replace the current page in browser history with this one
+	//	event: if set, we'll check to see if the user ctrl+clicked to open a new tab
+	// }
+	this.goToUrl = function(url, options) {
+		options = options || {};
+
 		var differentHost = false;
 		if (url.indexOf('http') === 0) {
 			var domainUrl = this.getCurrentDomainUrl();
@@ -103,10 +109,13 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 				url = url.slice(domainUrl.length);
 			}
 		}
-		if (differentHost) {
+
+		if (options.event && (options.event.ctrlKey || options.event.metaKey)) {
+			window.open(url, '_blank');
+		} else if (differentHost) {
 			window.location.href = url;
 		} else {
-			if (replace) $location.replace();
+			if (options.replace) $location.replace();
 			$location.url(url);
 		}
 	};
@@ -119,6 +128,7 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 	//	 lensId: if set, select the given lens
 	//	 markId: if set, select the given mark on the page
 	//	 pathInstanceId: if set, the user is on the given path
+	//	 hubId: if set, the user is doing an arc starting from this hub page
 	//	 discussionHash: if true, jump to the discussion part of the page
 	//	 answersHash: if true, jump to the answers part of the page
 	// }
@@ -167,6 +177,11 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 		if (options.pathInstanceId) {
 			url += url.indexOf('?') < 0 ? '?' : '&';
 			url += 'pathId=' + options.pathInstanceId;
+		}
+
+		if (options.hubId) {
+			url += url.indexOf('?') < 0 ? '?' : '&';
+			url += 'hubId=' + options.hubId;
 		}
 
 		if (url.indexOf('#') < 0) {
