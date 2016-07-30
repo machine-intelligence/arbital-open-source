@@ -12,6 +12,306 @@ import (
 	"zanaduu3/src/pages"
 )
 
+var recentlyEditedHandler = siteHandler{
+	URI:         "/json/dashboardPage/recentlyEdited/",
+	HandlerFunc: recentlyEditedJSONHandler,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+	},
+}
+
+type recentlyEditedJSONData struct {
+	NumToLoad int
+}
+
+func recentlyEditedJSONHandler(params *pages.HandlerParams) *pages.Result {
+	u := params.U
+	db := params.DB
+	returnData := core.NewHandlerData(u).SetResetEverything()
+
+	// Decode data
+	var data recentlyEditedJSONData
+	err := json.NewDecoder(params.R.Body).Decode(&data)
+	if err != nil {
+		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
+	}
+	if data.NumToLoad <= 0 {
+		data.NumToLoad = indexPanelLimit
+	}
+
+	// Options to load the pages with
+	pageOptions := (&core.PageLoadOptions{
+		RedLinkCount: true,
+	}).Add(core.TitlePlusLoadOptions)
+
+	_, err = core.LoadAllDomainIDs(db, returnData.PageMap)
+	if err != nil {
+		return pages.Fail("Error while loading domain ids", err)
+	}
+
+	// Load recently created and edited by me page ids
+	rows := database.NewQuery(`
+		SELECT p.pageId
+		FROM pages AS p
+		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+		ON (p.pageId=pi.pageId)
+		WHERE p.creatorId=?`, u.ID).Add(`
+			AND pi.seeGroupId=?`, params.PrivateGroupID).Add(`
+			AND pi.type!=?`, core.CommentPageType).Add(`
+		GROUP BY 1
+		ORDER BY MAX(p.createdAt) DESC
+		LIMIT ?`, data.NumToLoad).ToStatement(db).Query()
+	returnData.ResultMap["recentlyEditedIds"], err = core.LoadPageIDs(rows, returnData.PageMap, pageOptions)
+	if err != nil {
+		return pages.Fail("error while loading recently edited page ids", err)
+	}
+
+	// Load pages
+	err = core.ExecuteLoadPipeline(db, returnData)
+	if err != nil {
+		return pages.Fail("Pipeline error", err)
+	}
+
+	err = loadStats(db, returnData.ResultMap, u)
+	if err != nil {
+		return pages.Fail("error loading stats", err)
+	}
+
+	return pages.Success(returnData)
+}
+
+var recentlyCreatedCommentHandler = siteHandler{
+	URI:         "/json/dashboardPage/recentlyCreatedComment/",
+	HandlerFunc: recentlyCreatedCommentJSONHandler,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+	},
+}
+
+type recentlyCreatedCommentJSONData struct {
+	NumToLoad int
+}
+
+func recentlyCreatedCommentJSONHandler(params *pages.HandlerParams) *pages.Result {
+	u := params.U
+	db := params.DB
+	returnData := core.NewHandlerData(u).SetResetEverything()
+
+	// Decode data
+	var data recentlyCreatedCommentJSONData
+	err := json.NewDecoder(params.R.Body).Decode(&data)
+	if err != nil {
+		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
+	}
+	if data.NumToLoad <= 0 {
+		data.NumToLoad = indexPanelLimit
+	}
+
+	/*// Options to load the pages with
+	pageOptions := (&core.PageLoadOptions{
+		RedLinkCount: true,
+	}).Add(core.TitlePlusLoadOptions)*/
+
+	_, err = core.LoadAllDomainIDs(db, returnData.PageMap)
+	if err != nil {
+		return pages.Fail("Error while loading domain ids", err)
+	}
+
+	// Load recently created by me comment ids
+	rows := database.NewQuery(`
+		SELECT p.pageId
+		FROM pages AS p
+		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
+		WHERE p.creatorId=?`, u.ID).Add(`
+			AND pi.seeGroupId=?`, params.PrivateGroupID).Add(`
+			AND pi.type=?`, core.CommentPageType).Add(`
+		ORDER BY pi.createdAt DESC
+		LIMIT ?`, data.NumToLoad).ToStatement(db).Query()
+	returnData.ResultMap["recentlyCreatedCommentIds"], err =
+		core.LoadPageIDs(rows, returnData.PageMap, core.TitlePlusLoadOptions)
+	if err != nil {
+		return pages.Fail("error while loading recently created page ids", err)
+	}
+
+	// Load pages
+	err = core.ExecuteLoadPipeline(db, returnData)
+	if err != nil {
+		return pages.Fail("Pipeline error", err)
+	}
+
+	err = loadStats(db, returnData.ResultMap, u)
+	if err != nil {
+		return pages.Fail("error loading stats", err)
+	}
+
+	return pages.Success(returnData)
+}
+
+var mostTodosHandler = siteHandler{
+	URI:         "/json/dashboardPage/mostTodos/",
+	HandlerFunc: mostTodosJSONHandler,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+	},
+}
+
+type mostTodosJSONData struct {
+	NumToLoad int
+}
+
+func mostTodosJSONHandler(params *pages.HandlerParams) *pages.Result {
+	u := params.U
+	db := params.DB
+	returnData := core.NewHandlerData(u).SetResetEverything()
+
+	// Decode data
+	var data mostTodosJSONData
+	err := json.NewDecoder(params.R.Body).Decode(&data)
+	if err != nil {
+		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
+	}
+	if data.NumToLoad <= 0 {
+		data.NumToLoad = indexPanelLimit
+	}
+
+	// Options to load the pages with
+	pageOptions := (&core.PageLoadOptions{
+		RedLinkCount: true,
+	}).Add(core.TitlePlusLoadOptions)
+
+	_, err = core.LoadAllDomainIDs(db, returnData.PageMap)
+	if err != nil {
+		return pages.Fail("Error while loading domain ids", err)
+	}
+
+	// Load page ids with the most todos
+	rows := database.NewQuery(`
+		SELECT l.parentId
+		FROM (
+			SELECT l.parentId AS parentId,l.childAlias AS childAlias,p.todoCount AS parentTodoCount
+			FROM links AS l
+			JOIN pages AS p
+			ON (l.parentId=p.pageId)
+			WHERE p.isLiveEdit AND p.creatorId=?`, u.ID).Add(`
+		) AS l
+		LEFT JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+		ON (l.childAlias=pi.alias OR l.childAlias=pi.pageId)
+		WHERE pi.seeGroupId=?`, params.PrivateGroupID).Add(`
+			AND pi.type!=?`, core.CommentPageType).Add(`
+		GROUP BY 1
+		ORDER BY (SUM(ISNULL(pi.pageId)) + MAX(l.parentTodoCount)) DESC
+		LIMIT ?`, data.NumToLoad).ToStatement(db).Query()
+	returnData.ResultMap["mostTodosIds"], err = core.LoadPageIDs(rows, returnData.PageMap, pageOptions)
+	if err != nil {
+		return pages.Fail("error while loading most todos page ids", err)
+	}
+
+	// Load pages
+	err = core.ExecuteLoadPipeline(db, returnData)
+	if err != nil {
+		return pages.Fail("Pipeline error", err)
+	}
+
+	err = loadStats(db, returnData.ResultMap, u)
+	if err != nil {
+		return pages.Fail("error loading stats", err)
+	}
+
+	return pages.Success(returnData)
+}
+
+var pagesWithDraftHandler = siteHandler{
+	URI:         "/json/dashboardPage/pagesWithDraft/",
+	HandlerFunc: pagesWithDraftJSONHandler,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+	},
+}
+
+type pagesWithDraftJSONData struct {
+	NumToLoad int
+}
+
+func pagesWithDraftJSONHandler(params *pages.HandlerParams) *pages.Result {
+	u := params.U
+	db := params.DB
+	returnData := core.NewHandlerData(u).SetResetEverything()
+
+	// Decode data
+	var data pagesWithDraftJSONData
+	err := json.NewDecoder(params.R.Body).Decode(&data)
+	if err != nil {
+		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
+	}
+	if data.NumToLoad <= 0 {
+		data.NumToLoad = indexPanelLimit
+	}
+
+	// Options to load the pages with
+	pageOptions := (&core.PageLoadOptions{
+		RedLinkCount: true,
+	}).Add(core.TitlePlusLoadOptions)
+
+	_, err = core.LoadAllDomainIDs(db, returnData.PageMap)
+	if err != nil {
+		return pages.Fail("Error while loading domain ids", err)
+	}
+
+	pagesWithDraftIDs := make([]string, 0)
+	// Load pages with unpublished drafts
+	rows := database.NewQuery(`
+			SELECT p.pageId,p.title,p.createdAt,pi.currentEdit>0,pi.isDeleted
+			FROM pages AS p
+			JOIN`).AddPart(core.PageInfosTableAll(u)).Add(`AS pi
+			ON (p.pageId = pi.pageId)
+			WHERE p.creatorId=?`, u.ID).Add(`
+				AND pi.type!=?`, core.CommentPageType).Add(`
+				AND pi.seeGroupId=?`, params.PrivateGroupID).Add(`
+				AND p.edit>pi.currentEdit AND (p.text!="" OR p.title!="")
+			GROUP BY p.pageId
+			ORDER BY p.createdAt DESC
+			LIMIT ?`, data.NumToLoad).ToStatement(db).Query()
+	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageID string
+		var title, createdAt string
+		var wasPublished bool
+		var isDeleted bool
+		err := rows.Scan(&pageID, &title, &createdAt, &wasPublished, &isDeleted)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		core.AddPageToMap(pageID, returnData.PageMap, pageOptions)
+		pagesWithDraftIDs = append(pagesWithDraftIDs, pageID)
+		page := core.AddPageIDToMap(pageID, returnData.EditMap)
+		if title == "" {
+			title = "*Untitled*"
+		}
+		page.Title = title
+		page.EditCreatedAt = createdAt
+		page.WasPublished = wasPublished
+		page.IsDeleted = isDeleted
+		return nil
+	})
+	if err != nil {
+		return pages.Fail("error while loading pages with drafts ids", err)
+	}
+	returnData.ResultMap["pagesWithDraftIds"] = pagesWithDraftIDs
+
+	// Load pages
+	err = core.ExecuteLoadPipeline(db, returnData)
+	if err != nil {
+		return pages.Fail("Pipeline error", err)
+	}
+
+	err = loadStats(db, returnData.ResultMap, u)
+	if err != nil {
+		return pages.Fail("error loading stats", err)
+	}
+
+	return pages.Success(returnData)
+}
+
 var dashboardPageHandler = siteHandler{
 	URI:         "/json/dashboardPage/",
 	HandlerFunc: dashboardPageJSONHandler,

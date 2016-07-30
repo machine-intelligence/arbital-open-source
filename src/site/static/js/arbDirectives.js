@@ -611,7 +611,9 @@ app.directive('arbPageList', function(arb) {
 	return {
 		templateUrl: versionUrl('static/html/pageList.html'),
 		scope: {
+			listName: '@',
 			pageIds: '=',
+			loadItemsIncrement: '=',
 			panelTitle: '@',
 			hideLikes: '=',
 			showLastEdit: '=',
@@ -627,6 +629,7 @@ app.directive('arbPageList', function(arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
+			$scope.loadItemsTotal = $scope.loadItemsIncrement;
 
 			$scope.getPage = function(pageId) {
 				return arb.stateService.getPageFromSomeMap(pageId, $scope.useEditMap);
@@ -639,6 +642,21 @@ app.directive('arbPageList', function(arb) {
 					}
 				);
 			}
+			
+			$scope.fetchMore = function() {
+				var postUrl = '/json/dashboardPage/' + $scope.listName + '/';
+
+				$scope.loadItemsTotal += $scope.loadItemsIncrement;
+				$scope.fetchingMore = true;
+
+				arb.stateService.postData(postUrl, {
+						numToLoad: $scope.loadItemsTotal
+					}, function(data) {
+						$scope.data = data.result;
+						$scope.pageIds = $scope.data[$scope.listName + 'Ids'];
+						$scope.fetchingMore = false;
+					});
+			};
 		},
 	};
 });
