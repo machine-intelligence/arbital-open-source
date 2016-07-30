@@ -34,11 +34,21 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 			$scope.request = {
 				freeformText: '',
 			};
-			$scope.submitExplanationRequest = function() {
+
+			$scope.submitExplanationRequest = function(requestType, event) {
+				// TODO: trigger signup for non-logged-in users and wrap with wrapInSignupFlow?
+
+				$scope.page.contentRequests[requestType] = $scope.page.contentRequests[requestType] || {};
+				$scope.page.contentRequests[requestType].myLikeValue = true;
+
+				if ($scope.request.freeformText) {
+					$scope.submittedFreeform = true;
+				}
+
 				// Register the +1 to request
 				var erData = {
 					pageId: $scope.page.pageId,
-					requestType: $scope.goSlow ? 'slowDown' : 'speedUp',
+					requestType: requestType || ($scope.goSlow ? 'slowDown' : 'speedUp'),
 				};
 				arb.stateService.postData('/json/contentRequest/', erData);
 
@@ -52,6 +62,8 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 					)
 					$scope.request.freeformText = '';
 				}
+
+				event.stopPropagation();
 			};
 		},
 		link: function(scope: any, element, attrs) {

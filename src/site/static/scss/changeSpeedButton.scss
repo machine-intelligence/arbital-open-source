@@ -36,6 +36,42 @@
 	}
 }
 
+// If the screen is less than 1200px, no speedometer icon, and
+// line things up with the page
+@media (max-width: 1199px) {
+	.slow-down-container {
+		margin-left: 0;
+
+		.change-speed-button {
+			width: auto;
+			padding-left: 16px;
+			border-top-left-radius: 0 !important;
+			border-bottom-left-radius: 0 !important;
+		}
+	}
+
+	.speed-up-container {
+		margin-left: -94px;
+
+		&.expanded {
+			margin-left: -400px;
+		}
+
+		.change-speed-button {
+			width: auto;
+			padding-right: 16px;
+			border-top-right-radius: 0 !important;
+			border-bottom-right-radius: 0 !important;
+		}
+	}
+
+	.change-speed-button {
+		md-icon {
+			display: none;
+		}
+	}
+}
+
 .change-speed-container {
 	position: fixed;
 	margin-top: 8px;
@@ -45,7 +81,7 @@
 	width: 94px;
 
 	&.expanded {
-
+		z-index: $changeSpeedZ + 1;
 		border-radius: 18px 18px 5px 5px;
 		background-color: white;
 		width: 400px;
@@ -53,6 +89,7 @@
 		.change-speed-button {
 			border-radius: 18px 18px 0 0;
 			width: auto;
+			z-index: $changeSpeedZ + 1;
 		}
 
 		.change-speed-tray {
@@ -63,12 +100,23 @@
 			border-left: 2px solid $link-color;
 			border-right: 2px solid $link-color;
 			border-bottom: 2px solid $link-color;
+			z-index: $changeSpeedZ + 1;
 		}
 
 		md-input-container {
-			margin-top: 10px;
+			margin-top: 0px;
 			margin-bottom: 0px;
+
+			.md-errors-spacer {
+				min-height: 0px;
+			}
 		}
+	}
+}
+
+@media (max-width: 599px) {
+	.change-speed-container {
+		margin-top: 20px;
 	}
 }
 
@@ -118,5 +166,20 @@
 
 	ul {
 		margin-top: 0;
+	}
+}
+
+.change-speed-something-else {
+	padding-left: 18px;
+
+	.md-button {
+		line-height: 24px !important;
+		min-height: 0 !important;
+	}
+
+	input {
+		height: auto;
+		margin-left: 2px;
+		line-height: 24px;
 	}
 }
