@@ -55,7 +55,7 @@ func dashboardListJSONHandlerWrapper(params *pages.HandlerParams, loadFunction L
 
 		returnData.ResultMap[listName], err = loadFunction(u, params.PrivateGroupID, data.NumToLoad, db, returnData, pageOptions)
 		if err != nil {
-			return pages.Fail("error while loading"+listName, err)
+			return pages.Fail("error while loading "+listName, err)
 		}
 
 		// Load pages
@@ -224,6 +224,7 @@ var dashboardPageHandler = siteHandler{
 }
 
 type dashboardPageJSONData struct {
+	NumToLoad int
 }
 
 // dashboardPageJsonHandler renders the dashboard page.
@@ -238,6 +239,9 @@ func dashboardPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
+	if data.NumToLoad <= 0 {
+		data.NumToLoad = indexPanelLimit
+	}
 
 	// Options to load the pages with
 	pageOptions := (&core.PageLoadOptions{
@@ -249,100 +253,24 @@ func dashboardPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error while loading domain ids", err)
 	}
 
-	// Load recently created by me comment ids
-	rows := database.NewQuery(`
-		SELECT p.pageId
-		FROM pages AS p
-		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
-		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
-		WHERE p.creatorId=?`, u.ID).Add(`
-			AND pi.seeGroupId=?`, params.PrivateGroupID).Add(`
-			AND pi.type=?`, core.CommentPageType).Add(`
-		ORDER BY pi.createdAt DESC
-		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
-	returnData.ResultMap["recentlyCreatedCommentIds"], err =
-		core.LoadPageIDs(rows, returnData.PageMap, core.TitlePlusLoadOptions)
+	returnData.ResultMap["recentlyCreatedCommentIds"], err = loadRecentlyCreatedComment(u, params.PrivateGroupID, data.NumToLoad, db, returnData, pageOptions)
 	if err != nil {
-		return pages.Fail("error while loading recently created page ids", err)
+		return pages.Fail("error while loading recentlyCreatedCommentIds", err)
 	}
 
-	// Load recently created and edited by me page ids
-	rows = database.NewQuery(`
-		SELECT p.pageId
-		FROM pages AS p
-		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
-		ON (p.pageId=pi.pageId)
-		WHERE p.creatorId=?`, u.ID).Add(`
-			AND pi.seeGroupId=?`, params.PrivateGroupID).Add(`
-			AND pi.type!=?`, core.CommentPageType).Add(`
-		GROUP BY 1
-		ORDER BY MAX(p.createdAt) DESC
-		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
-	returnData.ResultMap["recentlyEditedIds"], err = core.LoadPageIDs(rows, returnData.PageMap, pageOptions)
+	returnData.ResultMap["recentlyEditedIds"], err = loadRecentlyEdited(u, params.PrivateGroupID, data.NumToLoad, db, returnData, pageOptions)
 	if err != nil {
-		return pages.Fail("error while loading recently edited page ids", err)
+		return pages.Fail("error while loading recentlyEditedIds", err)
 	}
 
-	pagesWithDraftIDs := make([]string, 0)
-	// Load pages with unpublished drafts
-	rows = database.NewQuery(`
-			SELECT p.pageId,p.title,p.createdAt,pi.currentEdit>0,pi.isDeleted
-			FROM pages AS p
-			JOIN`).AddPart(core.PageInfosTableAll(u)).Add(`AS pi
-			ON (p.pageId = pi.pageId)
-			WHERE p.creatorId=?`, u.ID).Add(`
-				AND pi.type!=?`, core.CommentPageType).Add(`
-				AND pi.seeGroupId=?`, params.PrivateGroupID).Add(`
-				AND p.edit>pi.currentEdit AND (p.text!="" OR p.title!="")
-			GROUP BY p.pageId
-			ORDER BY p.createdAt DESC
-			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
-	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageID string
-		var title, createdAt string
-		var wasPublished bool
-		var isDeleted bool
-		err := rows.Scan(&pageID, &title, &createdAt, &wasPublished, &isDeleted)
-		if err != nil {
-			return fmt.Errorf("failed to scan: %v", err)
-		}
-		core.AddPageToMap(pageID, returnData.PageMap, pageOptions)
-		pagesWithDraftIDs = append(pagesWithDraftIDs, pageID)
-		page := core.AddPageIDToMap(pageID, returnData.EditMap)
-		if title == "" {
-			title = "*Untitled*"
-		}
-		page.Title = title
-		page.EditCreatedAt = createdAt
-		page.WasPublished = wasPublished
-		page.IsDeleted = isDeleted
-		return nil
-	})
+	returnData.ResultMap["pagesWithDraftIds"], err = loadPagesWithDraft(u, params.PrivateGroupID, data.NumToLoad, db, returnData, pageOptions)
 	if err != nil {
-		return pages.Fail("error while loading pages with drafts ids", err)
+		return pages.Fail("error while loading pagesWithDraftIds", err)
 	}
-	returnData.ResultMap["pagesWithDraftIds"] = pagesWithDraftIDs
 
-	// Load page ids with the most todos
-	rows = database.NewQuery(`
-		SELECT l.parentId
-		FROM (
-			SELECT l.parentId AS parentId,l.childAlias AS childAlias,p.todoCount AS parentTodoCount
-			FROM links AS l
-			JOIN pages AS p
-			ON (l.parentId=p.pageId)
-			WHERE p.isLiveEdit AND p.creatorId=?`, u.ID).Add(`
-		) AS l
-		LEFT JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
-		ON (l.childAlias=pi.alias OR l.childAlias=pi.pageId)
-		WHERE pi.seeGroupId=?`, params.PrivateGroupID).Add(`
-			AND pi.type!=?`, core.CommentPageType).Add(`
-		GROUP BY 1
-		ORDER BY (SUM(ISNULL(pi.pageId)) + MAX(l.parentTodoCount)) DESC
-		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
-	returnData.ResultMap["mostTodosIds"], err = core.LoadPageIDs(rows, returnData.PageMap, pageOptions)
+	returnData.ResultMap["mostTodosIds"], err = loadMostTodos(u, params.PrivateGroupID, data.NumToLoad, db, returnData, pageOptions)
 	if err != nil {
-		return pages.Fail("error while loading most todos page ids", err)
+		return pages.Fail("error while loading mostTodosIds", err)
 	}
 
 	// Load pages
