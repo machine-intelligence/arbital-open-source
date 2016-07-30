@@ -698,15 +698,6 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		return fmt.Errorf("LoadLensesForPages failed: %v", err)
 	}
 
-	// Load path pages
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Path })
-	err = LoadPathForPages(db, data, &LoadDataOptions{
-		ForPages: filteredPageMap,
-	})
-	if err != nil {
-		return fmt.Errorf("LoadPathForPages failed: %v", err)
-	}
-
 	// Load hub content
 	hubContentPageMap := filterPageMap(pageMap, func(p *Page) bool {
 		if !p.LoadOptions.HubContent {
@@ -725,6 +716,15 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	})
 	if err != nil {
 		return fmt.Errorf("LoadHubContent failed: %v", err)
+	}
+
+	// Load path pages
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Path })
+	err = LoadPathForPages(db, data, &LoadDataOptions{
+		ForPages: filteredPageMap,
+	})
+	if err != nil {
+		return fmt.Errorf("LoadPathForPages failed: %v", err)
 	}
 
 	// Load requisites
@@ -1957,7 +1957,10 @@ func LoadHubContent(db *database.DB, u *CurrentUser, pageMap map[string]*Page, o
 		} else {
 			hubContent.BoostPageIDs[pp.Level] = append(hubContent.BoostPageIDs[pp.Level], pp.ChildID)
 		}
-		AddPageToMap(pp.ChildID, pageMap, &PageLoadOptions{Requisites: true})
+		AddPageToMap(pp.ChildID, pageMap, &PageLoadOptions{
+			Requisites: true,
+			Path:       true,
+		})
 		return nil
 	})
 	return err
