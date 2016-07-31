@@ -22,7 +22,7 @@ func mostTodosJSONHandler(params *pages.HandlerParams) *pages.Result {
 	return DashboardListJSONHandler(params, LoadMostTodos, MostTodosIds)
 }
 
-func LoadMostTodos(u *core.CurrentUser, privateGroupID string, numToLoad int, db *database.DB, returnData *core.CommonHandlerData,
+func LoadMostTodos(db *database.DB, returnData *core.CommonHandlerData, privateGroupID string, numToLoad int,
 	pageOptions *core.PageLoadOptions) ([]string, error) {
 	// Load page ids with the most todos
 	rows := database.NewQuery(`
@@ -32,9 +32,9 @@ func LoadMostTodos(u *core.CurrentUser, privateGroupID string, numToLoad int, db
 			FROM links AS l
 			JOIN pages AS p
 			ON (l.parentId=p.pageId)
-			WHERE p.isLiveEdit AND p.creatorId=?`, u.ID).Add(`
+			WHERE p.isLiveEdit AND p.creatorId=?`, returnData.User.ID).Add(`
 		) AS l
-		LEFT JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+		LEFT JOIN`).AddPart(core.PageInfosTable(returnData.User)).Add(`AS pi
 		ON (l.childAlias=pi.alias OR l.childAlias=pi.pageId)
 		WHERE pi.seeGroupId=?`, privateGroupID).Add(`
 			AND pi.type!=?`, core.CommentPageType).Add(`

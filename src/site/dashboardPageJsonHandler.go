@@ -50,22 +50,22 @@ func dashboardPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error while loading domain ids", err)
 	}
 
-	returnData.ResultMap[RecentlyCreatedCommentIds], err = LoadRecentlyCreatedComment(u, params.PrivateGroupID, data.NumToLoad, db, returnData, pageOptions)
+	returnData.ResultMap[RecentlyCreatedCommentIds], err = LoadRecentlyCreatedComment(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading "+RecentlyCreatedCommentIds, err)
 	}
 
-	returnData.ResultMap[RecentlyEditedIds], err = LoadRecentlyEdited(u, params.PrivateGroupID, data.NumToLoad, db, returnData, pageOptions)
+	returnData.ResultMap[RecentlyEditedIds], err = LoadRecentlyEdited(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading "+RecentlyEditedIds, err)
 	}
 
-	returnData.ResultMap[PagesWithDraftIds], err = LoadPagesWithDraft(u, params.PrivateGroupID, data.NumToLoad, db, returnData, pageOptions)
+	returnData.ResultMap[PagesWithDraftIds], err = LoadPagesWithDraft(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading "+PagesWithDraftIds, err)
 	}
 
-	returnData.ResultMap[MostTodosIds], err = LoadMostTodos(u, params.PrivateGroupID, data.NumToLoad, db, returnData, pageOptions)
+	returnData.ResultMap[MostTodosIds], err = LoadMostTodos(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading "+MostTodosIds, err)
 	}
@@ -269,12 +269,12 @@ type dashboardListJSONData struct {
 	NumToLoad int
 }
 
-type LoadFunction func(*core.CurrentUser, string, int, *database.DB, *core.CommonHandlerData, *core.PageLoadOptions) ([]string, error)
+type DashboardListLoadFunction func(*database.DB, *core.CommonHandlerData, string, int, *core.PageLoadOptions) ([]string, error)
 
-func DashboardListJSONHandler(params *pages.HandlerParams, loadFunction LoadFunction, listName string) *pages.Result {
-	u := params.U
+// Load the data for a list in the dashboard
+func DashboardListJSONHandler(params *pages.HandlerParams, loadFunction DashboardListLoadFunction, listName string) *pages.Result {
 	db := params.DB
-	returnData := core.NewHandlerData(u).SetResetEverything()
+	returnData := core.NewHandlerData(params.U)
 
 	// Decode data
 	var data dashboardListJSONData
@@ -296,7 +296,7 @@ func DashboardListJSONHandler(params *pages.HandlerParams, loadFunction LoadFunc
 		return pages.Fail("Error while loading domain ids", err)
 	}
 
-	returnData.ResultMap[listName], err = loadFunction(u, params.PrivateGroupID, data.NumToLoad, db, returnData, pageOptions)
+	returnData.ResultMap[listName], err = loadFunction(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading "+listName, err)
 	}

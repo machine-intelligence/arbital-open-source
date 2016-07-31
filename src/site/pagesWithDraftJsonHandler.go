@@ -23,16 +23,16 @@ func pagesWithDraftJSONHandler(params *pages.HandlerParams) *pages.Result {
 	return DashboardListJSONHandler(params, LoadPagesWithDraft, PagesWithDraftIds)
 }
 
-func LoadPagesWithDraft(u *core.CurrentUser, privateGroupID string, numToLoad int, db *database.DB, returnData *core.CommonHandlerData,
+func LoadPagesWithDraft(db *database.DB, returnData *core.CommonHandlerData, privateGroupID string, numToLoad int,
 	pageOptions *core.PageLoadOptions) ([]string, error) {
 	// Load pages with unpublished drafts
 	pagesWithDraftIDs := make([]string, 0)
 	rows := database.NewQuery(`
 			SELECT p.pageId,p.title,p.createdAt,pi.currentEdit>0,pi.isDeleted
 			FROM pages AS p
-			JOIN`).AddPart(core.PageInfosTableAll(u)).Add(`AS pi
+			JOIN`).AddPart(core.PageInfosTableAll(returnData.User)).Add(`AS pi
 			ON (p.pageId = pi.pageId)
-			WHERE p.creatorId=?`, u.ID).Add(`
+			WHERE p.creatorId=?`, returnData.User.ID).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
 				AND pi.seeGroupId=?`, privateGroupID).Add(`
 				AND p.edit>pi.currentEdit AND (p.text!="" OR p.title!="")
