@@ -22,6 +22,20 @@ app.directive('arbHubPageGui', function($compile, $timeout, arb) {
 			$scope.getIntLevel = function() {
 				return +$scope.level;
 			};
+			$scope.getLevelName = function(level) {
+				switch (+level) {
+					case 1:
+						return 'LooseUnderstanding';
+					case 2:
+						return 'BasicUnderstanding';
+					case 3:
+						return 'TechnicalUnderstanding';
+					case 4:
+						return 'ResearchLevelUnderstanding';
+					default:
+						return 'NoUnderstanding';
+				}
+			}
 
 			// Update user's mastery level
 			$scope.updateLevel = function() {
