@@ -16,10 +16,10 @@ var recentlyEditedHandler = siteHandler{
 	},
 }
 
-const RecentlyEditedIds = "recentlyEditedIds"
+const RecentlyEditedIdsHandlerType = "recentlyEditedIds"
 
 func recentlyEditedJSONHandler(params *pages.HandlerParams) *pages.Result {
-	return DashboardListJSONHandler(params, LoadRecentlyEdited, RecentlyEditedIds)
+	return DashboardListJSONHandler(params, LoadRecentlyEdited, RecentlyEditedIdsHandlerType)
 }
 
 func LoadRecentlyEdited(db *database.DB, returnData *core.CommonHandlerData, privateGroupID string, numToLoad int,

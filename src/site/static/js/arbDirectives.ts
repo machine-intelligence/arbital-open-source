@@ -608,10 +608,11 @@ app.directive('arbPageList', function(arb) {
 	return {
 		templateUrl: versionUrl('static/html/pageList.html'),
 		scope: {
-			listName: '@',
 			pageIds: '=',
-			loadItemsIncrement: '=',
 			panelTitle: '@',
+            listName: '@',
+            // How many more items to load if more items are requested for the list
+            loadItemsIncrement: '=',
 			hideLikes: '=',
 			showLastEdit: '=',
 			showCreatedAt: '=',

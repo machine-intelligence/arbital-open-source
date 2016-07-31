@@ -16,10 +16,10 @@ var recentlyCreatedCommentHandler = siteHandler{
 	},
 }
 
-const RecentlyCreatedCommentIds = "recentlyCreatedCommentIds"
+const RecentlyCreatedCommentIdsHandlerType = "recentlyCreatedCommentIds"
 
 func recentlyCreatedCommentJSONHandler(params *pages.HandlerParams) *pages.Result {
-	return DashboardListJSONHandler(params, LoadRecentlyCreatedComment, RecentlyCreatedCommentIds)
+	return DashboardListJSONHandler(params, LoadRecentlyCreatedComment, RecentlyCreatedCommentIdsHandlerType)
 }
 
 func LoadRecentlyCreatedComment(db *database.DB, returnData *core.CommonHandlerData, privateGroupID string, numToLoad int,

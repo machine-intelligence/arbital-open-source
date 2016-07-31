@@ -17,10 +17,10 @@ var pagesWithDraftHandler = siteHandler{
 	},
 }
 
-const PagesWithDraftIds = "pagesWithDraftIds"
+const PagesWithDraftIdsHandlerType = "pagesWithDraftIds"
 
 func pagesWithDraftJSONHandler(params *pages.HandlerParams) *pages.Result {
-	return DashboardListJSONHandler(params, LoadPagesWithDraft, PagesWithDraftIds)
+	return DashboardListJSONHandler(params, LoadPagesWithDraft, PagesWithDraftIdsHandlerType)
 }
 
 func LoadPagesWithDraft(db *database.DB, returnData *core.CommonHandlerData, privateGroupID string, numToLoad int,

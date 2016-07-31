@@ -50,24 +50,24 @@ func dashboardPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error while loading domain ids", err)
 	}
 
-	returnData.ResultMap[RecentlyCreatedCommentIds], err = LoadRecentlyCreatedComment(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
+	returnData.ResultMap[RecentlyCreatedCommentIdsHandlerType], err = LoadRecentlyCreatedComment(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
 	if err != nil {
-		return pages.Fail("error while loading "+RecentlyCreatedCommentIds, err)
+		return pages.Fail("error while loading "+RecentlyCreatedCommentIdsHandlerType, err)
 	}
 
-	returnData.ResultMap[RecentlyEditedIds], err = LoadRecentlyEdited(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
+	returnData.ResultMap[RecentlyEditedIdsHandlerType], err = LoadRecentlyEdited(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
 	if err != nil {
-		return pages.Fail("error while loading "+RecentlyEditedIds, err)
+		return pages.Fail("error while loading "+RecentlyEditedIdsHandlerType, err)
 	}
 
-	returnData.ResultMap[PagesWithDraftIds], err = LoadPagesWithDraft(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
+	returnData.ResultMap[PagesWithDraftIdsHandlerType], err = LoadPagesWithDraft(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
 	if err != nil {
-		return pages.Fail("error while loading "+PagesWithDraftIds, err)
+		return pages.Fail("error while loading "+PagesWithDraftIdsHandlerType, err)
 	}
 
-	returnData.ResultMap[MostTodosIds], err = LoadMostTodos(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
+	returnData.ResultMap[MostTodosIdsHandlerType], err = LoadMostTodos(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
 	if err != nil {
-		return pages.Fail("error while loading "+MostTodosIds, err)
+		return pages.Fail("error while loading "+MostTodosIdsHandlerType, err)
 	}
 
 	// Load pages

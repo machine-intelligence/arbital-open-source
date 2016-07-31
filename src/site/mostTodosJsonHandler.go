@@ -16,10 +16,10 @@ var mostTodosHandler = siteHandler{
 	},
 }
 
-const MostTodosIds = "mostTodosIds"
+const MostTodosIdsHandlerType = "mostTodosIds"
 
 func mostTodosJSONHandler(params *pages.HandlerParams) *pages.Result {
-	return DashboardListJSONHandler(params, LoadMostTodos, MostTodosIds)
+	return DashboardListJSONHandler(params, LoadMostTodos, MostTodosIdsHandlerType)
 }
 
 func LoadMostTodos(db *database.DB, returnData *core.CommonHandlerData, privateGroupID string, numToLoad int,
