@@ -17,12 +17,14 @@
 	</div>
 
 	<div>
-		<!-- Start learning -->
-		<div ng-if="getIntLevel()==0">
+		<!-- Start learning / Next level -->
+		<div ng-if="getIntLevel() < page.hubContent.learnPageIds.length - 1">
 			<div ng-if="page.hubContent.learnPageIds[getIntLevel() + 1].length > 0">
-				<md-button class="md-primary md-raised" ng-click="goLearn($event)">Start learning</md-button>
+				<md-button class="md-primary md-raised" ng-click="goLearn($event)">
+					{{getIntLevel() ? 'Next level' : 'Start learning'}}
+				</md-button>
 				<br>
-				Or pick a page that introduces this concept:
+				Or pick a page that {{getIntLevel() ? 'teaches the next level of' : 'introduces'}} this concept:
 				<ul class="no-top-margin">
 					<li ng-repeat="pageId in page.hubContent.learnPageIds[getIntLevel() + 1]">
 						<arb-page-title page-id="{{::pageId}}"
@@ -35,9 +37,15 @@
 				</ul>
 			</div>
 			<div ng-if="page.hubContent.learnPageIds[getIntLevel() + 1].length <= 0">
-				<div>Unfortunately there are no pages on Arbital that introduce this concept to beginners.</div>
-				<!-- TODO: hook up this button -->
-				<md-button class="md-raised">I want it</md-button>
+				<div>
+					Unfortunately there are no pages on Arbital that {{getIntLevel() ? 'teach the next level of this concept.' : 'introduce this concept to beginners.'}}
+				</div>
+				<span ng-if="!page.contentRequests['teach' + getLevelName(getIntLevel() + 1)].myLikeValue">
+					<md-button class="md-raised" ng-click="arb.signupService.submitContentRequest('teach' + getLevelName(getIntLevel() + 1), page)">I want it</md-button>
+				</span>
+				<span class="md-caption" ng-if="page.contentRequests['teach' + getLevelName(getIntLevel() + 1)].myLikeValue">
+					Thanks for letting us know that you want this explanation!
+				</span>
 			</div>
 		</div>
 
@@ -67,32 +75,16 @@
 				</div>
 				<div ng-if="page.hubContent.boostPageIds[getIntLevel()].length <= 0">
 					<div>Unfortunately there are no pages on Arbital that boost understanding of this concept at this level.</div>
-					<!-- TODO: hook up this button -->
-					<md-button class="md-raised">I want it</md-button>
-				</div>
-			</div>
-
-			<!-- Next level -->
-			<div ng-if="getIntLevel() < page.hubContent.learnPageIds.length - 1">
-				<div ng-if="page.hubContent.learnPageIds[getIntLevel() + 1].length > 0">
-					<md-button class="md-primary md-raised" ng-click="goLearn($event)">Next level</md-button>
-					<br>
-					Or pick a page that teaches the next level of this concept:
-					<ul class="no-top-margin">
-						<li ng-repeat="pageId in page.hubContent.learnPageIds[getIntLevel() + 1]">
-							<arb-page-title page-id="{{::pageId}}"
-									is-link="true"
-									custom-link="{{::arb.urlService.getHubSuggestionPageUrl(pageId, {hubId: page.pageId})}}"></arb-page-title>
-							<span ng-if="arb.stateService.pageMap[pageId].pathPages.length > 0">
-								(Arc of {{arb.stateService.pageMap[pageId].pathPages.length}} pages)
-							</span>
-						</li>
-					</ul>
-				</div>
-				<div ng-if="page.hubContent.learnPageIds[getIntLevel() + 1].length <= 0">
-					<div>Unfortunately there are no pages on Arbital that teach the next level of this concept.</div>
-					<!-- TODO: hook up this button -->
-					<md-button class="md-raised">I want it</md-button>
+					<span ng-if="!page.contentRequests['boost' + getLevelName(getIntLevel())].myLikeValue">
+						<md-button class="md-raised"
+								ng-click="arb.signupService.submitContentRequest('boost' + getLevelName(getIntLevel()), page)">
+							I want it
+						</md-button>
+					</span>
+					<span class="md-caption"
+								ng-if="page.contentRequests['boost' + getLevelName(getIntLevel())].myLikeValue">
+						Thanks for letting us know that you want this explanation!
+					</span>
 				</div>
 			</div>
 		</div>

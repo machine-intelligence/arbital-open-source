@@ -21,24 +21,7 @@ app.directive('arbPageImprovement', function($timeout, $http, $compile, arb) {
 			$scope.arb = arb;
 
 			// Determine which style of bar to show
-			$scope.qualityTag = 'unassessed';
-			if ($scope.page.tagIds.includes('4v')) {
-				$scope.qualityTag = 'wip';
-			} else if ($scope.page.tagIds.includes('4v4')) {
-				$scope.qualityTag = 'still-needs-work';
-			} else if ($scope.page.tagIds.includes('72')) {
-				$scope.qualityTag = 'stub';
-			} else if ($scope.page.tagIds.includes('3rk')) {
-				$scope.qualityTag = 'start';
-			} else if ($scope.page.tagIds.includes('4y7')) {
-				$scope.qualityTag = 'c-class';
-			} else if ($scope.page.tagIds.includes('4yd')) {
-				$scope.qualityTag = 'b-class';
-			} else if ($scope.page.tagIds.includes('4yf')) {
-				$scope.qualityTag = 'a-class';
-			} else if ($scope.page.tagIds.includes('4yl')) {
-				$scope.qualityTag = 'featured';
-			}
+			$scope.qualityTag = arb.pageService.getQualityTag($scope.page.tagIds)
 
 			$scope.shouldShowTags = function() {
 				return $scope.page.improvementTagIds.length > 0;
