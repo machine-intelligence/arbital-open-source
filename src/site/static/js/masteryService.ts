@@ -1,6 +1,7 @@
 'use strict';
 
 import app from './angular.ts';
+import {arraysSortFn} from './util.ts';
 
 // Manages masteries
 app.service('masteryService', function($http, $compile, $location, $mdToast, $rootScope, $interval, stateService, pageService) {
@@ -181,14 +182,20 @@ app.service('masteryService', function($http, $compile, $location, $mdToast, $ro
 	// Sort pageIds in the given page's hubContent
 	this.sortHubContent = function(page) {
 		for (var n = 0; n < page.hubContent.boostPageIds.length; n++) {
-			page.hubContent.boostPageIds[n].sort(function(pageId1, pageId2) {
-				return (that.doesPageTeachUnknownReqs(pageId2) ? 1 : 0) -
-						(that.doesPageTeachUnknownReqs(pageId1) ? 1 : 0);
-			});
-			page.hubContent.learnPageIds[n].sort(function(pageId1, pageId2) {
-				return (that.doesPageTeachUnknownReqs(pageId2) ? 1 : 0) -
-						(that.doesPageTeachUnknownReqs(pageId1) ? 1 : 0);
-			});
+			page.hubContent.boostPageIds[n].sort(arraysSortFn(function(pageId) {
+				var page = stateService.pageMap[pageId];
+				return [
+					-page.pathPages.length,
+					that.doesPageTeachUnknownReqs(pageId) ? 1 : 0,
+				];
+			}));
+			page.hubContent.learnPageIds[n].sort(arraysSortFn(function(pageId) {
+				var page = stateService.pageMap[pageId];
+				return [
+					-page.pathPages.length,
+					that.doesPageTeachUnknownReqs(pageId) ? 1 : 0,
+				];
+			}));
 		}
 	};
 

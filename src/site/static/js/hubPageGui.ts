@@ -35,11 +35,15 @@ app.directive('arbHubPageGui', function($compile, $timeout, arb) {
 			};
 
 			$scope.goLearn = function(event) {
-				arb.urlService.goToUrl($scope.page.getBestLearnPageUrl($scope.getIntLevel()), {event: event});
+				var pageId = $scope.page.getBestLearnPageId($scope.getIntLevel());
+				var url = arb.urlService.getHubSuggestionPageUrl(pageId, {hubId: $scope.pageId});
+				arb.urlService.goToUrl(url, {event: event});
 			};
 
 			$scope.goBoost = function(event) {
-				arb.urlService.goToUrl($scope.page.getBestBoostPageUrl($scope.getIntLevel()), {event: event});
+				var pageId = $scope.page.getBestBoostPageId($scope.getIntLevel());
+				var url = arb.urlService.getHubSuggestionPageUrl(pageId, {hubId: $scope.pageId});
+				arb.urlService.goToUrl(url, {event: event});
 			};
 		},
 	};

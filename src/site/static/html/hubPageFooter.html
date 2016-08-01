@@ -23,7 +23,38 @@
 			</md-checkbox>
 		</div>
 	</div>
-	<div layout="row">
+
+	<!-- Buttons when on a path -->
+	<div layout="row" layout-align="start center" ng-if="::pathPage">
+		<md-button ng-href="{{prevPageUrl}}"
+				ng-if="prevPageUrl">
+			<md-icon>chevron_left</md-icon>
+			Prev
+		</md-button>
+		<span>
+			<arb-page-title page-id="{{::pathPage.pageId}}"
+					is-link="true"
+					custom-page-title="{{'Arc: ' + (currentPathIndex + 1) + '/' + pathPage.pathPages.length}}">
+			</arb-page-title>
+			&nbsp;&nbsp;
+		</span>
+		<md-button class="md-primary md-raised"
+				ng-href="{{nextPageUrl}}"
+				ng-click="doLevelUp()"
+				ng-if="nextPageUrl">
+			Next
+			<md-icon>chevron_right</md-icon>
+		</md-button>
+		<div flex ng-if="currentPathIndex < pathPage.pathPages.length - 1"></div>
+		<md-button ng-href="{{arb.urlService.getPageUrl(hubPageId)}}"
+				ng-click="doLevelUp()"
+				ng-class="{'md-primary md-raised': !nextPageUrl}">
+			Back to hub page
+		</md-button>
+	</div>
+
+	<!-- Buttons when not on a path -->
+	<div layout="row" ng-if="::!pathPage">
 		<md-button class="md-primary md-raised"
 				ng-href="{{getBoostUrl()}}"
 				ng-click="doLevelUp()"
@@ -34,7 +65,7 @@
 				ng-click="doLevelUp()"
 				ng-if="getLearnUrl()">Learn at next level</md-button>
 		<div flex ng-if="getBoostUrl() || getLearnUrl()"></div>
-		<md-button ng-href="{{arb.urlService.getPageUrl(hubPageId, {hubId: hubPageId})}}"
+		<md-button ng-href="{{arb.urlService.getPageUrl(hubPageId)}}"
 				ng-click="doLevelUp()"
 				ng-class="{'md-primary md-raised': !getBoostUrl() && !getLearnUrl()}">Back to hub page</md-button>
 	</div>
