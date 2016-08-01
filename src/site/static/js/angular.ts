@@ -446,6 +446,7 @@ app.run(function($http, $location, arb) {
 				lensId: $location.search().l,
 				markId: $location.search().markId,
 				hubId: $location.search().hubId,
+				pathPageId: $location.search().pathPageId,
 				// Load the path if it's not loaded already
 				pathInstanceId: arb.stateService.path ? undefined : $location.search().pathId,
 			};

@@ -23,6 +23,8 @@ type primaryPageJSONData struct {
 	MarkID string
 	// Optional path instance id that was specified in the url
 	PathInstanceID string
+	// Optional id of the page that specifies the path the user is on
+	PathPageID string
 	// Optional page id for the hub the user is going from
 	HubID string
 }
@@ -171,6 +173,9 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 	}
 	if data.MarkID != "" {
 		core.AddMarkToMap(data.MarkID, returnData.MarkMap)
+	}
+	if data.PathPageID != "" {
+		core.AddPageToMap(data.PathPageID, returnData.PageMap, &core.PageLoadOptions{Path: true})
 	}
 	if data.HubID != "" {
 		core.AddPageToMap(data.HubID, returnData.PageMap, &core.PageLoadOptions{HubContent: true})

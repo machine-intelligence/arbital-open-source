@@ -191,3 +191,23 @@ export var formatReqsForDisplay = function(list) {
 export var isTouchDevice = 'ontouchstart' in window || // works in most browsers
 	(navigator.maxTouchPoints > 0) ||
 	(navigator.msMaxTouchPoints > 0);
+
+// Often when we sort lists, we want to sort by multiple parameters. This is a helper function
+// that constructs the function you would pass to array.sort().
+// Example:
+// varsA = [edit, createdAt]
+// varsB = [edit, createdAt]
+// makeVarsFn should take an object from the array and return corresponding array of vars.
+// arraysSortFn will return a function that when passed to array.sort() will sort the array
+// by edit and then by createdAt.
+export var arraysSortFn = function(makeVarsFn) {
+	return function(a, b) {
+		var varsA = makeVarsFn(a);
+		var varsB = makeVarsFn(b);
+		for (var n = 0; n < varsA.length; n++) {
+			if (varsA[n] == varsB[n]) continue;
+			return varsA[n] < varsB[n] ? -1 : 1;
+		}
+		return 0;
+	};
+};
