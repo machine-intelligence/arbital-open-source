@@ -186,14 +186,14 @@ app.service('masteryService', function($http, $compile, $location, $mdToast, $ro
 				var page = stateService.pageMap[pageId];
 				return [
 					-page.pathPages.length,
-					that.doesPageTeachUnknownReqs(pageId) ? 1 : 0,
+					that.doesPageTeachUnknownReqs(pageId) ? 0 : 1,
 				];
 			}));
 			page.hubContent.learnPageIds[n].sort(arraysSortFn(function(pageId) {
 				var page = stateService.pageMap[pageId];
 				return [
 					-page.pathPages.length,
-					that.doesPageTeachUnknownReqs(pageId) ? 1 : 0,
+					that.doesPageTeachUnknownReqs(pageId) ? 0 : 1,
 				];
 			}));
 		}
