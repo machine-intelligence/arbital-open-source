@@ -57,6 +57,20 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 					event.stopPropagation();
 				});
 			};
+
+			$scope.hoverStart = function() {
+				if (arb.isTouchDevice) {
+					return;
+				}
+
+				$scope.timer = $timeout(function() {
+					$scope.isHovered = true;
+				}, 100);
+			};
+
+			$scope.hoverEnd = function() {
+				$timeout.cancel($scope.timer);
+			};
 		},
 		link: function(scope: any, element, attrs) {
 			var parent = element.parent();

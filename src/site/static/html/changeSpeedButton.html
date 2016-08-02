@@ -9,15 +9,14 @@
 			}"
 		arb-click-elsewhere="isHovered = false">
 	<div class="md-body-2 change-speed-button"
-			ng-mouseenter="isHovered = !arb.isTouchDevice"
+			ng-mouseenter="hoverStart()"
+			ng-mouseleave="hoverEnd()"
 			ng-click="isHovered = !isHovered"
 			ng-class="{'collapsed': haveScrolled && !isHovered && false}">
 		<md-icon ng-if="goSlow">slow_motion_video</md-icon>
 		<span ng-bind="::goSlow ? 'Say what?' : 'Go faster'"
 				ng-if="true || !haveScrolled || isHovered"></span>
 		<md-icon ng-if="!goSlow">slow_motion_video</md-icon>
-		<md-tooltip ng-if="goSlow && !isHovered" md-direction="right">Show slower explanations</md-tooltip>
-		<md-tooltip ng-if="!goSlow && !isHovered" md-direction="left">Show faster explanations</md-tooltip>
 	</div>
 	<div class="change-speed-tray md-body-1">
 		<div ng-if="isHovered">
