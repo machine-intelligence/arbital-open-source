@@ -6,18 +6,8 @@
 		<span ng-switch-when="wip">
 			An editor is actively working on this page. Check with them before making major changes.
 		</span>
-		<span ng-switch-when="still-needs-work">
-			An editor has plans for this page. You may want to check with them before making major changes.
-		</span>
 		<span ng-switch-when="unassessed">
-			This page's quality is unknown.
-			<span ng-if="::arb.userService.user.maxTrustLevel >= 2">
-				Can you add a
-				<arb-page-title page-id="4yg"
-						is-link="true"
-						custom-page-title="quality"></arb-page-title>
-				tag?
-			</span>
+			This page's quality has not been assessed.
 		</span>
 		<span ng-switch-when="stub">
 			This page is just getting started. Can you

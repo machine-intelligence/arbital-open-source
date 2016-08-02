@@ -594,9 +594,6 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		if (tagIds.includes('4v')) {
 			return 'wip';
 		}
-		if (tagIds.includes('4v4')) {
-			return 'still-needs-work';
-		}
 		if (tagIds.includes('72')) {
 			return 'stub';
 		}
