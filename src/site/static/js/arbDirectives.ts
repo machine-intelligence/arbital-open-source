@@ -633,27 +633,22 @@ app.directive('arbPageList', function(arb) {
 				return arb.stateService.getPageFromSomeMap(pageId, $scope.useEditMap);
 			};
 
-			if ($scope.sourceUrl) {
-				arb.stateService.postData($scope.sourceUrl, {}, 
-					function(data) {
-						$scope.pageIds = data.result.pageIds;
-					}
-				);
-			}
-
 			$scope.fetchMore = function() {
-				var postUrl = '/json/' + $scope.listName + '/';
-
 				$scope.loadItemsTotal += $scope.loadItemsIncrement;
 				$scope.fetchingMore = true;
-
-				arb.stateService.postData(postUrl, {
+				arb.stateService.postData($scope.sourceUrl, {
 						numToLoad: $scope.loadItemsTotal
-					}, function(data) {
-						$scope.pageIds = data.result[$scope.listName + 'Ids'];
+					}, 
+					function(data) {
+						$scope.pageIds = data.result.pageIds;
 						$scope.fetchingMore = false;
-					});
+					}
+				);
 			};
+
+			if ($scope.sourceUrl && (!$scope.pageIds || $scope.pageIds.length <= 0)) {
+				$scope.fetchMore();
+			}
 		},
 	};
 });

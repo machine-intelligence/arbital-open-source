@@ -296,7 +296,7 @@ func DashboardListJSONHandler(params *pages.HandlerParams, loadFunction Dashboar
 		return pages.Fail("Error while loading domain ids", err)
 	}
 
-	returnData.ResultMap[listName], err = loadFunction(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
+	returnData.ResultMap["pageIds"], err = loadFunction(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading "+listName, err)
 	}
