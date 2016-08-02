@@ -32,6 +32,7 @@
 			<span class="toolbar-update-count"
 					ng-bind="arb.userService.user.newNotificationCount"
 					ng-if="arb.userService.user.newNotificationCount > 0"></span>
+			<md-tooltip>Your discussion updates</md-tooltip>
 		</md-button>&nbsp;
 
 		<!-- Achievement updates -->
@@ -44,6 +45,7 @@
 			<span class="toolbar-update-count"
 					ng-bind="arb.userService.user.newAchievementCount"
 					ng-if="arb.userService.user.newAchievementCount > 0"></span>
+			<md-tooltip>Your achievement updates</md-tooltip>
 		</md-button>&nbsp;
 
 		<!-- Maintenance updates -->
@@ -56,6 +58,7 @@
 			<span class="toolbar-update-count"
 					ng-bind="arb.userService.user.maintenanceUpdateCount"
 					ng-if="arb.userService.user.maintenanceUpdateCount > 0"></span>
+			<md-tooltip>Your maintenance updates</md-tooltip>
 		</md-button>&nbsp;
 
 		<!-- Login/signup buttons -->
@@ -102,6 +105,7 @@
 		<md-subheader>
 			Your Account
 		</md-subheader>
+		<md-button ng-href="{{arb.urlService.getPageUrl(arb.userService.user.id)}}" ng-click="toggleRightMenu()">Your user page</md-button>
 		<md-button href="/dashboard/" ng-click="toggleRightMenu()">Your dashboard</md-button>
 		<md-button ng-href="/discussion" ng-click="toggleRightMenu()">Your discussions</md-button>
 		<md-button ng-href="/groups"
@@ -110,6 +114,7 @@
 		<!-- Requisites page needs to be reworked if we bring it back -->
 		<!--<md-button ng-href="/requisites" ng-click="toggleRightMenu()">Your requisites</md-button>-->
 		<md-button ng-href="/settings" ng-click="toggleRightMenu()">Your settings</md-button>
+
 		<md-divider></md-divider>
 
 		<!-- List of groups -->
