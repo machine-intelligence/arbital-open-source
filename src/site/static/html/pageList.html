@@ -5,7 +5,7 @@
 		</div>
 	</md-toolbar>
 	<md-list>
-		<md-list-item ng-repeat="pageId in ::pageIds">
+		<md-list-item ng-repeat="pageId in pageIds">
 			<arb-page-row page-id="{{::pageId}}"
 					hide-likes="hideLikes"
 					show-last-edit="showLastEdit"
@@ -15,8 +15,15 @@
 					show-comment-count="showCommentCount"
 					show-text-length="showTextLength"
 					use-edit-map="useEditMap"></arb-page-row>
-			<md-divider ng-if="::!$last"></md-divider>
+			<md-divider ng-if="!$last"></md-divider>
 		</md-list-item>
+		
+		<md-divider></md-divider>
+		<md-list-item ng-if="pageIds">
+			<md-progress-circular md-mode="indeterminate" ng-if="fetchingMore"></md-progress-circular>
+			<md-button ng-click="fetchMore()" ng-if="!fetchingMore">Load more</md-button>
+		</md-list-item>
+		
 	</md-list>
 	<span class="md-caption" layout-padding ng-if="::(pageIds.length <= 0)">
 		Nothing here
