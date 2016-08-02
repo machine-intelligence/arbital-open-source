@@ -19,7 +19,7 @@
 		</md-list-item>
 		
 		<md-divider></md-divider>
-		<md-list-item ng-if="pageIds">
+		<md-list-item ng-if="loadItemsIncrement">
 			<md-progress-circular md-mode="indeterminate" ng-if="fetchingMore"></md-progress-circular>
 			<md-button ng-click="fetchMore()" ng-if="!fetchingMore">Load more</md-button>
 		</md-list-item>

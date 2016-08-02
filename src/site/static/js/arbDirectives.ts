@@ -610,7 +610,6 @@ app.directive('arbPageList', function(arb) {
 		scope: {
 			pageIds: '=',
 			panelTitle: '@',
-			listName: '@',
 			// How many more items to load if more items are requested for the list
 			loadItemsIncrement: '=',
 			hideLikes: '=',
