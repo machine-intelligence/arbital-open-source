@@ -50,13 +50,14 @@ app.directive('arbReqRelationships', function($q, $timeout, $interval, $http, ar
 				});
 				return deferred.promise;
 			};
-			$scope.searchResultSelected = function(result) {
+			$scope.searchResultSelected = function(result, isStrong = false) {
 				if (!result) return;
 				var params = {
 					parentId: result.pageId,
 					childId: $scope.page.pageId,
 					type: $scope.type,
-					level: 1,
+					level: 2,
+					isStrong: isStrong,
 				};
 				arb.pageService.newPagePair(params, function success(data) {
 					$scope.source.push(data.result.pagePair);
@@ -80,7 +81,7 @@ app.directive('arbReqRelationships', function($q, $timeout, $interval, $http, ar
 				// Make the page teach itself. Used when the page isn't published yet.
 				$scope.searchResultSelected({
 					pageId: $scope.pageId,
-				});
+				}, true);
 				$scope.relatesToItself = true;
 			};
 
