@@ -602,6 +602,14 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			scope._restartMathJax = function() {
 				MathJax.Hub.cancelTypeset = false;
 			};
+
+			scope._typesetMath = function(element) {
+				try {
+					(MathJax.Hub as any).Typeset(element);
+				} catch (e) {
+					console.error(e);
+				};
+			};
 		}
 
 		if (options.isEditor) {
@@ -627,7 +635,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				});
 				MathJax.Hub.Cancel();
 				MathJax.Hub.Queue(['_restartMathJax', scope]);
-				MathJax.Hub.Queue(['Typeset', MathJax.Hub, $pageText.get(0)]);
+				MathJax.Hub.Queue(['_typesetMath', scope, $pageText.get(0)]);
 				MathJax.Hub.Queue(['_cacheMath', scope, elements]);
 			}, scope._mathRenderPromise ? 500 : 0);
 		} else {

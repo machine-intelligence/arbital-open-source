@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	updateFeaturedPagesPeriod = 1 * 60 * 60 // 1 hour
+	updateFeaturedPagesPeriod     = 1 * 60 * 60 // 1 hour
+	minTextLengthForFeaturedPages = 2000
 )
 
 // UpdateFeaturedPagesTask is the object that's put into the daemon queue.
@@ -45,11 +46,14 @@ func (task UpdateFeaturedPagesTask) Execute(db *database.DB) (delay int, err err
 	rows := database.NewQuery(`
 		SELECT pi.pageId
 		FROM`).AddPart(core.PageInfosTable(nil)).Add(`AS pi
+		JOIN pages AS p
+		ON (pi.pageId=p.pageId AND p.isLiveEdit)
 		JOIN pageDomainPairs AS pdp /*Has to be part of a domain*/
 		ON (pi.pageId=pdp.pageId)
 		LEFT JOIN pagePairs AS pp
 		ON (pi.pageId=pp.childId)
 		WHERE pi.seeGroupId="" AND pi.featuredAt=0 AND pi.type!=?`, core.CommentPageType).Add(`
+			AND length(p.text)>=?`, minTextLengthForFeaturedPages).Add(`
 			AND pp.type=?`, core.TagPagePairType).Add(`
 			AND pp.parentId IN (?,?)`, core.AClassPageID, core.BClassPageID).Add(`
 		GROUP BY 1`).ToStatement(db).Query()
