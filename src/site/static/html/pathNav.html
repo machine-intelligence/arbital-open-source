@@ -13,10 +13,10 @@
 	</div>
 
 	<!-- Show this when the user is not on a path, but can start one -->
-	<div ng-if="!path && page.pathPages.length > 0 && !arb.pathService.isOnPath()">
+	<div ng-if="!path && page.pathPages.length > 0 && !arb.pathService.isOnPath() && !isHubPathActive">
 		<span>
 			<!-- +1 to count the guide page -->
-			Path: 1/{{page.pathPages.length+1}}
+			Path: {{getVisibleProgress()}}/{{pathLength}}
 		</span>
 		<md-button ng-click="arb.pathService.startPath(pageId)"
 				class="md-primary md-raised">
@@ -28,12 +28,12 @@
 	<!-- If on the path, show "<Back" and "Next>" buttons -->
 	<div ng-if="arb.pathService.isOnPath()">
 		<md-button ng-click="arb.pathService.updateProgress(path.progress-1)"
-				ng-if="!arb.pathService.showFinish()">
+				ng-if="!path.isFinished">
 			<md-icon>chevron_left</md-icon>
 			<span>Back</span>
 		</md-button>
-		<span ng-if="!arb.pathService.showFinish()">
-			Path: {{path.progress+1}}/{{path.pages.length}}
+		<span ng-if="!path.isFinished">
+			Path: {{getVisibleProgress()}}/{{pathLength}}
 			<span ng-if="arb.pathService.pageExtensionLength() > 0">
 				(+{{arb.pathService.pageExtensionLength()}})
 			</span>

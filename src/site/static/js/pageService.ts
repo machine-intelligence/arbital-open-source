@@ -143,8 +143,8 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		isInDomain: function(domainId) {
 			return this.domainIds.indexOf(domainId) >= 0;
 		},
-		// Helper function for getBest...Url functions
-		_getBestPageUrl: function(pageIds, currentLevel, excludePageId) {
+		// Helper function for getBest...Id functions
+		_getBestPageId: function(pageIds, excludePageId) {
 			var pageId = undefined;
 			for (var n = 0; n < pageIds.length; n++) {
 				if (pageIds[n] != excludePageId) {
@@ -152,20 +152,19 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 					break;
 				}
 			}
-			if (!pageId) return undefined;
-			return urlService.getPageUrl(pageId, {hubId: this.pageId});
+			return pageId;
 		},
-		// Return url most suited for this user to boost understanding of this page
-		getBestBoostPageUrl: function(currentLevel, excludePageId) {
-			if (currentLevel <= 0) return '';
+		// Return pageId most suited for this user to boost understanding of this page
+		getBestBoostPageId: function(currentLevel, excludePageId = undefined) {
+			if (currentLevel <= 0) return undefined;
 			var pageIds = this.hubContent.boostPageIds[currentLevel];
-			return this._getBestPageUrl(pageIds, currentLevel, excludePageId);
+			return this._getBestPageId(pageIds, excludePageId);
 		},
-		// Return url most suited for this user to learn the next level of this page
-		getBestLearnPageUrl: function(currentLevel, excludePageId) {
-			if (currentLevel >= this.hubContent.learnPageIds.length - 1) return '';
+		// Return pageId most suited for this user to learn the next level of this page
+		getBestLearnPageId: function(currentLevel, excludePageId) {
+			if (currentLevel >= this.hubContent.learnPageIds.length - 1) return undefined;
 			var pageIds = this.hubContent.learnPageIds[currentLevel + 1];
-			return this._getBestPageUrl(pageIds, currentLevel, excludePageId);
+			return this._getBestPageId(pageIds, excludePageId);
 		},
 	};
 
@@ -590,4 +589,33 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 			changeLog.type = 'newEdit';
 		});
 	};
+
+	this.getQualityTag = function(tagIds: string[]): string {
+		if (tagIds.includes('4v')) {
+			return 'wip';
+		}
+		if (tagIds.includes('4v4')) {
+			return 'still-needs-work';
+		}
+		if (tagIds.includes('72')) {
+			return 'stub';
+		}
+		if (tagIds.includes('3rk')) {
+			return 'start';
+		}
+		if (tagIds.includes('4y7')) {
+			return 'c-class';
+		}
+		if (tagIds.includes('4yd')) {
+			return 'b-class';
+		}
+		if (tagIds.includes('4yf')) {
+			return 'a-class';
+		}
+		if (tagIds.includes('4yl')) {
+			return 'featured';
+		}
+
+		return 'unassessed'
+	}
 });

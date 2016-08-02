@@ -106,7 +106,12 @@ app.service('pathService', function($http, $compile, $location, $mdToast, $rootS
 	// Go to the page that the path's progress says we should be on
 	this.goToPathPage = function() {
 		var path = stateService.path;
+		if (!path || path.isFinished) return;
 		if (path.progress >= 0) {
+			if (path.pages[path.progress].pageId == stateService.primaryPage.pageId) {
+				that.updateProgress(path.progress + 1);
+				return;
+			}
 			var url = urlService.getPageUrl(path.pages[path.progress].pageId, {pathInstanceId: path.id});
 		} else {
 			var url = urlService.getPageUrl(path.guideId);

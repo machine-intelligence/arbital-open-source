@@ -38,19 +38,8 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 			$scope.submitExplanationRequest = function(requestType, event) {
 				arb.signupService.wrapInSignupFlow(requestType, function() {
 
-					$scope.page.contentRequests[requestType] = $scope.page.contentRequests[requestType] || {};
-					$scope.page.contentRequests[requestType].myLikeValue = true;
-
-					if ($scope.request.freeformText) {
-						$scope.submittedFreeform = true;
-					}
-
 					// Register the +1 to request
-					var erData = {
-						pageId: $scope.page.pageId,
-						requestType: requestType || ($scope.goSlow ? 'slowDown' : 'speedUp'),
-					};
-					arb.stateService.postData('/json/contentRequest/', erData);
+					arb.signupService.submitContentRequest(requestType || ($scope.goSlow ? 'slowDown' : 'speedUp'), $scope.page);
 
 					// Submit feedback if there is any text
 					if ($scope.request.freeformText.length > 0) {
@@ -61,10 +50,26 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 							{text: text}
 						)
 						$scope.request.freeformText = '';
+						$scope.submittedFreeform = true;
 					}
 
+					// TODO: is this necessary here?
 					event.stopPropagation();
 				});
+			};
+
+			$scope.hoverStart = function() {
+				if (arb.isTouchDevice) {
+					return;
+				}
+
+				$scope.timer = $timeout(function() {
+					$scope.isHovered = true;
+				}, 100);
+			};
+
+			$scope.hoverEnd = function() {
+				$timeout.cancel($scope.timer);
 			};
 		},
 		link: function(scope: any, element, attrs) {
