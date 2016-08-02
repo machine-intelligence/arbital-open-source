@@ -106,6 +106,11 @@ app.directive('arbIntrasitePopover', function($timeout, arb) {
 			// other than undefined for the first time. So '::isLoaded' is safe, but '::!isLoaded'
 			// is not safe (since it will be evaluated to true before isLoaded is set).
 			$scope.isLoaded = undefined;
+
+			$scope.onSwipe = function() {
+				if (!arb.isTouchDevice) return;
+				arb.popoverService.removePopover();
+			};
 		},
 		link: function(scope: any, element, attrs) {
 			// Fix to prevent errors when we go to another page while popover is loading.
@@ -192,6 +197,11 @@ app.directive('arbUserPopover', function($timeout, arb) {
 			// other than undefined for the first time. So '::isLoaded' is safe, but '::!isLoaded'
 			// is not safe (since it will be evaluated to true before isLoaded is set).
 			$scope.isLoaded = undefined;
+
+			$scope.onSwipe = function() {
+				if (!arb.isTouchDevice) return;
+				arb.popoverService.removePopover();
+			};
 		},
 		link: function(scope: any, element, attrs) {
 			// Fix to prevent errors when we go to another page while popover is loading.
@@ -256,6 +266,11 @@ app.directive('arbTextPopover', function($compile, $timeout, arb) {
 			$scope.arb = arb;
 			$scope.getArrowStyle = function() {
 				return {'left': +$scope.arrowOffset};
+			};
+
+			$scope.onSwipe = function() {
+				if (!arb.isTouchDevice) return;
+				arb.popoverService.removePopover();
 			};
 		},
 		link: function(scope: any, element, attrs) {

@@ -836,6 +836,12 @@ md-toast {
 	text-align: right;
 }
 
+// On mobile, this is text that says "swipe to close"
+.popover-close-note {
+	margin-top: 5px;
+	text-align: center;
+}
+
 // Text inside a popover
 .popover-text-container {
 	font-size: 15px;

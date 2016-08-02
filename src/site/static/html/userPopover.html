@@ -1,4 +1,6 @@
-<div class="user-popover">
+<div class="user-popover"
+		md-swipe-left="onSwipe()"
+		md-swipe-right="onSwipe()">
 	<div class="top-triangle-track" ng-if="::direction === 'down'">
 		<div class="triangle-up" ng-style="::getArrowStyle()"></div>
 	</div>
@@ -8,6 +10,8 @@
 				<arb-user-name user-id="{{::userId}}" is-link="true" ng-if="::isLoaded"></arb-user-name>
 			</div>
 		</md-toolbar>
+
+		<div class="popover-close-note md-caption" ng-if="arb.isTouchDevice">Swipe to close</div>
 
 		<arb-vote-bar page-id="{{::userId}}"
 				is-embedded="true"

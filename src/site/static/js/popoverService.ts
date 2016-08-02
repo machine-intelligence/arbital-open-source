@@ -40,12 +40,12 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 	// Remove all popovers
 	var removeAllPopovers = function() {
 		while ($popoverElement) {
-			removePopover();
+			that.removePopover();
 		}
 	};
 
 	// Remove the popover.
-	var removePopover = function() {
+	this.removePopover = function() {
 		// Remove the popoverElement, and get the next one if there is one.
 		if ($popoverElement) {
 			popoverScope.$destroy();
@@ -69,7 +69,7 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 		popoverHovering = false;
 	};
 
-	var shutItDown = function() {
+	this.shutItDown = function() {
 		$timeout.cancel(createPromise);
 		$timeout.cancel(removePromise);
 		removeAllPopovers();
@@ -86,7 +86,7 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 				// Start the timer to remove the popover
 				removePromise = $timeout(function() {
 					while ($popoverElement && !$popoverElement.popoverHovering) {
-						removePopover();
+						that.removePopover();
 					}
 				}, hideDelay);
 			}
@@ -297,16 +297,16 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 	} else {
 		// On desktop, clicking the link kills the popover
 		$('body').on('click', '.intrasite-link', function(event) {
-			shutItDown();
+			that.shutItDown();
 		});
 
 		$('body').on('click', '.user-link', function(event) {
-			shutItDown();
+			that.shutItDown();
 		});
 	}
 
 	$rootScope.$on('$locationChangeStart', function(event) {
-		shutItDown();
+		that.shutItDown();
 	});
 });
 

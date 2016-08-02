@@ -1,6 +1,10 @@
-<div class="intrasite-popover" ng-class="::{
+<div class="intrasite-popover"
+		ng-class="::{
 			'touch-device': arb.isTouchDevice,
-		}">
+		}"
+		md-swipe-left="onSwipe()"
+		md-swipe-right="onSwipe()">
+	<div class="popover-close-note md-caption" ng-if="arb.isTouchDevice">Swipe to close</div>
 
 	<!-- Vote bar -->
 	<div arb-vote-bar class="white-background md-padding"
