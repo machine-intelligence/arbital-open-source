@@ -57,16 +57,6 @@ func deletePageInternalHandlerFunc(params *pages.HandlerParams, data *deletePage
 		// Looks like there is no need to delete this page.
 		return pages.Success(nil)
 	}
-	if page.Type == core.GroupPageType || page.Type == core.DomainPageType {
-		if !u.IsAdmin {
-			return pages.Fail("Have to be an admin to delete a group/domain", nil).Status(http.StatusForbidden)
-		}
-	}
-	if page.Type == core.CommentPageType && u.ID != page.PageCreatorID {
-		if !u.IsAdmin {
-			return pages.Fail("Have to be an admin to delete someone else's comment", nil).Status(http.StatusForbidden)
-		}
-	}
 
 	// Make sure the user has the right permissions to delete this page
 	if !page.Permissions.Delete.Has {

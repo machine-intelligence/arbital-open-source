@@ -29,8 +29,11 @@
 										aria-label="Title"
 										autofocus>
 							</md-input-container>
-							<md-button class="md-icon-button intrasite-link editor-input-container-help-button" target="_blank"
-								href="https://arbital.com/p/Arbital_title" page-id="596">
+							<md-button class="md-icon-button intrasite-link editor-input-container-help-button"
+									target="_blank"
+									ng-href="{{arb.urlService.getPageUrl('596')}}"
+									page-id="596"
+									tabindex="-1">
 								<md-icon>live_help</md-icon>
 							</md-button>
 						</div>
@@ -39,19 +42,24 @@
 								<label>Clickbait (a one-sentence teaser for the page)</label>
 								<input ng-model="page.clickbait" md-maxlength="200">
 							</md-input-container>
-							<md-button class="md-icon-button intrasite-link editor-input-container-help-button" target="_blank"
-								href="https://arbital.com/p/Arbital_clickbait" page-id="597">
+							<md-button class="md-icon-button intrasite-link editor-input-container-help-button"
+									target="_blank"
+									ng-href="{{arb.urlService.getPageUrl('597')}}"
+									page-id="597"
+									tabindex="-1">
 								<md-icon>live_help</md-icon>
 							</md-button>
 						</div>
-						<div layout="row">
-							<md-input-container flex ng-if="showAdvancedMode()">
+						<div layout="row" ng-if="showAdvancedMode()">
+							<md-input-container flex>
 								<label>Alias</label>
 								<input ng-model="page.alias" md-maxlength="50">
 							</md-input-container>
-							<md-button class="md-icon-button intrasite-link editor-input-container-help-button" target="_blank"
-								href="https://arbital.com/p/Arbital_alias" page-id="595"
-								ng-if="showAdvancedMode()">
+							<md-button class="md-icon-button intrasite-link editor-input-container-help-button"
+									ng-href="{{arb.urlService.getPageUrl('595')}}"
+									target="_blank"
+									page-id="595"
+									tabindex="-1">
 								<md-icon>live_help</md-icon>
 							</md-button>
 						</div>

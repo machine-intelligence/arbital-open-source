@@ -118,6 +118,14 @@ func (p *Page) computeDeletePermissions(c sessions.Context, u *CurrentUser) {
 		}
 		return
 	}
+	// For special pages, like groups and domains, only adomins can delete it
+	if p.Type == GroupPageType || p.Type == DomainPageType {
+		p.Permissions.Delete.Has = u.IsAdmin
+		if !p.Permissions.Delete.Has {
+			p.Permissions.Delete.Reason = "Only admins can delete this type of page"
+		}
+		return
+	}
 	// If the page is part of the general domain, only the creator and domain reviewers
 	// can edit it.
 	if len(p.DomainIDs) <= 0 {
