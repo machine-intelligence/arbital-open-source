@@ -110,6 +110,11 @@ arb-signup {
 	transform: translate(-50%, 0);
 }
 
+.bullet {
+	margin: 0 10px;
+	font-size: 20px;
+}
+
 arb-markdown, [arb-markdown], .preview-area {
 //	text-align: justify;
 
@@ -1713,4 +1718,11 @@ arb-page-improvement, [arb-page-improvement] {
 .inline-md-select {
 	position: relative;
 	top: -3px;
+}
+
+.hub-page-list {
+	margin-bottom: 5px;
+	& > * {
+		margin-bottom: 5px;
+	}
 }

@@ -310,6 +310,8 @@ app.directive('arbPageTitle', function(arb) {
 			showClickbait: '=',
 			// Whether or not to show the type of the page icon
 			showType: '=',
+			// If true, show information about this being an arc
+			showArcInfo: '=',
 			// If set, we'll pull the page from the edit map
 			useEditMap: '=',
 			// If true, link to editing the page
@@ -326,7 +328,11 @@ app.directive('arbPageTitle', function(arb) {
 			$scope.page = arb.stateService.getPageFromSomeMap($scope.pageId, $scope.useEditMap);
 
 			$scope.getTitle = function() {
-				return $scope.customPageTitle || $scope.page.title;
+				let title = $scope.customPageTitle || $scope.page.title;
+				if ($scope.showArcInfo && $scope.page.pathPages.length > 0) {
+					title += ' (' + $scope.page.pathPages.length + ' page arc)';
+				}
+				return title;
 			};
 		},
 	};

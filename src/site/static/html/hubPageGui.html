@@ -20,36 +20,42 @@
 	<div>
 		<div ng-if="getIntLevel() < page.hubContent.learnPageIds.length - 1">
 			<div ng-if="page.hubContent.learnPageIds[getIntLevel() + 1].length > 0">
-				<md-button class="md-primary md-raised" ng-click="goLearn($event)">
-					{{getIntLevel() ? 'Next level' : 'Start learning'}}
-				</md-button>
-				<br>
-				Or pick a page that {{getIntLevel() ? 'teaches the next level of' : 'introduces'}} this concept:
-				<ul class="no-top-margin">
-					<li ng-repeat="pageId in page.hubContent.learnPageIds[getIntLevel() + 1]">
+				<ng-pluralize count="page.hubContent.learnPageIds[getIntLevel() + 1].length"
+						when="{'one': 'Page that teaches the next level of', 'other': 'Pages that teach the next level of'}"
+						ng-if="getIntLevel()"></ng-pluralize>
+				<ng-pluralize count="page.hubContent.learnPageIds[getIntLevel() + 1].length"
+						when="{'one': 'Page that introduces', 'other': 'Pages that introduce'}"
+						ng-if="!getIntLevel()"></ng-pluralize>
+				this concept:
+				<div class="hub-page-list">
+					<div ng-repeat="pageId in page.hubContent.learnPageIds[getIntLevel() + 1]"
+							layout="row">
+						<span class="bullet">&bull;</span>
 						<arb-page-title page-id="{{::pageId}}"
 								is-link="true"
-								custom-link="{{::arb.urlService.getHubSuggestionPageUrl(pageId, {hubId: page.pageId})}}"></arb-page-title>
-						<span ng-if="arb.stateService.pageMap[pageId].pathPages.length > 0">
-							(Arc of {{arb.stateService.pageMap[pageId].pathPages.length}} pages)
-						</span>
-					</li>
-				</ul>
+								show-clickbait="true"
+								show-arc-info="true"
+								custom-link="{{::arb.urlService.getHubSuggestionPageUrl(pageId, {hubId: page.pageId})}}">
+						</arb-page-title>
+					</div>
+				</div>
+				<md-button class="md-primary md-raised" ng-click="goLearn($event)">
+					Start learning
+				</md-button>
 			</div>
+
+			<!-- When there are no pages that teach -->
 			<div ng-if="page.hubContent.learnPageIds[getIntLevel() + 1].length <= 0">
-				<div>
+				<div ng-if="!page.contentRequests['teach' + getLevelName(getIntLevel() + 1)].myLikeValue">
+					<md-button class="short-button"
+							ng-click="arb.signupService.submitContentRequest('teach' + getLevelName(getIntLevel() + 1), page)">
+						<md-icon>plus_one</md-icon>
+					</md-button>
 					Unfortunately there are no pages on Arbital that
 					{{getIntLevel() ? 'teach the next level of this concept.' : 'introduce this concept to beginners.'}}
 				</div>
-				<span ng-if="!page.contentRequests['teach' + getLevelName(getIntLevel() + 1)].myLikeValue">
-					<md-button class="md-raised"
-							ng-click="arb.signupService.submitContentRequest('teach' + getLevelName(getIntLevel() + 1), page)">
-						I want it
-					</md-button>
-				</span>
-				<span class="md-caption"
-						ng-if="page.contentRequests['teach' + getLevelName(getIntLevel() + 1)].myLikeValue">
-					Thanks for letting us know that you want this explanation!
+				<span ng-if="page.contentRequests['teach' + getLevelName(getIntLevel() + 1)].myLikeValue">
+					There are no pages that teach this concept, but thank you for letting us know you want one!
 				</span>
 			</div>
 		</div>
@@ -57,36 +63,43 @@
 		<!-- Boost understanding -->
 		<div ng-if="getIntLevel()>0">
 			<div ng-if="page.hubContent.boostPageIds[getIntLevel()].length > 0">
-				<md-button class="md-primary md-raised"
-						ng-click="goBoost($event)"
-						ng-if="arb.masteryService.hasUnreadBoostPages(page, getIntLevel())">Boost understanding</md-button>
 				<br>
-				Or pick a page that boosts your understanding:
-				<ul class="no-top-margin">
-					<li ng-repeat="pageId in page.hubContent.boostPageIds[getIntLevel()]"
+				<ng-pluralize count="page.hubContent.boostPageIds[getIntLevel() + 1].length"
+						when="{'one': 'Page that boosts', 'other': 'Pages that boost'}"></ng-pluralize>
+				your understanding:
+				<div class="hub-page-list">
+					<div ng-repeat="pageId in page.hubContent.boostPageIds[getIntLevel()]"
+							layout="row"
+							layout-align="start start"
 							ng-class="{'md-caption': !arb.masteryService.doesPageTeachUnknownReqs(pageId)}">
+						<span class="bullet">&bull;</span>
 						<arb-page-title page-id="{{::pageId}}"
 								is-link="true"
-								custom-link="{{::arb.urlService.getHubSuggestionPageUrl(pageId, {hubId: page.pageId})}}"></arb-page-title>
-						<span ng-if="arb.stateService.pageMap[pageId].pathPages.length > 0">
-							(Arc of {{arb.stateService.pageMap[pageId].pathPages.length}} pages)
-						</span>
-					</li>
-				</ul>
+								show-clickbait="true"
+								show-arc-info="true"
+								custom-link="{{::arb.urlService.getHubSuggestionPageUrl(pageId, {hubId: page.pageId})}}">
+						</arb-page-title>
+					</div>
+				</div>
+				<md-button class="md-primary md-raised lucky-hub-button"
+						ng-click="goBoost($event)"
+						ng-if="arb.masteryService.hasUnreadBoostPages(page, getIntLevel())">
+					Start boosting
+				</md-button>
 			</div>
 
+			<!-- When there are no pages that boost -->
 			<div ng-if="page.hubContent.boostPageIds[getIntLevel()].length <= 0">
-				<div>Unfortunately there are no pages on Arbital that boost understanding of this concept at this level.</div>
-				<span ng-if="!page.contentRequests['boost' + getLevelName(getIntLevel())].myLikeValue">
-					<md-button class="md-raised"
+				<div ng-if="!page.contentRequests['boost' + getLevelName(getIntLevel())].myLikeValue">
+					<md-button class="short-button"
 							ng-click="arb.signupService.submitContentRequest('boost' + getLevelName(getIntLevel()), page)">
-						I want it
+						<md-icon>plus_one</md-icon>
 					</md-button>
-				</span>
-				<span class="md-caption"
-						ng-if="page.contentRequests['boost' + getLevelName(getIntLevel())].myLikeValue">
-					Thanks for letting us know that you want this explanation!
-				</span>
+					Unfortunately there are no pages on Arbital that boost understanding of this concept at this level.
+				</div>
+				<div ng-if="page.contentRequests['boost' + getLevelName(getIntLevel())].myLikeValue">
+					There are no pages that boost this concept, but thank you for letting us know you want one!
+				</div>
 			</div>
 		</div>
 	</div>
