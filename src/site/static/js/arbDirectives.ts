@@ -658,7 +658,7 @@ app.directive('arbPageList', function(arb) {
 				$scope.fetchingMore = true;
 				arb.stateService.postData($scope.sourceUrl, {
 						numToLoad: $scope.loadItemsTotal
-					}, 
+					},
 					function(data) {
 						$scope.pageIds = data.result.pageIds;
 						$scope.fetchingMore = false;
@@ -854,6 +854,8 @@ app.directive('arbLensToolbar', function($window, $mdConstant, $mdUtil, $compile
 			var staticBar = angular.element(element.find('#static-toolbar'));
 			var floaterBar = angular.element(element.find('#floater-toolbar'));
 
+			const scrollUpBuffer = arb.isTouchDevice ? 50 : 10;
+
 			// Control the width of the floater bar
 			var setFloaterWidth = function() {
 				floaterBar.css('width', staticBar.css('width'));
@@ -862,18 +864,30 @@ app.directive('arbLensToolbar', function($window, $mdConstant, $mdUtil, $compile
 			staticBar.bind('resize', setFloaterWidth);
 
 			// Control the behavior of the floater bar
-			var prevWindowY; // Used to tell if we're scrolling up or down
+			var prevWindowY; // Used to tell if we're scrolling up or down.
+			var yFromFirstScrollUp; // The y coordinate from when we first started scrolling up.
+			var scrollingDown; // Whether we are scrolling up or down.
 			var onScroll = function() {
-				// If we're scrolling down, cause the floaterBar to animate down
+				// Figure out whether we're scrolling down
+				var wasScrollingDown = scrollingDown;
 				var currWindowY = $window.scrollY;
-				var scrollingDown = currWindowY > prevWindowY;
+				scrollingDown = currWindowY > prevWindowY;
 				prevWindowY = currWindowY;
-				scope.hideFloater = scrollingDown;
+
+				// If we were scrolling down and we are not anymore, record the y position
+				if (wasScrollingDown && !scrollingDown) {
+					yFromFirstScrollUp = currWindowY;
+				}
+
+				// If we're scrolling down or we have only scrolled up a little, hide the floater
+				scope.hideFloater = scrollingDown || (yFromFirstScrollUp - currWindowY  < scrollUpBuffer);
 
 				// If the bottom of the staticBar is visible, hide the floater bar completely
 				var staticBarVisible = staticBar[0].getBoundingClientRect().bottom <=
 						document.documentElement.clientHeight;
 				scope.noFloater = staticBarVisible;
+
+				console.log(wasScrollingDown, scrollingDown, currWindowY, prevWindowY, yFromFirstScrollUp, currWindowY - yFromFirstScrollUp);
 			};
 			angular.element($window).bind('scroll', onScroll);
 
