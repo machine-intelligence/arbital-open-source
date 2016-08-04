@@ -49,6 +49,7 @@ app.directive('arbWriteNewModePanel', function($http, arb) {
 							likeCount: redLink.likeCount,
 							myLikeValue: redLink.myLikeValue,
 							alias: redLink.alias,
+							linkedByPageIds: redLink.linkedByPageIds,
 						};
 					});
 
@@ -156,14 +157,15 @@ app.directive('arbExplanationRequestRow', function(arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
+			$scope.editUrl = arb.urlService.getEditPageUrl($scope.alias);
 
-			// var aliasWithSpaces = $scope.alias.replace(/_/g, ' ');
-			// $scope.prettyName = aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
-			// $scope.editUrl = arb.urlService.getEditPageUrl($scope.alias);
+			$scope.stopSuggesting = function() {
+				arb.signupService.processLikeClick($scope.row, $scope.row.alias, -1);
+			};
 
-			// $scope.stopSuggesting = function() {
-			// 	arb.signupService.processLikeClick($scope.row, $scope.row.alias, -1);
-			// };
+			$scope.toggleExpand = function() {
+ 				$scope.expanded = !$scope.expanded;
+ 			};
 		},
 	};
 });

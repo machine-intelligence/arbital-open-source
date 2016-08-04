@@ -39,7 +39,7 @@
 			</span>
 
 			<!-- If it's a redlink, show the prettified alias -->
-			<span ng-if="request.prettifiedAlias">
+			<span ng-if="request.prettifiedAlias" class="cursor-pointer underline" ng-click="toggleExpand()">
 				<i>{{::request.prettifiedAlias}}</i>
 			</span>
 
@@ -47,8 +47,6 @@
 			<arb-page-title page-id="{{::request.pageId}}"
 					is-link="true"
 					ng-if="::request.pageId"></arb-page-title>
-
-
 		</span>
 
 		<!-- Edit -->
@@ -62,16 +60,31 @@
 				analytics-desc="write new red link"
 				custom-text="Edit"
 				ng-if="request.requestType == 'improveStub'"></arb-edit-button>
+
+		<arb-likes
+ 				object-id="{{::request.alias}}"
+ 				likeable="row"
+ 				is-button="true"
+ 				is-plus-one="true"
+ 				ng-if="::row.linkedByPageIds"
+ 				></arb-likes>
 	</div>
 
 	<div class="expand-tray expanded-list" layout="column" ng-if="expanded">
-		<md-progress-circular md-mode="indeterminate" ng-if="!linkedByPageIds"></md-progress-circular>
-		<div ng-repeat="pageId in linkedByPageIds">
-			<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
-			<span class="md-caption">
-				{{arb.stateService.pageMap[pageId].viewCount}} views
-			</span>
-		</div>
+		<span>
+			This concept is referenced on {{::request.linkedByPageIds.length}}
+			<ng-pluralize count="request.linkedByPageIds.length"
+					when="{'1': 'page', 'other': 'pages'}"></ng-pluralize>:
+		</span>
+
+		<ul>
+			<li ng-repeat="pageId in request.linkedByPageIds">
+				<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
+				<span class="md-caption">
+					{{arb.stateService.pageMap[pageId].viewCount}} views
+				</span>
+			</li>
+		</ul>
 		<md-button ng-click="stopSuggesting()"
 				ng-if="::arb.userService.user.trustMap['1lw'].level >= 2">
 			Don't suggest this alias
