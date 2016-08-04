@@ -3,10 +3,7 @@
 
 	<arb-explanation-request-row
 			ng-repeat="request in requests | orderBy:['-originalTotalLikeCount','-refCount','alias'] track by $index"
-			like-count="::request.likeCount"
-			my-like-value="request.myLikeValue"
-			alias="::request.alias"
-			type="::request.type">
+			request="request">
 	</arb-explanation-request-row>
 
 	<!-- Footer -->

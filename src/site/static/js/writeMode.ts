@@ -39,11 +39,31 @@ app.directive('arbWriteNewModePanel', function($http, arb) {
 					isFullPage: $scope.isFullPage,
 				},
 				function(data) {
-					$scope.requests = data.result.redLinks;//.concat(data.result.stubs);
+					$scope.redLinkRows = data.result.redLinks.map(function(redLink) {
+						var aliasWithSpaces = redLink.alias.replace(/_/g, ' ');
+						var prettyName = aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
+						return {
+							requestType: 'redLink',
+							originalTotalLikeCount: redLink.likeCount + redLink.myLikeValue,
+							prettifiedAlias: prettyName,
+							likeCount: redLink.likeCount,
+							myLikeValue: redLink.myLikeValue,
+							alias: redLink.alias,
+						};
+					});
 
-					// calculate this ahead of time so that rows don't jump around when the user updates their like value
-					$scope.requests = $scope.requests.map(function(request) {
-						request.originalTotalLikeCount = request.likecount + request.myLikeValue;
+					$scope.contentRequestRows = data.result.contentRequests.map(function(contentRequest) {
+						return {
+							requestType: contentRequest.requestType,
+							originalTotalLikeCount: contentRequest.likeCount + contentRequest.myLikeValue,
+							pageId: contentRequest.pageId,
+							likeCount: contentRequest.likeCount,
+							myLikeValue: contentRequest.myLikeValue,
+						};
+					});
+
+					$scope.requests = $scope.redLinkRows.concat($scope.contentRequestRows).filter(function(request) {
+						return request.originalTotalLikeCount > 0;
 					});
 				}
 			);
@@ -132,21 +152,18 @@ app.directive('arbExplanationRequestRow', function(arb) {
 	return {
 		templateUrl: versionUrl('static/html/rows/explanationRequestRow.html'),
 		scope: {
-			alias: '=',
-			likeCount: '=',
-			myLikeValue: '=',
-			type: '=',
+			request: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
 
-			var aliasWithSpaces = $scope.alias.replace(/_/g, ' ');
-			$scope.prettyName = aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
-			$scope.editUrl = arb.urlService.getEditPageUrl($scope.alias);
+			// var aliasWithSpaces = $scope.alias.replace(/_/g, ' ');
+			// $scope.prettyName = aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
+			// $scope.editUrl = arb.urlService.getEditPageUrl($scope.alias);
 
-			$scope.stopSuggesting = function() {
-				arb.signupService.processLikeClick($scope.row, $scope.row.alias, -1);
-			};
+			// $scope.stopSuggesting = function() {
+			// 	arb.signupService.processLikeClick($scope.row, $scope.row.alias, -1);
+			// };
 		},
 	};
 });
