@@ -1542,13 +1542,17 @@ func LoadPageIDs(rows *database.Rows, pageMap map[string]*Page, loadOptions *Pag
 }
 
 // LoadLikes loads likes corresponding to the given likeable objects.
-func LoadLikes(db *database.DB, u *CurrentUser, likeablesMap map[int64]*Likeable, individualLikesPageMap map[int64]*Likeable, userMap map[string]*User) error {
+// Also loads individual likes for the likeables in the individualLikeablesMap.
+func LoadLikes(db *database.DB, u *CurrentUser, likeablesMap map[int64]*Likeable, individualLikeablesMap map[int64]*Likeable, userMap map[string]*User) error {
 	if len(likeablesMap) <= 0 {
 		return nil
 	}
 
 	likeableIDs := make([]interface{}, 0)
 	for id := range likeablesMap {
+		likeableIDs = append(likeableIDs, id)
+	}
+	for id := range individualLikeablesMap {
 		likeableIDs = append(likeableIDs, id)
 	}
 
@@ -1564,28 +1568,30 @@ func LoadLikes(db *database.DB, u *CurrentUser, likeablesMap map[int64]*Likeable
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
+
 		// TODO: just record the scores and then do a calculation in one line at the end (outside of Process).
-		likeable := likeablesMap[likeableID]
-		// We count the current user's like value towards the sum in the FE rather than here.
-		if userID == u.ID {
-			likeable.MyLikeValue = value
-		} else if value > 0 {
-			if likeable.LikeCount >= likeable.DislikeCount {
-				likeable.LikeScore++
-			} else {
-				likeable.LikeScore += 2
+		if likeable, ok := likeablesMap[likeableID]; ok {
+			// We count the current user's like value towards the sum in the FE rather than here.
+			if userID == u.ID {
+				likeable.MyLikeValue = value
+			} else if value > 0 {
+				if likeable.LikeCount >= likeable.DislikeCount {
+					likeable.LikeScore++
+				} else {
+					likeable.LikeScore += 2
+				}
+				likeable.LikeCount++
+			} else if value < 0 {
+				if likeable.DislikeCount >= likeable.LikeCount {
+					likeable.LikeScore--
+				}
+				likeable.DislikeCount++
 			}
-			likeable.LikeCount++
-		} else if value < 0 {
-			if likeable.DislikeCount >= likeable.LikeCount {
-				likeable.LikeScore--
-			}
-			likeable.DislikeCount++
 		}
 
-		// Store the like itself for pages that want it
-		if value > 0 && individualLikesPageMap != nil {
-			if likeable, ok := individualLikesPageMap[likeableID]; ok {
+		// Store the individual likes for pages that want them
+		if value > 0 && individualLikeablesMap != nil {
+			if likeable, ok := individualLikeablesMap[likeableID]; ok {
 				likeable.IndividualLikes = append(likeable.IndividualLikes, userID)
 				AddUserIDToMap(userID, userMap)
 			}
@@ -1597,12 +1603,14 @@ func LoadLikes(db *database.DB, u *CurrentUser, likeablesMap map[int64]*Likeable
 
 // LoadLikesForPages loads likes corresponding to the given pages and updates the pages.
 func LoadLikesForPages(db *database.DB, u *CurrentUser, pageMap map[string]*Page, individualLikesPageMap map[string]*Page, userMap map[string]*User) error {
+	// Likeables that need like counts
 	likeablesMap := make(map[int64]*Likeable)
 	for _, page := range pageMap {
 		if page.LikeableID != 0 {
 			likeablesMap[page.LikeableID] = &page.Likeable
 		}
 	}
+	// Likeables that need lists of individual likes
 	individualLikeablesMap := make(map[int64]*Likeable)
 	for _, page := range individualLikesPageMap {
 		if page.LikeableID != 0 {

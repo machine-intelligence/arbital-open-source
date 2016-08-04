@@ -259,7 +259,7 @@ func loadContentRequests(db *database.DB, returnData *core.CommonHandlerData, li
 				likeablesMap[l.LikeableID] = l
 			}
 		}
-		err := core.LoadLikes(db, returnData.User, likeablesMap, nil, nil)
+		err := core.LoadLikes(db, returnData.User, likeablesMap, likeablesMap, returnData.UserMap)
 		if err != nil {
 			return nil, err
 		}
