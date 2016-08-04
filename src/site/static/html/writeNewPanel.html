@@ -1,35 +1,13 @@
 <div class='md-whiteframe-1dp list-panel'>
-	<!-- Red links -->
-	<arb-list-sub-header>
-		Help us fill in gaps! The following concepts are referenced on multiple <a ng-href="/explore/math">Math</a> pages, but don't have pages of their own yet.
-		You can help by creating pages to explain these concepts.
-		<arb-page-title page-id="3hs" is-link="true" custom-page-title="(How?)"></arb-page-title>
-	</arb-list-sub-header>
+	<md-progress-circular md-mode="indeterminate" ng-cloak ng-if="!requests"></md-progress-circular>
 
-	<md-progress-circular md-mode="indeterminate" ng-cloak ng-if="!redLinkRows"></md-progress-circular>
-	<arb-explanation-request-row ng-repeat="row in redLinkRows | orderBy:['-originalTotalLikeCount','-refCount','alias']"
-			row="::row">
+	<arb-explanation-request-row
+			ng-repeat="request in requests | orderBy:['-originalTotalLikeCount','-refCount','alias'] track by $index"
+			like-count="::request.likeCount"
+			my-like-value="request.myLikeValue"
+			alias="::request.alias"
+			type="::request.type">
 	</arb-explanation-request-row>
-
-	<!-- Stub requests -->
-	<arb-list-sub-header>
-		These pages are just getting started. Help them along their path to being <arb-page-title page-id="4yl" is-link="true" custom-page-title="feature-worthy"></arb-page-title>!
-	</arb-list-sub-header>
-
-	<md-progress-circular md-mode="indeterminate" ng-cloak ng-if="!stubRows"></md-progress-circular>
-	<md-list-item layout="column" layout-align="center" ng-repeat="row in stubRows">
-		<div layout="row" layout-align="start center">
-			<div flex>
-				<arb-page-title page-id="{{::row.pageId}}" is-link="true" show-clickbait="true"></arb-page-title>
-			</div>
-			<!-- Edit -->
-			<arb-edit-button class="icon-last"
-					page-id="{{row.pageId}}"
-					analytics-desc="write new stub"
-					custom-text="Edit"></arb-edit-button>
-		</div>
-		<md-divider></md-divider>
-	</md-list-item>
 
 	<!-- Footer -->
 	<arb-list-sub-header>
