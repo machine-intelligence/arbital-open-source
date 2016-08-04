@@ -31,7 +31,6 @@ var contentRequestHandler = siteHandler{
 func contentRequestJSONHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
-	returnData := core.NewHandlerData(u)
 
 	decoder := json.NewDecoder(params.R.Body)
 	var data contentRequestData
@@ -54,13 +53,7 @@ func contentRequestJSONHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.FailWith(err2)
 	}
 
-	// Load pages.
-	err = core.ExecuteLoadPipeline(db, returnData)
-	if err != nil {
-		return pages.Fail("Pipeline error", err)
-	}
-
-	return pages.Success(returnData)
+	return pages.Success(nil)
 }
 
 // Add a like to the content request for the given (page, type) pair.
