@@ -1569,22 +1569,13 @@ func LoadLikes(db *database.DB, u *CurrentUser, likeablesMap map[int64]*Likeable
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
 
-		// TODO: just record the scores and then do a calculation in one line at the end (outside of Process).
 		if likeable, ok := likeablesMap[likeableID]; ok {
 			// We count the current user's like value towards the sum in the FE rather than here.
 			if userID == u.ID {
 				likeable.MyLikeValue = value
 			} else if value > 0 {
-				if likeable.LikeCount >= likeable.DislikeCount {
-					likeable.LikeScore++
-				} else {
-					likeable.LikeScore += 2
-				}
 				likeable.LikeCount++
 			} else if value < 0 {
-				if likeable.DislikeCount >= likeable.LikeCount {
-					likeable.LikeScore--
-				}
 				likeable.DislikeCount++
 			}
 		}
@@ -1598,6 +1589,27 @@ func LoadLikes(db *database.DB, u *CurrentUser, likeablesMap map[int64]*Likeable
 		}
 		return nil
 	})
+
+	// Calculate the like score
+	for _, likeable := range likeablesMap {
+		// if likes >= dislikes : likes
+		// if likes < dislikes : likes - (dislikes - likes) = 2*likes - dislikes
+		//
+		// or in other words:
+		// start with the like count, and for every dislike more than the number of likes, subtract 1
+		//
+		// examples:
+		// 10 likes, 0 dislikes : 10
+		// 10 likes, 9 dislikes : 10
+		// 9 likes, 10 dislikes : 8
+		// 0 likes, 10 dislikes : -10
+		if likeable.LikeCount >= likeable.DislikeCount {
+			likeable.LikeScore = likeable.LikeCount
+		} else {
+			likeable.LikeScore = 2*likeable.LikeCount - likeable.DislikeCount
+		}
+	}
+
 	return err
 }
 
