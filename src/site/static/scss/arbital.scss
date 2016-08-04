@@ -707,6 +707,7 @@ arb-requisite-button, [arb-requisite-button] {
 	-moz-transition: .3s linear;
 	-o-transition: .3s linear;
 	transition: .3s linear;
+	z-index: $floaterToolbarZ;
 }
 
 .lens-menu-floater-hidden {
@@ -1718,6 +1719,23 @@ arb-page-improvement, [arb-page-improvement] {
 .inline-md-select {
 	position: relative;
 	top: -3px;
+}
+
+arb-hub-page-gui, [arb-hub-page-gui] {
+	background-color: whitesmoke;
+	margin-bottom: 30px;
+	padding-bottom: 10px;
+
+	.md-subheader-content {
+		padding: 10px 0px;
+		color: rgba(0,0,0,0.87);
+		font-size: 16px;
+	}
+
+	.hub-list {
+		padding: 0 30px;
+		margin-bottom: 10px;
+	}
 }
 
 .hub-page-list {
