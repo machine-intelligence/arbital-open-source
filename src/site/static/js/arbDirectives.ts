@@ -886,8 +886,6 @@ app.directive('arbLensToolbar', function($window, $mdConstant, $mdUtil, $compile
 				var staticBarVisible = staticBar[0].getBoundingClientRect().bottom <=
 						document.documentElement.clientHeight;
 				scope.noFloater = staticBarVisible;
-
-				console.log(wasScrollingDown, scrollingDown, currWindowY, prevWindowY, yFromFirstScrollUp, currWindowY - yFromFirstScrollUp);
 			};
 			angular.element($window).bind('scroll', onScroll);
 
