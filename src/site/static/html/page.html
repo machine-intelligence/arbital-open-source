@@ -145,11 +145,14 @@
 					 			</span>
 					 		</div>
 					 	</div>
-						<div>
-							<a ng-href="{{arb.urlService.getEditPageUrl(selectedLens.pageId, {tabId: 4})}}" class="md-caption">
+						<div layout="column" layout-gt-sm="row">
+							<a ng-href="{{arb.urlService.getEditPageUrl(selectedLens.pageId, {tabId: 4})}}"
+									class="md-caption"
+									flex>
 								{{page.changeLogs.length}} changes by {{page.authors.length}}
 								<ng-pluralize count="page.authors.length" when="{'one': 'author', 'other': 'authors'}"></ng-pluralize>
 							</a>
+							<span class="md-caption">{{page.viewCount}} views</span>
 						</div>
 					</div>
 
