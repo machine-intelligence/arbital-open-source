@@ -1956,6 +1956,9 @@ func LoadHubContent(db *database.DB, u *CurrentUser, pageMap map[string]*Page, o
 		WHERE pp.parentId IN`).AddArgsGroup(pageIDs).Add(`
 			AND pp.type=?`, SubjectPagePairType)
 	err := LoadPagePairs(db, queryPart, func(db *database.DB, pp *PagePair) error {
+		if pp.ChildID == pp.ParentID {
+			return nil
+		}
 		if sourceMap[pp.ParentID].HubContent == nil {
 			sourceMap[pp.ParentID].HubContent = NewHubPageContent()
 		}

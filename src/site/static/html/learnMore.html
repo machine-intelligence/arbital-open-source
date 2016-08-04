@@ -12,7 +12,7 @@
 
 		<!-- Taught -->
 		<div ng-repeat="(subjectId,pageIds) in page.learnMoreTaughtMap">
-			This page taught
+			This page is marked as teaching
 			<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
 			<span class="comma">.</span>
 			Read a page that expands on that concept:
@@ -25,7 +25,7 @@
 
 		<!-- Required -->
 		<div ng-repeat="(subjectId,pageIds) in page.learnMoreRequiredMap">
-			This page taught
+			This page is marked as teaching
 			<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
 			<span class="comma">.<span>
 			Read a page that relies on that concept:
@@ -38,7 +38,7 @@
 
 		<!-- Covered -->
 		<div ng-repeat="(subjectId,pageIds) in page.learnMoreCoveredMap">
-			This page covered
+			This page is marked as covering
 			<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
 			<span class="comma">.<span>
 			Read a page that expands on that concept:

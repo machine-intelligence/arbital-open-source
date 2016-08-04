@@ -15,6 +15,7 @@ app.directive('arbHubPageGui', function($compile, $timeout, arb) {
 			arb.masteryService.sortHubContent($scope.page);
 
 			// Track current user's the mastery level for this requisite
+			$scope.levels = [1, 2, 3, 4];
 			$scope.level = '0';
 			if (arb.masteryService.masteryMap[$scope.pageId].has) {
 				$scope.level = '' + arb.masteryService.masteryMap[$scope.pageId].level;
@@ -34,6 +35,18 @@ app.directive('arbHubPageGui', function($compile, $timeout, arb) {
 						return 'ResearchLevelUnderstanding';
 					default:
 						return 'NoUnderstanding';
+				}
+			};
+			$scope.getLevelTitle = function(level) {
+				switch (+level) {
+					case 1:
+						return 'Loose (you are familiar with terminology)';
+					case 2:
+						return 'Basic (you are familiar with the basic formula)';
+					case 3:
+						return 'Technical (you can do tricks with the formula)';
+					case 4:
+						return 'Research level (you do this for a living)';
 				}
 			};
 
