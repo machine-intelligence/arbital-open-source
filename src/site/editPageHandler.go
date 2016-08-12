@@ -257,7 +257,10 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// This section is here to help us figure out the cause of http://zanaduu.myjetbrains.com/youtrack/issue/1-1658.
-		{
+		if !isNewCurrentEdit {
+			// Only do this check if we're not publishing a new current edit.
+			// If this is a new current edit, we've cleared out the currentEdit above, and expect the db to be in an inconsistent state until
+			// we update pageInfos below.
 			var currentEditFound, currentEditIsLive bool
 			row := db.NewStatement(`
 				SELECT p.isLiveEdit
