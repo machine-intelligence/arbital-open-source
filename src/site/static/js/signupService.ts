@@ -76,7 +76,7 @@ app.service('signupService', function($mdDialog, $timeout, analyticsService, use
 				pageId: page.pageId,
 				requestType: requestType,
 			};
-			stateService.postData('/json/contentRequest/', erData);
+			stateService.postDataWithoutProcessing('/json/contentRequest/', erData);
 		});
 	};
 });

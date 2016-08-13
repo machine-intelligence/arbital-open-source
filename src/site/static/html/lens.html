@@ -53,8 +53,6 @@
 						ng-if="::arb.userService.userMap[page.editGroupId]"></arb-user-name>
 			</div>
 
-			<div arb-hub-page-gui page-id="{{::pageId}}" ng-if="::isHub()"></div>
-
 			<!-- Body text -->
 			<arb-markdown class="lens-text"
 					page-id="{{::page.pageId}}"></arb-markdown>
@@ -94,6 +92,9 @@
 					</i>
 				</div>
 			</div>
+
+			<!-- HUB page GUI -->
+			<div arb-hub-page-gui page-id="{{::pageId}}" ng-if="::isHub()"></div>
 
 			<!-- HUB navigation -->
 			<arb-hub-page-footer page-id="{{::pageId}}"

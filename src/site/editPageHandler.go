@@ -256,6 +256,41 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			return sessions.NewError("Couldn't insert a new page", err)
 		}
 
+		// This section is here to help us figure out the cause of http://zanaduu.myjetbrains.com/youtrack/issue/1-1658.
+		if !isNewCurrentEdit {
+			// Only do this check if we're not publishing a new current edit.
+			// If this is a new current edit, we've cleared out the currentEdit above, and expect the db to be in an inconsistent state until
+			// we update pageInfos below.
+			var currentEditFound, currentEditIsLive bool
+			row := db.NewStatement(`
+				SELECT p.isLiveEdit
+				FROM pageInfos AS pi
+				JOIN pages AS p
+				ON pi.pageId=p.pageId AND pi.currentEdit=p.edit
+				WHERE pi.pageId=? AND pi.currentEdit>0 AND !pi.isDeleted
+				`).WithTx(tx).QueryRow(data.PageID)
+			currentEditFound, err := row.Scan(&currentEditIsLive)
+			if err != nil {
+				return sessions.NewError("Couldn't double-check that the current edit is marked as live", err)
+			}
+			if currentEditFound && !currentEditIsLive {
+				errorMessage := "New instance of vanishing page bug (1-1658) caught after updating pages"
+				debugText := fmt.Sprintf("%s\n\n\noldPage: %+v\n\n\ndata: %+v", errorMessage, oldPage, data)
+
+				db.C.Debugf(debugText)
+
+				var task tasks.SendFeedbackEmailTask
+				task.UserID = "5"
+				task.UserEmail = "esrogs+debug@gmail.com"
+				task.Text = debugText
+				if err := tasks.Enqueue(c, &task, nil); err != nil {
+					c.Errorf("Couldn't enqueue a task: %v", err)
+				}
+
+				return sessions.NewError(errorMessage, nil)
+			}
+		}
+
 		// Update summaries
 		if isNewCurrentEdit {
 			// Delete old summaries
@@ -302,6 +337,38 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		statement = tx.DB.NewInsertStatement("pageInfos", hashmap, hashmap.GetKeys()...).WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't update pageInfos", err)
+		}
+
+		// This section is here to help us figure out the cause of http://zanaduu.myjetbrains.com/youtrack/issue/1-1658.
+		{
+			var currentEditFound, currentEditIsLive bool
+			row := db.NewStatement(`
+				SELECT p.isLiveEdit
+				FROM pageInfos AS pi
+				JOIN pages AS p
+				ON pi.pageId=p.pageId AND pi.currentEdit=p.edit
+				WHERE pi.pageId=? AND pi.currentEdit>0 AND !pi.isDeleted
+				`).WithTx(tx).QueryRow(data.PageID)
+			currentEditFound, err := row.Scan(&currentEditIsLive)
+			if err != nil {
+				return sessions.NewError("Couldn't double-check that the current edit is marked as live", err)
+			}
+			if currentEditFound && !currentEditIsLive {
+				errorMessage := "New instance of vanishing page bug (1-1658) caught after updating pageInfos"
+				debugText := fmt.Sprintf("%s\n\n\noldPage: %+v\n\n\ndata: %+v", errorMessage, oldPage, data)
+
+				db.C.Debugf(debugText)
+
+				var task tasks.SendFeedbackEmailTask
+				task.UserID = "5"
+				task.UserEmail = "esrogs+debug@gmail.com"
+				task.Text = debugText
+				if err := tasks.Enqueue(c, &task, nil); err != nil {
+					c.Errorf("Couldn't enqueue a task: %v", err)
+				}
+
+				return sessions.NewError(errorMessage, nil)
+			}
 		}
 
 		// Update change logs. We only create a changeLog for some types of edits.
@@ -380,7 +447,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			return pages.Fail("Couldn't double-check that the current edit is marked as live", err)
 		}
 		if currentEditFound && !currentEditIsLive {
-			debugText := fmt.Sprintf("New instance of vanishing page bug!!! (http://zanaduu.myjetbrains.com/youtrack/issue/1-1658)"+
+			debugText := fmt.Sprintf("New instance of vanishing page bug (1-1658) caught after the transaction"+
 				"\n\n\noldPage: %+v\n\n\ndata: %+v", oldPage, data)
 
 			db.C.Debugf(debugText)
