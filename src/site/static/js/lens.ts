@@ -221,7 +221,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				};
 
 				// Given the anchor parameters, find the corresponding place in DOM.
-				var computeInlineHightlightParams = function(anchorContext, anchorText, anchorOffset) {
+				var computeInlineHightlightParams = function(anchorContext, anchorText, anchorOffset, callback) {
 					var results = {
 						bestParagraphNode: undefined,
 						bestParagraphIndex: 0,
@@ -234,42 +234,59 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					if (!paragraphTexts) {
 						populateParagraphTexts();
 					}
-					for (var i = 0; i < paragraphTexts.length; i++) {
-						var text = paragraphTexts[i];
+
+					// This is called after we iterate through all paragraphs
+					var postLoop = function() {
+						// Check if it's a close enough match
+						if (bestScore > anchorContext.length / 2) return;
+
+						// Find offset into the best paragraph
+						results.anchorOffset = dmp.match_main(bestParagraphText, anchorText, anchorOffset);
+						if (results.anchorOffset < 0) {
+							// Couldn't find a match within the paragraph. We'll just use paragraph as the anchor
+							results.anchorOffset = 0;
+							results.anchorLength = bestParagraphText.length;
+						} else {
+							// Figure out how long the highlighted anchor should be
+							var remainingText = bestParagraphText.substring(results.anchorOffset);
+							var diffs = dmp.diff_main(remainingText, anchorText);
+							results.anchorLength = remainingText.length;
+							if (diffs.length > 0) {
+								// Note: we can potentially be more clever here and discount
+								// edits done after anchorText.length chars
+								var lastDiff = diffs[diffs.length - 1];
+								if (lastDiff[0] < 0) {
+									results.anchorLength -= lastDiff[1].length;
+								}
+							}
+						}
+						callback(results);
+					};
+
+					// NOTE: below is for loop rewritten to be interrupted every cycle. This way
+					// we don't lock up the CPU as we process a lot of paragraphs/comments
+					let paragraphIndex = 0;
+					var processParagraph = function() {
+						if (paragraphIndex >= paragraphTexts.length) {
+							postLoop();
+							return;
+						}
+
+						// Loop content
+						var text = paragraphTexts[paragraphIndex];
 						var diffs = dmp.diff_main(text, anchorContext);
 						var score = dmp.diff_levenshtein(diffs);
 						if (score < bestScore) {
-							results.bestParagraphNode = $markdown.children().get(i);
+							results.bestParagraphNode = $markdown.children().get(paragraphIndex);
 							bestParagraphText = text;
 							bestScore = score;
-							results.bestParagraphIndex = i;
+							results.bestParagraphIndex = paragraphIndex;
 						}
-					}
 
-					// Check if it's a close enough match
-					if (bestScore > anchorContext.length / 2) return undefined;
-
-					// Find offset into the best paragraph
-					results.anchorOffset = dmp.match_main(bestParagraphText, anchorText, anchorOffset);
-					if (results.anchorOffset < 0) {
-						// Couldn't find a match within the paragraph. We'll just use paragraph as the anchor
-						results.anchorOffset = 0;
-						results.anchorLength = bestParagraphText.length;
-					} else {
-						// Figure out how long the highlighted anchor should be
-						var remainingText = bestParagraphText.substring(results.anchorOffset);
-						var diffs = dmp.diff_main(remainingText, anchorText);
-						results.anchorLength = remainingText.length;
-						if (diffs.length > 0) {
-							// Note: we can potentially be more clever here and discount
-							// edits done after anchorText.length chars
-							var lastDiff = diffs[diffs.length - 1];
-							if (lastDiff[0] < 0) {
-								results.anchorLength -= lastDiff[1].length;
-							}
-						}
+						paragraphIndex++;
+						$timeout(processParagraph, 1);
 					}
-					return results;
+					processParagraph();
 				};
 
 				// Process a mark.
@@ -279,23 +296,24 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					if (!mark.anchorContext || !mark.anchorText) return;
 
 					// Create the span corresponding to the anchor text
-					var highlightParams = computeInlineHightlightParams(mark.anchorContext,
-							mark.anchorText, mark.anchorOffset);
-					if (!highlightParams) return;
-					var highlightClass = 'inline-mark-' + mark.id;
-					createInlineCommentHighlight(highlightParams.bestParagraphNode, highlightParams.anchorOffset,
-							highlightParams.anchorOffset + highlightParams.anchorLength, highlightClass);
+					computeInlineHightlightParams(mark.anchorContext, mark.anchorText,
+							mark.anchorOffset, function(highlightParams) {
+						var highlightClass = 'inline-mark-' + mark.id;
+						createInlineCommentHighlight(highlightParams.bestParagraphNode, highlightParams.anchorOffset,
+								highlightParams.anchorOffset + highlightParams.anchorLength, highlightClass);
 
-					// Add to the array of valid inline comments
-					var inlineMark = {
-						paragraphNode: highlightParams.bestParagraphNode,
-						anchorNode: $('.' + highlightClass),
-						paragraphIndex: highlightParams.bestParagraphIndex,
-						anchorOffset: highlightParams.anchorOffset,
-						markId: mark.id,
-					};
-					scope.inlineMarks[mark.id] = inlineMark;
-					orderedInlineButtons.push(inlineMark);
+						// Add to the array of valid inline comments
+						var inlineMark = {
+							paragraphNode: highlightParams.bestParagraphNode,
+							anchorNode: $('.' + highlightClass),
+							paragraphIndex: highlightParams.bestParagraphIndex,
+							anchorOffset: highlightParams.anchorOffset,
+							markId: mark.id,
+						};
+						scope.inlineMarks[mark.id] = inlineMark;
+						orderedInlineButtons.push(inlineMark);
+						orderRhsButtons();
+					});
 				};
 
 				// Process an inline comment
@@ -306,23 +324,24 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					if (!comment.anchorContext || !comment.anchorText) return;
 
 					// Create the span corresponding to the anchor text
-					var highlightParams = computeInlineHightlightParams(comment.anchorContext,
-							comment.anchorText, comment.anchorOffset);
-					if (!highlightParams) return;
-					var highlightClass = 'inline-comment-' + comment.pageId;
-					createInlineCommentHighlight(highlightParams.bestParagraphNode, highlightParams.anchorOffset,
-							highlightParams.anchorOffset + highlightParams.anchorLength, highlightClass);
-
-					// Add to the array of valid inline comments
-					var inlineComment = {
-						paragraphNode: highlightParams.bestParagraphNode,
-						anchorNode: $('.' + highlightClass),
-						paragraphIndex: highlightParams.bestParagraphIndex,
-						anchorOffset: highlightParams.anchorOffset,
-						pageId: comment.pageId,
-					};
-					scope.inlineComments[comment.pageId] = inlineComment;
-					orderedInlineButtons.push(inlineComment);
+					computeInlineHightlightParams(comment.anchorContext,
+							comment.anchorText, comment.anchorOffset, function(highlightParams) {
+						var highlightClass = 'inline-comment-' + comment.pageId;
+						createInlineCommentHighlight(highlightParams.bestParagraphNode, highlightParams.anchorOffset,
+								highlightParams.anchorOffset + highlightParams.anchorLength, highlightClass);
+	
+						// Add to the array of valid inline comments
+						var inlineComment = {
+							paragraphNode: highlightParams.bestParagraphNode,
+							anchorNode: $('.' + highlightClass),
+							paragraphIndex: highlightParams.bestParagraphIndex,
+							anchorOffset: highlightParams.anchorOffset,
+							pageId: comment.pageId,
+						};
+						scope.inlineComments[comment.pageId] = inlineComment;
+						orderedInlineButtons.push(inlineComment);
+						orderRhsButtons();
+					});
 				};
 
 				// Process all inline comments
@@ -333,12 +352,21 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 						console.error(err);
 					}
 				}
+
 				// Process all marks
 				if ($location.search().markId) {
-					processMark($location.search().markId);
+					try {
+						processMark($location.search().markId);
+					} catch (err) {
+						console.error(err);
+					}
 				}
 				for (var n = 0; n < scope.page.markIds.length; n++) {
-					processMark(scope.page.markIds[n]);
+					try {
+						processMark(scope.page.markIds[n]);
+					} catch (err) {
+						console.error(err);
+					}
 				}
 
 				// Process all RHS buttons to compute their position, zIndex, etc...
@@ -366,7 +394,6 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 						minTop = top + inlineCommentButtonHeight - 8;
 					}
 				};
-				orderRhsButtons();
 
 				// Get the style of an inline comment icon
 				scope.getInlineCommentIconStyle = function(commentId) {
