@@ -157,15 +157,17 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 	}
 
 	// Load likes
-	likeablesMap := make(map[int64]*core.Likeable)
-	for _, redLink := range redLinks {
-		if redLink.LikeableID != 0 {
-			likeablesMap[redLink.LikeableID] = &redLink.Likeable
+	{
+		likeablesMap := make(map[int64]*core.Likeable)
+		for _, redLink := range redLinks {
+			if redLink.LikeableID != 0 {
+				likeablesMap[redLink.LikeableID] = &redLink.Likeable
+			}
 		}
-	}
-	err = core.LoadLikes(db, u, likeablesMap, nil, nil)
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't load red link like count: %v", err)
+		err := core.LoadLikes(db, u, likeablesMap, likeablesMap, returnData.UserMap)
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't load red link like count: %v", err)
+		}
 	}
 
 	// Load related pages

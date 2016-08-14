@@ -2,12 +2,18 @@
 	<div layout="row" layout-align="start center">
 		<span layout="row" layout-align="start center" layout-wrap flex>
 			<!-- The number of people who've made this request -->
-			<span class="cursor-pointer">
+			<span>
 				<b>
 					<span>{{request.myLikeValue + request.likeCount}}</span>
 
 					<ng-pluralize count="request.myLikeValue + request.likeCount"
 							when="{'1': 'person', 'other': 'people'}"></ng-pluralize>
+
+					<md-tooltip class="unlimited"
+							md-direction="top"
+							ng-if="request.individualLikes.length > 0 && !arb.isTouchDevice">
+						<span ng-repeat="userId in request.individualLikes">{{arb.userService.getFullName(userId) + '\n'}}</span>
+					</md-tooltip>
 				</b>
 
 				<ng-pluralize count="request.myLikeValue + request.likeCount"

@@ -42,25 +42,16 @@ app.directive('arbWriteNewModePanel', function($http, arb) {
 					$scope.redLinkRows = data.result.redLinks.map(function(redLink) {
 						var aliasWithSpaces = redLink.alias.replace(/_/g, ' ');
 						var prettyName = aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
-						return {
-							requestType: 'redLink',
-							originalTotalLikeCount: redLink.likeCount + redLink.myLikeValue,
-							prettifiedAlias: prettyName,
-							likeCount: redLink.likeCount,
-							myLikeValue: redLink.myLikeValue,
-							alias: redLink.alias,
-							linkedByPageIds: redLink.linkedByPageIds,
-						};
+
+						redLink.requestType = 'redLink';
+						redLink.prettifiedAlias = prettyName;
+						redLink.originalTotalLikeCount = redLink.likeCount + redLink.myLikeValue;
+						return redLink;
 					});
 
 					$scope.contentRequestRows = data.result.contentRequests.map(function(contentRequest) {
-						return {
-							requestType: contentRequest.requestType,
-							originalTotalLikeCount: contentRequest.likeCount + contentRequest.myLikeValue,
-							pageId: contentRequest.pageId,
-							likeCount: contentRequest.likeCount,
-							myLikeValue: contentRequest.myLikeValue,
-						};
+						contentRequest.originalTotalLikeCount = contentRequest.likeCount + contentRequest.myLikeValue;
+						return contentRequest;
 					});
 
 					$scope.requests = $scope.redLinkRows.concat($scope.contentRequestRows).filter(function(request) {
