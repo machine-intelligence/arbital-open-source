@@ -7,17 +7,17 @@
 	<md-icon class="like-icon"
 			md-svg-icon="thumb_up_outline"
 			ng-if="!isPlusOne && likeable.myLikeValue <= 0"></md-icon>
-	<span class="like-count" ng-if="likeable.myLikeValue == 0">
+	<span class="like-count" ng-if="likeable.myLikeValue == 0 && !hideLikeCount">
 		<span ng-if="isPlusOne && (likeable.likeCount + likeable.myLikeValue) >= 0">+</span>{{likeable.likeCount + likeable.myLikeValue}}
 	</span>
-	<span class="like-count" ng-if="likeable.myLikeValue == 1">
+	<span class="like-count" ng-if="likeable.myLikeValue == 1 && !hideLikeCount">
 		<b>
 			<span ng-if="isPlusOne && (likeable.likeCount + likeable.myLikeValue) >= 0">+</span>{{likeable.likeCount + likeable.myLikeValue}}
 		</b>
 	</span>
 	<md-tooltip class="unlimited"
 			md-direction="top"
-			ng-if="likeable.individualLikes.length > 0 && !arb.isTouchDevice">
+			ng-if="likeable.individualLikes.length > 0 && !arb.isTouchDevice && !hideLikeCount">
 		<span ng-repeat="userId in likeable.individualLikes">{{arb.userService.getFullName(userId) + '\n'}}</span>
 	</md-tooltip>
 </md-button>

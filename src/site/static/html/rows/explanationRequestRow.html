@@ -1,5 +1,18 @@
 <md-list-item layout="column" layout-align="center" ng-if="!row || row.myLikeValue >= 0">
 	<div layout="row" layout-align="start center">
+		<arb-likes
+				object-id="{{::request.alias}}"
+				likeable="request"
+				is-button="true"
+				hide-like-count="true"
+				ng-if="request.requestType != 'improveStub'"></arb-likes>
+		<arb-likes
+				object-id="{{::request.pageId}}"
+				likeable="request"
+				is-button="true"
+				hide-like-count="true"
+				ng-if="request.requestType == 'improveStub'"></arb-likes>
+
 		<span layout="row" layout-align="start center" layout-wrap flex>
 			<!-- The number of people who've made this request -->
 			<span>
@@ -55,18 +68,15 @@
 					ng-if="::request.pageId"></arb-page-title>
 		</span>
 
-		<arb-likes
-				object-id="{{::request.alias}}"
-				likeable="request"
-				is-button="true"
-				is-plus-one="true"
-				ng-if="request.requestType != 'improveStub'"></arb-likes>
-		<arb-likes
-				object-id="{{::request.pageId}}"
-				likeable="request"
-				is-button="true"
-				is-plus-one="true"
-				ng-if="request.requestType == 'improveStub'"></arb-likes>
+		<!-- Edit -->
+		<arb-edit-button class="icon-last"
+				page-id="{{request.alias}}"
+				analytics-desc="write new red link"
+				ng-if="request.requestType != 'improveStub'"></arb-edit-button>
+		<arb-edit-button class="icon-last"
+				page-id="{{request.pageId}}"
+				analytics-desc="write new red link"
+				ng-if="request.requestType == 'improveStub'"></arb-edit-button>
 	</div>
 
 	<div class="expand-tray expanded-list" layout="column" ng-if="expanded">
@@ -84,12 +94,6 @@
 				</span>
 			</li>
 		</ul>
-
-		<arb-edit-button class="icon-last"
-			page-id="{{request.alias}}"
-			analytics-desc="write new red link"
-			custom-text="Create a page for this concept"></arb-edit-button>
-
 		<md-button ng-click="stopSuggesting()"
 				ng-if="::arb.userService.user.trustMap['1lw'].level >= 2">
 			Don't suggest this alias

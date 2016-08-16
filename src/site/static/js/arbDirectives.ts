@@ -354,6 +354,8 @@ app.directive('arbLikes', function($http, arb) {
 			isButton: '=',
 			// If true, show the +1 version of the button
 			isPlusOne: '=',
+			// If true, hide the like count next to the thumb/+ icon
+			hideLikeCount: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
