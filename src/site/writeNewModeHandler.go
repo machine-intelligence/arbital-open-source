@@ -70,7 +70,13 @@ func writeNewModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Load stubs in math
 	returnData.ResultMap["stubs"], err = loadStubRows(db, returnData, numPagesToLoad)
 	if err != nil {
-		return pages.Fail("Error loading drafts", err)
+		return pages.Fail("Error loading stubs", err)
+	}
+
+	// Load contentRequests in math
+	returnData.ResultMap["contentRequests"], err = loadContentRequests(db, returnData, numPagesToLoad)
+	if err != nil {
+		return pages.Fail("Error loading content requests", err)
 	}
 
 	// Load pages
@@ -151,15 +157,17 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 	}
 
 	// Load likes
-	likeablesMap := make(map[int64]*core.Likeable)
-	for _, redLink := range redLinks {
-		if redLink.LikeableID != 0 {
-			likeablesMap[redLink.LikeableID] = &redLink.Likeable
+	{
+		likeablesMap := make(map[int64]*core.Likeable)
+		for _, redLink := range redLinks {
+			if redLink.LikeableID != 0 {
+				likeablesMap[redLink.LikeableID] = &redLink.Likeable
+			}
 		}
-	}
-	err = core.LoadLikes(db, u, likeablesMap, nil, nil)
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't load red link like count: %v", err)
+		err := core.LoadLikes(db, u, likeablesMap, likeablesMap, returnData.UserMap)
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't load red link like count: %v", err)
+		}
 	}
 
 	// Load related pages
@@ -212,4 +220,57 @@ func loadStubRows(db *database.DB, returnData *core.CommonHandlerData, limit int
 		return nil, fmt.Errorf("Couldn't load stub rows: %v", err)
 	}
 	return stubRows, nil
+}
+
+func loadContentRequests(db *database.DB, returnData *core.CommonHandlerData, limit int) ([]*core.ContentRequest, error) {
+	contentRequests := []*core.ContentRequest{}
+
+	// Load content requests, sorted by likes
+	{
+		rows := database.NewQuery(`
+			SELECT cr.id, cr.pageId, cr.type, cr.likeableId, cr.createdAt
+			FROM contentRequests AS cr
+			JOIN likes
+			ON cr.likeableId=likes.likeableId
+			JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
+			ON cr.pageId=pi.pageId
+			GROUP BY cr.id
+			ORDER BY SUM(likes.value) DESC
+			LIMIT ?`, limit).ToStatement(db).Query()
+		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+			cr := core.NewContentRequest()
+			err := rows.Scan(&cr.ID, &cr.PageID, &cr.RequestType, &cr.LikeableID, &cr.CreatedAt)
+			if err != nil {
+				return fmt.Errorf("Failed to scan: %v", err)
+			}
+
+			contentRequests = append(contentRequests, cr)
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Load likes for the content requests
+	{
+		likeablesMap := make(map[int64]*core.Likeable)
+		for _, cr := range contentRequests {
+			l := &cr.Likeable
+			if l.LikeableID != 0 {
+				likeablesMap[l.LikeableID] = l
+			}
+		}
+		err := core.LoadLikes(db, returnData.User, likeablesMap, likeablesMap, returnData.UserMap)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Add content request pages to the page map (so we can show their titles, etc)
+	for _, cr := range contentRequests {
+		core.AddPageIDToMap(cr.PageID, returnData.PageMap)
+	}
+
+	return contentRequests, nil
 }

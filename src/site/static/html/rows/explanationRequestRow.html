@@ -1,40 +1,99 @@
 <md-list-item layout="column" layout-align="center" ng-if="!row || row.myLikeValue >= 0">
 	<div layout="row" layout-align="start center">
-		<div layout="row" layout-align="start start" layout-wrap flex>
-
-			<arb-likes
-				object-id="{{::row.alias}}"
-				likeable="row"
+		<arb-likes
+				object-id="{{::request.alias}}"
+				likeable="request"
 				is-button="true"
-				is-plus-one="true"
-				ng-if="::row.linkedByPageIds"
-				></arb-likes>
+				hide-like-count="true"
+				ng-if="request.requestType != 'improveStub'"></arb-likes>
+		<arb-likes
+				object-id="{{::request.pageId}}"
+				likeable="request"
+				is-button="true"
+				hide-like-count="true"
+				ng-if="request.requestType == 'improveStub'"></arb-likes>
 
-			<div class="explanation-text" flex>
-				{{::prettyName}}
-				<span ng-if="::row.linkedByPageIds" class="md-caption">
-					referenced on
-					<span class="cursor-pointer underline" ng-click="toggleExpand()">{{::row.linkedByPageIds.length}} pages</span>
-					with {{totalViewCount}} total views
-				</span>
-			</div>
+		<span layout="row" layout-align="start center" layout-wrap flex>
+			<!-- The number of people who've made this request -->
+			<span>
+				<b>
+					<span>{{request.myLikeValue + request.likeCount}}</span>
 
-			<!-- Edit -->
-			<arb-edit-button class="icon-last"
-					page-id="{{row.alias}}"
-					analytics-desc="write new red link"
-					custom-text="Create"></arb-edit-button>
-		</div>
+					<ng-pluralize count="request.myLikeValue + request.likeCount"
+							when="{'1': 'person', 'other': 'people'}"></ng-pluralize>
+
+					<md-tooltip class="unlimited"
+							md-direction="top"
+							ng-if="request.individualLikes.length > 0 && !arb.isTouchDevice">
+						<span ng-repeat="userId in request.individualLikes">{{arb.userService.getFullName(userId) + '\n'}}</span>
+					</md-tooltip>
+				</b>
+
+				<ng-pluralize count="request.myLikeValue + request.likeCount"
+						when="{'1': 'wants', 'other': 'want'}"></ng-pluralize>
+			</span>
+
+			<span ng-switch="request.requestType">
+				<span ng-switch-when="redLink">&nbsp;an explanation of&nbsp;</span>
+				<span ng-switch-when="improveStub">&nbsp;an <b>expansion</b> of the stub page&nbsp;</span>
+
+				<span ng-switch-when="teachLooseUnderstanding">&nbsp;a <b>beginner's</b> explanation of&nbsp;</span>
+				<span ng-switch-when="teachBasicUnderstanding">&nbsp;a <b>basic</b> explanation of&nbsp;</span>
+				<span ng-switch-when="teachTechnicalUnderstanding">&nbsp;a <b>technical</b> explanation of&nbsp;</span>
+				<span ng-switch-when="teachResearchLevelUnderstanding">&nbsp;a <b>research-level</b> explanation of&nbsp;</span>
+
+				<span ng-switch-when="boostLooseUnderstanding">&nbsp;to <b>expand</b> on a<b>beginner's understanding</b> of&nbsp;</span>
+				<span ng-switch-when="boostBasicUnderstanding">&nbsp;to <b>expand</b> on a <b>basic understanding</b> of&nbsp;</span>
+				<span ng-switch-when="boostTechnicalUnderstanding">&nbsp;to <b>expand</b> on a <b>technical understanding</b> of&nbsp;</span>
+				<span ng-switch-when="boostResearchLevelUnderstanding">&nbsp;to <b>expand</b> on a <b>research-level understanding</b> of&nbsp;</span>
+
+				<span ng-switch-when="slowDown">&nbsp;a <b>slower</b> explanation of&nbsp;</span>
+				<span ng-switch-when="speedUp">&nbsp;a <b>faster</b> explanation of&nbsp;</span>
+				<span ng-switch-when="moreWords">&nbsp;a <b>more detailed</b> explanation of&nbsp;</span>
+				<span ng-switch-when="fewerWords">&nbsp;a <b>more concise</b> explanation of&nbsp;</span>
+				<span ng-switch-when="moreTechnical">&nbsp;a <b>more technical</b> explanation of&nbsp;</span>
+				<span ng-switch-when="lessTechnical">&nbsp;a <b>less technical</b> explanation of&nbsp;</span>
+
+				<span ng-switch-default class="md-warn">&nbsp;{{request.requestType}}&nbsp;</span>
+			</span>
+
+			<!-- If it's a redlink, show the prettified alias -->
+			<span ng-if="request.prettifiedAlias" class="cursor-pointer underline" ng-click="toggleExpand()">
+				<i>{{::request.prettifiedAlias}}</i>
+			</span>
+
+			<!-- If it's a page, show the page title -->
+			<arb-page-title page-id="{{::request.pageId}}"
+					is-link="true"
+					ng-if="::request.pageId"></arb-page-title>
+		</span>
+
+		<!-- Edit -->
+		<arb-edit-button class="icon-last"
+				page-id="{{request.alias}}"
+				analytics-desc="write new red link"
+				ng-if="request.requestType != 'improveStub'"></arb-edit-button>
+		<arb-edit-button class="icon-last"
+				page-id="{{request.pageId}}"
+				analytics-desc="write new red link"
+				ng-if="request.requestType == 'improveStub'"></arb-edit-button>
 	</div>
 
 	<div class="expand-tray expanded-list" layout="column" ng-if="expanded">
-		<md-progress-circular md-mode="indeterminate" ng-if="!linkedByPageIds"></md-progress-circular>
-		<div ng-repeat="pageId in linkedByPageIds">
-			<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
-			<span class="md-caption">
-				{{arb.stateService.pageMap[pageId].viewCount}} views
-			</span>
-		</div>
+		<span>
+			This concept is referenced on {{::request.linkedByPageIds.length}}
+			<ng-pluralize count="request.linkedByPageIds.length"
+					when="{'1': 'page', 'other': 'pages'}"></ng-pluralize>:
+		</span>
+
+		<ul>
+			<li ng-repeat="pageId in request.linkedByPageIds">
+				<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
+				<span class="md-caption">
+					{{arb.stateService.pageMap[pageId].viewCount}} views
+				</span>
+			</li>
+		</ul>
 		<md-button ng-click="stopSuggesting()"
 				ng-if="::arb.userService.user.trustMap['1lw'].level >= 2">
 			Don't suggest this alias
