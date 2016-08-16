@@ -55,25 +55,18 @@
 					ng-if="::request.pageId"></arb-page-title>
 		</span>
 
-		<!-- Edit -->
-		<arb-edit-button class="icon-last"
-				page-id="{{request.alias}}"
-				analytics-desc="write new red link"
-				custom-text="Create"
-				ng-if="request.requestType != 'improveStub'"></arb-edit-button>
-		<arb-edit-button class="icon-last"
-				page-id="{{request.pageId}}"
-				analytics-desc="write new red link"
-				custom-text="Edit"
-				ng-if="request.requestType == 'improveStub'"></arb-edit-button>
-
 		<arb-likes
- 				object-id="{{::request.alias}}"
- 				likeable="row"
- 				is-button="true"
- 				is-plus-one="true"
- 				ng-if="::row.linkedByPageIds"
- 				></arb-likes>
+				object-id="{{::request.alias}}"
+				likeable="request"
+				is-button="true"
+				is-plus-one="true"
+				ng-if="request.requestType != 'improveStub'"></arb-likes>
+		<arb-likes
+				object-id="{{::request.pageId}}"
+				likeable="request"
+				is-button="true"
+				is-plus-one="true"
+				ng-if="request.requestType == 'improveStub'"></arb-likes>
 	</div>
 
 	<div class="expand-tray expanded-list" layout="column" ng-if="expanded">
@@ -91,6 +84,12 @@
 				</span>
 			</li>
 		</ul>
+
+		<arb-edit-button class="icon-last"
+			page-id="{{request.alias}}"
+			analytics-desc="write new red link"
+			custom-text="Create a page for this concept"></arb-edit-button>
+
 		<md-button ng-click="stopSuggesting()"
 				ng-if="::arb.userService.user.trustMap['1lw'].level >= 2">
 			Don't suggest this alias
