@@ -59,49 +59,57 @@
 		</div>
 	</div>
 
-	<div layout="column" layout-gt-sm="row" class="children-margin-gt-xs children-vertical-margin-lt-xs">
-		<!-- Left half -->
-		<div class="full-page-panel" flex>
-			<div class="tab-panel-header" layout="row" layout-align="start end">
-				<div class="tab-panel-title">Read</div>
-				<div flex></div>
-				<md-button class="tab-panel-tab"
-						ng-class="{'active-tab': readTab==0}"
-						ng-click="selectReadTab(0)">
-					Featured
-				</md-button>
-				<md-button class="tab-panel-tab"
-						ng-class="{'active-tab': readTab==1}"
-						ng-click="selectReadTab(1)">
-					New
-				</md-button>
+	<div class="children-margin-gt-xs">
+		<div class="md-whiteframe-1dp" layout-padding>
+			<div layout="row" layout-align="center center">
+				<h1>
+					Project:
+					<a ng-href="{{::arb.urlService.getPageUrl('4d6')}}"
+							class="intrasite-link"
+							page-id="universal_property_proposal">Intro to the Universal Property</a>
+				</h1>
 			</div>
-			<div arb-read-mode-panel
-					class="support-visited-links"
-					hide-title="::true"
-					type="featured"
-					is-full-page="::true"
-					ng-if="readTab==0"></div>
-			<div arb-read-mode-panel
-					class="support-visited-links"
-					hide-title="::true"
-					type="new"
-					is-full-page="true"
-					ng-if="readTab==1"></div>
-		</div>
+			<div>
+				Help us build an intuitive explanation of this fundamental concept in category theory!
 
-		<!-- Right half -->
-		<div class="full-page-panel" flex>
-			<div class="tab-panel-header" layout="row" layout-align="start end">
-				<div class="tab-panel-title">Write</div>
-				<div flex></div>
-				<md-button class="tab-panel-tab"
-						ng-class="{'active-tab': writeTab==0}"
-						ng-click="selectWriteTab(0)">
-					New
-				</md-button>
+				Category theory is famously very difficult to understand, even for people with a relatively high level of mathematical maturity. With this project, we want to produce an explanation that will clearly communicate a core concept in category theory, the universal property, to a wide audience of learners.
 			</div>
-			<div arb-write-new-mode-panel hide-title="::true" ng-if="writeTab==0"></div>
+			<br>
+			<md-progress-linear md-mode="determinate" value="5"></md-progress-linear>
+			<div class="md-caption">5% complete: 1 C-Class page, 9 unwritten pages</div>
+			<br>
+			<div layout="row" flex layout-align="space between">
+				<div flex="50">
+					<h3>Ways to help</h3>
+					<div class='list-panel'>
+						<md-list-item layout="column" layout-align="center" ng-repeat="stub in stubs">
+							<div layout="row" layout-align="start center">
+								<div flex>
+									<a ng-href="{{::arb.urlService.getPageUrl('4d6')}}"
+											class="intrasite-link"
+											page-id="universal_property_proposal">{{stub}}</a>
+								</div>
+								Stub
+								<!-- Edit -->
+								<arb-edit-button class="icon-last"
+										page-id="{{row.pageId}}"
+										analytics-desc="write new stub"
+										custom-text="Edit"></arb-edit-button>
+							</div>
+							<md-divider></md-divider>
+						</md-list-item>
+					</div>
+
+				</div>
+				<div flex="50">
+					<h3>Recent activity</h3>
+					<div arb-recent-changes
+							class="support-visited-links"
+							type="edits"
+							is-full-page="::true"
+							num-to-display="50"></div>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>
