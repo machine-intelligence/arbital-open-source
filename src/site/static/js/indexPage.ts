@@ -41,18 +41,14 @@ app.directive('arbIndex', function($http, $mdMedia, arb) {
 				$scope.writeTab = tab;
 			};
 
-			$scope.stubs = [
-				'We only care about things up to isomorphism',
-				'We can describe objects based entirely on how they interact with other objects',
-				'The category of finite sets',
-				'The empty set',
-				'Disjoint union of finite sets',
-				'Union of finite sets',
-				'The empty set can be described enitrely by its universal property',
-				'The union and product can be described entirely by their universal properties, up to isomorphism',
-				'Least upper bound and greatest lower bounds',
-				'The universal properties of the LUB and GLB',
-				'This kind of property crops up all over the place'
+			$scope.fakeProjectPages = [
+				{isRedLink: true, alias: 'Polynomial'},
+				{isRedLink: true, alias: 'Isomorphism'},
+				{isRedLink: true, alias: 'Finite sets'},
+				{isRedLink: true, alias: 'Disjoint union of finite sets'},
+				{title: 'The empty set can be described entirely by its universal property', quality: 'Stub'},
+				{title: 'Least upper bound and greatest lower bounds', quality: 'Stub'},
+				{title: 'The universal properties of the LUB and GLB', quality: 'Stub'},
 			];
 		},
 	};
