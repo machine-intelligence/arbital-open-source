@@ -5,13 +5,13 @@
 				likeable="request"
 				is-button="true"
 				hide-like-count="true"
-				ng-if="request.requestType != 'improveStub'"></arb-likes>
+				ng-if="request.requestType == 'redLink'"></arb-likes>
 		<arb-likes
 				object-id="{{::request.pageId}}"
 				likeable="request"
 				is-button="true"
 				hide-like-count="true"
-				ng-if="request.requestType == 'improveStub'"></arb-likes>
+				ng-if="request.requestType != 'redLink'"></arb-likes>
 
 		<span layout="row" layout-align="start center" layout-wrap flex>
 			<!-- The number of people who've made this request -->
@@ -70,13 +70,15 @@
 
 		<!-- Edit -->
 		<arb-edit-button class="icon-last"
-				page-id="{{request.alias}}"
+				page-id="{{::request.alias}}"
+				custom-text=""
 				analytics-desc="write new red link"
-				ng-if="request.requestType != 'improveStub'"></arb-edit-button>
+				ng-if="request.requestType == 'redLink'"></arb-edit-button>
 		<arb-edit-button class="icon-last"
 				page-id="{{request.pageId}}"
-				analytics-desc="write new red link"
-				ng-if="request.requestType == 'improveStub'"></arb-edit-button>
+				custom-text=""
+				analytics-desc="improve page"
+				ng-if="request.requestType != 'redLink'"></arb-edit-button>
 	</div>
 
 	<div class="expand-tray expanded-list" layout="column" ng-if="expanded">

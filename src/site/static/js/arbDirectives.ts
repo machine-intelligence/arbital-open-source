@@ -58,7 +58,7 @@ app.directive('arbEditButton', function(arb) {
 			};
 
 			$scope.getButtonText = function() {
-				if ($scope.customText) return $scope.customText;
+				if ($scope.customText !== undefined) return $scope.customText;
 				if (!arb.userService.userIsLoggedIn() || !$scope.page.permissions.edit.has) return 'Propose edit';
 				if ($scope.page.hasDraft) return 'Edit draft';
 				if ($scope.page.proposalEditNum) return 'Review proposal';
