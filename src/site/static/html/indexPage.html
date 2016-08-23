@@ -82,7 +82,11 @@
 			</div>
 			<br>
 			<md-progress-linear md-mode="determinate" value="5" flex></md-progress-linear>
-			<div class="md-caption">5% complete: 3 Stub pages, 4 unwritten pages</div>
+			<div layout="row">
+				<div class="md-caption">5% complete: 3 Stub pages, 4 unwritten pages</div>
+				<div flex></div>
+				<div ng-bind="changesCountText" class="md-caption"></div>
+			</div>
 			<br>
 			<div layout="row" flex layout-align="space between">
 				<div flex="50">
@@ -133,7 +137,8 @@
 							class="support-visited-links"
 							type="edits"
 							is-full-page="::true"
-							num-to-display="5"></div>
+							mode-rows="changeLogModeRows"
+							ng-if="changeLogModeRows"></div>
 				</div>
 			</div>
 		</div>
