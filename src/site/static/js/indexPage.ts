@@ -43,21 +43,53 @@ app.directive('arbIndex', function($http, $mdMedia, arb) {
 
 			arb.stateService.postData('/json/project/', {},
 				function(response) {
-					// Compute rows to display all the pages in the project
+					// Store the number of pages at each quality level. Since we want these to be sorted,
+					// we'll use an array.
+					$scope.qualityCounts = [
+						{key: '4yl', name: 'Featured', count: 0, weight: 1},
+						{key: '4yf', name: 'A-Class', count: 0, weight: 1},
+						{key: '4yd', name: 'B-Class', count: 0, weight: 1},
+						{key: '4y7', name: 'C-Class', count: 0, weight: 0.75},
+						{key: '3rk', name: 'Start', count: 0, weight: 0.1},
+						{key: '72', name: 'Stub', count: 0, weight: 0.05},
+						{key: '', name: 'unwritten', count: 0, weight: 0},
+					];
+					let incrementQualityCount = function(key) {
+						for (let n = 0; n < $scope.qualityCounts.length; n++) {
+							if ($scope.qualityCounts[n].key === key) {
+								$scope.qualityCounts[n].count++;
+								break;
+							}
+						}
+					};
+
+					// Compute rows to display all the pages in the project and number
+					// of pages in various categories
 					var aliasRows = response.result.projectData.aliasRows.map(function(aliasRow) {
+						incrementQualityCount('');
 						return {isRedLink: true, alias: aliasRow.alias};
 					});
 					var pageRows = response.result.projectData.pageIds.map(function(pageId) {
 						var page = arb.stateService.getPage(pageId);
 						page.qualityTag = arb.pageService.getQualityTagId(page.tagIds);
-
-						if (page.qualityTag == 'unassessed') {
-							page.qualityTag = 'Unassessed';
-						}
-
+						incrementQualityCount(page.qualityTag);
 						return page;
 					});
 					$scope.projectPageRows = aliasRows.concat(pageRows);
+
+					// Compute percent complete
+					$scope.percentComplete = 0;
+					let qualityStrings = [];
+					for (let n = 0; n < $scope.qualityCounts.length; n++) {
+						let quality = $scope.qualityCounts[n];
+						$scope.percentComplete += quality.count * quality.weight;
+						if (quality.count <= 0) continue;
+						let qualityStr = quality.count + ' ' + quality.name + ' page';
+						if (quality.count != 1) qualityStr += 's';
+						qualityStrings.push(qualityStr);
+					}
+					$scope.percentComplete = Math.floor(($scope.percentComplete * 100) / (aliasRows.length + pageRows.length));
+					$scope.projectStatusText = $scope.percentComplete + '% complete: ' + qualityStrings.join(', ');
 
 					// Compute recent changes rows
 					$scope.changeLogModeRows = [];
@@ -74,6 +106,9 @@ app.directive('arbIndex', function($http, $mdMedia, arb) {
 							});
 						}
 					}
+
+					// Compute "X% complete: breakdown of pages by category"
+					$scope.percentComplete = 5;
 
 					// Compute "X changes by Y authors in last week" text
 					let changeCountLastWeek = 0;

@@ -75,9 +75,9 @@
 				Category theory is famously very difficult to understand, even for people with a relatively high level of mathematical maturity. With this project, we want to produce an explanation that will clearly communicate a core concept in category theory, the universal property, to a wide audience of learners.
 			</div>
 			<br>
-			<md-progress-linear md-mode="determinate" value="5" flex></md-progress-linear>
+			<md-progress-linear md-mode="determinate" value="percentComplete" flex></md-progress-linear>
 			<div layout="row">
-				<div class="md-caption">5% complete: 3 Stub pages, 4 unwritten pages</div>
+				<div ng-bind="projectStatusText" class="md-caption"></div>
 				<div flex></div>
 				<div ng-bind="changesCountText" class="md-caption"></div>
 			</div>
@@ -85,15 +85,16 @@
 			<div layout="row" flex layout-align="space between">
 				<div flex="50">
 					<div layout="row" layout-align="start center">
-						<h3>Ways to help</h3>
-						&nbsp;&nbsp;
-						(<a ng-href="{{::arb.urlService.getPageUrl('universal_property_outline')}}"
-							class="intrasite-link"
-							page-id="universal_property_outline">Project summary</a>)
-						&nbsp;&nbsp;
-						(<a ng-href="{{::arb.urlService.getPageUrl('4d6')}}"
+						<h3>Ways to help&nbsp;&nbsp;</h3>
+						<span>
+							(<a ng-href="{{::arb.urlService.getPageUrl('universal_property_outline')}}"
 								class="intrasite-link"
-								page-id="transcendental_number">Guide to contributing to Arbital</a>)
+								page-id="5wy">Project summary</a>)
+							&nbsp;&nbsp;
+							(<a ng-href="{{::arb.urlService.getPageUrl('4d6')}}"
+									class="intrasite-link"
+									page-id="4d6">Guide to contributing to Arbital</a>)
+						</span>
 					</div>
 					<div class='md-whiteframe-1dp list-panel'>
 						<md-progress-circular md-mode="indeterminate" ng-if="!projectPageRows"></md-progress-circular>
@@ -120,7 +121,10 @@
 											link-to-edit="::markAsDraft"
 											ng-if="!page.isRedLink"
 											flex></arb-page-title>
-									<span ng-if="page.isRedLink">the <i>{{page.alias}}</i> page</span>
+									<span ng-if="page.isRedLink">the
+										<i ng-bind="arb.pageService.getPrettyAlias(page.alias)"></i>
+										page
+									</span>
 								</div>
 
 								&nbsp;&nbsp;

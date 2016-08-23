@@ -40,11 +40,8 @@ app.directive('arbWriteNewModePanel', function($http, arb) {
 				},
 				function(data) {
 					$scope.redLinkRows = data.result.redLinks.map(function(redLink) {
-						var aliasWithSpaces = redLink.alias.replace(/_/g, ' ');
-						var prettyName = aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
-
 						redLink.requestType = 'redLink';
-						redLink.prettifiedAlias = prettyName;
+						redLink.prettifiedAlias = arb.pageService.getPrettyAlias(redLink.alias);
 						redLink.originalTotalLikeCount = redLink.likeCount + redLink.myLikeValue;
 						return redLink;
 					});

@@ -591,9 +591,6 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 	};
 
 	this.getQualityTag = function(tagIds: string[]): string {
-		if (tagIds.includes('4v')) {
-			return 'wip';
-		}
 		if (tagIds.includes('72')) {
 			return 'stub';
 		}
@@ -613,13 +610,10 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 			return 'featured';
 		}
 
-		return 'unassessed'
+		return 'unassessed_meta_tag'
 	}
 
 	this.getQualityTagId = function(tagIds: string[]): string {
-		if (tagIds.includes('4v')) {
-			return '4v';
-		}
 		if (tagIds.includes('72')) {
 			return '72';
 		}
@@ -639,6 +633,12 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 			return '4yl';
 		}
 
-		return 'unassessed'
-	}
+		return '4ym'
+	};
+
+	// Convert "alias_text" into "Alias text";
+	this.getPrettyAlias = function(alias: string): string {
+		let aliasWithSpaces = alias.replace(/_/g, ' ');
+		return aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
+	};
 });
