@@ -41,42 +41,67 @@ app.directive('arbIndex', function($http, $mdMedia, arb) {
 				$scope.writeTab = tab;
 			};
 
-			// Code snippet for showing project logs
-			/*arb.stateService.postData('/json/project/', {}, function(data) {
-				console.log(data);
-				console.log(data.result.projectData.pageIds);
-				$scope.changeLogModeRows = [];
-				for (let n = 0; n < data.result.projectData.pageIds.length; n++) {
-					let page = arb.stateService.pageMap[data.result.projectData.pageIds[n]];
-					for (let i = 0; i < page.changeLogs.length; i++) {
-						$scope.changeLogModeRows.push({
-							rowType: page.changeLogs[i].type,
-							activityDate: page.changeLogs[i].createdAt,
-							changeLog: page.changeLogs[i],
-						});
-					}
-				}
-				//$scope.changeLogModeRows.sort(function(a,b) {
-					//return b.createdAt.localeCompare(a.createdAt);
-				//});
-				console.log($scope.changeLogModeRows);
+			arb.stateService.postData('/json/project/', {},
+				function(response) {
+					// Compute rows to display all the pages in the project
+					var aliasRows = response.result.data.aliasRows.map(function(aliasRow) {
+						return {isRedLink: true, alias: aliasRow.alias};
+					});
+					var pageRows = response.result.data.pageIds.map(function(pageId) {
+						var page = arb.stateService.getPage(pageId);
+						page.qualityTag = arb.pageService.getQualityTagId(page.tagIds);
 
-				// Compute "X changes by Y authors in last week"
-				$scope.changeCountLastWeek = 0;
-				let authorIdsSet = {};
-				let now = moment.utc();
-				for (let n = 0; n < $scope.changeLogModeRows.length; n++) {
-					let changeLog = $scope.changeLogModeRows[n].changeLog;
-					if (now.diff(moment.utc(changeLog.createdAt), 'days') > 7) {
-						break;
+						if (page.qualityTag == 'unassessed') {
+							page.qualityTag = 'Unassessed';
+						}
+
+						return page;
+					});
+					$scope.projectPageRows = aliasRows.concat(pageRows);
+
+					// Compute recent changes rows
+					$scope.changeLogModeRows = [];
+					let acceptedChangeLogTypes = {newEditProposal: true, newEdit: true, deletePage: true, revertEdit: true};
+					for (let n = 0; n < response.result.projectData.pageIds.length; n++) {
+						let page = arb.stateService.pageMap[response.result.projectData.pageIds[n]];
+						for (let i = 0; i < page.changeLogs.length; i++) {
+							let changeLog = page.changeLogs[i];
+							if (!acceptedChangeLogTypes[changeLog.type]) continue;
+							$scope.changeLogModeRows.push({
+								rowType: changeLog.type,
+								activityDate: changeLog.createdAt,
+								changeLog: changeLog,
+							});
+						}
 					}
-					authorIdsSet[changeLog.userId] = true;
-					$scope.changeCountLastWeek++;
-				}
-				$scope.authorCountLastWeek = Object.keys(authorIdsSet).length;
-				console.log($scope.changeCountLastWeek);
-				console.log($scope.authorCountLastWeek);
-			});*/
+
+					// Compute "X changes by Y authors in last week" text
+					let changeCountLastWeek = 0;
+					let authorIdsSet = {};
+					let now = moment.utc();
+					for (let n = 0; n < $scope.changeLogModeRows.length; n++) {
+						let changeLog = $scope.changeLogModeRows[n].changeLog;
+						if (now.diff(moment.utc(changeLog.createdAt), 'days') > 7) {
+							break;
+						}
+						authorIdsSet[changeLog.userId] = true;
+						changeCountLastWeek++;
+					}
+					let authorCountLastWeek = Object.keys(authorIdsSet).length;
+					$scope.changesCountText = '' + changeCountLastWeek;
+					if ($scope.changesCountLastWeek == 1) {
+						$scope.changesCountText += ' change';
+					} else {
+						$scope.changesCountText += ' changes';
+					}
+					$scope.changesCountText += ' by ' + authorCountLastWeek;
+					if (authorCountLastWeek == 1) {
+						$scope.changesCountText += ' author';
+					} else {
+						$scope.changesCountText += ' authors';
+					}
+					$scope.changesCountText += ' last week';
+				});
 		},
 	};
 });

@@ -16,41 +16,41 @@ app.directive('arbRecentChanges', function($http, arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 
-			$scope.fetchMore = function() {
-				var postUrl = '/json/recentChanges/';
-				if ($scope.type == 'relationships') {
-					postUrl = '/json/recentRelationshipChanges/';
-				}
-
-				var createdBefore = $scope.modeRows ?
-						$scope.modeRows[$scope.modeRows.length - 1].changeLog.createdAt : '';
-
-				$scope.fetchingMore = true;
-				arb.stateService.postData(postUrl, {
-						numToLoad: $scope.numToDisplay,
-						createdBefore: createdBefore,
-					},
-					function(data) {
-						if ($scope.modeRows) {
-							var allModeRows = $scope.modeRows.concat(data.result.modeRows);
-
-							// Remove duplicates
-							$scope.modeRows = allModeRows.filter(function(i, index) {
-							    return index == allModeRows.findIndex(function(j) {
-										if (i.changeLog && j.changeLog) {
-											return i.changeLog.id == j.changeLog.id;
-										}
-									return false;
-							    });
-							});
-						} else {
-							$scope.modeRows = data.result.modeRows;
-							$scope.lastView = data.result.lastView;
-						}
-						$scope.fetchingMore = false;
-					});
-			};
 			if (!$scope.modeRows) {
+				$scope.fetchMore = function() {
+					var postUrl = '/json/recentChanges/';
+					if ($scope.type == 'relationships') {
+						postUrl = '/json/recentRelationshipChanges/';
+					}
+
+					var createdBefore = $scope.modeRows ?
+							$scope.modeRows[$scope.modeRows.length - 1].changeLog.createdAt : '';
+
+					$scope.fetchingMore = true;
+					arb.stateService.postData(postUrl, {
+							numToLoad: $scope.numToDisplay,
+							createdBefore: createdBefore,
+						},
+						function(data) {
+							if ($scope.modeRows) {
+								var allModeRows = $scope.modeRows.concat(data.result.modeRows);
+
+								// Remove duplicates
+								$scope.modeRows = allModeRows.filter(function(i, index) {
+								    return index == allModeRows.findIndex(function(j) {
+											if (i.changeLog && j.changeLog) {
+												return i.changeLog.id == j.changeLog.id;
+											}
+										return false;
+								    });
+								});
+							} else {
+								$scope.modeRows = data.result.modeRows;
+								$scope.lastView = data.result.lastView;
+							}
+							$scope.fetchingMore = false;
+						});
+				};
 				$scope.fetchMore();
 			}
 		},
