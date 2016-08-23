@@ -67,8 +67,8 @@ func loadPageToDomainSubmissionRows(db *database.DB, returnData *core.CommonHand
 	}).Add(core.TitlePlusLoadOptions)
 
 	queryPart := database.NewQuery(`
-		WHERE approverId=""
-		ORDER BY createdAt DESC
+		WHERE pds.approverId=""
+		ORDER BY pds.createdAt DESC
 		LIMIT ?`, limit)
 	err := core.LoadPageToDomainSubmissions(db, queryPart, func(db *database.DB, submission *core.PageToDomainSubmission) error {
 		core.AddPageToMap(submission.PageID, returnData.PageMap, pageLoadOptions)

@@ -9,6 +9,7 @@ app.directive('arbRecentChanges', function($http, arb) {
 		scope: {
 			numToDisplay: '=',
 			isFullPage: '=',
+			modeRows: '=',
 			type: '@',
 			moreLink: '@',
 		},
@@ -49,7 +50,9 @@ app.directive('arbRecentChanges', function($http, arb) {
 						$scope.fetchingMore = false;
 					});
 			};
-			$scope.fetchMore();
+			if (!$scope.modeRows) {
+				$scope.fetchMore();
+			}
 		},
 	};
 });

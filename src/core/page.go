@@ -1994,8 +1994,8 @@ type ProcessLoadPageToDomainSubmissionCallback func(db *database.DB, submission 
 // LoadPageToDomainSubmissions loads information the pages that have been submitted to a domain
 func LoadPageToDomainSubmissions(db *database.DB, queryPart *database.QueryPart, callback ProcessLoadPageToDomainSubmissionCallback) error {
 	rows := database.NewQuery(`
-		SELECT pageId,domainId,createdAt,submitterId,approvedAt,approverId
-		FROM pageToDomainSubmissions`).AddPart(queryPart).ToStatement(db).Query()
+		SELECT pds.pageId,pds.domainId,pds.createdAt,pds.submitterId,pds.approvedAt,pds.approverId
+		FROM pageToDomainSubmissions AS pds`).AddPart(queryPart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var submission PageToDomainSubmission
 		err := rows.Scan(&submission.PageID, &submission.DomainID, &submission.CreatedAt,
@@ -2024,7 +2024,7 @@ func LoadPageToDomainSubmissionsForPages(db *database.DB, pageMap map[string]*Pa
 		return nil
 	}
 
-	queryPart := database.NewQuery(`WHERE pageId IN`).AddArgsGroup(pageIDs)
+	queryPart := database.NewQuery(`WHERE pds.pageId IN`).AddArgsGroup(pageIDs)
 	err := LoadPageToDomainSubmissions(db, queryPart, func(db *database.DB, submission *PageToDomainSubmission) error {
 		AddPageIDToMap(submission.DomainID, pageMap)
 		AddUserToMap(submission.SubmitterID, userMap)
@@ -2038,8 +2038,8 @@ func LoadPageToDomainSubmissionsForPages(db *database.DB, pageMap map[string]*Pa
 // LoadPageToDomainSubmission loads information about a specific page that was submitted to a specific domain
 func LoadPageToDomainSubmission(db *database.DB, pageID, domainID string) (*PageToDomainSubmission, error) {
 	queryPart := database.NewQuery(`
-		WHERE pageId=?`, pageID).Add(`
-			AND domainId=?`, domainID).Add(`
+		WHERE pds.pageId=?`, pageID).Add(`
+			AND pds.domainId=?`, domainID).Add(`
 		LIMIT 1`)
 	var resultSubmission *PageToDomainSubmission
 	err := LoadPageToDomainSubmissions(db, queryPart, func(db *database.DB, submission *PageToDomainSubmission) error {
