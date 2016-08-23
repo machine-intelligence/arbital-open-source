@@ -44,10 +44,10 @@ app.directive('arbIndex', function($http, $mdMedia, arb) {
 			arb.stateService.postData('/json/project/', {},
 				function(response) {
 					// Compute rows to display all the pages in the project
-					var aliasRows = response.result.data.aliasRows.map(function(aliasRow) {
+					var aliasRows = response.result.projectData.aliasRows.map(function(aliasRow) {
 						return {isRedLink: true, alias: aliasRow.alias};
 					});
-					var pageRows = response.result.data.pageIds.map(function(pageId) {
+					var pageRows = response.result.projectData.pageIds.map(function(pageId) {
 						var page = arb.stateService.getPage(pageId);
 						page.qualityTag = arb.pageService.getQualityTagId(page.tagIds);
 
