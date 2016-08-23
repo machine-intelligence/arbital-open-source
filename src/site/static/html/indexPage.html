@@ -66,19 +66,13 @@
 					Project:
 					<a ng-href="{{::arb.urlService.getPageUrl('universal_property_outline')}}"
 							class="intrasite-link"
-							page-id="transcendental_number">Intro to the Universal Property</a>
+							page-id="universal_property_outline">Intro to the Universal Property</a>
 				</h1>
 			</div>
 			<div>
 				Help us build an intuitive explanation of this fundamental concept in category theory!
 
 				Category theory is famously very difficult to understand, even for people with a relatively high level of mathematical maturity. With this project, we want to produce an explanation that will clearly communicate a core concept in category theory, the universal property, to a wide audience of learners.
-			</div>
-			<div>
-				See a summary of this project here:
-					<a ng-href="{{::arb.urlService.getPageUrl('universal_property_outline')}}"
-							class="intrasite-link"
-							page-id="transcendental_number">Intro to the Universal Property</a>.
 			</div>
 			<br>
 			<md-progress-linear md-mode="determinate" value="5" flex></md-progress-linear>
@@ -91,13 +85,19 @@
 			<div layout="row" flex layout-align="space between">
 				<div flex="50">
 					<div layout="row" layout-align="start center">
-						<h3>Ways to help</h3>&nbsp;&nbsp;
+						<h3>Ways to help</h3>
+						&nbsp;&nbsp;
+						(<a ng-href="{{::arb.urlService.getPageUrl('universal_property_outline')}}"
+							class="intrasite-link"
+							page-id="universal_property_outline">Project summary</a>)
+						&nbsp;&nbsp;
 						(<a ng-href="{{::arb.urlService.getPageUrl('4d6')}}"
 								class="intrasite-link"
 								page-id="transcendental_number">Guide to contributing to Arbital</a>)
 					</div>
 					<div class='md-whiteframe-1dp list-panel'>
-						<md-list-item layout="column" layout-align="center" ng-repeat="page in fakeProjectPages">
+						<md-progress-circular md-mode="indeterminate" ng-if="!projectPageRows"></md-progress-circular>
+						<md-list-item layout="column" layout-align="center" ng-repeat="page in projectPageRows">
 							<div layout="row" layout-align="start center">
 								<!-- Edit -->
 								<arb-edit-button class="icon-first"
@@ -106,7 +106,7 @@
 										custom-text="Edit"
 										ng-if="!page.isRedLink"></arb-edit-button>
 								<arb-edit-button class="icon-first"
-										page-id="{{row.pageId}}"
+										page-id="{{row.alias}}"
 										analytics-desc="write new stub"
 										custom-text="Create"
 										ng-if="page.isRedLink"></arb-edit-button>
@@ -114,16 +114,18 @@
 								&nbsp;&nbsp;
 
 								<div flex>
-									<a ng-href="{{::arb.urlService.getPageUrl('4d6')}}"
-											class="intrasite-link"
-											page-id="Arbital"
-											ng-if="!page.isRedLink">{{page.title}}</a>
+									<arb-page-title page-id="{{::page.pageId}}"
+											is-link="true"
+											use-edit-map="::useEditMap"
+											link-to-edit="::markAsDraft"
+											ng-if="!page.isRedLink"
+											flex></arb-page-title>
 									<span ng-if="page.isRedLink">the <i>{{page.alias}}</i> page</span>
 								</div>
 
 								&nbsp;&nbsp;
 
-								<div class="chip" ng-if="page.quality">{{page.quality}}</div>
+								<arb-tag tag-id="{{page.qualityTag}}" ng-if="page.qualityTag"></arb-tag>
 							</div>
 							<md-divider></md-divider>
 						</md-list-item>

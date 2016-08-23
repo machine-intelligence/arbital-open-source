@@ -89,7 +89,7 @@ func loadProjectRedAliasRows(db *database.DB, returnData *core.CommonHandlerData
 		FROM links AS l
 		LEFT JOIN redLinks AS rl
 		ON l.childAlias=rl.alias
-		WHERE l.parentId=/*'5wy'*/'5mv'
+		WHERE l.parentId='5wy'
 		AND l.childAlias NOT IN`).AddPart(publishedPageIDs).Add(`
 		AND l.childAlias NOT IN`).AddPart(publishedAndRecentAliases).Add(`
 		GROUP BY 1
@@ -139,7 +139,7 @@ func loadProjectPageIDs(db *database.DB, returnData *core.CommonHandlerData, lim
 		SELECT pi.pageId
 		FROM`).AddPart(core.PageInfosTable(returnData.User)).Add(`AS pi
 		JOIN links AS l
-		ON (l.childAlias=pi.pageId AND l.parentId=/*'5wy'*/'5mv')
+		ON (l.childAlias=pi.pageId AND l.parentId='5wy')
 		GROUP BY 1
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
