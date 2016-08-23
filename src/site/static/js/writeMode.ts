@@ -39,14 +39,24 @@ app.directive('arbWriteNewModePanel', function($http, arb) {
 					isFullPage: $scope.isFullPage,
 				},
 				function(data) {
-					$scope.redLinkRows = data.result.redLinks;
-					$scope.stubRows = data.result.stubs;
+					$scope.redLinkRows = data.result.redLinks.map(function(redLink) {
+						var aliasWithSpaces = redLink.alias.replace(/_/g, ' ');
+						var prettyName = aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
 
-					// calculate this ahead of time so that rows don't jump around when the user updates their like value
-					for (var i = 0; i < $scope.redLinkRows.length; ++i) {
-						var row = $scope.redLinkRows[i];
-						row.originalTotalLikeCount = row.likeCount + row.myLikeValue;
-					}
+						redLink.requestType = 'redLink';
+						redLink.prettifiedAlias = prettyName;
+						redLink.originalTotalLikeCount = redLink.likeCount + redLink.myLikeValue;
+						return redLink;
+					});
+
+					$scope.contentRequestRows = data.result.contentRequests.map(function(contentRequest) {
+						contentRequest.originalTotalLikeCount = contentRequest.likeCount + contentRequest.myLikeValue;
+						return contentRequest;
+					});
+
+					$scope.requests = $scope.redLinkRows.concat($scope.contentRequestRows).filter(function(request) {
+						return request.originalTotalLikeCount > 0;
+					});
 				}
 			);
 		},
@@ -129,36 +139,24 @@ app.directive('arbTaggedForEditRow', function(arb) {
 	};
 });
 
-// arb-draft-mode-row is the directive for showing a user's draft
+// arb-explanation-request-row shows an explanation request
 app.directive('arbExplanationRequestRow', function(arb) {
 	return {
 		templateUrl: versionUrl('static/html/rows/explanationRequestRow.html'),
 		scope: {
-			alias: '@',
-			row: '=',
+			request: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.alias = $scope.alias || $scope.row.alias;
-
-			var aliasWithSpaces = $scope.alias.replace(/_/g, ' ');
-			$scope.prettyName = aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
 			$scope.editUrl = arb.urlService.getEditPageUrl($scope.alias);
 
-			$scope.linkedByPageIds = $scope.row.linkedByPageIds;
-
-			var totalViewCount = 0;
-			for (var i = 0; i < $scope.linkedByPageIds.length; ++i) {
-				totalViewCount += arb.stateService.pageMap[$scope.linkedByPageIds[i]].viewCount;
-			}
-			$scope.totalViewCount = totalViewCount;
-
-			$scope.toggleExpand = function() {
-				$scope.expanded = !$scope.expanded;
-			};
 			$scope.stopSuggesting = function() {
 				arb.signupService.processLikeClick($scope.row, $scope.row.alias, -1);
 			};
+
+			$scope.toggleExpand = function() {
+ 				$scope.expanded = !$scope.expanded;
+ 			};
 		},
 	};
 });
