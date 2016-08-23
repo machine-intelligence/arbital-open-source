@@ -615,4 +615,30 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 
 		return 'unassessed'
 	}
+
+	this.getQualityTagId = function(tagIds: string[]): string {
+		if (tagIds.includes('4v')) {
+			return '4v';
+		}
+		if (tagIds.includes('72')) {
+			return '72';
+		}
+		if (tagIds.includes('3rk')) {
+			return '3rk';
+		}
+		if (tagIds.includes('4y7')) {
+			return '4y7';
+		}
+		if (tagIds.includes('4yd')) {
+			return '4yd';
+		}
+		if (tagIds.includes('4yf')) {
+			return '4yf';
+		}
+		if (tagIds.includes('4yl')) {
+			return '4yl';
+		}
+
+		return 'unassessed'
+	}
 });

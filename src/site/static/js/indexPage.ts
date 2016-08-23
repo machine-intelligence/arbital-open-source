@@ -41,16 +41,6 @@ app.directive('arbIndex', function($http, $mdMedia, arb) {
 				$scope.writeTab = tab;
 			};
 
-			$scope.fakeProjectPages = [
-				{isRedLink: true, alias: 'Polynomial'},
-				{isRedLink: true, alias: 'Isomorphism'},
-				{isRedLink: true, alias: 'Finite sets'},
-				{isRedLink: true, alias: 'Disjoint union of finite sets'},
-				{title: 'The empty set can be described entirely by its universal property', quality: 'Stub'},
-				{title: 'Least upper bound and greatest lower bounds', quality: 'Stub'},
-				{title: 'The universal properties of the LUB and GLB', quality: 'Stub'},
-			];
-
 			// Code snippet for showing project logs
 			/*arb.stateService.postData('/json/project/', {}, function(data) {
 				console.log(data);
@@ -87,6 +77,26 @@ app.directive('arbIndex', function($http, $mdMedia, arb) {
 				console.log($scope.changeCountLastWeek);
 				console.log($scope.authorCountLastWeek);
 			});*/
+
+			arb.stateService.postData('/json/project/', {},
+				function(response) {
+					var aliasRows = response.result.data.aliasRows.map(function(aliasRow) {
+						return {isRedLink: true, alias: aliasRow.alias};
+					});
+
+					var pageRows = response.result.data.pageIds.map(function(pageId) {
+						var page = arb.stateService.getPage(pageId);
+						page.qualityTag = arb.pageService.getQualityTagId(page.tagIds);
+
+						if (page.qualityTag == 'unassessed') {
+							page.qualityTag = 'Unassessed';
+						}
+
+						return page;
+					});
+
+					$scope.projectPageRows = aliasRows.concat(pageRows);
+				});
 		},
 	};
 });
