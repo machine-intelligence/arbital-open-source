@@ -40,6 +40,43 @@ app.directive('arbIndex', function($http, $mdMedia, arb) {
 			$scope.selectWriteTab = function(tab) {
 				$scope.writeTab = tab;
 			};
+
+			// Code snippet for showing project logs
+			/*arb.stateService.postData('/json/project/', {}, function(data) {
+				console.log(data);
+				console.log(data.result.projectData.pageIds);
+				$scope.changeLogModeRows = [];
+				for (let n = 0; n < data.result.projectData.pageIds.length; n++) {
+					let page = arb.stateService.pageMap[data.result.projectData.pageIds[n]];
+					for (let i = 0; i < page.changeLogs.length; i++) {
+						$scope.changeLogModeRows.push({
+							rowType: page.changeLogs[i].type,
+							activityDate: page.changeLogs[i].createdAt,
+							changeLog: page.changeLogs[i],
+						});
+					}
+				}
+				//$scope.changeLogModeRows.sort(function(a,b) {
+					//return b.createdAt.localeCompare(a.createdAt);
+				//});
+				console.log($scope.changeLogModeRows);
+
+				// Compute "X changes by Y authors in last week"
+				$scope.changeCountLastWeek = 0;
+				let authorIdsSet = {};
+				let now = moment.utc();
+				for (let n = 0; n < $scope.changeLogModeRows.length; n++) {
+					let changeLog = $scope.changeLogModeRows[n].changeLog;
+					if (now.diff(moment.utc(changeLog.createdAt), 'days') > 7) {
+						break;
+					}
+					authorIdsSet[changeLog.userId] = true;
+					$scope.changeCountLastWeek++;
+				}
+				$scope.authorCountLastWeek = Object.keys(authorIdsSet).length;
+				console.log($scope.changeCountLastWeek);
+				console.log($scope.authorCountLastWeek);
+			});*/
 		},
 	};
 });

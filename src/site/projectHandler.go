@@ -66,7 +66,7 @@ func projectHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Pipeline error", err)
 	}
 
-	returnData.ResultMap["data"] = projectData
+	returnData.ResultMap["projectData"] = projectData
 	return pages.Success(returnData)
 }
 
@@ -150,9 +150,10 @@ func loadProjectPageIDs(db *database.DB, returnData *core.CommonHandlerData, lim
 		}
 		pageIDs = append(pageIDs, pageID)
 		core.AddPageToMap(pageID, returnData.PageMap, &core.PageLoadOptions{
-			Tags:  true,
-			Likes: true,
-			Text:  true,
+			Tags:       true,
+			Likes:      true,
+			Text:       true,
+			ChangeLogs: true,
 		})
 		return nil
 	})
