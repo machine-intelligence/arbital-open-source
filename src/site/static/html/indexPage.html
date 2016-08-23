@@ -82,20 +82,18 @@
 				<div ng-bind="changesCountText" class="md-caption"></div>
 			</div>
 			<br>
-			<div layout="row" flex layout-align="space between">
+
+			<a ng-href="{{::arb.urlService.getPageUrl('5wy')}}"
+				class="intrasite-link"
+				page-id="5wy">Project summary</a>
+			&nbsp;
+			<a ng-href="{{::arb.urlService.getPageUrl('4d6')}}"
+					class="intrasite-link"
+					page-id="4d6">Guide to contributing to Arbital</a>
+
+			<div layout="column" layout-gt-sm="row" flex layout-align="space between">
 				<div flex="50">
-					<div layout="row" layout-align="start center">
-						<h3>Ways to help&nbsp;&nbsp;</h3>
-						<span>
-							(<a ng-href="{{::arb.urlService.getPageUrl('universal_property_outline')}}"
-								class="intrasite-link"
-								page-id="5wy">Project summary</a>)
-							&nbsp;&nbsp;
-							(<a ng-href="{{::arb.urlService.getPageUrl('4d6')}}"
-									class="intrasite-link"
-									page-id="4d6">Guide to contributing to Arbital</a>)
-						</span>
-					</div>
+					<h3>Ways to help</h3>
 					<div class='md-whiteframe-1dp list-panel'>
 						<md-progress-circular md-mode="indeterminate" ng-if="!projectPageRows"></md-progress-circular>
 						<md-list-item layout="column" layout-align="center" ng-repeat="page in projectPageRows">

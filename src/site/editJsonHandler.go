@@ -14,9 +14,7 @@ import (
 var editHandler = siteHandler{
 	URI:         "/json/edit/",
 	HandlerFunc: editJSONHandler,
-	Options: pages.PageOptions{
-		RequireLogin: true,
-	},
+	Options:     pages.PageOptions{},
 }
 
 // editJsonData contains parameters passed in via the request.
