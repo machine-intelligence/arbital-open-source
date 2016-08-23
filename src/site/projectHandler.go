@@ -70,7 +70,7 @@ func projectHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	return pages.Success(returnData)
 }
 
-// Load pages that are part of the project to but don't exist
+// Load pages that will be part of the project but don't exist yet and need to be created
 func loadProjectRedAliasRows(db *database.DB, returnData *core.CommonHandlerData, limit int) ([]*ProjectAliasRow, error) {
 	u := returnData.User
 	redLinks := []*ProjectAliasRow{}
