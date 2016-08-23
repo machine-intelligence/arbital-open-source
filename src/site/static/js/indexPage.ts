@@ -88,7 +88,7 @@ app.directive('arbIndex', function($http, $mdMedia, arb) {
 						if (quality.count != 1) qualityStr += 's';
 						qualityStrings.push(qualityStr);
 					}
-					$scope.percentComplete = Math.floor(($scope.percentComplete * 100) / (aliasRows.length + pageRows.length));
+					$scope.percentComplete = +Math.floor(($scope.percentComplete * 100) / (aliasRows.length + pageRows.length));
 					$scope.projectStatusText = $scope.percentComplete + '% complete: ' + qualityStrings.join(', ');
 
 					// Compute recent changes rows
