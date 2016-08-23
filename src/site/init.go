@@ -132,6 +132,7 @@ func init() {
 	s.HandleFunc(parentsSearchHandler.URI, handlerWrapper(parentsSearchHandler)).Methods("POST")
 	s.HandleFunc(pendingModeHandler.URI, handlerWrapper(pendingModeHandler)).Methods("POST")
 	s.HandleFunc(primaryPageHandler.URI, handlerWrapper(primaryPageHandler)).Methods("POST")
+	s.HandleFunc(projectHandler.URI, handlerWrapper(projectHandler)).Methods("POST")
 	s.HandleFunc(readModeHandler.URI, handlerWrapper(readModeHandler)).Methods("POST")
 	s.HandleFunc(recentChangesHandler.URI, handlerWrapper(recentChangesHandler)).Methods("POST")
 	s.HandleFunc(recentlyCreatedCommentHandler.URI, handlerWrapper(recentlyCreatedCommentHandler)).Methods("POST")
