@@ -7,6 +7,8 @@ import {
 	forwardLinkRegexp,
 	simpleLinkRegexp,
 	atAliasRegexp,
+	notEscaped,
+	noParen,
 } from './markdownService.ts';
 
 // pages stores all the loaded pages and provides multiple helper functions for
@@ -640,5 +642,26 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 	this.getPrettyAlias = function(alias: string): string {
 		let aliasWithSpaces = alias.replace(/_/g, ' ');
 		return aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
+	};
+
+	// Extract TODOs from the page's text
+	this.todoBlockRegexp = new RegExp('(%+)todo: ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
+	this.todoSpanRegexp = new RegExp(notEscaped + '\\[todo: ?([^\\]]+?)\\]' + noParen, 'g');
+	this.computeTodos = function(page) {
+		if (page.todos.length > 0) return;
+		page.todos = [];
+		let match = that.todoBlockRegexp.exec(page.text);
+		while (match != null) {
+			page.todos.push(match[2]);
+			console.log(match[2]);
+			match = that.todoBlockRegexp.exec(page.text);
+		}
+
+		match = that.todoSpanRegexp.exec(page.text);
+		while (match != null) {
+			page.todos.push(match[2]);
+			console.log(match[2]);
+			match = that.todoSpanRegexp.exec(page.text);
+		}
 	};
 });

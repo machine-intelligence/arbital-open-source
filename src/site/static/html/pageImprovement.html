@@ -1,3 +1,4 @@
+<!-- Improvement header -->
 <div class="improvement-header {{qualityTag}}"
 		layout="row"
 		layout-align="start center"
@@ -41,9 +42,11 @@
 	</md-button>
 </div>
 
+<!-- Improvement body -->
 <div class="improvement-body expand-tray vertical-layout-padding"
 		layout="column"
 		ng-if="expanded && shouldShowImprovements()">
+
 	<div ng-if="shouldShowTags()">
 		<span>
 			This page has the following issues:
@@ -54,6 +57,7 @@
 			</span>
 		</span>
 	</div>
+
 	<div ng-if="shouldShowTodos()">
 		This page has {{page.todos.length}} TODO
 		<ng-pluralize count="page.todos.length"
@@ -64,6 +68,7 @@
 			</li>
 		</ul>
 	</div>
+
 	<div>
 		<md-button ng-href="{{arb.urlService.getEditPageUrl(page.pageId)}}"
 				ng-class="::{'md-icon-button': isTinyScreen}"

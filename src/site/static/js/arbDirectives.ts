@@ -72,7 +72,9 @@ app.directive('arbEditButton', function(arb) {
 app.directive('arbExpandIcon', function(arb) {
 	return {
 		templateUrl: versionUrl('static/html/expandIcon.html'),
-		scope: false,
+		scope: {
+			expanded: '=',
+		},
 	};
 });
 

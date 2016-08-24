@@ -41,6 +41,11 @@ app.directive('arbIndex', function($http, $mdMedia, arb) {
 				$scope.writeTab = tab;
 			};
 
+			$scope.expandedProjectPages = {};
+			$scope.toggleProjectTodos = function(pageId) {
+				$scope.expandedProjectPages[pageId] = !$scope.expandedProjectPages[pageId];
+			};
+
 			arb.stateService.postData('/json/project/', {},
 				function(response) {
 					// Store the number of pages at each quality level. Since we want these to be sorted,
@@ -73,9 +78,11 @@ app.directive('arbIndex', function($http, $mdMedia, arb) {
 						var page = arb.stateService.getPage(pageId);
 						page.qualityTag = arb.pageService.getQualityTagId(page.tagIds);
 						incrementQualityCount(page.qualityTag);
+						arb.pageService.computeTodos(page);
+						$scope.expandedProjectPages[page.pageId] = false;
 						return page;
 					});
-					$scope.projectPageRows = aliasRows.concat(pageRows);
+					$scope.projectPageRows = pageRows.concat(aliasRows);
 
 					// Compute percent complete
 					$scope.percentComplete = 0;

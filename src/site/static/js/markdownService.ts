@@ -8,8 +8,8 @@ import {InitMathjax} from './mathjax.ts';
 // From demo-bundle.js
 declare function loadAllDemos();
 
-var notEscaped = '(^|\\\\`|\\\\\\[|(?:[^A-Za-z0-9_`[\\\\]|\\\\\\\\))';
-var noParen = '(?=$|[^(])';
+export var notEscaped = '(^|\\\\`|\\\\\\[|(?:[^A-Za-z0-9_`[\\\\]|\\\\\\\\))';
+export var noParen = '(?=$|[^(])';
 var nakedAliasMatch = '[\\-\\+]?[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*';
 export var aliasMatch = '(' + nakedAliasMatch + ')';
 var anyUrlMatch = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i;
@@ -170,9 +170,8 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		});
 
 		// Process %todo:markdown% blocks.
-		var todoBlockRegexp = new RegExp('^(%+)todo: ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
-			return text.replace(todoBlockRegexp, function(whole, bars, markdown) {
+			return text.replace(pageService.todoBlockRegexp, function(whole, bars, markdown) {
 				if (isEditor) {
 					return '<div class=\'todo-text editor-block\'>' + runBlockGamut(markdown) + '\n\n</div>';
 				}
@@ -447,9 +446,8 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		});
 
 		// Process [todo:text] spans.
-		var todoSpanRegexp = new RegExp(notEscaped + '\\[todo: ?([^\\]]+?)\\]' + noParen, 'g');
 		converter.hooks.chain('preSpanGamut', function(text) {
-			return text.replace(todoSpanRegexp, function(whole, prefix, text) {
+			return text.replace(pageService.todoSpanRegexp, function(whole, prefix, text) {
 				if (isEditor) {
 					return prefix + '<span class=\'todo-text\'>' + text + '</span>';
 				}

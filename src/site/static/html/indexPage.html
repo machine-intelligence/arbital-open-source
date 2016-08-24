@@ -92,20 +92,24 @@
 					page-id="4d6">Guide to contributing to Arbital</a>
 
 			<div layout="column" layout-gt-sm="row" flex layout-align="space between">
+
+				<!-- Project pages with TODOs -->
 				<div flex="50">
 					<h3>Ways to help</h3>
 					<div class='md-whiteframe-1dp list-panel'>
 						<md-progress-circular md-mode="indeterminate" ng-if="!projectPageRows"></md-progress-circular>
 						<md-list-item layout="column" layout-align="center" ng-repeat="page in projectPageRows">
+
+							<!-- Row body -->
 							<div layout="row" layout-align="start center">
 								<!-- Edit -->
 								<arb-edit-button class="icon-first"
-										page-id="{{row.pageId}}"
+										page-id="{{page.pageId}}"
 										analytics-desc="write new stub"
 										custom-text="Edit"
 										ng-if="!page.isRedLink"></arb-edit-button>
 								<arb-edit-button class="icon-first"
-										page-id="{{row.alias}}"
+										page-id="{{page.alias}}"
 										analytics-desc="write new stub"
 										custom-text="Create"
 										ng-if="page.isRedLink"></arb-edit-button>
@@ -129,12 +133,35 @@
 
 								<arb-tag tag-id="{{page.qualityTag}}" ng-if="page.qualityTag"></arb-tag>
 							</div>
+
+							<!-- Row body bottom half -->
+							<div>
+								<md-button ng-click="toggleProjectTodos(page.pageId)"
+										class="short-button"
+										aria-label="Expand"
+										ng-if="::!page.isRedLink && page.todos.length > 0">
+									<arb-expand-icon expanded="expandedProjectPages[page.pageId]"></arb-expand-icon>
+									<ng-pluralize count="::page.todos.length"
+											when="{'one': 'SHOW {} TODO', 'other': 'SHOW {} TODOS'}"></ng-pluralize>
+								</md-button>
+							</div>
+
+							<!-- TODO expand tray -->
+							<div class="expand-tray" ng-show="expandedProjectPages[page.pageId]">
+								<ul>
+									<li ng-repeat="text in ::page.todos track by $index">
+										{{text}}
+									</li>
+								</ul>
+							</div>
+
 							<md-divider></md-divider>
 						</md-list-item>
 					</div>
-
 				</div>
+
 				&nbsp;&nbsp;&nbsp;&nbsp;
+				<!-- Recent activity / changes -->
 				<div flex="50">
 					<h3>Recent activity</h3>
 					<div arb-recent-changes
