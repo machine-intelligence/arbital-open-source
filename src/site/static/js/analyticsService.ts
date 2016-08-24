@@ -5,6 +5,7 @@ import {isLive} from './util.ts';
 
 declare var ga: any;
 declare var heap: any;
+declare var FS: any;
 
 // arb.analyticsService is a wrapper for Google Analytics
 app.service('analyticsService', function($http, $location, stateService) {
@@ -12,7 +13,13 @@ app.service('analyticsService', function($http, $location, stateService) {
 
 	// This is called to set the user id.
 	this.setUserId = function(userId) {
-		heap.identify(userId);
+		if (!!userId) {
+			// heap
+			heap.identify(userId);
+
+			// full story
+			FS.identify(userId);
+		}
 
 		if (!isLive()) return;
 		ga('set', 'userId', userId);
