@@ -17,13 +17,11 @@ app.service('userService', function($http, $location, $rootScope, analyticsServi
 	var postDataCallback = function(data) {
 		if (data.resetEverything) {
 			that.userMap = {};
-			that.user = data.user;
-			analyticsService.setUserId(that.user.id);
 		}
 
-		if (!that.userIsLoggedIn() && (data.user && data.user.id)) {
+		if (data.resetEverything || (!that.userIsLoggedIn() && (data.user && data.user.id))) {
 			that.user = data.user;
-			analyticsService.setUserId(that.user.id);
+			analyticsService.identifyUser(that.user.id, that.user.firstName + ' ' + that.user.lastName, that.user.email);
 		}
 
 		$.extend(that.userMap, data.users);

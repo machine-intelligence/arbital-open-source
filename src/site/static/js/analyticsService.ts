@@ -11,14 +11,21 @@ declare var FS: any;
 app.service('analyticsService', function($http, $location, stateService) {
 	var that = this;
 
-	// This is called to set the user id.
-	this.setUserId = function(userId) {
+	this.identifyUser = function(userId, fullName, email) {
 		if (!!userId) {
 			// heap
 			heap.identify(userId);
 
 			// full story
-			FS.identify(userId);
+			let id = userId;
+			if (id == '1') {
+				// full story can't handle a user id of '1' (see: http://help.fullstory.com/develop-js/identify)
+				id = 'alexei';
+			}
+			FS.identify(id, {
+				"displayName" : fullName,
+				"email" : email,
+			});
 		}
 
 		if (!isLive()) return;
