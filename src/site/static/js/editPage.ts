@@ -335,7 +335,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 						if (isAutosave) {
 							// Refresh the lock
 							$scope.page.lockedUntil = moment.utc().add(30, 'm').format('YYYY-MM-DD HH:mm:ss');
-							arb.analyticsService.reportAutosave(data.text.length);
 						}
 						$scope.isPageDirty = isAutosave;
 						$scope.isReviewingProposal = false;
