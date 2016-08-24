@@ -324,8 +324,8 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					// Send the data to the server.
 					// TODO: if the call takes too long, we should show a warning.
 					$http({method: 'POST', url: '/editPage/', data: JSON.stringify(data)})
-					.success(function(data) {
-						var newEdit = data.result.obsoleteEdit;
+					.success(function(returnedData) {
+						var newEdit = returnedData.result.obsoleteEdit;
 						if (newEdit) {
 							// A new edit has been published while the user has been editing.
 							$scope.freezeEdit = true;
@@ -335,14 +335,15 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 						if (isAutosave) {
 							// Refresh the lock
 							$scope.page.lockedUntil = moment.utc().add(30, 'm').format('YYYY-MM-DD HH:mm:ss');
+							arb.analyticsService.reportAutosave(data.text.length);
 						}
 						$scope.isPageDirty = isAutosave;
 						$scope.isReviewingProposal = false;
 
 						if (callback) callback();
 					})
-					.error(function(data) {
-						if (callback) callback(data);
+					.error(function(returnedData) {
+						if (callback) callback(returnedData);
 					});
 				} else {
 					if (autosaveNotPerformedCallback) autosaveNotPerformedCallback();

@@ -103,12 +103,12 @@
 							<!-- Row body -->
 							<div layout="row" layout-align="start center">
 								<!-- Edit -->
-								<arb-edit-button class="icon-first"
+								<arb-edit-button class="heap-edit-project-page icon-first"
 										page-id="{{page.pageId}}"
 										analytics-desc="write new stub"
 										custom-text="Edit"
 										ng-if="!page.isRedLink"></arb-edit-button>
-								<arb-edit-button class="icon-first"
+								<arb-edit-button class="heap-new-project-page icon-first"
 										page-id="{{page.alias}}"
 										analytics-desc="write new stub"
 										custom-text="Create"
@@ -137,7 +137,7 @@
 							<!-- Row body bottom half -->
 							<div>
 								<md-button ng-click="toggleProjectTodos(page.pageId)"
-										class="short-button"
+										class="heap-show-todos short-button"
 										aria-label="Expand"
 										ng-if="::!page.isRedLink && page.todos.length > 0">
 									<arb-expand-icon expanded="expandedProjectPages[page.pageId]"></arb-expand-icon>

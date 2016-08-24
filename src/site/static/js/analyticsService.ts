@@ -34,6 +34,11 @@ app.service('analyticsService', function($http, $location, stateService) {
 		ga('send', 'pageview');
 	};
 
+	// Called when a user autosaves a page
+	this.reportAutosave = function(charCount) {
+		heap.track('autosave', {characters: charCount});
+	};
+
 	// Called when a user edits a page
 	this.reportEditPageAction = function(event, action) {
 		if (!isLive()) return;
