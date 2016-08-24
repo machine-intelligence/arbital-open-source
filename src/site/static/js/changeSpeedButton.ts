@@ -52,9 +52,6 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 						$scope.request.freeformText = '';
 						$scope.submittedFreeform = true;
 					}
-
-					// TODO: is this necessary here?
-					event.stopPropagation();
 				});
 			};
 

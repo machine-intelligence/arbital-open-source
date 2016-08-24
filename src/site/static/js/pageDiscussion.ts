@@ -17,11 +17,13 @@ app.directive('arbPageDiscussion', function($compile, $location, $timeout, arb) 
 
 			// Process user clicking on New Comment button
 			$scope.newCommentClick = function() {
-				arb.pageService.newComment({
-					parentPageId: $scope.pageId,
-					success: function(newCommentId) {
-						$scope.newCommentId = newCommentId;
-					},
+				arb.signupService.wrapInSignupFlow('new comment', function() {
+					arb.pageService.newComment({
+						parentPageId: $scope.pageId,
+						success: function(newCommentId) {
+							$scope.newCommentId = newCommentId;
+						},
+					});
 				});
 			};
 
