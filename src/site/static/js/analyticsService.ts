@@ -41,6 +41,8 @@ app.service('analyticsService', function($http, $location, stateService) {
 
 	// Called when a user edits a page
 	this.reportEditPageAction = function(event, action) {
+		heap.track(action);
+
 		if (!isLive()) return;
 		ga('send', {
 			hitType: 'event',
