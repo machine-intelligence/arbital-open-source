@@ -4,10 +4,7 @@
 		layout-align="start center"
 		ng-if="showQualityBar()">
 	<div flex ng-switch="qualityTag">
-		<span ng-switch-when="wip">
-			An editor is actively working on this page. Check with them before making major changes.
-		</span>
-		<span ng-switch-when="unassessed">
+		<span ng-switch-when="unassessed_meta_tag">
 			This page's quality has not been assessed.
 		</span>
 		<span ng-switch-when="stub">
