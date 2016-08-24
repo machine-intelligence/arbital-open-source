@@ -170,8 +170,9 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		});
 
 		// Process %todo:markdown% blocks.
+		var todoBlockRegexp = new RegExp(pageService.todoBlockRegexpStr, 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
-			return text.replace(pageService.todoBlockRegexp, function(whole, bars, markdown) {
+			return text.replace(todoBlockRegexp, function(whole, bars, markdown) {
 				if (isEditor) {
 					return '<div class=\'todo-text editor-block\'>' + runBlockGamut(markdown) + '\n\n</div>';
 				}
@@ -446,8 +447,9 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		});
 
 		// Process [todo:text] spans.
+		var todoSpanRegexp = new RegExp(pageService.todoSpanRegexpStr, 'g');
 		converter.hooks.chain('preSpanGamut', function(text) {
-			return text.replace(pageService.todoSpanRegexp, function(whole, prefix, text) {
+			return text.replace(todoSpanRegexp, function(whole, prefix, text) {
 				if (isEditor) {
 					return prefix + '<span class=\'todo-text\'>' + text + '</span>';
 				}

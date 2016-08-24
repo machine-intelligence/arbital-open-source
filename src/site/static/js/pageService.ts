@@ -645,23 +645,23 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 	};
 
 	// Extract TODOs from the page's text
-	this.todoBlockRegexp = new RegExp('(%+)todo: ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
-	this.todoSpanRegexp = new RegExp(notEscaped + '\\[todo: ?([^\\]]+?)\\]' + noParen, 'g');
+	this.todoBlockRegexpStr = '(%+)todo: ?([\\s\\S]+?)\\1 *(?=$|\Z|\n)';
+	this.todoSpanRegexpStr = notEscaped + '\\[todo: ?([^\\]]+?)\\]' + noParen;
 	this.computeTodos = function(page) {
+		var todoBlockRegexp = new RegExp(that.todoBlockRegexpStr, 'gm');
+		var todoSpanRegexp = new RegExp(that.todoSpanRegexpStr, 'g');
 		if (page.todos.length > 0) return;
 		page.todos = [];
-		let match = that.todoBlockRegexp.exec(page.text);
+		let match = todoBlockRegexp.exec(page.text);
 		while (match != null) {
 			page.todos.push(match[2]);
-			console.log(match[2]);
-			match = that.todoBlockRegexp.exec(page.text);
+			match = todoBlockRegexp.exec(page.text);
 		}
 
-		match = that.todoSpanRegexp.exec(page.text);
+		match = todoSpanRegexp.exec(page.text);
 		while (match != null) {
 			page.todos.push(match[2]);
-			console.log(match[2]);
-			match = that.todoSpanRegexp.exec(page.text);
+			match = todoSpanRegexp.exec(page.text);
 		}
 	};
 });
