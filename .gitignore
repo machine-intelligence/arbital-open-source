@@ -21,6 +21,7 @@
 src/site/html
 src/site/js
 src/site/scss
+db1
 
 bundle.js
 src/site/static/js/typings/
