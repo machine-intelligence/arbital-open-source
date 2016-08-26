@@ -131,7 +131,7 @@ app.directive('arbIndex', function($http, $mdMedia, arb) {
 					}
 					let authorCountLastWeek = Object.keys(authorIdsSet).length;
 					$scope.changesCountText = '' + changeCountLastWeek;
-					if ($scope.changesCountLastWeek == 1) {
+					if (changeCountLastWeek == 1) {
 						$scope.changesCountText += ' change';
 					} else {
 						$scope.changesCountText += ' changes';
