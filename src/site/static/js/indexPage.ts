@@ -123,11 +123,10 @@ app.directive('arbIndex', function($http, $mdMedia, arb) {
 					let now = moment.utc();
 					for (let n = 0; n < $scope.changeLogModeRows.length; n++) {
 						let changeLog = $scope.changeLogModeRows[n].changeLog;
-						if (now.diff(moment.utc(changeLog.createdAt), 'days') > 7) {
-							break;
+						if (now.diff(moment.utc(changeLog.createdAt), 'days') <= 7) {
+							authorIdsSet[changeLog.userId] = true;
+							changeCountLastWeek++;
 						}
-						authorIdsSet[changeLog.userId] = true;
-						changeCountLastWeek++;
 					}
 					let authorCountLastWeek = Object.keys(authorIdsSet).length;
 					$scope.changesCountText = '' + changeCountLastWeek;
