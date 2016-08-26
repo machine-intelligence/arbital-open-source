@@ -150,10 +150,11 @@ func loadProjectPageIDs(db *database.DB, returnData *core.CommonHandlerData, lim
 		}
 		pageIDs = append(pageIDs, pageID)
 		core.AddPageToMap(pageID, returnData.PageMap, &core.PageLoadOptions{
-			Tags:       true,
-			Likes:      true,
-			Text:       true,
-			ChangeLogs: true,
+			Tags:        true,
+			Likes:       true,
+			Text:        true,
+			ChangeLogs:  true,
+			EditHistory: true,
 		})
 		return nil
 	})
