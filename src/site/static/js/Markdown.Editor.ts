@@ -1570,7 +1570,7 @@ commandProto.doWrap = function(chunk, postProcessing, wrapType) {
 		} else if (wrapType == 'hiddenText') {
 			linkEnteredCallback('%%hidden(Show solution):\n', 'Solution *markdown* text', '\n%%\n\n');
 		} else if (wrapType == 'note') {
-			linkEnteredCallback('%%note:', 'Fun *markdown* text', '%%');
+			linkEnteredCallback('%%note: ', 'Fun *markdown* text', '%%');
 		} else if (wrapType == 'tableOfContents') {
 			linkEnteredCallback('[toc:', '', ']\n\n');
 		} else if (wrapType == 'multipleChoice') {
