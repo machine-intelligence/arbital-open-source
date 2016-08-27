@@ -11,7 +11,15 @@ declare var FS: any;
 app.service('analyticsService', function($http, $location, stateService) {
 	var that = this;
 
-	this.identifyUser = function(userId, fullName, email) {
+	this.identifyUser = function(userId, fullName, email, analyticsId) {
+		heap.addUserProperties({
+			'analyticsId': analyticsId,
+		})
+
+		FS.setUserVars({
+			'analyticsId_str': analyticsId,
+		});
+
 		if (!!userId) {
 			// heap
 			heap.identify(userId);

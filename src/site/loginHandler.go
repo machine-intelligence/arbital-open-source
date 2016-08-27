@@ -55,7 +55,7 @@ func loginHandlerInternalFunc(params *pages.HandlerParams, data *loginHandlerDat
 // Helper function for logging in the user
 func setUserInternalFunc(params *pages.HandlerParams, data *loginHandlerData) *pages.Result {
 	// Set the cookie
-	_, err := core.SaveCookie(params.W, params.R, data.Email)
+	_, _, err := core.SaveCookie(params.W, params.R, data.Email)
 	if err != nil {
 		return pages.Fail("Couldn't save a cookie", err)
 	}
