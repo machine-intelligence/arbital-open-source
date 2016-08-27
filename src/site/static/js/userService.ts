@@ -21,7 +21,8 @@ app.service('userService', function($http, $location, $rootScope, analyticsServi
 
 		if (data.resetEverything || (!that.userIsLoggedIn() && (data.user && data.user.id))) {
 			that.user = data.user;
-			analyticsService.identifyUser(that.user.id, that.user.firstName + ' ' + that.user.lastName, that.user.email);
+			console.log(that.user);
+			analyticsService.identifyUser(that.user.id, that.user.firstName + ' ' + that.user.lastName, that.user.email, that.user.analyticsId);
 		}
 
 		$.extend(that.userMap, data.users);

@@ -3,6 +3,7 @@ package core
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/gob"
 	"errors"
@@ -62,6 +63,8 @@ type CurrentUser struct {
 
 	// If the user isn't logged in, this is set to their unique session id
 	SessionID string `json:"-"`
+	// The analytics id is a hash of the session id
+	AnalyticsID string `json:"analyticsId"`
 
 	// Computed variables
 	MaxTrustLevel                 int               `json:"maxTrustLevel"`
@@ -99,8 +102,9 @@ type Trust struct {
 }
 
 type CookieSession struct {
-	Email     string
-	SessionID string
+	Email       string
+	SessionID   string
+	AnalyticsID string
 
 	// Randomly generated salt (for security/encryption reasons)
 	Random string
@@ -142,10 +146,10 @@ func (user *CurrentUser) IsMemberOfGroup(groupID string) bool {
 }
 
 // Store a unique session id (and email if they're logged in) in a cookie so we can track the user's session
-func SaveCookie(w http.ResponseWriter, r *http.Request, email string) (string, error) {
+func SaveCookie(w http.ResponseWriter, r *http.Request, email string) (string, string, error) {
 	s, err := sessions.GetSession(r)
 	if err != nil {
-		return "", fmt.Errorf("Couldn't get session: %v", err)
+		return "", "", fmt.Errorf("Couldn't get session: %v", err)
 	}
 
 	randString := func() (string, error) {
@@ -158,19 +162,24 @@ func SaveCookie(w http.ResponseWriter, r *http.Request, email string) (string, e
 	r1, err1 := randString()
 	r2, err2 := randString()
 	if err1 != nil || err2 != nil {
-		return "", errors.New("Failed to read random device")
+		return "", "", errors.New("Failed to read random device")
 	}
 	sessionID := "sid:" + r1
+	hashedSessionId := sha256.Sum256([]byte(r1))
+	analyticsID := "aid:" + base64.RawStdEncoding.EncodeToString(hashedSessionId[:])
+
 	s.Values[sessionKey] = &CookieSession{
-		Email:     email,
-		SessionID: sessionID,
-		Random:    r2,
+		Email:       email,
+		SessionID:   sessionID,
+		AnalyticsID: analyticsID,
+		Random:      r2,
 	}
 	err = s.Save(r, w)
 	if err != nil {
-		return "", fmt.Errorf("Failed to save user to session: %v", err)
+		return "", "", fmt.Errorf("Failed to save user to session: %v", err)
 	}
-	return sessionID, nil
+
+	return sessionID, analyticsID, nil
 }
 
 // Load user by id. If u object is given, load data into it. Otherwise create a new user object.
@@ -205,13 +214,15 @@ func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (u
 
 	var cookie *CookieSession
 	if cookieStruct, ok := s.Values[sessionKey]; !ok {
-		sessionID, err := SaveCookie(w, r, "")
+		sessionID, analyticsID, err := SaveCookie(w, r, "")
 		u.SessionID = sessionID
+		u.AnalyticsID = analyticsID
 		return u, err
 	} else {
 		cookie = cookieStruct.(*CookieSession)
 	}
 	u.SessionID = cookie.SessionID
+	u.AnalyticsID = cookie.AnalyticsID
 	if cookie.Email == "" {
 		return u, err
 	}

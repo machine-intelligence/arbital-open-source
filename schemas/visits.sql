@@ -8,6 +8,9 @@ CREATE TABLE visits (
 	/* Session id. If the user is *not* logged in, this will be the same as userId. */
 	sessionId VARCHAR(64) NOT NULL,
 
+	/* Analytics id. Base64-encoded Sha256 hash of the session id. */
+	analyticsId VARCHAR(64) NOT NULL,
+
 	/* IP address of the user's computer. */
 	ipAddress VARCHAR(64) NOT NULL,
 
