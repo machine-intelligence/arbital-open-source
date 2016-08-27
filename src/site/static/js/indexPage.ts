@@ -114,9 +114,6 @@ app.directive('arbIndex', function($http, $mdMedia, arb) {
 						}
 					}
 
-					// Compute "X% complete: breakdown of pages by category"
-					$scope.percentComplete = 5;
-
 					// Compute "X changes by Y authors in last week" text
 					let changeCountLastWeek = 0;
 					let authorIdsSet = {};
