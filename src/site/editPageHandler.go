@@ -274,19 +274,12 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				return sessions.NewError("Couldn't double-check that the current edit is marked as live", err)
 			}
 			if currentEditFound && !currentEditIsLive {
-				errorMessage := "New instance of vanishing page bug (1-1658) caught after updating pages"
+				// Since we're still in the transaction, just fail the transaction and prompt the user to try again.
+
+				errorMessage := "Transient database error. Please try again."
 				debugText := fmt.Sprintf("%s\n\n\noldPage: %+v\n\n\ndata: %+v", errorMessage, oldPage, data)
 
 				db.C.Debugf(debugText)
-
-				var task tasks.SendFeedbackEmailTask
-				task.UserID = "5"
-				task.UserEmail = "esrogs+debug@gmail.com"
-				task.Text = debugText
-				if err := tasks.Enqueue(c, &task, nil); err != nil {
-					c.Errorf("Couldn't enqueue a task: %v", err)
-				}
-
 				return sessions.NewError(errorMessage, nil)
 			}
 		}
