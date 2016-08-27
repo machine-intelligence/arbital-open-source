@@ -1,6 +1,7 @@
 'use strict';
 
 import app from './angular.ts';
+import {arraysSortFn} from './util.ts';
 
 // arb-index directive displays a set of featured domains
 app.directive('arbIndex', function($http, $mdMedia, arb) {
@@ -83,6 +84,22 @@ app.directive('arbIndex', function($http, $mdMedia, arb) {
 						return page;
 					});
 					$scope.projectPageRows = pageRows.concat(aliasRows);
+					$scope.projectPageRows.sort(arraysSortFn(function(row) {
+						// If the user is not logged in, reverse the sort order
+						let s = arb.userService.userIsLoggedIn() ? 1 : -1;
+						let array = [s * (row.isRedLink ? 0 : 1)];
+						if (row.pageId) {
+							array = array.concat([
+								s * (row.tagIds.includes('4yl') ? 1 : 0),
+								s * (row.tagIds.includes('4yf') ? 1 : 0),
+								s * (row.tagIds.includes('4yd') ? 1 : 0),
+								s * (row.tagIds.includes('4y7') ? 1 : 0),
+								s * (row.tagIds.includes('3rk') ? 1 : 0),
+								s * (row.tagIds.includes('72') ? 1 : 0),
+							]);
+						}
+						return array;
+					}));
 
 					// Compute percent complete
 					$scope.percentComplete = 0;
