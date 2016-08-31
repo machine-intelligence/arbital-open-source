@@ -8,3 +8,5 @@ update pagePairs set level=2 where level=1;
 update pagePairs set level=1 where level=0;
 
 alter table visits add column analyticsId VARCHAR(64) NOT NULL after sessionId;
+
+alter table visits modify userId VARCHAR(64) NOT NULL;
