@@ -50,6 +50,16 @@
 		</div>
 	</md-item-template>
 	<md-not-found>
-		No matches found
+		<div layout="row" layout-align="start center">
+			<div>No matches found.</div>
+
+			&nbsp;&nbsp;
+
+			<arb-edit-button custom-text="Create &quot;{{searchText}}&quot; page"
+				page-id="{{searchTextToAlias(searchText)}}"
+				analytics-desc="search, new page button"
+				hide-icon="true"
+				primary="true"></arb-edit-button>
+		</div>
 	</md-not-found>
 </md-autocomplete>
