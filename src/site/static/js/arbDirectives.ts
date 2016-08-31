@@ -588,7 +588,7 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 			};
 
 			$scope.searchTextToAlias = function(searchText) {
-				return searchText.replace(' ', '_');
+				return searchText.split(' ').join('_');
 			};
 		},
 		link: function(scope: any, element, attrs) {
