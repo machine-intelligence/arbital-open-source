@@ -1769,3 +1769,8 @@ arb-hub-page-gui, [arb-hub-page-gui] {
 		margin-bottom: 5px;
 	}
 }
+
+// dumb workaround for a dumb bug: https://github.com/angular/material/issues/3287
+.md-scroll-mask {
+	position: initial
+}
