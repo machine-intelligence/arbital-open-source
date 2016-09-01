@@ -50,6 +50,18 @@
 		</div>
 	</md-item-template>
 	<md-not-found>
-		No matches found
+		<div layout="row" layout-align="start center">
+			<div>No matches found.</div>
+
+			&nbsp;&nbsp;
+			<!-- Clicking this button causes a weird issue where the md-scroll-mask covers the whole page and doesn't go away.
+				Our current workaround is to set "position: initial" for the md-scroll-mask in arbital.scss.
+				See: https://github.com/angular/material/issues/3287 -->
+			<arb-edit-button custom-text="Create &quot;{{searchText}}&quot; page"
+				page-id="{{searchTextToAlias(searchText)}}"
+				analytics-desc="search, new page button"
+				hide-icon="true"
+				primary="true"></arb-edit-button>
+		</div>
 	</md-not-found>
 </md-autocomplete>

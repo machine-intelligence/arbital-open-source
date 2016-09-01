@@ -34,3 +34,4 @@ CREATE TABLE projects (
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 insert into projects (projectPageId,startPageId,state,createdAt) values ("5wy","4f4","inProgress",now());
+alter table visits modify userId VARCHAR(64) NOT NULL;

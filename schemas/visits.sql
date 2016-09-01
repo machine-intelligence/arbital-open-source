@@ -3,9 +3,9 @@ when the user has last seen the page. */
 CREATE TABLE visits (
 
 	/* If the user is logged in, user's id. FK into users. */
-	userId VARCHAR(32) NOT NULL,
+	userId VARCHAR(64) NOT NULL,
 
-	/* Session id. If the user is *not* logged in, this will be the same as userId. */
+	/* Session id. If the user is *not* logged in, the userId will be the same as this value. */
 	sessionId VARCHAR(64) NOT NULL,
 
 	/* Analytics id. Base64-encoded Sha256 hash of the session id. */
