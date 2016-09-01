@@ -13,6 +13,7 @@ import (
 )
 
 type projectParams struct {
+	ProjectPageID string
 }
 
 var projectHandler = siteHandler{
@@ -48,14 +49,14 @@ func projectHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	numPagesToLoad := 100
 	var projectData ProjectData
 
-	// Load redlinks in math
-	projectData.AliasRows, err = loadProjectRedAliasRows(db, returnData, numPagesToLoad)
+	// Load pages that haven't been created yet
+	projectData.AliasRows, err = loadProjectRedAliasRows(db, returnData, data.ProjectPageID, numPagesToLoad)
 	if err != nil {
 		return pages.Fail("Error loading red aliases", err)
 	}
 
-	// Load stubs in math
-	projectData.PageIDs, err = loadProjectPageIDs(db, returnData, numPagesToLoad)
+	// Load pages that have been created as part of this project
+	projectData.PageIDs, err = loadProjectPageIDs(db, returnData, data.ProjectPageID, numPagesToLoad)
 	if err != nil {
 		return pages.Fail("Error loading project pages", err)
 	}
@@ -71,7 +72,7 @@ func projectHandlerFunc(params *pages.HandlerParams) *pages.Result {
 }
 
 // Load pages that will be part of the project but don't exist yet and need to be created
-func loadProjectRedAliasRows(db *database.DB, returnData *core.CommonHandlerData, limit int) ([]*ProjectAliasRow, error) {
+func loadProjectRedAliasRows(db *database.DB, returnData *core.CommonHandlerData, projectPageID string, limit int) ([]*ProjectAliasRow, error) {
 	u := returnData.User
 	redLinks := []*ProjectAliasRow{}
 
@@ -89,9 +90,9 @@ func loadProjectRedAliasRows(db *database.DB, returnData *core.CommonHandlerData
 		FROM links AS l
 		LEFT JOIN redLinks AS rl
 		ON l.childAlias=rl.alias
-		WHERE l.parentId='5wy'
-		AND l.childAlias NOT IN`).AddPart(publishedPageIDs).Add(`
-		AND l.childAlias NOT IN`).AddPart(publishedAndRecentAliases).Add(`
+		WHERE l.parentId=?`, projectPageID).Add(`
+			AND l.childAlias NOT IN`).AddPart(publishedPageIDs).Add(`
+			AND l.childAlias NOT IN`).AddPart(publishedAndRecentAliases).Add(`
 		GROUP BY 1
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -133,13 +134,13 @@ func loadProjectRedAliasRows(db *database.DB, returnData *core.CommonHandlerData
 }
 
 // Load pages that are part of the project
-func loadProjectPageIDs(db *database.DB, returnData *core.CommonHandlerData, limit int) ([]string, error) {
+func loadProjectPageIDs(db *database.DB, returnData *core.CommonHandlerData, projectPageID string, limit int) ([]string, error) {
 	pageIDs := []string{}
 	rows := database.NewQuery(`
 		SELECT pi.pageId
 		FROM`).AddPart(core.PageInfosTable(returnData.User)).Add(`AS pi
 		JOIN links AS l
-		ON ((l.childAlias=pi.pageId OR l.childAlias=pi.alias) AND l.parentId='5wy')
+		ON ((l.childAlias=pi.pageId OR l.childAlias=pi.alias) AND l.parentId=?)`, projectPageID).Add(`
 		GROUP BY 1
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {

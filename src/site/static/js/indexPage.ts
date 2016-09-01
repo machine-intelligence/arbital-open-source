@@ -47,7 +47,7 @@ app.directive('arbIndex', function($http, $mdMedia, arb) {
 				$scope.expandedProjectPages[pageId] = !$scope.expandedProjectPages[pageId];
 			};
 
-			arb.stateService.postData('/json/project/', {},
+			arb.stateService.postData('/json/project/', {projectPageId: '5wy'},
 				function(response) {
 					// Store the number of pages at each quality level. Since we want these to be sorted,
 					// we'll use an array.

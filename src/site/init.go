@@ -63,6 +63,7 @@ func init() {
 	s.HandleFunc(fmt.Sprintf("/p/{alias:%s}/{alias2:%s}/", core.AliasOrPageIDRegexpStr, core.AliasOrPageIDRegexpStr),
 		pageHandlerWrapper(&pagePage)).Methods("GET", "HEAD")
 	s.HandleFunc("/project/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/projects/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/settings/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/signup/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/user/{alias:%s}/", core.AliasOrPageIDRegexpStr),
@@ -134,6 +135,7 @@ func init() {
 	s.HandleFunc(pendingModeHandler.URI, handlerWrapper(pendingModeHandler)).Methods("POST")
 	s.HandleFunc(primaryPageHandler.URI, handlerWrapper(primaryPageHandler)).Methods("POST")
 	s.HandleFunc(projectHandler.URI, handlerWrapper(projectHandler)).Methods("POST")
+	s.HandleFunc(projectsHandler.URI, handlerWrapper(projectsHandler)).Methods("POST")
 	s.HandleFunc(readModeHandler.URI, handlerWrapper(readModeHandler)).Methods("POST")
 	s.HandleFunc(recentChangesHandler.URI, handlerWrapper(recentChangesHandler)).Methods("POST")
 	s.HandleFunc(recentlyCreatedCommentHandler.URI, handlerWrapper(recentlyCreatedCommentHandler)).Methods("POST")

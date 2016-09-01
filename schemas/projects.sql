@@ -1,14 +1,4 @@
-/* This file contains the recent changes to schemas, sorted from oldest to newest. */
-alter table userMasteryPairs add column level int not null;
-update userMasteryPairs set level=1 where has;
-
-update pagePairs set level=4 where level=3;
-update pagePairs set level=3 where level=2;
-update pagePairs set level=2 where level=1;
-update pagePairs set level=1 where level=0;
-
-alter table visits add column analyticsId VARCHAR(64) NOT NULL after sessionId;
-
+/* An entry for every project we have */
 CREATE TABLE projects (
 	/* Project id. */
 	id BIGINT NOT NULL AUTO_INCREMENT,
@@ -33,4 +23,3 @@ CREATE TABLE projects (
 
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-insert into projects (projectPageId,startPageId,state,createdAt) values ("5wy","4f4","inProgress",now());
