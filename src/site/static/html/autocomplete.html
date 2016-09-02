@@ -53,10 +53,17 @@
 		<div layout="row" layout-align="start center">
 			<div>No matches found.</div>
 
-			&nbsp;&nbsp;
-			<!-- Clicking this button causes a weird issue where the md-scroll-mask covers the whole page and doesn't go away.
+			<!-- Clicking these buttons causes a weird issue where the md-scroll-mask covers the whole page and doesn't go away.
 				Our current workaround is to set "position: initial" for the md-scroll-mask in arbital.scss.
 				See: https://github.com/angular/material/issues/3287 -->
+
+			&nbsp;&nbsp;
+			<md-button class="md-raised"
+				ng-click="requestPage(searchText)">
+				Request "{{searchText}}" page
+			</md-button>
+
+			&nbsp;&nbsp;
 			<arb-edit-button custom-text="Create &quot;{{searchText}}&quot; page"
 				page-id="{{searchTextToAlias(searchText)}}"
 				analytics-desc="search, new page button"
