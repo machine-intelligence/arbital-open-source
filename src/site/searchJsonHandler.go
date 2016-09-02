@@ -21,7 +21,7 @@ const (
 	// How many results to return to the FE
 	returnSearchSize = 10
 	// Minimum allowed score for results
-	minSearchScore = 0.1
+	minSearchScore = 0.0
 )
 
 type searchJSONData struct {

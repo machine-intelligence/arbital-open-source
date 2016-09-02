@@ -16,6 +16,10 @@ import (
 	"zanaduu3/src/stormpath"
 )
 
+const (
+	minUserAliasLength = 4
+)
+
 // signupHandlerData is the data received from the request.
 type signupHandlerData struct {
 	Email     string
@@ -115,15 +119,13 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	cleanupRegexp := regexp.MustCompile(core.ReplaceRegexpStr)
 	aliasBase := fmt.Sprintf("%s%s", data.FirstName, data.LastName)
 	aliasBase = cleanupRegexp.ReplaceAllLiteralString(aliasBase, "")
-	if len(aliasBase) <= 3 {
-		return pages.Fail("Not enough good characters for an alias", nil).Status(http.StatusBadRequest)
-	} else if '0' <= aliasBase[0] && aliasBase[0] <= '9' {
+	if len(aliasBase) > 1 && '0' <= aliasBase[0] && aliasBase[0] <= '9' {
 		// Only ids can start with numbers
 		aliasBase = "a" + aliasBase
 	}
 	alias := aliasBase
 	suffix := 2
-	for ; ; suffix++ {
+	for ; len(alias) >= minUserAliasLength; suffix++ {
 		var ignore int
 		exists, err := database.NewQuery(`
 				SELECT 1
@@ -159,6 +161,9 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		userID, err := core.GetNextAvailableID(tx)
 		if err != nil {
 			return sessions.NewError("Couldn't get last insert id for new user", err)
+		}
+		if len(alias) < minUserAliasLength {
+			alias = userID
 		}
 
 		// Create new user
