@@ -54,7 +54,7 @@ func sendSlackInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		msg := &mail.Message{
 			Sender:  "alexei@arbital.com",
 			To:      []string{"trigger@recipe.ifttt.com"},
-			Subject: fmt.Sprintf("#slackbot", data.Email),
+			Subject: "#slackbot",
 			Body:    fmt.Sprintf("%s (id: %s) wants to join Slack. Someone should invite them via: https://arbital.slack.com/admin", data.Email, u.ID),
 		}
 
