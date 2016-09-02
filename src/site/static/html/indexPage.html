@@ -70,9 +70,45 @@
 				</h1>
 			</div>
 			<div>
-				Help us build an intuitive explanation of this fundamental concept in category theory!
+				<a ng-href="{{::arb.urlService.getPageUrl('category_theory')}}"
+							class="intrasite-link"
+							page-id="category_theory">
+					Category theory
+				</a>
+				includes a collection of tools which takes proofs from one field and shoots them off into loads of other areas of math, by using
+				<a ng-href="{{::arb.urlService.getPageUrl('universal_property')}}"
+							class="intrasite-link"
+							page-id="universal_property">
+					universal properties
+				</a>
+				to establish correspondences between the
+				<a ng-href="{{::arb.urlService.getPageUrl('mathematical_object')}}"
+							class="intrasite-link"
+							page-id="mathematical_object">
+					objects
+				</a>
+				studied by different disciplines.
 
-				Category theory is famously very difficult to understand, even for people with a relatively high level of mathematical maturity. With this project, we want to produce an explanation that will clearly communicate a core concept in category theory, the universal property, to a wide audience of learners.
+				<br><br>
+
+				We're writing an intuitive explanation of universal properties, along with background
+				<a ng-href="{{::arb.urlService.getPageUrl('arbital_requisite')}}"
+							class="intrasite-link"
+							page-id="arbital_requisite">
+					requisites
+				</a>
+				from more familiar areas such as
+				<a ng-href="{{::arb.urlService.getPageUrl('set_product')}}"
+							class="intrasite-link"
+							page-id="set_product">
+					products
+				</a>
+				and
+				<a ng-href="{{::arb.urlService.getPageUrl('poset')}}"
+							class="intrasite-link"
+							page-id="poset">
+					posets
+				</a>. Help create a great resource alongside other math enthusiasts!
 			</div>
 			<br>
 			<md-progress-linear md-mode="determinate" ng-value="percentComplete" flex></md-progress-linear>
