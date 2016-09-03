@@ -135,7 +135,13 @@ app.service('pathService', function($http, $compile, $location, $mdToast, $rootS
 
 	// Called when the primary page changes.
 	this.primaryPageChanged = function() {
-		if (!stateService.path) return;
+		if (!stateService.path) {
+			if ($location.search().startPath) {
+				// Force start the path
+				that.startPath(pageService.getCurrentPageId());
+			}
+			return;
+		}
 		if (stateService.path.guideId == pageService.getCurrentPageId()) {
 			stateService.path = undefined;
 			return;
