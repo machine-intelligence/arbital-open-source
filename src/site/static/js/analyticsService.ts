@@ -5,6 +5,7 @@ import {isLive} from './util.ts';
 
 declare var ga: any;
 declare var heap: any;
+declare var mixpanel: any;
 declare var FS: any;
 
 // arb.analyticsService is a wrapper for Google Analytics
@@ -14,15 +15,16 @@ app.service('analyticsService', function($http, $location, stateService) {
 	this.identifyUser = function(userId, fullName, email, analyticsId) {
 		heap.addUserProperties({
 			'analyticsId': analyticsId,
-		})
+		});
+		mixpanel.identify(analyticsId);
 
 		FS.setUserVars({
 			'analyticsId_str': analyticsId,
 		});
 
 		if (!!userId) {
-			// heap
 			heap.identify(userId);
+			mixpanel.identify(analyticsId);
 
 			// full story
 			let id = userId;
@@ -52,6 +54,7 @@ app.service('analyticsService', function($http, $location, stateService) {
 	// Called when a user edits a page
 	this.reportEditPageAction = function(event, action) {
 		heap.track(action);
+		mixpanel.track(action);
 
 		if (!isLive()) return;
 		ga('send', {
