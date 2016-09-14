@@ -79,40 +79,47 @@ app.config(function($locationProvider, $mdIconProvider, $mdThemingProvider) {
 });
 
 app.run(function($http, $location, arb) {
-	// NOTE: we are reusing this handler for /project/ so we extract it here
-	let indexPageHandler =  function(args, $scope) {
-		if ($scope.subdomain) {
-			// Get the private domain index page data
-			$http({method: 'POST', url: '/json/domainPage/', data: JSON.stringify({})})
-			.success($scope.getSuccessFunc(function(data) {
-				$scope.indexPageIdsMap = data.result;
-				return {
-					title: arb.stateService.pageMap[$scope.subdomain].title + ' - Private Domain',
-					content: $scope.newElement('<arb-group-index group-id=\'' + data.result.domainId +
-						'\' ids-map=\'::indexPageIdsMap\'></arb-group-index>'),
-				};
-			}))
-			.error($scope.getErrorFunc('domainPage'));
-		} else {
-			// Get the index page data
+	// Set up mapping from URL path to specific controllers
+	arb.urlService.addUrlHandler('/', {
+		name: 'IndexPage',
+		handler: function(args, $scope) {
+			if ($scope.subdomain) {
+				// Get the private domain index page data
+				$http({method: 'POST', url: '/json/domainPage/', data: JSON.stringify({})})
+				.success($scope.getSuccessFunc(function(data) {
+					$scope.indexPageIdsMap = data.result;
+					return {
+						title: arb.stateService.pageMap[$scope.subdomain].title + ' - Private Domain',
+						content: $scope.newElement('<arb-group-index group-id=\'' + data.result.domainId +
+							'\' ids-map=\'::indexPageIdsMap\'></arb-group-index>'),
+					};
+				}))
+				.error($scope.getErrorFunc('domainPage'));
+			} else {
+				// Get the index page data
+				$http({method: 'POST', url: '/json/index/'})
+				.success($scope.getSuccessFunc(function(data) {
+					return {
+						title: '',
+						content: $scope.newElement('<arb-index></arb-index>'),
+					};
+				}))
+				.error($scope.getErrorFunc('index'));
+			}
+		},
+	});
+	arb.urlService.addUrlHandler('/project/', {
+		name: 'ProjectPage',
+		handler: function(args, $scope) {
 			$http({method: 'POST', url: '/json/index/'})
 			.success($scope.getSuccessFunc(function(data) {
 				return {
 					title: '',
-					content: $scope.newElement('<arb-index></arb-index>'),
+					content: $scope.newElement('<arb-project></arb-project>'),
 				};
 			}))
 			.error($scope.getErrorFunc('index'));
-		}
-	};
-	// Set up mapping from URL path to specific controllers
-	arb.urlService.addUrlHandler('/', {
-		name: 'IndexPage',
-		handler: indexPageHandler,
-	});
-	arb.urlService.addUrlHandler('/project/', {
-		name: 'ProjectPage',
-		handler: indexPageHandler,
+		},
 	});
 	arb.urlService.addUrlHandler('/achievements/', {
 		name: 'AchievementsPage',
