@@ -61,6 +61,7 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 				}
 
 				$scope.timer = $timeout(function() {
+					heap.track('hover a lateral nav button');
 					$scope.isHovered = true;
 				}, 100);
 			};
