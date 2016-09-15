@@ -1,5 +1,7 @@
 import app from './angular.ts';
 
+declare var heap: any;
+
 // arb-change-speed-button
 app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 	return {
