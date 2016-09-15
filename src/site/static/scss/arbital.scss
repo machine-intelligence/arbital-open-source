@@ -1778,3 +1778,33 @@ arb-hub-page-gui, [arb-hub-page-gui] {
 .md-scroll-mask {
 	position: initial
 }
+
+// Featured pages
+.featured-pages-div {
+	margin-bottom: 30vmin;
+
+	.featured-pages-panel {
+		padding: 10vmin 10vmin;
+		margin: 5vmin 0;
+	}
+
+	.featured-pages-image md-icon {
+		font-size: 15vmin;
+		width: 15vmin;
+		height: 15vmin;
+	}
+
+	.featured-pages-body {
+		margin-left: 5vmin;
+		color: black !important;
+
+		.featured-pages-title {
+			font-size: 5vmin;
+			opacity: 0.7;
+		}
+		.featured-pages-subtitle {
+			font-size: 3vmin;
+			opacity: 0.4;
+		}
+	}
+}
