@@ -21,6 +21,8 @@ app.directive('arbMarkdown', function($compile, $timeout, arb) {
 		},
 		link: function(scope: any, element, attrs) {
 			element.addClass('markdown-text reveal-after-render invisible');
+			var $progressBar = $compile('<md-progress-linear md-mode="query"></md-progress-linear>')(scope);
+			$progressBar.insertBefore(element);
 
 			// Convert page text to html.
 			// Note: converter takes pageId, which might not be set if we are displaying
@@ -48,6 +50,12 @@ app.directive('arbMarkdown', function($compile, $timeout, arb) {
 				text = scope.mark.anchorContext;
 			}
 
+			// Called when the element is ready to be shown.
+			var showElement = function() {
+				element.removeClass('invisible');
+				$progressBar.remove();
+			};
+
 			var html = converter.makeHtml(text);
 			var $pageText = element;
 			$pageText.html(html);
@@ -58,7 +66,7 @@ app.directive('arbMarkdown', function($compile, $timeout, arb) {
 					arb.markdownService.compileChildren(scope, $pageText);
 					// Highlight the anchorText for marks.
 					MathJax.Hub.Queue(function() {
-						element.removeClass('invisible');
+						showElement();
 						if (scope.mark) {
 							var highlightClass = 'inline-comment-highlight-hover';
 							createInlineCommentHighlight(element.children().get(0), scope.mark.anchorOffset,
@@ -67,7 +75,7 @@ app.directive('arbMarkdown', function($compile, $timeout, arb) {
 					});
 					// In case Mathjax fails or something, remove the invisible class after a delay
 					$timeout(function() {
-						element.removeClass('invisible');
+						showElement();
 					}, 1500);
 				});
 			});
