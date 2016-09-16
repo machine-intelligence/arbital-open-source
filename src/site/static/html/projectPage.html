@@ -1,0 +1,214 @@
+<div class="padding-gt-xs children-margin-gt-xs children-vertical-margin-lt-xs">
+	<div id="index-header"
+			layout="column"
+			layout-gt-xs="row"
+			layout-align="space between"
+			class="children-margin-gt-xs children-vertical-margin-lt-xs">
+		<div class="md-whiteframe-1dp arbital-blurb"
+				layout="column"
+				layout-gt-sm="row"
+				layout-align="start center">
+			<span>
+				<a ng-href="{{::arb.urlService.getPageUrl('3d')}}"
+						class="intrasite-link"
+						page-id="3d">Arbital</a>
+				is the place for crowdsourced, intuitive math
+				<a ng-href="{{::arb.urlService.getPageUrl('4d6')}}"
+						class="intrasite-link"
+						page-id="4d6">explanations</a>.
+			</span>
+			<div layout="row" layout-align="center center" ng-if="::showJoinSlackButton">
+				<md-button class="light" ng-click="joinSlack()" ng-if="!showJoinSlackInput">
+					<md-icon md-svg-icon="slack"></md-icon>
+					Join the Arbital Slack
+				</md-button>
+				<span layout="row"
+						layout-align="start center"
+						ng-if="showJoinSlackInput && !arb.userService.user.isSlackMember">
+					<md-input-container class="full-width">
+						<label>Email</label>
+						<input type="email" ng-model="slackInvite.email" required>
+					</md-input-container>
+					<md-button class="md-primary md-raised" ng-click="joinSlackSubmit()">
+						Submit
+					</md-button>
+				</span>
+				<div ng-if="showJoinSlackInput && arb.userService.user.isSlackMember">
+					Thanks! We'll send you an invite within a day.
+				</div>
+			</div>
+		</div>
+		<div layout="row"
+				layout-align="end center"
+				layout-wrap
+				class="horizontal-margin-between-children">
+			<md-button ng-href="/recentChanges/"
+					class="md-raised"
+					ng-if="!isTinyScreen">
+				Recent changes
+			</md-button>
+			<md-button ng-href="/dashboard/"
+					class="md-raised"
+					ng-if="arb.userService.userIsLoggedIn() && !isTinyScreen">
+				Your dashboard
+			</md-button>
+			<arb-edit-button custom-text="Create new page"
+					analytics-desc="front page, new page button"
+					hide-icon="true"
+					primary="true"></arb-edit-button>
+		</div>
+	</div>
+
+	<div class="children-margin-gt-xs">
+		<div class="md-whiteframe-1dp" layout-padding>
+			<div layout="row" layout-align="center center">
+				<h1>
+					Project:
+					<a ng-href="{{::arb.urlService.getPageUrl('universal_property_outline')}}"
+							class="intrasite-link"
+							page-id="universal_property_outline">Intro to the Universal Property</a>
+				</h1>
+			</div>
+			<div>
+				<a ng-href="{{::arb.urlService.getPageUrl('category_theory')}}"
+							class="intrasite-link"
+							page-id="category_theory">
+					Category theory
+				</a>
+				includes a collection of tools which takes proofs from one field and shoots them off into loads of other areas of math, by using
+				<a ng-href="{{::arb.urlService.getPageUrl('universal_property')}}"
+							class="intrasite-link"
+							page-id="universal_property">
+					universal properties
+				</a>
+				to establish correspondences between the
+				<a ng-href="{{::arb.urlService.getPageUrl('mathematical_object')}}"
+							class="intrasite-link"
+							page-id="mathematical_object">
+					objects
+				</a>
+				studied by different disciplines.
+
+				<br><br>
+
+				We're writing an intuitive explanation of universal properties, along with background
+				<a ng-href="{{::arb.urlService.getPageUrl('arbital_requisite')}}"
+							class="intrasite-link"
+							page-id="arbital_requisite">
+					requisites
+				</a>
+				from more familiar areas such as
+				<a ng-href="{{::arb.urlService.getPageUrl('set_product')}}"
+							class="intrasite-link"
+							page-id="set_product">
+					products
+				</a>
+				and
+				<a ng-href="{{::arb.urlService.getPageUrl('poset')}}"
+							class="intrasite-link"
+							page-id="poset">
+					posets
+				</a>. Help create a great resource alongside other math enthusiasts!
+			</div>
+			<br>
+			<md-progress-linear md-mode="determinate" ng-value="percentComplete" flex></md-progress-linear>
+			<div layout="row">
+				<div ng-bind="projectStatusText" class="md-caption"></div>
+				<div flex></div>
+				<div ng-bind="changesCountText" class="md-caption"></div>
+			</div>
+			<br>
+
+			<a ng-href="{{::arb.urlService.getPageUrl('5wy')}}"
+				class="intrasite-link"
+				page-id="5wy">Project summary</a>
+			&nbsp;
+			<a ng-href="{{::arb.urlService.getPageUrl('4d6')}}"
+					class="intrasite-link"
+					page-id="4d6">Guide to contributing to Arbital</a>
+
+			<div layout="column" layout-gt-sm="row" flex layout-align-gt-sm="space between">
+
+				<!-- Project pages with TODOs -->
+				<div flex-gt-sm="50">
+					<h3>Ways to help</h3>
+					<div class='md-whiteframe-1dp list-panel'>
+						<md-progress-circular md-mode="indeterminate" ng-if="!projectPageRows"></md-progress-circular>
+						<md-list-item layout="column" layout-align="center" ng-repeat="page in projectPageRows">
+
+							<!-- Row body -->
+							<div layout="row" layout-align="start center">
+								<!-- Edit -->
+								<arb-edit-button class="icon-first"
+										page-id="{{page.pageId}}"
+										analytics-desc="edit project page"
+										custom-text="Edit"
+										ng-if="!page.isRedLink"></arb-edit-button>
+								<arb-edit-button class="icon-first"
+										page-id="{{page.alias}}"
+										analytics-desc="write new project page"
+										custom-text="Create"
+										ng-if="page.isRedLink"></arb-edit-button>
+
+								&nbsp;&nbsp;
+
+								<div flex>
+									<arb-page-title page-id="{{::page.pageId}}"
+											is-link="true"
+											use-edit-map="::useEditMap"
+											link-to-edit="::markAsDraft"
+											ng-if="!page.isRedLink"
+											flex></arb-page-title>
+									<span ng-if="page.isRedLink">the
+										<i ng-bind="arb.pageService.getPrettyAlias(page.alias)"></i>
+										page
+									</span>
+								</div>
+
+								&nbsp;&nbsp;
+
+								<arb-tag tag-id="{{page.qualityTag}}" ng-if="page.qualityTag"></arb-tag>
+							</div>
+
+							<!-- Row body bottom half -->
+							<div>
+								<md-button ng-click="toggleProjectTodos(page.pageId)"
+										class="heap-show-todos short-button"
+										aria-label="Expand"
+										ng-if="::!page.isRedLink && page.todos.length > 0">
+									<arb-expand-icon expanded="expandedProjectPages[page.pageId]"></arb-expand-icon>
+									<ng-pluralize count="::page.todos.length"
+											when="{'one': 'SHOW {} TODO', 'other': 'SHOW {} TODOS'}"></ng-pluralize>
+								</md-button>
+							</div>
+
+							<!-- TODO expand tray -->
+							<div class="expand-tray" ng-show="expandedProjectPages[page.pageId]">
+								<ul>
+									<li ng-repeat="text in ::page.todos track by $index">
+										{{text}}
+									</li>
+								</ul>
+							</div>
+
+							<md-divider></md-divider>
+						</md-list-item>
+					</div>
+				</div>
+
+				&nbsp;&nbsp;&nbsp;&nbsp;
+				<!-- Recent activity / changes -->
+				<div flex-gt-sm="50">
+					<h3>Recent activity</h3>
+					<div arb-recent-changes
+							class="support-visited-links"
+							type="edits"
+							is-full-page="::true"
+							mode-rows="changeLogModeRows"
+							ng-if="changeLogModeRows"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div ng-include="arb.versionUrl('static/html/footer.html')"></div>
+</div>
