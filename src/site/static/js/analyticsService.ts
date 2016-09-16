@@ -24,7 +24,7 @@ app.service('analyticsService', function($http, $location, stateService) {
 
 		if (!!userId) {
 			heap.identify(userId);
-			mixpanel.identify(analyticsId);
+			mixpanel.identify(userId);
 
 			// full story
 			let id = userId;
