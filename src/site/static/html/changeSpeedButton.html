@@ -12,72 +12,119 @@
 			ng-mouseenter="hoverStart()"
 			ng-mouseleave="hoverEnd()"
 			ng-click="isHovered = !isHovered"
-			ng-class="{'collapsed': haveScrolled && !isHovered && false}">
-		<md-icon ng-if="goSlow">slow_motion_video</md-icon>
-		<span ng-bind="::goSlow ? 'Say what?' : 'Go faster'"
-				ng-if="true || !haveScrolled || isHovered"></span>
-		<md-icon ng-if="!goSlow">slow_motion_video</md-icon>
+			ng-class="{'has-info': hasSomeSuggestions()}"
+			layout="row">
+		<div ng-if="goSlow">
+			<md-icon>trending_down</md-icon>
+			&nbsp;
+		</div>
+		<div ng-bind="::goSlow ? 'Say what?' : 'Go faster'"
+				ng-if="true || !haveScrolled || isHovered"></div>
+		<div ng-if="!goSlow">
+			&nbsp;
+			<md-icon>trending_up</md-icon>
+		</div>
+		&nbsp;&nbsp;
+		<div flex ng-show="isHovered"></div>
+		<div title="If this explanation is too technical for you, 'Say what?' will help you find a less technical version. If there is no less technical version of the page, consider reading the prerequisites first."
+				ng-show="isHovered && goSlow">
+			<md-icon>help</md-icon>
+		</div>
+		<div title="If this explanation is too basic for you, 'Go faster' will help you find a more technical version."
+				ng-show="isHovered && !goSlow">
+			<md-icon>help</md-icon>
+		</div>
 	</div>
-	<div class="change-speed-tray md-body-1">
+	<div class="change-speed-tray md-body-1"
+			ng-class="{'has-info': hasSomeSuggestions()}">
 		<div ng-if="isHovered">
 			<!-- Learn a subject at an easier level -->
 			<div ng-if="::page.subjects.length > 0 && !goSlow">
-				This page teaches:
+				The authors of this page said it teaches the following concepts:
 				<ul>
 					<li ng-repeat="subject in page.subjects | orderBy: ['-level']">
-						<arb-page-title page-id="{{::subject.parentId}}" is-link="true"></arb-page-title>
+						<arb-page-title page-id="{{::subject.parentId}}"
+								is-link="true"
+								ng-if="subject.parentId != pageId"></arb-page-title>
+						<span ng-if="subject.parentId == pageId">
+							Itself
+						</span>
+						at a {{arb.stateService.getLevelName(subject.level)}} level
 					</li>
 				</ul>
 			</div>
+			<p ng-if="::page.subjects.length == 0 && !goSlow">
+				Either this page doesn't teach any concepts or the authors haven't added them yet.
+			</p>
 
 			<!-- Learn one of the requirements -->
 			<div ng-if="::page.requirements.length > 0 && goSlow">
-				This page assumes:
+				The authors of this page expect the reader to already understand the following concepts:
 				<ul>
 					<li ng-repeat="requirement in page.requirements | orderBy: ['-isStrong', '-level']">
-						<arb-page-title page-id="{{::requirement.parentId}}" is-link="true"></arb-page-title>
+						<span ng-if="!requirement.isStrong">(Optional)</span>
+						<arb-page-title page-id="{{::requirement.parentId}}"
+								is-link="true"
+								ng-if="requirement.parentId != pageId"></arb-page-title>
+						<span ng-if="requirement.parentId == pageId">
+							Itself
+						</span>
+						at a {{arb.stateService.getLevelName(requirement.level)}} level
 					</li>
 				</ul>
 			</div>
+			<p ng-if="::page.requirements.length == 0 && goSlow">
+				Either this page doesn't have any prerequisites or the authors haven't add them yet.
+			</p>
 
 			<!-- Learn a subject at an easier level -->
 			<div ng-repeat="(subjectId,pagePairs) in page.slowDownMap" ng-if="::goSlow">
 				<div>
-					Less technical teachers for
+					This page is meant to teach
 					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-					<span class="comma">:</span>
+					<span class="comma">.</span>
+					Other pages that teach the same concept at a less technical level:
 				</div>
 				<ul>
 					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
 						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
+						at a {{arb.stateService.getLevelName(pagePair.level)}} level
 					</li>
 				</ul>
 			</div>
+			<p ng-if="!hasSlowDownMap() && goSlow">
+				When Arbital has pages that teach these concepts at a less technical level, you will see them here.
+			</p>
 
 			<!-- Go faster stuff -->
 
 			<!-- Learn a subject at a harder level -->
 			<div ng-repeat="(subjectId,pagePairs) in page.speedUpMap" ng-if="::!goSlow">
 				<div>
-					More technical teachers for
+					This page is meant to teach
 					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-					<span class="comma">:</span>
+					<span class="comma">.</span>
+					Other pages that teach the same concept at a more technical level:
 				</div>
 				<ul>
 					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
 						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
+						at a {{arb.stateService.getLevelName(pagePair.level)}} level
 					</li>
 				</ul>
 			</div>
+			<p ng-if="!hasSpeedUpMap() && !goSlow">
+				When Arbital has pages that teach these concepts at a more technical level, you will see them here.
+			</p>
 
 			<!-- Request a different explanation -->
 			<div>
 				<div>
 					<span ng-if="hasSomeSuggestions()">
-						Want something else?
+						Can't find what you are looking for? Request a new page with a different explanation:
 					</span>
 					<span ng-if="!hasSomeSuggestions()">
-						Want a different explanation?
+						Want to request a new page with a different explanation?
 					</span>
 				</div>
 

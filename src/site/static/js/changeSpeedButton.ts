@@ -22,14 +22,20 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
  				arb.stateService.postData('/json/changeSpeed/', {pageId: $scope.pageId});
  			}
 
+			$scope.hasSlowDownMap = function() {
+				return $scope.page.slowDownMap && Object.keys($scope.page.slowDownMap).length > 0;
+			};
+
+			$scope.hasSpeedUpMap = function() {
+				return $scope.page.speedUpMap && Object.keys($scope.page.speedUpMap).length > 0;
+			};
+
 			// Return true if there is at least one page that's suggested
 			$scope.hasSomeSuggestions = function() {
 				if ($scope.goSlow) {
-					var hasMap = $scope.slowDownMap && Object.keys($scope.slowDownMap).length > 0;
-					return $scope.page.requirements.length > 0 || hasMap;
+					return $scope.page.requirements.length > 0 || $scope.hasSlowDownMap();
 				}
-				var hasMap = $scope.speedUpMap && Object.keys($scope.speedUpMap).length > 0;
-				return $scope.page.subjects.length > 0 || hasMap;
+				return $scope.page.subjects.length > 0 || $scope.hasSpeedUpMap();
 			};
 
 			// Allow the user to request an easier explanation

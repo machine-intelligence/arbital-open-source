@@ -51,18 +51,6 @@ app.directive('arbHubPageGui', function($compile, $timeout, arb) {
 						return 'If you work with ' + $scope.page.title + ' professionally...';
 				}
 			};
-			$scope.getLevelName = function(level) {
-				switch (+level) {
-					case 1:
-						return 'loose';
-					case 2:
-						return 'basic';
-					case 3:
-						return 'technical';
-					case 4:
-						return 'research';
-				}
-			};
 
 			// Update user's mastery level
 			$scope.updateLevel = function() {

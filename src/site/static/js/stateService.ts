@@ -205,4 +205,19 @@ app.service('stateService', function($http, $mdMedia, popupService) {
 		}
 		document.title = windowTitle + 'Arbital';
 	};
+
+	// ========================== Misc functions ===============================
+	// Return name of a page pair level, given it's number
+	this.getLevelName = function(level) {
+		switch (+level) {
+			case 1:
+				return 'loose';
+			case 2:
+				return 'basic';
+			case 3:
+				return 'technical';
+			case 4:
+				return 'research';
+		}
+	};
 });

@@ -61,14 +61,14 @@
 				<!-- When there are no pages that boost -->
 				<div ng-if="page.hubContent.boostPageIds[level].length <= 0">
 					<div>
-						There are no pages that can boost understanding of <b>{{page.title}}</b> at {{getLevelName(level)}} level.
+						There are no pages that can boost understanding of <b>{{page.title}}</b> at {{arb.stateService.getLevelName(level)}} level.
 					</div>
 					<div ng-if="!page.contentRequests['boost' + getRequestName(level)].myLikeValue">
 						<md-button class="short-button"
 								ng-click="arb.signupService.submitContentRequest('boost' + getRequestName(level), page)">
 							<md-icon>plus_one</md-icon>
 						</md-button>
-						I want to read a page that boosts <b>{{page.title}}</b> at {{getLevelName(level)}} level.
+						I want to read a page that boosts <b>{{page.title}}</b> at {{arb.stateService.getLevelName(level)}} level.
 					</div>
 					<div ng-if="page.contentRequests['boost' + getRequestName(level)].myLikeValue">
 						Thank you for letting us know you want one!
@@ -83,7 +83,7 @@
 					Here
 					<ng-pluralize count="page.hubContent.learnPageIds[level + 1].length"
 							when="{'one': 'is a page that teaches', 'other': 'are some pages that teach'}"></ng-pluralize>
-					<b>{{page.title}}</b> at a {{getLevelName(level + 1)}} level:
+					<b>{{page.title}}</b> at a {{arb.stateService.getLevelName(level + 1)}} level:
 				</span>
 				<md-list-item ng-repeat="pageId in page.hubContent.learnPageIds[level + 1]">
 					<span class="bullet">&bull;</span>
@@ -104,14 +104,14 @@
 				<!-- When there are no pages that teach -->
 				<div ng-if="page.hubContent.learnPageIds[level + 1].length <= 0">
 					<div>
-						There are no pages that can teach <b>{{page.title}}</b> at {{getLevelName(level + 1)}} level.
+						There are no pages that can teach <b>{{page.title}}</b> at {{arb.stateService.getLevelName(level + 1)}} level.
 					</div>
 					<div ng-if="!page.contentRequests['teach' + getRequestName(level + 1)].myLikeValue">
 						<md-button class="short-button"
 								ng-click="arb.signupService.submitContentRequest('teach' + getRequestName(level + 1), page)">
 							<md-icon>plus_one</md-icon>
 						</md-button>
-						I want to read a page that teaches <b>{{page.title}}</b> at {{getLevelName(level + 1)}} level.
+						I want to read a page that teaches <b>{{page.title}}</b> at {{arb.stateService.getLevelName(level + 1)}} level.
 					</div>
 					<div ng-if="page.contentRequests['teach' + getRequestName(level + 1)].myLikeValue">
 						Thank you for letting us know you want one!

@@ -1,12 +1,20 @@
 @import "constants.scss";
 
+$change-speed-width: 110px;
+$no-info-color: gray;
+
+arb-change-speed-button, [arb-change-speed-button] {
+	max-width: 0px;
+	max-height: 0px;
+}
+
 .slow-down-container {
 	margin-left: -32px;
 	margin-right: -500px;
 
 	.change-speed-button {
 		padding: 6px 8px 6px 6px;
-		width: 94px;
+		width: $change-speed-width;
 
 		&.collapsed {
 			border-radius: 18px 0 0 18px;
@@ -25,7 +33,7 @@
 
 	.change-speed-button {
 		padding: 6px 6px 6px 8px;
-		width: 87px;
+		width: $change-speed-width - 7px;
 		text-align: right;
 
 		&.collapsed {
@@ -51,7 +59,7 @@
 	}
 
 	.speed-up-container {
-		margin-left: -94px;
+		margin-left: -$change-speed-width;
 
 		&.expanded {
 			margin-left: -400px;
@@ -78,7 +86,7 @@
 	top: 0px;
 	z-index: $changeSpeedZ;
 	opacity: 1;
-	width: 94px;
+	width: $change-speed-width;
 
 	&.expanded {
 		z-index: $changeSpeedZ + 1;
@@ -97,10 +105,16 @@
 			width: auto;
 			height: auto;
 			border-radius: 0 0 5px 5px;
-			border-left: 2px solid $link-color;
-			border-right: 2px solid $link-color;
-			border-bottom: 2px solid $link-color;
+			border-left: 2px solid $no-info-color;
+			border-right: 2px solid $no-info-color;
+			border-bottom: 2px solid $no-info-color;
 			z-index: $changeSpeedZ + 1;
+
+			&.has-info {
+				border-left: 2px solid $link-color;
+				border-right: 2px solid $link-color;
+				border-bottom: 2px solid $link-color;
+			}
 		}
 
 		md-input-container {
@@ -130,7 +144,7 @@
 
 .change-speed-button {
 	border-radius: 18px;
-	background-color: $link-color;
+	background-color: $no-info-color;
 	color: white;
 	min-width: 0;
 	width: auto;
@@ -140,6 +154,10 @@
 	z-index: $changeSpeedZ;
 	cursor: pointer;
 	font-weight: 500;
+
+	&.has-info {
+		background-color: $link-color;
+	}
 
 	md-icon {
 		color: white;
@@ -156,13 +174,17 @@
 }
 
 .change-speed-tray {
-	border-left: 0px solid $link-color;
+	border-left: 0px solid $no-info-color;
 	width: 0px;
 	height: 0px;
 	padding: 0;
 	max-width: 400px;
 	background-color: white;
 	z-index: $changeSpeedZ;
+
+	&.has-info {
+		border-left: 0px solid $link-color;
+	}
 
 	ul {
 		margin-top: 0;
