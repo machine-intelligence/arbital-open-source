@@ -219,6 +219,16 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		});
 
+		// Process %start-path([arcAlias])% blocks.
+		var startPathBlockRegexp = new RegExp('^%start-path\\(\\[' + aliasMatch + '\\]\\)% *(?=\Z|\n)', 'gm');
+		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
+			return text.replace(startPathBlockRegexp, function(whole, alias) {
+				var href = urlService.getPageUrl(alias, {startPath: true});
+				var html = '\n\n<md-button href=\'' + href + '\' class=\'md-primary md-raised\'>Start reading</md-button>\n\n';
+				return '<div layout=\'column\'>' + html + '</div>';
+			});
+		});
+
 		// Process [multiple-choice(objectAlias): text
 		// a: text
 		// knows: [alias1],[alias2]...

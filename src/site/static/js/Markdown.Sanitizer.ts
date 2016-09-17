@@ -14,7 +14,7 @@ function sanitizeHtml(html) {
 }
 
 // (tags that can be opened/closed) | (tags that stand alone)
-var basic_tag_whitelist = /^(<\/?((?:arb-multiple-choice|arb-checkbox)(?: page-id='[^']+')?(?: object-alias='[^']+')?(?: default='[^']+')?|arb-table-of-contents(?: page-id='[^']+')?|a href="[^"]+" class="[^"]+"( page-id="[^"]*")?( user-id="[^"]*")?|b|blockquote|code|div(?: style='[^']+')?(?: class='[^']+')?(?: arb-math-compiler="[^"]+")?(?: arb-hidden-text button-text='[^']*')?(?: data-demo-name="[^"]+")?(?: ng-show='[^']+')?|del|dd|dl|dt|em|h1|h2|h3|i|kbd|li|ol(?: start="\d+")?|p(?: ng-show='[^']+')?|pre|s|span(?: style='[^']+')?(?: class='[^']+')?(?: arb-text-popover-anchor)?(?: arb-math-compiler="[^"]+")?(?: ng-show='[^']+')?|sup|sub|strong|strike|ul)>|<(br|hr)\s?\/?>)$/i;
+var basic_tag_whitelist = /^(<\/?((?:arb-multiple-choice|arb-checkbox)(?: page-id='[^']+')?(?: object-alias='[^']+')?(?: default='[^']+')?|arb-table-of-contents(?: page-id='[^']+')?|a href="[^"]+" class="[^"]+"( page-id="[^"]*")?( user-id="[^"]*")?|b|blockquote|code|div(?: layout='[^']+')?(?: style='[^']+')?(?: class='[^']+')?(?: arb-math-compiler="[^"]+")?(?: arb-hidden-text button-text='[^']*')?(?: data-demo-name="[^"]+")?(?: ng-show='[^']+')?|del|dd|dl|dt|em|h1|h2|h3|i|kbd|li|md-button(?: href='[^']+')?(?: class='[^']+')?|ol(?: start="\d+")?|p(?: ng-show='[^']+')?|pre|s|span(?: style='[^']+')?(?: class='[^']+')?(?: arb-text-popover-anchor)?(?: arb-math-compiler="[^"]+")?(?: ng-show='[^']+')?|sup|sub|strong|strike|ul)>|<(br|hr)\s?\/?>)$/i;
 // <a href="url..." optional title>|</a>
 var a_white = /^(<a\shref="((https?|ftp):\/\/|\/)[-A-Za-z0-9+&@#\/%?=~_|!:,.;\(\)*[\]$]+"(\stitle="[^"<>]+")?\s?>|<\/a>)$/i;
 

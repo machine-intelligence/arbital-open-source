@@ -144,6 +144,8 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 		hubId?: string,
 		// If true, jump to the discussion part of the page
 		discussionHash?: string,
+		// If true, immediately start the path if the current page is an arc
+		startPath?: boolean,
 	};
 	this.getPageUrl = function(pageId : string, options : getPageUrlOptions) : string {
 		options = options || {};
@@ -199,6 +201,11 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 		if (options.hubId) {
 			url += url.indexOf('?') < 0 ? '?' : '&';
 			url += 'hubId=' + options.hubId;
+		}
+
+		if (options.startPath) {
+			url += url.indexOf('?') < 0 ? '?' : '&';
+			url += 'startPath';
 		}
 
 		if (url.indexOf('#') < 0) {
