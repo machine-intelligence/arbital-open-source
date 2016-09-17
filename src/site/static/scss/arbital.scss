@@ -678,6 +678,13 @@ arb-page-title, [arb-page-title] {
 	line-height: normal;
 }
 
+.page-title-hr {
+	position: relative;
+	top: -15px;
+	border-style: solid;
+	opacity: 0.5;
+}
+
 arb-requisite-button, [arb-requisite-button] {
 	.md-button {
 		min-width: 40px;
