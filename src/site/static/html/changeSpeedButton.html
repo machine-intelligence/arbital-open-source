@@ -39,10 +39,10 @@
 			ng-class="{'has-info': hasSomeSuggestions()}">
 		<div ng-if="isHovered">
 			<!-- Learn a subject at an easier level -->
-			<div ng-if="::page.subjects.length > 0 && !goSlow">
+			<div ng-if="::pageSubjectsExceptItself.length > 0 && !goSlow">
 				The authors of this page said it teaches the following concepts:
 				<ul>
-					<li ng-repeat="subject in page.subjects | orderBy: ['-level']">
+					<li ng-repeat="subject in pageSubjectsExceptItself | orderBy: ['-level']">
 						<arb-page-title page-id="{{::subject.parentId}}"
 								is-link="true"
 								ng-if="subject.parentId != pageId"></arb-page-title>
@@ -53,7 +53,7 @@
 					</li>
 				</ul>
 			</div>
-			<p ng-if="::page.subjects.length == 0 && !goSlow">
+			<p ng-if="::pageSubjectsExceptItself.length == 0 && !goSlow">
 				Either this page doesn't teach any concepts or the authors haven't added them yet.
 			</p>
 

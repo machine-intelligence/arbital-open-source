@@ -15,6 +15,10 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 			$scope.arb = arb;
 			$scope.page = arb.stateService.pageMap[$scope.pageId];
 
+			$scope.pageSubjectsExceptItself = $scope.page.subjects.filter(function(subject) {
+				return subject.parentId != $scope.pageId;
+			});
+
 			// Fetch data
 			if (!$scope.page.slowDownMap || !$scope.page.speedUpMap) {
 				$scope.page.slowDownMap = {};
@@ -35,7 +39,7 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 				if ($scope.goSlow) {
 					return $scope.page.requirements.length > 0 || $scope.hasSlowDownMap();
 				}
-				return $scope.page.subjects.length > 0 || $scope.hasSpeedUpMap();
+				return $scope.hasSpeedUpMap();
 			};
 
 			// Allow the user to request an easier explanation
