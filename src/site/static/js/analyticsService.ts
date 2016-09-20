@@ -12,11 +12,11 @@ declare var FS: any;
 app.service('analyticsService', function($http, $location, stateService) {
 	var that = this;
 
+	// This is called to identify the user to the analytics platforms.
 	this.identifyUser = function(userId, fullName, email, analyticsId) {
 		heap.addUserProperties({
 			'analyticsId': analyticsId,
 		});
-		mixpanel.identify(analyticsId);
 
 		FS.setUserVars({
 			'analyticsId_str': analyticsId,
@@ -25,6 +25,10 @@ app.service('analyticsService', function($http, $location, stateService) {
 		if (!!userId) {
 			heap.identify(userId);
 			mixpanel.identify(userId);
+			mixpanel.people.set({
+				fullName: fullName,
+				email: email,
+			});
 
 			// full story
 			let id = userId;
@@ -36,6 +40,8 @@ app.service('analyticsService', function($http, $location, stateService) {
 				"displayName" : fullName,
 				"email" : email,
 			});
+		} else {
+			mixpanel.identify(analyticsId);
 		}
 
 		if (!isLive()) return;

@@ -74,16 +74,15 @@
 				</ul>
 			</div>
 			<p ng-if="::page.requirements.length == 0 && goSlow">
-				Either this page doesn't have any prerequisites or the authors haven't add them yet.
+				Either this page doesn't have any prerequisites or the authors haven't added them yet.
 			</p>
 
 			<!-- Learn a subject at an easier level -->
 			<div ng-repeat="(subjectId,pagePairs) in page.slowDownMap" ng-if="::goSlow">
 				<div>
-					This page is meant to teach
+					Other pages that teach
 					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-					<span class="comma">.</span>
-					Other pages that teach the same concept at a less technical level:
+					at a less technical level:
 				</div>
 				<ul>
 					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
@@ -101,10 +100,9 @@
 			<!-- Learn a subject at a harder level -->
 			<div ng-repeat="(subjectId,pagePairs) in page.speedUpMap" ng-if="::!goSlow">
 				<div>
-					This page is meant to teach
+					Other pages that teach
 					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-					<span class="comma">.</span>
-					Other pages that teach the same concept at a more technical level:
+					at a more technical level:
 				</div>
 				<ul>
 					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
