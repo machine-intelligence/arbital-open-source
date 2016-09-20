@@ -73,7 +73,6 @@ app.service('analyticsService', function($http, $location, stateService) {
 
 	// Called when the user does something with the path/arc they are on.
 	this.reportPathUpdate = function(path) {
-		console.log(path);
 		heap.track('Path step', {
 			guideId: path.guideId,
 			pathId: path.id,
@@ -81,6 +80,8 @@ app.service('analyticsService', function($http, $location, stateService) {
 			progress: path.progress,
 			percentComplete: Math.round(100 * path.progress / (path.pages.length - 1)),
 		});
+		heap.track('Arc ' + path.guideId + '; step ' + path.progress);
+
 		mixpanel.track('Path step', {
 			guideId: path.guideId,
 			pathId: path.id,
@@ -88,6 +89,8 @@ app.service('analyticsService', function($http, $location, stateService) {
 			progress: path.progress,
 			percentComplete: Math.round(100 * path.progress / (path.pages.length - 1)),
 		});
+		// Create a single event that we can use for funnels
+		mixpanel.track('Arc ' + path.guideId + '; step ' + path.progress);
 	};
 
 	// Called when a user edits a page
