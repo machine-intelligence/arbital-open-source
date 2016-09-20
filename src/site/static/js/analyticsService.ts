@@ -34,8 +34,8 @@ app.service('analyticsService', function($http, $location, stateService) {
 			heap.identify(userId);
 			mixpanel.identify(userId);
 			mixpanel.people.set({
-				fullName: fullName,
-				email: email,
+				'$name': fullName,
+				'$email': email,
 			});
 
 			// full story
@@ -54,13 +54,21 @@ app.service('analyticsService', function($http, $location, stateService) {
 		ga('set', 'userId', userId);
 	};
 
-	// This is calld when a user goes to a new page.
-	this.reportPageView = function() {
+	// This is called when a user goes to any web page.
+	this.reportWebPageView = function() {
 		if (!isLive()) return;
 		// Set the page, which which will be included with all future events.
 		ga('set', 'page', $location.path());
 		// Send "pageview" event, since we switched new a new view
 		ga('send', 'pageview');
+	};
+
+	// This is called when a user goes to read a page.
+	this.reportPageIdView = function(pageId) {
+		mixpanel.track('Page view', {pageId: pageId});
+		heap.track('Page view', {pageId: pageId});
+		// Set the page, which which will be included with all future events.
+		ga('set', 'pageId', pageId);
 	};
 
 	// Called when a user edits a page
