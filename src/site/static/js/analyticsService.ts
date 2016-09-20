@@ -71,6 +71,25 @@ app.service('analyticsService', function($http, $location, stateService) {
 		ga('set', 'pageId', pageId);
 	};
 
+	// Called when the user does something with the path/arc they are on.
+	this.reportPathUpdate = function(path) {
+		console.log(path);
+		heap.track('Path step', {
+			guideId: path.guideId,
+			pathId: path.id,
+			pagesCount: path.pages.length - 1, // -1 because we shouldn't count the arc guide page
+			progress: path.progress,
+			percentComplete: Math.round(100 * path.progress / (path.pages.length - 1)),
+		});
+		mixpanel.track('Path step', {
+			guideId: path.guideId,
+			pathId: path.id,
+			pagesCount: path.pages.length - 1,
+			progress: path.progress,
+			percentComplete: Math.round(100 * path.progress / (path.pages.length - 1)),
+		});
+	};
+
 	// Called when a user edits a page
 	this.reportEditPageAction = function(event, action) {
 		heap.track(action);
