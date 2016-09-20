@@ -12,8 +12,9 @@ app.directive('arbSignup', function($location, $http, arb) {
 			$scope.arb = arb;
 			$scope.formData = {};
 
-			var onSignupSuccess = function() {
+			var onSignupSuccess = function(data) {
 				arb.signupService.closeSignupDialog();
+				arb.analyticsService.signupSuccess(data.user.id);
 				if ($location.search().continueUrl) {
 					arb.urlService.goToUrl($location.search().continueUrl);
 				}
@@ -26,7 +27,7 @@ app.directive('arbSignup', function($location, $http, arb) {
 					$scope.formData,
 					function(data) {
 						arb.analyticsService.reportSignupAction('success signup with email', arb.signupService.attemptedAction);
-						onSignupSuccess();
+						onSignupSuccess(data);
 					},
 					function() {
 						$scope.normalError = '(Check if your password meets the requirements.)';
@@ -46,7 +47,7 @@ app.directive('arbSignup', function($location, $http, arb) {
 							data,
 							function(data, status) {
 								arb.analyticsService.reportSignupAction('success signup with fb', arb.signupService.attemptedAction);
-								onSignupSuccess();
+								onSignupSuccess(data);
 							});
 					} else {
 						$scope.socialError = 'Error: ' + response.status;

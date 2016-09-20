@@ -12,9 +12,17 @@ declare var FS: any;
 app.service('analyticsService', function($http, $location, stateService) {
 	var that = this;
 
+	// This is called the first time user is signed up.
+	this.signupSuccess = function(userId) {
+		mixpanel.alias(userId);
+	};
+
 	// This is called to identify the user to the analytics platforms.
 	this.identifyUser = function(userId, fullName, email, analyticsId) {
 		heap.addUserProperties({
+			'analyticsId': analyticsId,
+		});
+		mixpanel.register({
 			'analyticsId': analyticsId,
 		});
 
@@ -40,8 +48,6 @@ app.service('analyticsService', function($http, $location, stateService) {
 				"displayName" : fullName,
 				"email" : email,
 			});
-		} else {
-			mixpanel.identify(analyticsId);
 		}
 
 		if (!isLive()) return;
