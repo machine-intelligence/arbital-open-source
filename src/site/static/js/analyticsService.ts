@@ -143,4 +143,9 @@ app.service('analyticsService', function($http, $location, stateService) {
 			eventValue: length,
 		});
 	};
+
+	this.reportEventToHeapAndMixpanel = function(action, data) {
+		heap.track(action, data);
+		mixpanel.track(action, data);
+	};
 });
