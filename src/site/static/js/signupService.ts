@@ -67,16 +67,14 @@ app.service('signupService', function($mdDialog, $timeout, analyticsService, use
 
 	// Submit a request for content (e.g. less technical explanation, improving a stub, et cetera)
 	that.submitContentRequest = function(requestType, page) {
-		that.wrapInSignupFlow(requestType, function() {
-			page.contentRequests[requestType] = page.contentRequests[requestType] || {};
-			page.contentRequests[requestType].myLikeValue = true;
+		page.contentRequests[requestType] = page.contentRequests[requestType] || {};
+		page.contentRequests[requestType].myLikeValue = true;
 
-			// Register the +1 to request
-			var erData = {
-				pageId: page.pageId,
-				requestType: requestType,
-			};
-			stateService.postDataWithoutProcessing('/json/contentRequest/', erData);
-		});
+		// Register the +1 to request
+		var erData = {
+			pageId: page.pageId,
+			requestType: requestType,
+		};
+		stateService.postDataWithoutProcessing('/json/contentRequest/', erData);
 	};
 });
