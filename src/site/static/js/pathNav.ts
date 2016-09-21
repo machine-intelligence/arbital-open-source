@@ -13,6 +13,9 @@ app.directive('arbPathNav', function($location, arb) {
 			$scope.arb = arb;
 			$scope.path = arb.stateService.path;
 			$scope.page = arb.stateService.pageMap[$scope.pageId];
+			$scope.isHubPathActive = $location.search().pathPageId;
+
+			// Compute how many pages are on the path
 			$scope.pathLength = 0;
 			if (arb.pathService.isOnPath()) {
 				$scope.pathLength = $scope.path.pages.length;
@@ -23,8 +26,8 @@ app.directive('arbPathNav', function($location, arb) {
 			} else {
 				$scope.pathLength = $scope.page.pathPages.length;
 			}
-			$scope.isHubPathActive = $location.search().pathPageId;
 
+			// Return progress the user made in path
 			$scope.getVisibleProgress = function() {
 				if (!$scope.path) {
 					if ($scope.page.pathPages[0].pathPageId != $scope.pageId) {
@@ -39,6 +42,13 @@ app.directive('arbPathNav', function($location, arb) {
 				}
 				return $scope.path.progress + 1;
 			};
+
+			// If the reader is on the last page, finish the path
+			$scope.onLastPathPage = false;
+			if (arb.pathService.showFinish()) {
+				arb.pathService.finishPath();
+				$scope.onLastPathPage = true;
+			}
 		},
 	};
 });

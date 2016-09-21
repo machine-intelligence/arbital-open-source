@@ -44,15 +44,14 @@
 			<span>Next</span>
 			<md-icon>chevron_right</md-icon>
 		</md-button>
-		<span ng-if="arb.pathService.showFinish()">
-			<md-button class="md-primary md-raised"
-					ng-click="arb.pathService.finishPath()"
-					ng-if="!path.isFinished">
-				Finish!
-			</md-button>
-			<span ng-if="path.isFinished">
-				Path finished!
-			</span>
-		</span>
+	</div>
+
+	<!-- If just finished the path -->
+	<div ng-if="onLastPathPage">
+		<hr></hr>
+		Congrats, you've read all the way to the end of this arc!<br>
+		<a ng-href="{{arb.urlService.getTopLevelDomain(true)}}">
+			If you want to contribute content or read more, take a look at the home page.
+		</a>
 	</div>
 </div>
