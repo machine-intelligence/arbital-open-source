@@ -17,8 +17,6 @@ app.directive('arbPathNav', function($location, arb) {
 			$scope.showStartReading = !$scope.path && $scope.page.pathPages.length > 0 &&
 				!arb.pathService.isOnPath() && !$scope.isHubPathActive;
 
-			console.log($scope.path);
-
 			// Compute how many pages are on the path
 			$scope.pathLength = 0;
 			if (arb.pathService.isOnPath()) {

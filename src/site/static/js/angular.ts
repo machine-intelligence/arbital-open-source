@@ -461,7 +461,7 @@ app.run(function($http, $location, arb) {
 				hubId: $location.search().hubId,
 				pathPageId: $location.search().pathPageId,
 				// Load the path if it's not loaded already
-				pathInstanceId: arb.stateService.path ? undefined : $location.search().pathId,
+				pathInstanceId: arb.stateService.path ? arb.stateService.path.id : $location.search().pathId,
 			};
 			$http({method: 'POST', url: '/json/primaryPage/', data: JSON.stringify(postData)})
 			.success($scope.getSuccessFunc(function(data): any {
@@ -509,11 +509,7 @@ app.run(function($http, $location, arb) {
 					return {};
 				}
 
-				// If the page is a user page, get the additional data about user
-				// - Recently created by me page ids.
-				// - Recently created by me comment ids.
-				// - Recently edited by me page ids.
-				// - Top pages by me
+				// If the page is a user page, user the user-page template
 				if (arb.userService.userMap[page.pageId]) {
 					$scope.userPageIdsMap = data.result;
 					pageTemplate = '<arb-user-page user-id=\'' + page.pageId +
