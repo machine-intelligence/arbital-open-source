@@ -61,6 +61,21 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 					)
 					$scope.request.freeformText = '';
 					$scope.submittedFreeform = true;
+
+					analyticsService.reportEventToHeapAndMixpanel('lateral nav: submit an "other" request', {
+						type: $scope.goSlow ? 'say-what' : 'go-faster',
+						wasBlue: $scope.hasSomeSuggestions(),
+						pageId: $scope.pageId,
+						requestType: 'other',
+						text: text,
+					});
+				} else {
+					analyticsService.reportEventToHeapAndMixpanel('lateral nav: submit a +1 request', {
+						type: $scope.goSlow ? 'say-what' : 'go-faster',
+						wasBlue: $scope.hasSomeSuggestions(),
+						pageId: $scope.pageId,
+						requestType: requestType,
+					});
 				}
 			};
 
