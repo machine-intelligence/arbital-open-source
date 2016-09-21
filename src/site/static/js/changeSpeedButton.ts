@@ -76,6 +76,7 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 					analyticsService.reportEventToHeapAndMixpanel('lateral nav: hover', {
 						type: $scope.goSlow ? 'say-what' : 'go-faster',
 						wasBlue: $scope.hasSomeSuggestions(),
+						pageId: $scope.pageId,
 					});
 					$scope.isHovered = true;
 				}, 100);

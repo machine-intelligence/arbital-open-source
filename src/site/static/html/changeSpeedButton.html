@@ -38,9 +38,46 @@
 	<div class="change-speed-tray md-body-1"
 			ng-class="{'has-info': hasSomeSuggestions()}">
 		<div ng-if="isHovered">
+			<p ng-if="!hasSlowDownMap() && goSlow">
+				No slower versions of this page currently exist.
+			</p>
+			<p ng-if="!hasSpeedUpMap() && !goSlow">
+				No faster versions of this page currently exist.
+			</p>
+
+			<!-- Learn a subject at an easier level -->
+			<div ng-repeat="(subjectId,pagePairs) in page.slowDownMap" ng-if="::goSlow">
+				<div>
+					Consider reading a page that teaches
+					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
+					at a less technical level:
+				</div>
+				<ul>
+					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
+						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
+						at a {{arb.stateService.getLevelName(pagePair.level)}} level
+					</li>
+				</ul>
+			</div>
+
+			<!-- Learn a subject at a harder level -->
+			<div ng-repeat="(subjectId,pagePairs) in page.speedUpMap" ng-if="::!goSlow">
+				<div>
+					Consider reading a page that teaches
+					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
+					at a more technical level:
+				</div>
+				<ul>
+					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
+						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
+						at a {{arb.stateService.getLevelName(pagePair.level)}} level
+					</li>
+				</ul>
+			</div>
+
 			<!-- Learn a subject at an easier level -->
 			<div ng-if="::pageSubjectsExceptItself.length > 0 && !goSlow">
-				The authors of this page said it teaches the following concepts:
+				This page is marked as teaching the following concepts. Consider reading about them directly.
 				<ul>
 					<li ng-repeat="subject in pageSubjectsExceptItself | orderBy: ['-level']">
 						<arb-page-title page-id="{{::subject.parentId}}"
@@ -53,13 +90,13 @@
 					</li>
 				</ul>
 			</div>
-			<p ng-if="::pageSubjectsExceptItself.length == 0 && !goSlow">
+			<!-- <p ng-if="::pageSubjectsExceptItself.length == 0 && !goSlow">
 				Either this page doesn't teach any concepts or the authors haven't added them yet.
-			</p>
+			</p> -->
 
 			<!-- Learn one of the requirements -->
 			<div ng-if="::page.requirements.length > 0 && goSlow">
-				The authors of this page expect the reader to already understand the following concepts:
+				This page is marked as relying on the following concepts. Consider reading about them first.
 				<ul>
 					<li ng-repeat="requirement in page.requirements | orderBy: ['-isStrong', '-level']">
 						<span ng-if="!requirement.isStrong">(Optional)</span>
@@ -73,47 +110,9 @@
 					</li>
 				</ul>
 			</div>
-			<p ng-if="::page.requirements.length == 0 && goSlow">
+			<!-- <p ng-if="::page.requirements.length == 0 && goSlow">
 				Either this page doesn't have any prerequisites or the authors haven't added them yet.
-			</p>
-
-			<!-- Learn a subject at an easier level -->
-			<div ng-repeat="(subjectId,pagePairs) in page.slowDownMap" ng-if="::goSlow">
-				<div>
-					Other pages that teach
-					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-					at a less technical level:
-				</div>
-				<ul>
-					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
-						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
-						at a {{arb.stateService.getLevelName(pagePair.level)}} level
-					</li>
-				</ul>
-			</div>
-			<p ng-if="!hasSlowDownMap() && goSlow">
-				When Arbital has pages that teach these concepts at a less technical level, you will see them here.
-			</p>
-
-			<!-- Go faster stuff -->
-
-			<!-- Learn a subject at a harder level -->
-			<div ng-repeat="(subjectId,pagePairs) in page.speedUpMap" ng-if="::!goSlow">
-				<div>
-					Other pages that teach
-					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-					at a more technical level:
-				</div>
-				<ul>
-					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
-						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
-						at a {{arb.stateService.getLevelName(pagePair.level)}} level
-					</li>
-				</ul>
-			</div>
-			<p ng-if="!hasSpeedUpMap() && !goSlow">
-				When Arbital has pages that teach these concepts at a more technical level, you will see them here.
-			</p>
+			</p> -->
 
 			<!-- Request a different explanation -->
 			<div>
