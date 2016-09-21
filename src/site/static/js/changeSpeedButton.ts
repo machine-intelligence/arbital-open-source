@@ -3,7 +3,7 @@ import app from './angular.ts';
 declare var heap: any;
 
 // arb-change-speed-button
-app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
+app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analyticsService) {
 	return {
 		templateUrl: versionUrl('static/html/changeSpeedButton.html'),
 		scope: {
@@ -73,7 +73,10 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout) {
 				}
 
 				$scope.timer = $timeout(function() {
-					heap.track('hover a lateral nav button');
+					analyticsService.reportEventToHeapAndMixpanel('lateral nav: hover', {
+						type: $scope.goSlow ? 'say-what' : 'go-faster',
+						wasBlue: $scope.hasSomeSuggestions(),
+					});
 					$scope.isHovered = true;
 				}, 100);
 			};
