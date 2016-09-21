@@ -1,26 +1,28 @@
+<!-- Show this when the user is not on a path, but can start one -->
 <div layout="row"
-		layout-align="start center"
+		layout-align="center center"
+		class="full-width"
+		ng-if="showStartReading">
+	<md-button ng-click="arb.pathService.startPath(pageId)"
+			class="md-primary md-raised">
+		<span>Start reading</span>
+		<md-icon>chevron_right</md-icon>
+	</md-button>
+</div>
+
+<!-- Other right-aligned buttons -->
+<div layout="row"
+		layout-align="end center"
 		layout-align-xs="center center"
-		class="next-prev-nav">
+		class="full-width"
+		ng-class="{'path-nav-separated-div': showPathNav}"
+		ng-if="!showStartReading">
 
 	<!-- Show this when the user has veered off the current path -->
 	<div ng-if="path && !arb.pathService.isOnPath()">
 		<md-button ng-click="arb.pathService.goToPathPage()"
 				class="md-primary md-raised">
 			Return to path
-			<md-icon>chevron_right</md-icon>
-		</md-button>
-	</div>
-
-	<!-- Show this when the user is not on a path, but can start one -->
-	<div ng-if="!path && page.pathPages.length > 0 && !arb.pathService.isOnPath() && !isHubPathActive">
-		<span>
-			<!-- +1 to count the guide page -->
-			Path: {{getVisibleProgress()}}/{{pathLength}}
-		</span>
-		<md-button ng-click="arb.pathService.startPath(pageId)"
-				class="md-primary md-raised">
-			<span>Next</span>
 			<md-icon>chevron_right</md-icon>
 		</md-button>
 	</div>
@@ -33,23 +35,26 @@
 			<span>Back</span>
 		</md-button>
 		<span ng-if="!path.isFinished">
-			Path: {{getVisibleProgress()}}/{{pathLength}}
+			&nbsp;
+			You are reading
+			<strong ng-bind="arb.stateService.pageMap[path.guideId].title">Path name</strong>,
+			page {{getVisibleProgress()}} of {{pathLength}}
 			<span ng-if="arb.pathService.pageExtensionLength() > 0">
-				(+{{arb.pathService.pageExtensionLength()}})
+				(This path will be extended by {{arb.pathService.pageExtensionLength()}}.)
 			</span>
+			&nbsp;&nbsp;
 		</span>
 		<md-button class="md-primary md-raised"
 				ng-click="arb.pathService.updateProgress(path.progress+1)"
 				ng-if="!arb.pathService.showFinish()">
-			<span>Next</span>
+			<span>Continue</span>
 			<md-icon>chevron_right</md-icon>
 		</md-button>
 	</div>
 
 	<!-- If just finished the path -->
 	<div ng-if="onLastPathPage">
-		<hr></hr>
-		Congrats, you've read all the way to the end of this arc!<br>
+		Congrats, you've read all the way to the end of this path!<br>
 		<a ng-href="{{arb.urlService.getTopLevelDomain(true)}}">
 			If you want to contribute content or read more, take a look at the home page.
 		</a>

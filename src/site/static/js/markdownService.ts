@@ -203,6 +203,15 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		});
 
+		// Process %box:markdown% blocks.
+		var boxBlockRegexp = new RegExp('^(%+)box: ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
+		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
+			return text.replace(boxBlockRegexp, function(whole, bars, markdown) {
+				return '<div class=\'markdown-text-box\'>' + runBlockGamut(markdown) + '\n\n</div>';
+			});
+		});
+
+
 		// Process %hidden: text% blocks.
 		var hiddenBlockRegexp = new RegExp('^(%+)hidden\\(([\\s\\S]+?)\\): ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
@@ -224,8 +233,13 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(startPathBlockRegexp, function(whole, alias) {
 				var href = urlService.getPageUrl(alias, {startPath: true});
-				var html = '\n\n<md-button href=\'' + href + '\' class=\'md-primary md-raised\'>Start reading</md-button>\n\n';
-				return '<div layout=\'column\'>' + html + '</div>';
+				var html = ['<div layout=\'row\' layout-align=\'center center\' class=\'start-path-div\'>\n\n',
+					'<md-button href=\'' + href + '\' class=\'md-primary md-raised\'>',
+					'Start reading',
+					'<md-icon>chevron_right</md-icon>',
+					'</md-button>',
+					'\n\n</div>'].join('');
+				return html;
 			});
 		});
 

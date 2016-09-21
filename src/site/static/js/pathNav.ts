@@ -14,6 +14,10 @@ app.directive('arbPathNav', function($location, arb) {
 			$scope.path = arb.stateService.path;
 			$scope.page = arb.stateService.pageMap[$scope.pageId];
 			$scope.isHubPathActive = $location.search().pathPageId;
+			$scope.showStartReading = !$scope.path && $scope.page.pathPages.length > 0 &&
+				!arb.pathService.isOnPath() && !$scope.isHubPathActive;
+
+			console.log($scope.path);
 
 			// Compute how many pages are on the path
 			$scope.pathLength = 0;
@@ -49,6 +53,8 @@ app.directive('arbPathNav', function($location, arb) {
 				arb.pathService.finishPath();
 				$scope.onLastPathPage = true;
 			}
+
+			$scope.showPathNav = arb.pathService.isOnPath() || $scope.path || $scope.onLastPathPage;
 		},
 	};
 });

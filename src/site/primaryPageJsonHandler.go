@@ -160,6 +160,18 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 		returnData.UserMap[pageID] = &core.User{ID: pageID}
 	}
 
+	if data.PathInstanceID != "" {
+		// Load the path instance
+		instance, err := core.LoadPathInstance(db, data.PathInstanceID, u)
+		if err != nil {
+			return pages.Fail("Couldn't load the path instance: %v", err)
+		} else if instance == nil {
+			return pages.Fail("Couldn't find the path instance", nil).Status(http.StatusBadRequest)
+		}
+		returnData.ResultMap["path"] = instance
+		core.AddPageIDToMap(instance.GuideID, returnData.PageMap)
+	}
+
 	// Load data
 	returnData.ResultMap["primaryPageId"] = pageID
 	core.AddPageIDToMap("14z", returnData.PageMap)
@@ -183,17 +195,6 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
-	}
-
-	if data.PathInstanceID != "" {
-		// Load the path instance
-		instance, err := core.LoadPathInstance(db, data.PathInstanceID, u)
-		if err != nil {
-			return pages.Fail("Couldn't load the path instance: %v", err)
-		} else if instance == nil {
-			return pages.Fail("Couldn't find the path instance", nil).Status(http.StatusBadRequest)
-		}
-		returnData.ResultMap["path"] = instance
 	}
 
 	return pages.Success(returnData)

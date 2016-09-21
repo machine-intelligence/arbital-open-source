@@ -188,6 +188,12 @@ arb-markdown, [arb-markdown], .preview-area {
 	}
 }
 
+.markdown-text-box {
+	background-color: lightgray;
+	padding: 10px 15px 5px 15px;
+	font-style: italic;
+}
+
 // Cap the width of some pages, so they look nicer
 .capped-body-width {
 	padding-bottom: 100px;
@@ -1814,4 +1820,18 @@ arb-hub-page-gui, [arb-hub-page-gui] {
 			opacity: 0.4;
 		}
 	}
+}
+
+arb-path-nav, [arb-path-nav] {
+	width: 100%;
+}
+
+.start-path-div {
+	margin-top: 10px;
+}
+
+.path-nav-separated-div {
+	border-top: 1px solid rgba(0,0,0,0.5);
+	margin-top: 10px;
+	padding-top: 10px;
 }
