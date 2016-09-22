@@ -48,23 +48,35 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 			};
 
 			$scope.submitExplanationRequest = function(requestType, event) {
-				arb.signupService.wrapInSignupFlow(requestType, function() {
+				// Register the +1 to request
+				arb.signupService.submitContentRequest(requestType || ($scope.goSlow ? 'slowDown' : 'speedUp'), $scope.page);
 
-					// Register the +1 to request
-					arb.signupService.submitContentRequest(requestType || ($scope.goSlow ? 'slowDown' : 'speedUp'), $scope.page);
+				// Submit feedback if there is any text
+				if ($scope.request.freeformText.length > 0) {
+					var text = $scope.goSlow ? 'Slower' : 'Faster';
+					text += ' explanation request for page ' + $scope.page.pageId + ':\n' + $scope.request.freeformText;
+					arb.stateService.postData(
+						'/feedback/',
+						{text: text}
+					)
+					$scope.request.freeformText = '';
+					$scope.submittedFreeform = true;
 
-					// Submit feedback if there is any text
-					if ($scope.request.freeformText.length > 0) {
-						var text = $scope.goSlow ? 'Slower' : 'Faster';
-						text += ' explanation request for page ' + $scope.page.pageId + ':\n' + $scope.request.freeformText;
-						arb.stateService.postData(
-							'/feedback/',
-							{text: text}
-						)
-						$scope.request.freeformText = '';
-						$scope.submittedFreeform = true;
-					}
-				});
+					analyticsService.reportEventToHeapAndMixpanel('lateral nav: submit an "other" request', {
+						type: $scope.goSlow ? 'say-what' : 'go-faster',
+						wasBlue: $scope.hasSomeSuggestions(),
+						pageId: $scope.pageId,
+						requestType: 'other',
+						text: text,
+					});
+				} else {
+					analyticsService.reportEventToHeapAndMixpanel('lateral nav: submit a +1 request', {
+						type: $scope.goSlow ? 'say-what' : 'go-faster',
+						wasBlue: $scope.hasSomeSuggestions(),
+						pageId: $scope.pageId,
+						requestType: requestType,
+					});
+				}
 			};
 
 			$scope.hoverStart = function() {
