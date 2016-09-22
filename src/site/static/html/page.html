@@ -213,7 +213,7 @@
 		</div>
 
 		<!-- Discussion section -->
-		<div class="after-page-container">
+		<div class="after-page-container" ng-if="arb.userService.userIsLoggedIn()">
 			<arb-page-discussion ng-repeat="lens in ::lenses"
 					class="reveal-after-render"
 					page-id="{{::lens.lensId}}"

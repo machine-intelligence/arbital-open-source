@@ -155,7 +155,9 @@ func LoadLikes(db *database.DB, u *CurrentUser, likeablesMap map[int64]*Likeable
 
 		// Store the individual likes for pages that want them
 		if value > 0 && individualLikeablesMap != nil {
-			if likeable, ok := individualLikeablesMap[likeableID]; ok {
+			// Because we allow certain likes to be made by non-logged in users, we want to filter
+			// out those userIDs
+			if likeable, ok := individualLikeablesMap[likeableID]; ok && IsIDValid(userID) {
 				likeable.IndividualLikes = append(likeable.IndividualLikes, userID)
 				AddUserIDToMap(userID, userMap)
 			}

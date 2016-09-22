@@ -9,14 +9,14 @@
 			show-comment-count="true"
 			show-text-length="true"
 			page-ids="::page.childIds"
-			ng-if="::page.childIds.length > 0"></div>
+			ng-if="::page.childIds.length > 0 && arb.userService.userIsLoggedIn()"></div>
 
 	<!-- Related pages -->
 	<div arb-page-list panel-title="Related"
 			show-comment-count="true"
 			show-text-length="true"
 			page-ids="::page.relatedIds"
-			ng-if="::page.relatedIds.length > 0"></div>
+			ng-if="::page.relatedIds.length > 0 && arb.userService.userIsLoggedIn()"></div>
 
 	<div ng-include="arb.versionUrl('static/html/footer.html')" ng-if="::!noFooter"></div>
 </div>
