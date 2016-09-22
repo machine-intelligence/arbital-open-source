@@ -338,6 +338,13 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 						}
 						$scope.isPageDirty = isAutosave;
 						$scope.isReviewingProposal = false;
+						arb.analyticsService.reportEventToHeapAndMixpanel('Save', {
+							pageId: data.pageId,
+							textLength: data.text.length,
+							isAutoave: data.isAutosave,
+							isSnapshot: data.isSnapshot,
+							isProposal: data.isProposal,
+						});
 
 						if (callback) callback();
 					})

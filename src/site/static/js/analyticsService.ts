@@ -12,9 +12,17 @@ declare var FS: any;
 app.service('analyticsService', function($http, $location, stateService) {
 	var that = this;
 
+	// Function to send data to both Mixpanel and Heap
+	this.reportEventToHeapAndMixpanel = function(action, data) {
+		mixpanel.track(action, data);
+		heap.track(action, data);
+	};
+	var track = this.reportEventToHeapAndMixpanel;
+
 	// This is called the first time user is signed up.
 	this.signupSuccess = function(userId) {
 		mixpanel.alias(userId);
+		track('Signup', {userId: userId});
 	};
 
 	// This is called to identify the user to the analytics platforms.
@@ -56,6 +64,8 @@ app.service('analyticsService', function($http, $location, stateService) {
 
 	// This is called when a user goes to any web page.
 	this.reportWebPageView = function() {
+		track('Web page view', {path: $location.path()});
+
 		if (!isLive()) return;
 		// Set the page, which which will be included with all future events.
 		ga('set', 'page', $location.path());
@@ -65,24 +75,14 @@ app.service('analyticsService', function($http, $location, stateService) {
 
 	// This is called when a user goes to read a page.
 	this.reportPageIdView = function(pageId) {
-		mixpanel.track('Page view', {pageId: pageId});
-		heap.track('Page view', {pageId: pageId});
+		track('Page view', {pageId: pageId});
 		// Set the page, which which will be included with all future events.
 		ga('set', 'pageId', pageId);
 	};
 
 	// Called when the user does something with the path/arc they are on.
 	this.reportPathUpdate = function(path) {
-		heap.track('Path step', {
-			guideId: path.guideId,
-			pathId: path.id,
-			pagesCount: path.pages.length - 1, // -1 because we shouldn't count the arc guide page
-			progress: path.progress,
-			percentComplete: Math.round(100 * path.progress / (path.pages.length - 1)),
-		});
-		heap.track('Arc ' + path.guideId + '; step ' + path.progress);
-
-		mixpanel.track('Path step', {
+		track('Path step', {
 			guideId: path.guideId,
 			pathId: path.id,
 			pagesCount: path.pages.length - 1,
@@ -90,13 +90,12 @@ app.service('analyticsService', function($http, $location, stateService) {
 			percentComplete: Math.round(100 * path.progress / (path.pages.length - 1)),
 		});
 		// Create a single event that we can use for funnels
-		mixpanel.track('Arc ' + path.guideId + '; step ' + path.progress);
+		track('Arc ' + path.guideId + '; step ' + path.progress);
 	};
 
 	// Called when a user edits a page
 	this.reportEditPageAction = function(event, action) {
-		heap.track(action);
-		mixpanel.track(action);
+		track(action);
 
 		if (!isLive()) return;
 		ga('send', {
@@ -142,10 +141,5 @@ app.service('analyticsService', function($http, $location, stateService) {
 			eventLabel: pageId,
 			eventValue: length,
 		});
-	};
-
-	this.reportEventToHeapAndMixpanel = function(action, data) {
-		heap.track(action, data);
-		mixpanel.track(action, data);
 	};
 });
