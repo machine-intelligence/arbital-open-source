@@ -45,6 +45,7 @@ app.service('analyticsService', function($http, $location, stateService) {
 				'$name': fullName,
 				'$email': email,
 			});
+			track('Identify');
 
 			// full story
 			let id = userId;
