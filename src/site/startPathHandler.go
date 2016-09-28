@@ -64,7 +64,7 @@ func startPathHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Start the path
 		hashmap := make(database.InsertMap)
-		hashmap["userId"] = u.ID
+		hashmap["userId"] = u.GetSomeID()
 		hashmap["guideId"] = data.GuideID
 		hashmap["pageIds"] = strings.Join(pathPageIDs, ",")
 		hashmap["sourcePageIds"] = strings.Join(sourcePageIDs, ",")
