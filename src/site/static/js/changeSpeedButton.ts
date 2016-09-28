@@ -42,7 +42,8 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 			// Return true if there is at least one page that's suggested
 			$scope.hasSomeSuggestions = function() {
 				if ($scope.goSlow) {
-					return $scope.page.requirements.length > 0 || $scope.hasSlowDownMap();
+					if ($scope.page.arcPageIds && $scope.page.arcPageIds.length > 0 && !arb.pathService.isOnPath()) return true;
+					return $scope.pageRequirements.length > 0 || $scope.hasSlowDownMap();
 				}
 				return $scope.hasSpeedUpMap();
 			};

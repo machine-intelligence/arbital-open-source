@@ -109,7 +109,7 @@
 			</p> -->
 
 			<!-- Learn one of the requirements -->
-			<div ng-if="::pageRequirements.length > 0 && goSlow && hasSpeedUpMap()">
+			<div ng-if="pageRequirements.length > 0 && goSlow">
 				This page likely relies on the following concepts. You can read about them first.
 				<ul>
 					<li ng-repeat="requirement in pageRequirements | orderBy: ['-isStrong', '-level']">
