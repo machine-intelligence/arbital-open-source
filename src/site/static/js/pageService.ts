@@ -13,7 +13,7 @@ import {
 
 // pages stores all the loaded pages and provides multiple helper functions for
 // working with pages.
-app.service('pageService', function($http, $compile, $location, $rootScope, $interval, stateService, userService, urlService) {
+app.service('pageService', function($http, $compile, $location, $rootScope, $interval, analyticsService, stateService, userService, urlService) {
 	var that = this;
 
 	// Call this to process data we received from the server.
@@ -299,6 +299,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		options = options || {};
 		options.url = '/json/intrasitePopover/';
 		loadPage(pageAlias, options);
+		analyticsService.reportPopover(pageAlias);
 	};
 
 	// Get data to display a lens.

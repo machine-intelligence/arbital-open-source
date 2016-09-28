@@ -18,7 +18,7 @@
 			<md-icon>trending_down</md-icon>
 			&nbsp;
 		</div>
-		<div ng-bind="::goSlow ? 'Say what?' : 'Go faster'"
+		<div ng-bind="::goSlow ? 'Slow down' : 'Go faster'"
 				ng-if="true || !haveScrolled || isHovered"></div>
 		<div ng-if="!goSlow">
 			&nbsp;
@@ -26,7 +26,7 @@
 		</div>
 		&nbsp;&nbsp;
 		<div flex ng-show="isHovered"></div>
-		<div title="If this explanation is too technical, 'Say what?' will help you find a less technical version. If there is no less technical version of the page, you can read the prerequisites first."
+		<div title="If this explanation is too technical, 'Slow down' will help you find a less technical version. If there is no less technical version of the page, you can read the prerequisites first."
 				ng-show="isHovered && goSlow">
 			<md-icon>help</md-icon>
 		</div>

@@ -2607,14 +2607,16 @@ func LoadPathPage(db *database.DB, id string) (*PathPage, error) {
 	return pathPage, nil
 }
 
-// Load path instance with the given id
-func LoadPathInstance(db *database.DB, id string, u *CurrentUser) (*PathInstance, error) {
-	var instance *PathInstance
+type ProcessPathInstanceCallback func(db *database.DB, pathInstance *PathInstance) error
+
+// Load path instances matching the giving query condition
+func LoadPathInstances(db *database.DB, queryPart *database.QueryPart, u *CurrentUser, callback ProcessPathInstanceCallback) error {
 	rows := database.NewQuery(`
-		SELECT id,userId,guideId,pageIds,sourcePageIds,progress,createdAt,updatedAt,isFinished
-		FROM pathInstances`).ToStatement(db).Query()
+		SELECT pathi.id,pathi.userId,pathi.guideId,pathi.pageIds,pathi.sourcePageIds,pathi.progress,
+			pathi.createdAt,pathi.updatedAt,pathi.isFinished
+		FROM pathInstances AS pathi`).AddPart(queryPart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		instance = NewPathInstance()
+		instance := NewPathInstance()
 		var pageIDs, sourcePageIDs, userID string
 		err := rows.Scan(&instance.ID, &userID, &instance.GuideID, &pageIDs, &sourcePageIDs,
 			&instance.Progress, &instance.CreatedAt, &instance.UpdatedAt, &instance.IsFinished)
@@ -2627,6 +2629,17 @@ func LoadPathInstance(db *database.DB, id string, u *CurrentUser) (*PathInstance
 		for n, pageID := range pageIdsList {
 			instance.Pages = append(instance.Pages, &PathInstancePage{pageID, sourceIdsList[n]})
 		}
+		return callback(db, instance)
+	})
+	return err
+}
+
+// Load path instance with the given id
+func LoadPathInstance(db *database.DB, id string, u *CurrentUser) (*PathInstance, error) {
+	var instance *PathInstance
+	queryPart := database.NewQuery(`WHERE pathi.id=?`, id)
+	err := LoadPathInstances(db, queryPart, u, func(db *database.DB, pathInstance *PathInstance) error {
+		instance = pathInstance
 		return nil
 	})
 	if err != nil {

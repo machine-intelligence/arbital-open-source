@@ -78,6 +78,11 @@ type CurrentUser struct {
 	InvitesClaimed                []*Invite         `json:"invitesClaimed"`
 	// If set, these are the lists the user is subscribed to via mailchimp
 	MailchimpInterests map[string]bool `json:"mailchimpInterests"`
+
+	// Hacky way to see if the user is in the process of reading any of the arcs
+	// These are only loaded when the user is on the home page
+	ContinueBayesPath *PathInstance `json:"continueBayesPath"`
+	ContinueLogPath   *PathInstance `json:"continueLogPath"`
 }
 
 // Invite is an invitation from a trusted user to another to participate in a domain.

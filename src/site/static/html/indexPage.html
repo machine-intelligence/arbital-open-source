@@ -59,17 +59,14 @@
 		</div>
 	</div>
 
-	<!-- Steph's featured pages -->
-	<div layout="column" class="featured-pages-div dynamic-hor-padding">
-		<a ng-href="{{arb.urlService.getPageUrl('1zq')}}"
+	<!-- Featured pages -->
+	<div layout="column" class="featured-pages-div dynamic-hor-padding" ng-if="showFeaturedPages">
+		<a ng-href="{{continueBayesUrl()}}"
 				layout="row"
 				layout-align="start center"
-				class="md-whiteframe-1dp featured-pages-panel">
+				class="md-whiteframe-1dp featured-pages-panel"
+				ng-if="!user.continueBayesPath.isFinished">
 			<div class="featured-pages-image">
-				<!--<md-icon>assessment</md-icon>
-				<md-icon>lightbulb_outline</md-icon>
-				<md-icon>timeline</md-icon>
-				<md-icon>tonality</md-icon>-->
 				<md-icon>blur_linear</md-icon>
 			</div>
 			<div class="featured-pages-body" flex>
@@ -82,15 +79,17 @@
 				<md-icon>chevron_right</md-icon>
 			</div>
 		</a>
-		<a ng-href="{{arb.urlService.getPageUrl('3wj')}}"
+		<a ng-href="{{continueLogUrl()}}"
 				layout="row"
 				layout-align="start center"
-				class="md-whiteframe-1dp featured-pages-panel">
+				class="md-whiteframe-1dp featured-pages-panel"
+				ng-if="!user.continueLogPath.isFinished">
 			<div class="featured-pages-image">
 				<md-icon>graphic_eq</md-icon>
 			</div>
 			<div class="featured-pages-body" flex>
-				<div class="featured-pages-title">Learn about Logarithms</div>
+				<div class="featured-pages-title" ng-if="user.continueLogPath">Continue learning about Logarithms</div>
+				<div class="featured-pages-title" ng-if="!user.continueLogPath">Learn about Logarithms</div>
 				<div class="featured-pages-subtitle">
 					An intuitive guide to logarithms, n-digits, and information theory.
 				</div>

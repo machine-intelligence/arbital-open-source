@@ -10,6 +10,23 @@ app.directive('arbIndex', function($http, $mdMedia, arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.isTinyScreen = !$mdMedia('gt-xs');
+			$scope.user = arb.userService.user;
+
+			// Compute featured path stuff
+			$scope.continueBayesUrl = function() {
+				var defaultUrl = arb.urlService.getPageUrl('1zq');
+				var path = $scope.user.continueBayesPath;
+				if (!path) return defaultUrl;
+				return arb.urlService.getPageUrl(path.pages[path.progress].pageId, {pathInstanceId: path.id});
+			};
+			$scope.continueLogUrl = function() {
+				var defaultUrl = arb.urlService.getPageUrl('3wj');
+				var path = $scope.user.continueLogPath;
+				if (!path) return defaultUrl;
+				return arb.urlService.getPageUrl(path.pages[path.progress].pageId, {pathInstanceId: path.id});
+			};
+			$scope.showFeaturedPages = (!$scope.user.continueBayesPath || !$scope.user.continueBayesPath.isFinished) ||
+				(!$scope.user.continueLogPath || !$scope.user.continueLogPath.isFinished);
 
 			// Slack stuff
 			$scope.showJoinSlackInput = false;

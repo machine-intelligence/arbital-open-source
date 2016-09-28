@@ -81,6 +81,14 @@ app.service('analyticsService', function($http, $location, stateService) {
 		ga('set', 'pageId', pageId);
 	};
 
+	// This is called when a page popover is diplayed.
+	this.reportPopover = function(pageId) {
+		track('Page view', {
+			pageId: pageId,
+			primaryPageId: stateService.primaryPage ? stateService.primaryPage.pageId : undefined,
+		});
+	};
+
 	// Called when the user does something with the path/arc they are on.
 	this.reportPathUpdate = function(path) {
 		track('Path step', {

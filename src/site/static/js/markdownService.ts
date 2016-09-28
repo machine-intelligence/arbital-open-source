@@ -233,8 +233,8 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(startPathBlockRegexp, function(whole, alias) {
 				var href = urlService.getPageUrl(alias, {startPath: true});
-				var html = ['<div layout=\'row\' layout-align=\'center center\' class=\'start-path-div\'>\n\n',
-					'<md-button href=\'' + href + '\' class=\'md-primary md-raised\'>',
+				var html = ['<div class=\'start-path-div\'>\n\n',
+					'<md-button href=\'' + href + '\' class=\'md-primary md-raised special\'>',
 					'Start reading',
 					'<md-icon>chevron_right</md-icon>',
 					'</md-button>',
