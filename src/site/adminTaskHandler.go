@@ -29,6 +29,11 @@ func adminTaskHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			return pages.Fail("Couldn't enqueue a task", err)
 		}
+	} else if task == "copyPages" {
+		var task tasks.CopyPagesTask
+		if err := tasks.Enqueue(c, &task, nil); err != nil {
+			return pages.Fail("Couldn't enqueue a task", err)
+		}
 	} else if task == "updateMetadata" {
 		var task tasks.UpdateMetadataTask
 		if err := tasks.Enqueue(c, &task, nil); err != nil {

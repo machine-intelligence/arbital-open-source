@@ -39,6 +39,7 @@ func processTask(c sessions.Context) error {
 	taskPrototypes := []tasks.QueueTask{
 		tasks.AtMentionUpdateTask{},
 		tasks.CheckAnsweredMarksTask{},
+		tasks.CopyPagesTask{},
 		tasks.DomainWideNewUpdateTask{},
 		tasks.EmailUpdatesTask{},
 		tasks.FixTextTask{},
