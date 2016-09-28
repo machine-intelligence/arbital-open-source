@@ -189,9 +189,6 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	c.Debugf("====================== %+v", data)
-	c.Debugf("====================== %+v", oldPage)
-
 	// Make sure the user has the right permissions to edit this page
 	// NOTE: check permissions AFTER checking if any data will be changed, becase we
 	// don't want to flag the user for not having correct permissions, when they are

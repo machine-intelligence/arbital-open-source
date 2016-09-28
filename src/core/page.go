@@ -267,6 +267,7 @@ type Page struct {
 	// PagePairs for "go slower/faster" suggestions; subjectId -> list of pagePairs
 	SlowDownMap map[string][]*PagePair `json:"slowDownMap"`
 	SpeedUpMap  map[string][]*PagePair `json:"speedUpMap"`
+	ArcPageIDs  []string               `json:"arcPageIds"`
 
 	// Map from request type to a ContentRequest object for that type.
 	ContentRequests map[string]*ContentRequest `json:"contentRequests"`

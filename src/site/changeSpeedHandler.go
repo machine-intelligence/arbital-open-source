@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"zanaduu3/src/core"
@@ -46,8 +47,14 @@ func changeSpeedHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error while loading faster page pairs", err)
 	}
 
-	// Load pages.
+	// Find arcs that teach this page
 	p := core.AddPageIDToMap(data.PageID, returnData.PageMap)
+	p.ArcPageIDs, err = _loadArcs(db, data.PageID, returnData)
+	if err != nil {
+		return pages.Fail("Couldn't load arcs", err)
+	}
+
+	// Load pages.
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
@@ -62,6 +69,27 @@ func changeSpeedHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		p.SpeedUpMap[pagePair.ParentID] = append(p.SpeedUpMap[pagePair.ParentID], pagePair)
 	}
 	return pages.Success(returnData)
+}
+
+func _loadArcs(db *database.DB, pageID string, returnData *core.CommonHandlerData) ([]string, error) {
+	arcPageIDs := make([]string, 0)
+	rows := database.NewQuery(`
+		SELECT guideId
+		FROM pathPages AS pathPages
+		JOIN`).AddPart(core.PageInfosTableAll(returnData.User)).Add(`AS pi
+		ON (pi.pageId=pathPages.guideId)
+		WHERE pathPageId=?`, pageID).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var guideID string
+		err := rows.Scan(&guideID)
+		if err != nil {
+			return fmt.Errorf("Failed to scan: %v", err)
+		}
+		arcPageIDs = append(arcPageIDs, guideID)
+		core.AddPageIDToMap(guideID, returnData.PageMap)
+		return nil
+	})
+	return arcPageIDs, err
 }
 
 func _loadChangeSpeedPagePairs(db *database.DB, slower bool, pageID string, returnData *core.CommonHandlerData) ([]*core.PagePair, error) {
