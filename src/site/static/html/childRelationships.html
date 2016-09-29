@@ -33,6 +33,7 @@
 						</md-button>
 						<span ng-show="showLensName">
 							<input ng-model="lens.lensName" maxlength="30" placeholder="Lens name">
+							<input ng-model="lens.lensSubtitle" maxlength="100" placeholder="Lens subtitle">
 							<md-button class="md-icon-button" ng-click="showLensName=changeLensName(lens)">
 								<md-icon>check</md-icon>
 								<md-tooltip>Update the lens name</md-tooltip>

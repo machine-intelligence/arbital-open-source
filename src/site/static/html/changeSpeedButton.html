@@ -8,7 +8,8 @@
 				'expanded': isHovered,
 			}"
 		arb-click-elsewhere="isHovered = false">
-	<div class="md-body-2 change-speed-button"
+
+	<div class="md-body-2 change-speed-button change-speed-top-offset"
 			ng-mouseenter="hoverStart()"
 			ng-mouseleave="hoverEnd()"
 			ng-click="isHovered = !isHovered"
@@ -18,7 +19,7 @@
 			<md-icon>trending_down</md-icon>
 			&nbsp;
 		</div>
-		<div ng-bind="::goSlow ? 'Slow down' : 'Go faster'"
+		<div ng-bind="::goSlow ? 'Say what?' : 'Go faster'"
 				ng-if="true || !haveScrolled || isHovered"></div>
 		<div ng-if="!goSlow">
 			&nbsp;
@@ -26,7 +27,7 @@
 		</div>
 		&nbsp;&nbsp;
 		<div flex ng-show="isHovered"></div>
-		<div title="If this explanation is too technical, 'Slow down' will help you find a less technical version. If there is no less technical version of the page, you can read the prerequisites first."
+		<div title="If this explanation is too technical, 'Say what?' will help you find a less technical version. If there is no less technical version of the page, you can read the prerequisites first."
 				ng-show="isHovered && goSlow">
 			<md-icon>help</md-icon>
 		</div>
@@ -35,7 +36,8 @@
 			<md-icon>help</md-icon>
 		</div>
 	</div>
-	<div class="change-speed-tray md-body-1"
+
+	<div class="change-speed-tray md-body-1 change-speed-top-offset"
 			ng-class="{'has-info': hasSomeSuggestions()}">
 		<div ng-if="isHovered">
 			<div class="change-speed-div" ng-if="!hasSlowDownMap() && goSlow">
@@ -201,4 +203,5 @@
 			</div>
 		</div>
 	</div>
+
 </div>

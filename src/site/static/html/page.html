@@ -82,18 +82,38 @@
 		<arb-vote-bar class="md-whiteframe-1dp" page-id="{{::page.pageId}}" ng-if="::page.hasVote"></arb-vote-bar>
 
 		<!-- Lenses -->
-		<div class="md-whiteframe-1dp">
+		<div>
+
 			<!-- Tab labels -->
 			<div class="page-tabs"
 					layout="row"
 					layout-xs="column"
 					ng-if="::lenses.length > 1">
-				<md-button ng-repeat="lens in ::lenses"
-						ng-click="tabsClicked($event, lens.lensId)"
-						ng-class="{'active-tab': lens.lensId == selectedLens.pageId}"
-						aria-label="Switch tab">
-					<span ng-bind="::lens.lensName"></span>
-				</md-button>
+				<div class="page-tabs-header" layout="column" layout-align="center center">
+					<div ng-bind="page.title"></div>
+				</div>
+				<a ng-repeat="lensObj in ::lenses"
+						ng-init="lens=arb.stateService.pageMap[lensObj.lensId]"
+						ng-href="#"
+						ng-click="tabsClicked($event, lens.pageId)"
+						class="page-tab lens-tab"
+						ng-class="{'active-tab': lens.pageId == selectedLens.pageId}">
+					<div layout="row" layout-align="start center">
+						<div class="page-tab-likes" layout="row" layout="start end">
+							<md-icon class="small-icon on no-margins" ng-show="lens.myLikeValue > 0">thumb_up</md-icon>
+							<md-icon class="small-icon off no-margins" md-svg-icon="thumb_up_outline" ng-show="lens.myLikeValue <= 0"></md-icon>
+							<span class="like-count">{{lens.likeCount + lens.myLikeValue}}</span>
+						</div>
+
+						<div flex>
+							<div ng-bind="::lensObj.lensName"></div>
+							<div class="md-caption tab-subtitle" ng-bind="::lensObj.lensSubtitle">
+								<md-tooltip>{{lensObj.lensSubtitle}}</md-tooltip>
+							</div>
+						</div>
+					</div>
+				</a>
+				<div class="remainder" flex></div>
 			</div>
 
 			<!-- For each lens -->

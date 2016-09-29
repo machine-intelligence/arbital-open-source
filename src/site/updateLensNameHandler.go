@@ -14,8 +14,9 @@ import (
 
 // updateLensNameData contains the data we get in the request
 type updateLensNameData struct {
-	ID   string
-	Name string
+	ID       string
+	Name     string
+	Subtitle string
 }
 
 var updateLensNameHandler = siteHandler{
@@ -63,9 +64,10 @@ func updateLensNameHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap := make(database.InsertMap)
 		hashmap["id"] = lens.ID
 		hashmap["lensName"] = data.Name
+		hashmap["lensSubtitle"] = data.Subtitle
 		hashmap["updatedBy"] = u.ID
 		hashmap["updatedAt"] = database.Now()
-		statement := db.NewInsertStatement("lenses", hashmap, "lensName", "updatedBy", "updatedAt").WithTx(tx)
+		statement := db.NewInsertStatement("lenses", hashmap, "lensName", "lensSubtitle", "updatedBy", "updatedAt").WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't update lenses", err)
 		}

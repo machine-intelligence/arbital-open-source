@@ -353,7 +353,7 @@ app.directive('arbLikes', function($http, arb) {
 			// If true, the button is not an icon button, but is a normal button
 			isStretched: '=',
 			// Whether or not we show likes as a button or a span
-			isButton: '=',
+			isSpan: '=',
 			// If true, show the +1 version of the button
 			isPlusOne: '=',
 			// If true, hide the like count next to the thumb/+ icon
@@ -361,8 +361,6 @@ app.directive('arbLikes', function($http, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			// For now, just allow people to like from anywhere
-			$scope.isButton = true;
 
 			if (!$scope.likeable) {
 				$scope.likeable = arb.stateService.pageMap[$scope.objectId];

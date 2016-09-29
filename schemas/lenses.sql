@@ -10,6 +10,8 @@ CREATE TABLE lenses (
 	lensIndex INT NOT NULL,
 	/* Lens name that shows up in the tab. */
 	lensName VARCHAR(32) NOT NULL,
+	/* Lens subtitle that shows up in the tab. */
+	lensSubtitle VARCHAR(256) NOT NULL,
 	/* Id of the user who created the relationship. FK into users. */
 	createdBy VARCHAR(32) NOT NULL,
 	/* When this lens relationship was originally created. */

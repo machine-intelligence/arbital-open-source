@@ -35,13 +35,11 @@
 		<div class="lens-text-container">
 
 			<!-- Page title -->
-			<h1>
+			<div class="page-title md-display-3" ng-class="::{'center-text': isTinyScreen}">
 				<md-icon class="page-title-icon" ng-if="::isUser">person</md-icon>
 				<md-icon class="page-title-icon" ng-if="::page.isQuestion()">help</md-icon>
-				<span class="md-display-3"
-						ng-class="::{'center-text': isTinyScreen}"
-						ng-bind="page.title"></span>
-			</h1>
+				<span ng-bind="page.title"></span>
+			</div>
 
 			<hr class="page-title-hr"></hr>
 

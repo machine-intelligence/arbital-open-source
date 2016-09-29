@@ -320,15 +320,16 @@ func NewPage(pageID string) *Page {
 
 // Lens connection
 type Lens struct {
-	ID        int64  `json:"id,string"`
-	PageID    string `json:"pageId"`
-	LensID    string `json:"lensId"`
-	LensIndex int    `json:"lensIndex"`
-	LensName  string `json:"lensName"`
-	CreatedBy string `json:"createdBy"`
-	CreatedAt string `json:"createdAt"`
-	UpdatedBy string `json:"updatedBy"`
-	UpdatedAt string `json:"updatedAt"`
+	ID           int64  `json:"id,string"`
+	PageID       string `json:"pageId"`
+	LensID       string `json:"lensId"`
+	LensIndex    int    `json:"lensIndex"`
+	LensName     string `json:"lensName"`
+	LensSubtitle string `json:"lensSubtitle"`
+	CreatedBy    string `json:"createdBy"`
+	CreatedAt    string `json:"createdAt"`
+	UpdatedBy    string `json:"updatedBy"`
+	UpdatedAt    string `json:"updatedAt"`
 }
 
 type LensList []*Lens
@@ -2451,12 +2452,13 @@ type ProcessLensCallback func(db *database.DB, lens *Lens) error
 // Load all lenses for the given pages
 func LoadLenses(db *database.DB, queryPart *database.QueryPart, resultData *CommonHandlerData, callback ProcessLensCallback) error {
 	rows := database.NewQuery(`
-		SELECT l.id,l.pageId,l.lensId,l.lensIndex,l.lensName,l.createdBy,l.createdAt,l.updatedBy,l.updatedAt
+		SELECT l.id,l.pageId,l.lensId,l.lensIndex,l.lensName,l.lensSubtitle,
+			l.createdBy,l.createdAt,l.updatedBy,l.updatedAt
 		FROM lenses AS l`).AddPart(queryPart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var lens Lens
 		err := rows.Scan(&lens.ID, &lens.PageID, &lens.LensID, &lens.LensIndex, &lens.LensName,
-			&lens.CreatedBy, &lens.CreatedAt, &lens.UpdatedBy, &lens.UpdatedAt)
+			&lens.LensSubtitle, &lens.CreatedBy, &lens.CreatedAt, &lens.UpdatedBy, &lens.UpdatedAt)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}

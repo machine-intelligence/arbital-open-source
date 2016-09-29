@@ -1,6 +1,6 @@
 @import "constants.scss";
 
-$change-speed-width: 110px;
+$change-speed-width: 115px;
 $no-info-color: gray;
 
 arb-change-speed-button, [arb-change-speed-button] {
@@ -91,7 +91,7 @@ arb-change-speed-button, [arb-change-speed-button] {
 	&.expanded {
 		z-index: $changeSpeedZ + 1;
 		border-radius: 18px 18px 5px 5px;
-		background-color: white;
+		background-color: transparent;
 		width: 400px;
 
 		.change-speed-button {

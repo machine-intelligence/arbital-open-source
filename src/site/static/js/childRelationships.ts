@@ -84,6 +84,7 @@ app.directive('arbChildRelationships', function($q, $timeout, $interval, $http, 
 				var params = {
 					id: lens.id,
 					name: lens.lensName,
+					subtitle: lens.lensSubtitle,
 				};
 				arb.stateService.postData('/json/updateLensName/', params, function() {
 					arb.popupService.showToast({text: 'Lens name updated'});

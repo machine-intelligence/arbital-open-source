@@ -676,6 +676,14 @@ arb-likes, .likes-in-autocomplete {
 	}
 }
 
+// Used, in particular, for small likes
+.small-icon {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+	margin-right: 3px !important;
+}
+
 [arb-page-list], .arb-page-list {
 	margin-bottom: 4vw;
 }
@@ -738,9 +746,20 @@ md-toast {
 	}
 }
 
+.page-title {
+	margin: 0px 0px 20px;
+}
+
 .lens-text-container {
 	width: 100%;
 	overflow-x: auto;
+	// Other parameters are set depending on the screen resolution. See below.
+}
+
+// Class added to move the change speed buttons down to be aligned with the page title
+.change-speed-top-offset {
+	position: relative;
+	// Other parameters are set depending on the screen resolution. See below.
 }
 
 @media (max-width: 599px) {
@@ -749,6 +768,9 @@ md-toast {
 		padding: 50px $lens-padding 20px;
 		font-size: 16px;
 		line-height: 1.65;
+	}
+	.change-speed-top-offset {
+		top: 70px;
 	}
 	.comment-text-container {
 		padding: 5px 5px;
@@ -774,6 +796,9 @@ md-toast {
 		font-size: 18px;
 		line-height: 22px;
 	}
+	.change-speed-top-offset {
+		top: 30px;
+	}
 	.comment-text-container {
 		padding: 5px 10px;
 		font-size: 16px;
@@ -797,6 +822,9 @@ md-toast {
 		padding: 30px $lens-padding 60px;
 		font-size: 18px;
 		line-height: 26px;
+	}
+	.change-speed-top-offset {
+		top: 30px;
 	}
 	.comment-text-container {
 		padding: 5px 15px;
@@ -822,6 +850,9 @@ md-toast {
 		padding: 30px $lens-padding 80px;
 		font-size: 18px;
 		line-height: 30px;
+	}
+	.change-speed-top-offset {
+		top: 30px;
 	}
 	.comment-text-container {
 		padding: 5px 20px;
@@ -1055,7 +1086,63 @@ ins {
 	background-color: white;
 }
 
-.page-tabs,
+.page-tabs {
+	position: relative;
+	top: 3px;
+
+	.page-tabs-header {
+		padding: 5px 25px 5px 5px;
+		font-size: 30px;
+		font-weight: 400;
+		max-width: 15vw;
+		border-bottom: $link-color 3px solid;
+	}
+
+	.remainder {
+		border-bottom: $link-color 3px solid;
+	}
+
+	.page-tab {
+		padding: 15px 15px;
+		max-width: 10vw;
+		color: black !important;
+
+		& .tab-subtitle {
+			white-space: nowrap;
+			min-width: 0px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		& .page-tab-likes {
+			margin-right: 10px;
+		}
+	}
+
+	.lens-tab {
+		border-top: #ccc 1px solid;
+		border-right: #bbb 1px solid;
+		border-left: #bbb 1px solid;
+		border-bottom: $link-color 3px solid;
+		background-color: $very-light-link-color;
+
+		&.active-tab {
+			border-top: $link-color 3px solid;
+			border-right: $link-color 3px solid;
+			border-left: $link-color 3px solid;
+			border-bottom: none;
+			background-color: white;
+		}
+	}
+	.lens-tab + .lens-tab {
+		border-left: none;
+
+		&.active-tab {
+			border-left: $link-color 3px solid;
+		}
+	}
+}
+
 .tab-panel-header {
 	.md-button {
 		border-radius: 0;
@@ -1065,12 +1152,6 @@ ins {
 			color: white !important;
 			border-bottom: none;
 		}
-	}
-}
-
-.page-tabs {
-	.md-button {
-		padding: 5px 35px;
 	}
 }
 
