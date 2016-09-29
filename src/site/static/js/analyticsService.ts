@@ -81,6 +81,11 @@ app.service('analyticsService', function($http, $location, stateService) {
 		ga('set', 'pageId', pageId);
 	};
 
+	// This is called when a user switches lenses.
+	this.reportLensSwitch = function(fromPageId, toPageId) {
+		track('Lens switch', {fromPageId: fromPageId, toPageId: toPageId});
+	};
+
 	// This is called when a page popover is diplayed.
 	this.reportPopover = function(pageId) {
 		track('Page view', {
