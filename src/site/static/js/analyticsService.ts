@@ -88,7 +88,7 @@ app.service('analyticsService', function($http, $location, stateService) {
 
 	// This is called when a page popover is diplayed.
 	this.reportPopover = function(pageId) {
-		track('Page view', {
+		track('Popover', {
 			pageId: pageId,
 			primaryPageId: stateService.primaryPage ? stateService.primaryPage.pageId : undefined,
 		});
