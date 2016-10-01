@@ -297,4 +297,9 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 		}
 		return that.getPageUrl(goToPageId, urlOptions);
 	};
+
+	// Get url for exploring the given page's children.
+	this.getExplorePageUrl = function(pageId : string) : string {
+		return '/explore/' + pageId;
+	};
 });

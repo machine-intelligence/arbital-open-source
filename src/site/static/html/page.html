@@ -143,15 +143,22 @@
 								layout-gt-sm="row"
 								layout-align="start start"
 								ng-if="selectedLens.parentIds.length > 0 || selectedLens.nonMetaTagIds.length > 0">
-							<!-- Parents -->
+							<!-- Parents and children -->
 							<div flex>
-								<div layout-align="start center"
-										ng-if="selectedLens.parentIds.length > 0">
+								<div layout-align="start center">
 									<span>Parents:</span>
+									<span ng-if="selectedLens.parentIds.length == 0">none</span>
 									<span ng-repeat="(index, parentId) in selectedLens.parentIds">
 										<span class="comma" ng-if="index > 0">,</span>
 										<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
 									</span>
+								</div>
+								<div layout-align="start center">
+									<span>Children:</span>
+									<a ng-href="{{arb.urlService.getExplorePageUrl(selectedLens.pageId)}}">
+										<ng-pluralize count="selectedLens.childIds.length"
+												when="{'0': 'none', 'one': 'one page', 'other': '{} pages'}"></ng-pluralize>
+									</a>
 								</div>
 							</div>
 
@@ -184,6 +191,14 @@
 								use-normal-page-map="true"
 								type="tag"
 								force-edit-mode="true"></div>
+					</div>
+
+					<!-- Join slack invite for non-logged in users -->
+					<div layout-padding ng-if="!arb.userService.userIsLoggedIn()">
+						<div>
+							Want to discuss this page or talk to other authors?
+							<arb-slack-button></arb-slack-button>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -229,7 +244,7 @@
 			<arb-learn-more ng-repeat="lens in ::lenses"
 					class="reveal-after-render"
 					page-id="{{::lens.lensId}}"
-					ng-if="isLoaded(lens.lensId) && lens.lensId === selectedLens.pageId"></arb-page-discussion>
+					ng-if="isLoaded(lens.lensId) && lens.lensId === selectedLens.pageId"></arb-learn-more>
 		</div>
 
 		<!-- Discussion section -->

@@ -28,28 +28,6 @@ app.directive('arbIndex', function($http, $mdMedia, arb) {
 			$scope.showFeaturedPages = (!$scope.user.continueBayesPath || !$scope.user.continueBayesPath.isFinished) ||
 				(!$scope.user.continueLogPath || !$scope.user.continueLogPath.isFinished);
 
-			// Slack stuff
-			$scope.showJoinSlackInput = false;
-			$scope.showJoinSlackButton = arb.userService.user && !arb.userService.user.isSlackMember;
-			if (Cookies.getJSON('isSlackMember')) {
-				$scope.showJoinSlackButton = false;
-			}
-
-			$scope.slackInvite = {email: ''};
-
-			$scope.joinSlack = function() {
-				$scope.showJoinSlackInput = true;
-				$scope.slackInvite.email = arb.userService.user.email;
-			};
-
-			$scope.joinSlackSubmit = function() {
-				arb.stateService.postDataWithoutProcessing('/json/sendSlackInvite/', $scope.slackInvite, function() {
-					arb.userService.user.isSlackMember = true;
-					Cookies.set('isSlackMember', true);
-				});
-				arb.userService.user.isSlackMember = true;
-			};
-
 			// Tab stuff
 			$scope.readTab = 0;
 			$scope.writeTab = 0;

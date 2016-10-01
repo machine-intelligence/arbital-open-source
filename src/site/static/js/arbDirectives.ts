@@ -915,3 +915,42 @@ app.directive('arbLensToolbar', function($window, $mdConstant, $mdUtil, $compile
 	};
 });
 
+app.directive('arbSlackButton', function(arb) {
+	return {
+		templateUrl: versionUrl('static/html/slackButton.html'),
+		scope: {
+			// Button text when the user hasn't joined slack yet
+			joinText: '@',
+			// Button text when the user already joined slack
+			memberText: '@',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+			if (!$scope.joinText) {
+				$scope.joinText = 'Join community chat';
+			}
+			if (!$scope.memberText) {
+				$scope.memberText = 'Go to Slack';
+			}
+			$scope.isUserMember = (arb.userService.user && arb.userService.user.isSlackMember) ||
+				Cookies.getJSON('isSlackMember');
+
+			// Called when user clicks join slack button
+			$scope.joinSlack = function() {
+				if ($scope.isUserMember) {
+					window.open('https://arbital.slack.com/messages/math/', '_blank');
+				} else {
+					arb.signupService.wrapInSignupFlow('join slack', function() {
+						var postParams = {email: arb.userService.user.email};
+						arb.stateService.postDataWithoutProcessing('/json/sendSlackInvite/', postParams, function() {
+							$scope.isUserMember = true;
+							arb.userService.user.isSlackMember = true;
+							Cookies.set('isSlackMember', true);
+							arb.popupService.showToast({text: 'Thanks! You should get an invite within a few hours.'});
+						});
+					});
+				}
+			};
+		},
+	};
+});

@@ -17,26 +17,7 @@
 						class="intrasite-link"
 						page-id="4d6">explanations</a>.
 			</span>
-			<div layout="row" layout-align="center center" ng-if="::showJoinSlackButton">
-				<md-button class="light" ng-click="joinSlack()" ng-if="!showJoinSlackInput">
-					<md-icon md-svg-icon="slack"></md-icon>
-					Join the Arbital Slack
-				</md-button>
-				<span layout="row"
-						layout-align="start center"
-						ng-if="showJoinSlackInput && !arb.userService.user.isSlackMember">
-					<md-input-container class="full-width">
-						<label>Email</label>
-						<input type="email" ng-model="slackInvite.email" required>
-					</md-input-container>
-					<md-button class="md-primary md-raised" ng-click="joinSlackSubmit()">
-						Submit
-					</md-button>
-				</span>
-				<div ng-if="showJoinSlackInput && arb.userService.user.isSlackMember">
-					Thanks! We'll send you an invite within a day.
-				</div>
-			</div>
+			<arb-slack-button></arb-slack-button>
 		</div>
 		<div layout="row"
 				layout-align="end center"
