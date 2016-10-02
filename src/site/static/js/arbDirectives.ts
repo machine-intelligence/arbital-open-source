@@ -938,8 +938,14 @@ app.directive('arbSlackButton', function(arb) {
 			// Called when user clicks join slack button
 			$scope.joinSlack = function() {
 				if ($scope.isUserMember) {
+					arb.analyticsService.reportEventToHeapAndMixpanel('goto slack', {
+						pageId: arb.stateService.primaryPage ? arb.stateService.primaryPage.pageId : undefined,
+					});
 					window.open('https://arbital.slack.com/messages/math/', '_blank');
 				} else {
+					arb.analyticsService.reportEventToHeapAndMixpanel('join slack', {
+						pageId: arb.stateService.primaryPage ? arb.stateService.primaryPage.pageId : undefined,
+					});
 					arb.signupService.wrapInSignupFlow('join slack', function() {
 						var postParams = {email: arb.userService.user.email};
 						arb.stateService.postDataWithoutProcessing('/json/sendSlackInvite/', postParams, function() {
