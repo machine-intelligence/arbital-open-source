@@ -14,6 +14,9 @@ app.directive('arbTableOfContents', function($timeout, $http, $compile, arb) {
 			$scope.arb = arb;
 			$scope.showToc = true;
 			$scope.toc = [];
+
+			$scope.getCurrentUrl = function() {
+			};
 		},
 		link: function(scope: any, element, attrs) {
 			var $parent = element.closest('arb-markdown');
@@ -33,7 +36,7 @@ app.directive('arbTableOfContents', function($timeout, $http, $compile, arb) {
 					section += '.' + counts[2].count;
 				}
 				var id = 'h-' + scope.pageId + '-' + section;
-				var url = '#' + id;
+				var url = arb.urlService.getAbsUrl({noHash: true}) + '#' + id;
 				var row = {section: section, header: header, tabSize: counts.length - 1, url: url};
 				scope.toc.push(row);
 				return id;

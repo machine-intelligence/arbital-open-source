@@ -10,6 +10,18 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 	// This will be set to true before loading content for a second page
 	this.hasLoadedFirstPage = false;
 
+	// Return current URL.
+	this.getAbsUrl = function(options) : string {
+		var absUrl = $location.absUrl();
+		if (options.noHash) {
+			var lastHash = absUrl.lastIndexOf('#');
+			if (lastHash >= 0) {
+				absUrl = absUrl.substring(0, lastHash);
+			}
+		}
+		return absUrl;
+	};
+
 	// Map of URL patterns to handlers
 	this.urlRules = [];
 	// Add a rule to handle URL changes
