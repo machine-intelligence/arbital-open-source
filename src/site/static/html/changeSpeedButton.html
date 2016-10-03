@@ -147,6 +147,9 @@
 						<span ng-if="!page.contentRequests.lessTechnical.myLikeValue">
 							<md-button class="short-button" ng-click="submitExplanationRequest('lessTechnical', $event)">+1</md-button>
 							a less technical explanation
+							<span title="If this explanation is too technical, you can request a less technical explanation. It will have fewer and/or less technical prerequisites.&#13;&#10;We show users' requests to authors, so they can prioritize which explanations to write. We will notify you when this new explanation exists.">
+								<md-icon class="helper-icon">help</md-icon>
+							</span>
 						</span>
 						<span ng-if="page.contentRequests.lessTechnical.myLikeValue">
 							Thanks for requesting a less technical explanation!
@@ -157,6 +160,9 @@
 						<span ng-if="!page.contentRequests.moreWords.myLikeValue">
 							<md-button class="short-button" ng-click="submitExplanationRequest('moreWords', $event)">+1</md-button>
 							a more detailed explanation
+							<span title="If this explanation is moving too fast or skips over some parts, you can request a more detailed. It will have mostly the same prerequisites, but will be longer and more thorough.&#13;&#10;We show users' requests to authors, so they can prioritize which explanations to write. We will notify you when this new explanation exists.">
+								<md-icon class="helper-icon">help</md-icon>
+							</span>
 						</span>
 						<span ng-if="page.contentRequests.moreWords.myLikeValue">
 							Thanks for requesting a more detailed explanation!
@@ -168,6 +174,9 @@
 						<span ng-if="!page.contentRequests.moreTechnical.myLikeValue">
 							<md-button class="short-button" ng-click="submitExplanationRequest('moreTechnical', $event)">+1</md-button>
 							a more technical explanation
+							<span title="If this explanation is not technical enough, you can request a more technical explanation. It will have other and/or more technical prerequisites.&#13;&#10;We show users' requests to authors, so they can prioritize which explanations to write. We will notify you when this new explanation exists.">
+								<md-icon class="helper-icon">help</md-icon>
+							</span>
 						</span>
 						<span ng-if="page.contentRequests.moreTechnical.myLikeValue">
 							Thanks for requesting a more technical explanation!
@@ -178,6 +187,9 @@
 						<span ng-if="!page.contentRequests.fewerWords.myLikeValue">
 							<md-button class="short-button" ng-click="submitExplanationRequest('fewerWords', $event)">+1</md-button>
 							a more concise explanation
+							<span title="If this explanation is moving too slowly for you or has too much detail, you can request a more concise explanation. It will have mostly the same prerequisites, but will be shorter and more to the point.&#13;&#10;We show users' requests to authors, so they can prioritize which explanations to write. We will notify you when this new explanation exists.">
+								<md-icon class="helper-icon">help</md-icon>
+							</span>
 						</span>
 						<span ng-if="page.contentRequests.fewerWords.myLikeValue">
 							Thanks for requesting a more concise explanation!

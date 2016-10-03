@@ -40,10 +40,6 @@ type RedLinkRow struct {
 	LinkedByPageIDs []string `json:"linkedByPageIds"`
 }
 
-type StubRow struct {
-	PageID string `json:"pageId"`
-}
-
 func writeNewModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
@@ -65,12 +61,6 @@ func writeNewModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	returnData.ResultMap["redLinks"], err = loadRedLinkRows(db, returnData, numPagesToLoad)
 	if err != nil {
 		return pages.Fail("Error loading red link rows", err)
-	}
-
-	// Load stubs in math
-	returnData.ResultMap["stubs"], err = loadStubRows(db, returnData, numPagesToLoad)
-	if err != nil {
-		return pages.Fail("Error loading stubs", err)
 	}
 
 	// Load contentRequests in math
@@ -126,7 +116,7 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 			SELECT likeableId, SUM(value) AS likeCount, SUM(value < 0) AS hasAnyDownvotes
 			FROM likes
 			GROUP BY likeableId
-		) as likeCounts
+		) AS likeCounts
 		ON groupedRedLinks.likeableId=likeCounts.likeableId
 		WHERE !COALESCE(hasAnyDownvotes,0)
 		ORDER BY COALESCE(likeCount,0) DESC, refCount DESC, groupedRedLinks.likeableId
@@ -188,40 +178,6 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 	return redLinks, nil
 }
 
-// Load pages that are marked as stubs
-func loadStubRows(db *database.DB, returnData *core.CommonHandlerData, limit int) ([]*StubRow, error) {
-	stubRows := []*StubRow{}
-	rows := selectRandomNFrom(limit, database.NewQuery(`
-		SELECT pi.pageId
-		FROM`).AddPart(core.PageInfosTable(returnData.User)).Add(`AS pi
-		JOIN pagePairs AS pp
-		ON (pi.pageId=pp.childId)
-		JOIN pageDomainPairs AS pdp
-		ON (pi.pageId=pdp.pageId)
-		LEFT JOIN likes AS l
-		ON (pi.likeableId=l.likeableId)
-		WHERE pp.parentId=?`, core.StubPageID).Add(`
-			AND pdp.domainId=?`, core.MathDomainID).Add(`
-			AND pi.lockedUntil < NOW()
-		GROUP BY 1
-		ORDER BY SUM(l.value) DESC
-		LIMIT ?`, varietyDepth*limit)).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageID string
-		err := rows.Scan(&pageID)
-		if err != nil {
-			return fmt.Errorf("failed to scan: %v", err)
-		}
-		stubRows = append(stubRows, &StubRow{PageID: pageID})
-		core.AddPageIDToMap(pageID, returnData.PageMap)
-		return nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't load stub rows: %v", err)
-	}
-	return stubRows, nil
-}
-
 func loadContentRequests(db *database.DB, returnData *core.CommonHandlerData, limit int) ([]*core.ContentRequest, error) {
 	contentRequests := []*core.ContentRequest{}
 
@@ -230,12 +186,19 @@ func loadContentRequests(db *database.DB, returnData *core.CommonHandlerData, li
 		rows := database.NewQuery(`
 			SELECT cr.id, cr.pageId, cr.type, cr.likeableId, cr.createdAt
 			FROM contentRequests AS cr
-			JOIN likes
-			ON cr.likeableId=likes.likeableId
+			LEFT JOIN (
+				SELECT likeableId, SUM(value) AS likeCount, SUM(value < 0) AS hasAnyDownvotes
+				FROM likes
+				GROUP BY likeableId
+			) AS likeCounts
+			ON (cr.likeableId=likeCounts.likeableId)
 			JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
 			ON cr.pageId=pi.pageId
+
+			/* Having no dislikes */
+			WHERE !COALESCE(hasAnyDownvotes,0)
 			GROUP BY cr.id
-			ORDER BY SUM(likes.value) DESC
+			ORDER BY COALESCE(likeCount, 0) DESC
 			LIMIT ?`, limit).ToStatement(db).Query()
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			cr := core.NewContentRequest()

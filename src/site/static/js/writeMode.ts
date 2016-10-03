@@ -148,12 +148,12 @@ app.directive('arbExplanationRequestRow', function(arb) {
 			$scope.editUrl = arb.urlService.getEditPageUrl($scope.alias);
 
 			$scope.stopSuggesting = function() {
-				arb.signupService.processLikeClick($scope.row, $scope.row.alias, -1);
+				if ($scope.request.requestType == 'redLink') {
+					arb.signupService.processLikeClick($scope.request, $scope.request.alias, -1);
+				} else {
+					arb.signupService.processLikeClick($scope.request, $scope.request.pageId, -1);
+				}
 			};
-
-			$scope.toggleExpand = function() {
- 				$scope.expanded = !$scope.expanded;
- 			};
 		},
 	};
 });

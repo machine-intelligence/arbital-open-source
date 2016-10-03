@@ -37,16 +37,18 @@
 				<span ng-switch-when="redLink">&nbsp;an explanation of&nbsp;</span>
 				<span ng-switch-when="improveStub">&nbsp;an <b>expansion</b> of the stub page&nbsp;</span>
 
+				<!-- These requests come from HUB pages -->
 				<span ng-switch-when="teachLooseUnderstanding">&nbsp;a <b>beginner's</b> explanation of&nbsp;</span>
 				<span ng-switch-when="teachBasicUnderstanding">&nbsp;a <b>basic</b> explanation of&nbsp;</span>
 				<span ng-switch-when="teachTechnicalUnderstanding">&nbsp;a <b>technical</b> explanation of&nbsp;</span>
 				<span ng-switch-when="teachResearchLevelUnderstanding">&nbsp;a <b>research-level</b> explanation of&nbsp;</span>
 
-				<span ng-switch-when="boostLooseUnderstanding">&nbsp;to <b>expand</b> on a<b>beginner's understanding</b> of&nbsp;</span>
+				<span ng-switch-when="boostLooseUnderstanding">&nbsp;to <b>expand</b> on a <b>beginner's understanding</b> of&nbsp;</span>
 				<span ng-switch-when="boostBasicUnderstanding">&nbsp;to <b>expand</b> on a <b>basic understanding</b> of&nbsp;</span>
 				<span ng-switch-when="boostTechnicalUnderstanding">&nbsp;to <b>expand</b> on a <b>technical understanding</b> of&nbsp;</span>
 				<span ng-switch-when="boostResearchLevelUnderstanding">&nbsp;to <b>expand</b> on a <b>research-level understanding</b> of&nbsp;</span>
 
+				<!-- These requests come from slower/faster panels -->
 				<span ng-switch-when="slowDown">&nbsp;a <b>slower</b> explanation of&nbsp;</span>
 				<span ng-switch-when="speedUp">&nbsp;a <b>faster</b> explanation of&nbsp;</span>
 				<span ng-switch-when="moreWords">&nbsp;a <b>more detailed</b> explanation of&nbsp;</span>
@@ -58,8 +60,8 @@
 			</span>
 
 			<!-- If it's a redlink, show the prettified alias -->
-			<span ng-if="request.prettifiedAlias" class="cursor-pointer underline" ng-click="toggleExpand()">
-				<i>{{::request.prettifiedAlias}}</i>
+			<span ng-if="request.prettifiedAlias">
+				<strong>{{::request.prettifiedAlias}}</strong>
 			</span>
 
 			<!-- If it's a page, show the page title -->
@@ -68,26 +70,95 @@
 					ng-if="::request.pageId"></arb-page-title>
 		</span>
 
-		<!-- Edit -->
-		<arb-edit-button class="icon-last"
-				page-id="{{::request.alias}}"
-				custom-text=""
-				analytics-desc="write new red link"
-				ng-if="request.requestType == 'redLink'"></arb-edit-button>
-		<arb-edit-button class="icon-last"
-				page-id="{{request.pageId}}"
-				custom-text=""
-				analytics-desc="improve page"
-				ng-if="request.requestType != 'redLink'"></arb-edit-button>
+		<!-- Expand button -->
+		<md-button class="md-icon-button s24" ng-click="expanded=!expanded">
+			<arb-expand-icon expanded="expanded"></arb-expand-icon>
+		</md-button>
 	</div>
 
 	<div class="expand-tray expanded-list" layout="column" ng-if="expanded">
-		<span>
-			This concept is referenced on {{::request.linkedByPageIds.length}}
+		<!-- Additional information explaining this request -->
+		<span ng-switch="request.requestType">
+			<span ng-switch-when="redLink"></span>
+			<span ng-switch-when="improveStub">
+				<arb-page-title page-id="{{::request.pageId}}" is-link="true"></arb-page-title>
+				is a stub and it could be improved by adding more content.
+			</span>
+
+			<!-- These requests come from HUB pages -->
+			<span ng-switch-when="teachLooseUnderstanding">
+				<arb-page-title page-id="{{::request.pageId}}" is-link="true"></arb-page-title>
+				doesn't have an explanation page that teaches it at the loose level.
+			</span>
+			<span ng-switch-when="teachBasicUnderstanding">
+				<arb-page-title page-id="{{::request.pageId}}" is-link="true"></arb-page-title>
+				doesn't have an explanation page that teaches it at the basic level.
+			</span>
+			<span ng-switch-when="teachTechnicalUnderstanding">
+				<arb-page-title page-id="{{::request.pageId}}" is-link="true"></arb-page-title>
+				doesn't have an explanation page that teaches it at the technical level.
+			</span>
+			<span ng-switch-when="teachResearchLevelUnderstanding">
+				<arb-page-title page-id="{{::request.pageId}}" is-link="true"></arb-page-title>
+				doesn't have an explanation page that teaches it at the research level.
+			</span>
+
+			<span ng-switch-when="boostLooseUnderstanding">
+				<arb-page-title page-id="{{::request.pageId}}" is-link="true"></arb-page-title>
+				doesn't have an explanation page that assumes loose level understanding and explands more at that level.
+			</span>
+			<span ng-switch-when="boostBasicUnderstanding">
+				<arb-page-title page-id="{{::request.pageId}}" is-link="true"></arb-page-title>
+				doesn't have an explanation page that assumes basic level understanding and explands more at that level.
+			</span>
+			<span ng-switch-when="boostTechnicalUnderstanding">
+				<arb-page-title page-id="{{::request.pageId}}" is-link="true"></arb-page-title>
+				doesn't have an explanation page that assumes technical level understanding and explands more at that level.
+			</span>
+			<span ng-switch-when="boostResearchLevelUnderstanding">
+				<arb-page-title page-id="{{::request.pageId}}" is-link="true"></arb-page-title>
+				doesn't have an explanation page that assumes research level understanding and explands more at that level.
+			</span>
+
+			<!-- These requests come from slower/faster panels -->
+			<span ng-switch-when="slowDown">
+				<arb-page-title page-id="{{::request.pageId}}" is-link="true"></arb-page-title>
+				is too fast/confusing for some people and they would like a slower explanation.
+			</span>
+			<span ng-switch-when="speedUp">
+				<arb-page-title page-id="{{::request.pageId}}" is-link="true"></arb-page-title>
+				is too slow/boring for some people and they would like a faster explanation.
+			</span>
+			<span ng-switch-when="moreWords">
+				<arb-page-title page-id="{{::request.pageId}}" is-link="true"></arb-page-title>
+				explanation moves too fast for some people and they would like a slower, more detailed explanation.
+				It should have roughly the same prerequisites and be at a similar technical level.
+			</span>
+			<span ng-switch-when="fewerWords">
+				<arb-page-title page-id="{{::request.pageId}}" is-link="true"></arb-page-title>
+				explanation moves too slowly for some people and they would like a shorter, more to the point explanation.
+				It should have roughly the same prerequisites and be at a similar technical level.
+			</span>
+			<span ng-switch-when="moreTechnical">
+				<arb-page-title page-id="{{::request.pageId}}" is-link="true"></arb-page-title>
+				explanation is not technical enough for some readers and they would like an explanation written for a more technical audience.
+				It should probably have other and/or more technical prerequisites.
+			</span>
+			<span ng-switch-when="lessTechnical">
+				<arb-page-title page-id="{{::request.pageId}}" is-link="true"></arb-page-title>
+				explanation is too technical for some readers and they would like an explanation written for a less technical audience.
+				It should probably have other and/or less technical prerequisites.
+			</span>
+
+			<span ng-switch-default class="md-warn">&nbsp;{{request.requestType}}&nbsp;</span>
+		</span>
+
+		<!-- Give more info about where the red alias is used -->
+		<span ng-if="::request.linkedByPageIds.length > 0">
+			This concept doesn't have a page, but it's referenced on {{::request.linkedByPageIds.length}}
 			<ng-pluralize count="request.linkedByPageIds.length"
 					when="{'1': 'page', 'other': 'pages'}"></ng-pluralize>:
 		</span>
-
 		<ul>
 			<li ng-repeat="pageId in request.linkedByPageIds">
 				<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
@@ -96,10 +167,32 @@
 				</span>
 			</li>
 		</ul>
-		<md-button ng-click="stopSuggesting()"
-				ng-if="::arb.userService.user.trustMap['1lw'].level >= 2">
-			Don't suggest this alias
-		</md-button>
+
+		<!-- Start editing -->
+		<div layout="row" layout-align="space-between center">
+			<div arb-edit-button
+					page-id="{{::request.alias}}"
+					custom-text="Create new page"
+					primary="true"
+					analytics-desc="write new red link"
+					ng-if="request.requestType == 'redLink'"></div>
+			<div arb-edit-button
+					page-id="{{::request.pageId}}"
+					custom-text="Edit the page"
+					primary="true"
+					analytics-desc="improve stub"
+					ng-if="request.requestType == 'improveStub'"></div>
+			<div arb-edit-button
+					custom-text="Create new page"
+					primary="true"
+					analytics-desc="improve page"
+					ng-if="request.requestType != 'redLink' && request.requestType != 'improveStub'"></div>
+
+			<md-button ng-click="stopSuggesting()"
+					ng-if="::arb.userService.user.trustMap['1lw'].level >= 2">
+				Hide this request
+			</md-button>
+		</div>
 	</div>
 </md-list-item>
 <md-divider></md-divider>
