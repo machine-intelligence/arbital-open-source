@@ -1,4 +1,4 @@
-<md-button ng-class="::{'short-button': !isStretched, 'plus-one-button': isPlusOne}"
+<md-button ng-class="{'short-button': !isStretched, 'plus-one-button': isPlusOne, 'on': isPlusOne && likeable.myLikeValue > 0}"
 		ng-click="arb.signupService.processLikeClick(likeable, objectId)"
 		aria-label="Like"
 		ng-if="::!isSpan">
@@ -7,17 +7,18 @@
 	<md-icon class="like-icon"
 			md-svg-icon="thumb_up_outline"
 			ng-if="!isPlusOne && likeable.myLikeValue <= 0"></md-icon>
-	<span class="like-count" ng-if="likeable.myLikeValue == 0 && !hideLikeCount">
+	<md-icon class="like-icon" ng-if="isPlusOne">plus_one</md-icon>
+	<span class="like-count" ng-if="likeable.myLikeValue == 0 && !isPlusOne">
 		<span ng-if="isPlusOne && (likeable.likeCount + likeable.myLikeValue) >= 0">+</span>{{likeable.likeCount + likeable.myLikeValue}}
 	</span>
-	<span class="like-count" ng-if="likeable.myLikeValue == 1 && !hideLikeCount">
+	<span class="like-count" ng-if="likeable.myLikeValue == 1 && !isPlusOne">
 		<b>
 			<span ng-if="isPlusOne && (likeable.likeCount + likeable.myLikeValue) >= 0">+</span>{{likeable.likeCount + likeable.myLikeValue}}
 		</b>
 	</span>
 	<md-tooltip class="unlimited"
 			md-direction="top"
-			ng-if="likeable.individualLikes.length > 0 && !arb.isTouchDevice && !hideLikeCount">
+			ng-if="likeable.individualLikes.length > 0 && !arb.isTouchDevice && !isPlusOne">
 		<span ng-repeat="userId in likeable.individualLikes">{{arb.userService.getFullName(userId) + '\n'}}</span>
 	</md-tooltip>
 </md-button>

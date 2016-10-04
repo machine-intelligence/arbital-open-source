@@ -676,6 +676,14 @@ arb-likes, .likes-in-autocomplete {
 	}
 }
 
+.plus-one-button {
+	border: gray 1px solid;
+
+	&.on {
+		background-color: $primary-hue-1;
+	}
+}
+
 // Used, in particular, for small likes
 .small-icon {
 	font-size: 18px;
