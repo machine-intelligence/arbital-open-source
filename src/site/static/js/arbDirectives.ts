@@ -923,6 +923,7 @@ app.directive('arbSlackButton', function(arb) {
 			joinText: '@',
 			// Button text when the user already joined slack
 			memberText: '@',
+			raised: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;

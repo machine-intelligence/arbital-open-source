@@ -1,4 +1,6 @@
-<md-button class="light" ng-click="joinSlack()" aria-label="Join slack">
+<md-button ng-class="{'md-raised': raised, 'light': !raised}"
+		ng-click="joinSlack()"
+		aria-label="Join slack">
 	<md-icon md-svg-icon="slack"></md-icon>
 	<span ng-bind="isUserMember ? memberText : joinText"></span>
 </md-button>
