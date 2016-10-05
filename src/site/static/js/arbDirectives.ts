@@ -356,6 +356,8 @@ app.directive('arbLikes', function($http, arb) {
 			isSpan: '=',
 			// If true, show the +1 version of the button
 			isPlusOne: '=',
+			// Optional function to call when the user clicks the like button.
+			onLikeClicked: '&',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -372,6 +374,16 @@ app.directive('arbLikes', function($http, arb) {
 					return arb.userService.getFullName(userId1).localeCompare(arb.userService.getFullName(userId2));
 				});
 			}
+
+			// Called when the like button is clicked
+			$scope.likeClicked = function() {
+				arb.signupService.processLikeClick($scope.likeable, $scope.objectId);
+				if ($scope.onLikeClicked) {
+					$scope.onLikeClicked({result: {
+						myLikeValue: $scope.likeable.myLikeValue,
+					}});
+				}
+			};
 		},
 	};
 });

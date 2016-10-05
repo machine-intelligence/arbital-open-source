@@ -148,17 +148,20 @@ app.directive('arbExplanationRequestRow', function(arb) {
 			$scope.editUrl = arb.urlService.getEditPageUrl($scope.alias);
 			$scope.expanded = false;
 
+			var reportEvent = function(actionName) {
+				arb.analyticsService.reportEventToHeapAndMixpanel(actionName, {
+					id: $scope.request.id,
+					requestType: $scope.request.requestType,
+					pageId: $scope.request.pageId,
+					myLikeValue: $scope.request.myLikeValue,
+					likeCount: $scope.request.originalTotalLikeCount,
+				});
+			};
+
 			$scope.toggleExpand = function() {
-				console.log($scope.request);
 				$scope.expanded = !$scope.expanded;
 				if ($scope.expanded) {
-					arb.analyticsService.reportEventToHeapAndMixpanel('expand explanation request', {
-						id: $scope.request.id,
-						requestType: $scope.request.requestType,
-						pageId: $scope.request.pageId,
-						myLikeValue: $scope.request.myLikeValue,
-						likeCount: $scope.request.originalTotalLikeCount,
-					});
+					reportEvent('expand explanation request');
 				}
 			};
 
@@ -167,6 +170,12 @@ app.directive('arbExplanationRequestRow', function(arb) {
 					arb.signupService.processLikeClick($scope.request, $scope.request.alias, -1);
 				} else {
 					arb.signupService.processLikeClick($scope.request, $scope.request.pageId, -1);
+				}
+			};
+
+			$scope.likeClicked = function(myLikeValue) {
+				if (myLikeValue > 0) {
+					reportEvent('explanation request +1');
 				}
 			};
 		},

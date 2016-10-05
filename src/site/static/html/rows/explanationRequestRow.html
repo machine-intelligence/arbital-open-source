@@ -5,12 +5,14 @@
 				likeable="request"
 				is-button="true"
 				is-plus-one="true"
+				on-like-click="likeClicked"
 				ng-if="request.requestType == 'redLink'"></arb-likes>
 		<arb-likes
 				object-id="{{::request.pageId}}"
 				likeable="request"
 				is-button="true"
 				is-plus-one="true"
+				on-like-click="likeClicked"
 				ng-if="request.requestType != 'redLink'"></arb-likes>
 
 		<span layout="row" layout-align="start center" layout-wrap flex>

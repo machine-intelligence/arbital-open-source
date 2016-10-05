@@ -1,5 +1,5 @@
 <md-button ng-class="{'short-button': !isStretched, 'plus-one-button': isPlusOne, 'on': isPlusOne && likeable.myLikeValue > 0}"
-		ng-click="arb.signupService.processLikeClick(likeable, objectId)"
+		ng-click="likeClicked()"
 		aria-label="Like"
 		ng-if="::!isSpan">
 	<md-icon class="like-icon on"
