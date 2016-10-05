@@ -682,6 +682,11 @@ arb-likes, .likes-in-autocomplete {
 	&.on {
 		background-color: $primary-hue-1;
 	}
+
+	.like-icon {
+		position: relative;
+		top: -1px;
+	}
 }
 
 // Used, in particular, for small likes
@@ -1676,6 +1681,7 @@ arb-likes.tiny {
 		padding-right: 16px;
 		margin-bottom: -3px;
 		padding-bottom: 20px;
+		margin-top: 3px;
 	}
 }
 

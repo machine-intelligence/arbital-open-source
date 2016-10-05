@@ -35,15 +35,15 @@
 
 			<span ng-switch="request.requestType">
 				<span ng-switch-when="redLink">&nbsp;an explanation of&nbsp;</span>
-				<span ng-switch-when="improveStub">&nbsp;an <b>expansion</b> of the stub page&nbsp;</span>
+				<span ng-switch-when="improveStub">&nbsp;someone to <b>add more content</b> to the stub page&nbsp;</span>
 
 				<!-- These requests come from HUB pages -->
-				<span ng-switch-when="teachLooseUnderstanding">&nbsp;a <b>beginner's</b> explanation of&nbsp;</span>
-				<span ng-switch-when="teachBasicUnderstanding">&nbsp;a <b>basic</b> explanation of&nbsp;</span>
-				<span ng-switch-when="teachTechnicalUnderstanding">&nbsp;a <b>technical</b> explanation of&nbsp;</span>
+				<span ng-switch-when="teachLooseUnderstanding">&nbsp;a <b>loose</b> explanation of&nbsp;</span>
+				<span ng-switch-when="teachBasicUnderstanding">&nbsp;a <b>basic level</b> explanation of&nbsp;</span>
+				<span ng-switch-when="teachTechnicalUnderstanding">&nbsp;a <b>technical level</b> explanation of&nbsp;</span>
 				<span ng-switch-when="teachResearchLevelUnderstanding">&nbsp;a <b>research-level</b> explanation of&nbsp;</span>
 
-				<span ng-switch-when="boostLooseUnderstanding">&nbsp;to <b>expand</b> on a <b>beginner's understanding</b> of&nbsp;</span>
+				<span ng-switch-when="boostLooseUnderstanding">&nbsp;to <b>expand</b> on a <b>loose understanding</b> of&nbsp;</span>
 				<span ng-switch-when="boostBasicUnderstanding">&nbsp;to <b>expand</b> on a <b>basic understanding</b> of&nbsp;</span>
 				<span ng-switch-when="boostTechnicalUnderstanding">&nbsp;to <b>expand</b> on a <b>technical understanding</b> of&nbsp;</span>
 				<span ng-switch-when="boostResearchLevelUnderstanding">&nbsp;to <b>expand</b> on a <b>research-level understanding</b> of&nbsp;</span>
@@ -71,7 +71,7 @@
 		</span>
 
 		<!-- Expand button -->
-		<md-button class="md-icon-button s24" ng-click="expanded=!expanded">
+		<md-button class="md-icon-button s24" ng-click="toggleExpand()">
 			<arb-expand-icon expanded="expanded"></arb-expand-icon>
 		</md-button>
 	</div>

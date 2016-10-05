@@ -146,6 +146,21 @@ app.directive('arbExplanationRequestRow', function(arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.editUrl = arb.urlService.getEditPageUrl($scope.alias);
+			$scope.expanded = false;
+
+			$scope.toggleExpand = function() {
+				console.log($scope.request);
+				$scope.expanded = !$scope.expanded;
+				if ($scope.expanded) {
+					arb.analyticsService.reportEventToHeapAndMixpanel('expand explanation request', {
+						id: $scope.request.id,
+						requestType: $scope.request.requestType,
+						pageId: $scope.request.pageId,
+						myLikeValue: $scope.request.myLikeValue,
+						likeCount: $scope.request.originalTotalLikeCount,
+					});
+				}
+			};
 
 			$scope.stopSuggesting = function() {
 				if ($scope.request.requestType == 'redLink') {
