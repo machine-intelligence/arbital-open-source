@@ -173,8 +173,8 @@ app.directive('arbExplanationRequestRow', function(arb) {
 				}
 			};
 
-			$scope.likeClicked = function(myLikeValue) {
-				if (myLikeValue > 0) {
+			$scope.likeClicked = function(result) {
+				if (result.myLikeValue > 0) {
 					reportEvent('explanation request +1');
 				}
 			};
