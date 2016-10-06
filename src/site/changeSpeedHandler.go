@@ -99,16 +99,19 @@ func _loadChangeSpeedPagePairs(db *database.DB, slower bool, pageID string, retu
 		comparison = ">"
 	}
 	queryPart := database.NewQuery(`
-		/* pp2 selects pages that this page teaches */
-		/* pp selects pages that also teach the same subjects but at lower levels */
-		JOIN pagePairs AS pp2
-		ON (pp.parentId=pp2.parentId AND pp.level`+comparison+`pp2.level)
+		/* find pages (pp.childId) that teach one of the same subjects as pageId teaches, but at a lower or higher level */
+		JOIN (
+			SELECT parentId as subjectId, level
+			FROM pagePairs
+			WHERE childId=?`, pageID).Add(`AND type=?`, core.SubjectPagePairType).Add(`AND isStrong
+		) AS subjects
+		ON pp.parentId=subjectId AND pp.level `+comparison+` subjects.level
+			AND pp.type=?`, core.SubjectPagePairType).Add(`AND isStrong
+
+		/* filter for pages the user has access to */
 		JOIN`).AddPart(core.PageInfosTableAll(returnData.User)).Add(`AS pi
-		ON (pi.pageId=pp.childId)
-		WHERE pp.isStrong AND pp2.isStrong
-			AND pp2.childId=?`, pageID).Add(`
-			AND pp2.type=?`, core.SubjectPagePairType).Add(`
-			AND pp.type=?`, core.SubjectPagePairType)
+		ON pi.pageId=pp.childId
+	`)
 	err := core.LoadPagePairs(db, queryPart, func(db *database.DB, pagePair *core.PagePair) error {
 		pagePairs = append(pagePairs, pagePair)
 		core.AddPageIDToMap(pagePair.ChildID, returnData.PageMap)
