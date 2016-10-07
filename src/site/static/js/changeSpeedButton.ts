@@ -35,14 +35,14 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 					for (var i = 0; i<$scope.page.subjects.length; ++i) {
 						var subjectPair = $scope.page.subjects[i];
 
-						$scope.page.slowerAtSameLevelMap[subjectPair.parentId] = [];
-						$scope.page.fasterAtSameLevelMap[subjectPair.parentId] = [];
+						var slowerPages = [];
+						var fasterPages = [];
 
 						for (var j=0; j<$scope.page.slowDownMap[subjectPair.parentId].length; ++j) {
 							var otherPair = $scope.page.slowDownMap[subjectPair.parentId][j];
 							if (otherPair.level == subjectPair.level) {
 								if ($scope.page.pageSpeeds[otherPair.childId] < $scope.page.pageSpeeds[$scope.pageId]) {
-									$scope.page.slowerAtSameLevelMap[subjectPair.parentId].push(otherPair);
+									slowerPages.push(otherPair);
 								}
 							}
 						}
@@ -50,10 +50,13 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 							var otherPair = $scope.page.speedUpMap[subjectPair.parentId][j];
 							if (otherPair.level == subjectPair.level) {
 								if ($scope.page.pageSpeeds[otherPair.childId] > $scope.page.pageSpeeds[$scope.pageId]) {
-									$scope.page.fasterAtSameLevelMap[subjectPair.parentId].push(otherPair);
+									fasterPages.push(otherPair);
 								}
 							}
 						}
+
+						$scope.page.slowerAtSameLevelMap[subjectPair.parentId] = slowerPages;
+						$scope.page.fasterAtSameLevelMap[subjectPair.parentId] = fasterPages;
 					}
 				});
 			}

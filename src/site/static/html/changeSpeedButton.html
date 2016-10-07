@@ -63,12 +63,12 @@
 
 			<!-- Learn a subject at the same level, but a different speed -->
 			<div ng-repeat="(subjectId,pagePairs) in page.slowerAtSameLevelMap" ng-if="::goSlow">
-				<div>
+				<div ng-if="pagePairs.length > 0">
 					For a slower explanation of
 					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
 					see:
 				</div>
-				<ul>
+				<ul ng-if="pagePairs.length > 0">
 					<li ng-repeat="pagePair in pagePairs">
 						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
 						at a {{arb.stateService.getLevelName(pagePair.level)}} level
@@ -76,12 +76,12 @@
 				</ul>
 			</div>
 			<div ng-repeat="(subjectId,pagePairs) in page.fasterAtSameLevelMap" ng-if="::!goSlow">
-				<div>
+				<div ng-if="pagePairs.length > 0">
 					For a quicker explanation of
 					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
 					see:
 				</div>
-				<ul>
+				<ul ng-if="pagePairs.length > 0">
 					<li ng-repeat="pagePair in pagePairs">
 						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
 						at a {{arb.stateService.getLevelName(pagePair.level)}} level
