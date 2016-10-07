@@ -767,6 +767,20 @@ md-toast {
 	width: 100%;
 	overflow-x: auto;
 	// Other parameters are set depending on the screen resolution. See below.
+
+	arb-markdown {
+		* {
+			cursor: url(/static/images/ic_border_color_black_24dp_1x.png) 12 12, auto;
+		}
+
+		a, .markdown-note, button, md-radio-button {
+			cursor: auto;
+
+			* {
+				cursor: auto;
+			}
+		}
+	}
 }
 
 // Class added to move the change speed buttons down to be aligned with the page title
