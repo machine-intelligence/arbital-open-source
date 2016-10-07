@@ -329,7 +329,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 						var highlightClass = 'inline-comment-' + comment.pageId;
 						createInlineCommentHighlight(highlightParams.bestParagraphNode, highlightParams.anchorOffset,
 								highlightParams.anchorOffset + highlightParams.anchorLength, highlightClass);
-	
+
 						// Add to the array of valid inline comments
 						var inlineComment = {
 							paragraphNode: highlightParams.bestParagraphNode,
@@ -711,10 +711,6 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 						arb.popupService.showToast({
 							text: 'Thanks for your feedback!',
 							scope: scope,
-							normalButton: {
-								text: 'Edit',
-								callbackText: 'toastCallback()',
-							},
 						});
 					});
 				};
