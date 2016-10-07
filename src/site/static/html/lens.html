@@ -169,8 +169,9 @@
 					md-direction="down"
 					md-open="isEditorFeedbackFabOpen"
 					ng-mouseenter="toggleEditorFeedbackFab(true)"
+					ng-click="toggleEditorFeedbackFab(true)"
 					ng-mouseleave="toggleEditorFeedbackFab(false)">
-				<!-- <md-fab-trigger ng-if="arb.userService.userIsLoggedIn()">
+				<!-- <md-fab-trigger>
 					<md-button ng-click="newInlineComment()"
 							class="rhs-button md-fab md-mini md-primary md-hue-1"
 							arb-user-check="cool"
@@ -194,14 +195,21 @@
 						Spelling/grammar
 					</md-button>
 					<md-button class="rhs-dropdown-button"
+							ng-click="newEditorMark('confusion')"
+							aria-label="This is confusing">
+						<md-icon>sync_problem</md-icon>
+						This is confusing
+					</md-button>
+					<!-- <md-button class="rhs-dropdown-button"
 							ng-click="newQueryMark()"
 							aria-label="Question/objection">
 						<md-icon md-svg-icon="cursor_pointer"></md-icon>
 						Question/objection
-					</md-button>
+					</md-button> -->
 					<md-button class="rhs-dropdown-button"
 							ng-click="newInlineComment()"
-							aria-label="Comment">
+							aria-label="Comment"
+							arb-user-check="cool">
 						<md-icon>comment</md-icon>
 						Comment
 					</md-button>

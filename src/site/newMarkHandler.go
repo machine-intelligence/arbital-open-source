@@ -32,15 +32,17 @@ type newMarkData struct {
 var newMarkHandler = siteHandler{
 	URI:         "/newMark/",
 	HandlerFunc: newMarkHandlerFunc,
-	Options: pages.PageOptions{
-		RequireLogin: true,
-	},
+	Options:     pages.PageOptions{},
 }
 
 // newMarkHandlerFunc handles requests to create/update a prior like.
 func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
+	if u.ID == "" {
+		u.ID = "76"
+	}
+
 	returnData := core.NewHandlerData(u)
 	now := database.Now()
 
