@@ -269,6 +269,9 @@ type Page struct {
 	SpeedUpMap  map[string][]*PagePair `json:"speedUpMap"`
 	ArcPageIDs  []string               `json:"arcPageIds"`
 
+	// ROGTODO: store this info in a different way
+	PageSpeeds map[string]int `json:"pageSpeeds"`
+
 	// Map from request type to a ContentRequest object for that type.
 	ContentRequests map[string]*ContentRequest `json:"contentRequests"`
 }

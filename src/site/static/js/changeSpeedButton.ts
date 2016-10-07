@@ -28,8 +28,35 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 			if (!$scope.page.slowDownMap || !$scope.page.speedUpMap) {
 				$scope.page.slowDownMap = {};
 				$scope.page.speedUpMap = {};
- 				arb.stateService.postData('/json/changeSpeed/', {pageId: $scope.pageId});
- 			}
+				arb.stateService.postData('/json/changeSpeed/', {pageId: $scope.pageId}, function() {
+					// ROGTODO: seems like I'm duplicating some work between front-end and back-end here. should the slowerAtSameLevelMap and fastAtSameLevelMap be constructed on the back-end?
+					$scope.page.slowerAtSameLevelMap = {};
+					$scope.page.fasterAtSameLevelMap = {};
+					for (var i = 0; i<$scope.page.subjects.length; ++i) {
+						var subjectPair = $scope.page.subjects[i];
+
+						$scope.page.slowerAtSameLevelMap[subjectPair.parentId] = [];
+						$scope.page.fasterAtSameLevelMap[subjectPair.parentId] = [];
+
+						for (var j=0; j<$scope.page.slowDownMap[subjectPair.parentId].length; ++j) {
+							var otherPair = $scope.page.slowDownMap[subjectPair.parentId][j];
+							if (otherPair.level == subjectPair.level) {
+								if ($scope.page.pageSpeeds[otherPair.childId] < $scope.page.pageSpeeds[$scope.pageId]) {
+									$scope.page.slowerAtSameLevelMap[subjectPair.parentId].push(otherPair);
+								}
+							}
+						}
+						for (var j=0; j<$scope.page.speedUpMap[subjectPair.parentId].length; ++j) {
+							var otherPair = $scope.page.speedUpMap[subjectPair.parentId][j];
+							if (otherPair.level == subjectPair.level) {
+								if ($scope.page.pageSpeeds[otherPair.childId] > $scope.page.pageSpeeds[$scope.pageId]) {
+									$scope.page.fasterAtSameLevelMap[subjectPair.parentId].push(otherPair);
+								}
+							}
+						}
+					}
+				});
+			}
 
 			$scope.hasSlowDownMap = function() {
 				return $scope.page.slowDownMap && Object.keys($scope.page.slowDownMap).length > 0;
