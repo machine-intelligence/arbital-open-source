@@ -639,6 +639,17 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		return '4ym'
 	};
 
+	this.getPageSpeed = function(tagIds: string[]): number {
+		if (tagIds.includes('6b4')) {
+			return -1;
+		}
+		if (tagIds.includes('6b5')) {
+			return 1;
+		}
+
+		return 0;
+	};
+
 	// Convert "alias_text" into "Alias text";
 	this.getPrettyAlias = function(alias: string): string {
 		let aliasWithSpaces = alias.replace(/_/g, ' ');

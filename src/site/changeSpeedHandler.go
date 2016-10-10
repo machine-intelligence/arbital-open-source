@@ -54,11 +54,6 @@ func changeSpeedHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't load arcs", err)
 	}
 
-	p.PageSpeeds, err = _loadPageSpeeds(db, data.PageID, slowerPagePairs, fasterPagePairs)
-	if err != nil {
-		return pages.Fail("Error while loading page speeds", err)
-	}
-
 	// Load pages.
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
@@ -134,55 +129,9 @@ func _loadChangeSpeedPagePairs(db *database.DB, slower bool, pageID string, retu
 	`)
 	err := core.LoadPagePairs(db, queryPart, func(db *database.DB, pagePair *core.PagePair) error {
 		pagePairs = append(pagePairs, pagePair)
-		core.AddPageIDToMap(pagePair.ChildID, returnData.PageMap)
+		// Load tags so that we can determine the speed of the page on the front end.
+		core.AddPageToMap(pagePair.ChildID, returnData.PageMap, &core.PageLoadOptions{Tags: true})
 		return nil
 	})
 	return pagePairs, err
-}
-
-// ROGTODO: do this in a more reasonable way
-func _loadPageSpeeds(db *database.DB, pageID string, slowerPagePairs []*core.PagePair, fasterPagePairs []*core.PagePair) (map[string]int, error) {
-	pageSpeeds := make(map[string]int)
-
-	explanationIDs := make([]string, 0)
-
-	explanationIDs = append(explanationIDs, pageID)
-	for _, pagePair := range slowerPagePairs {
-		explanationIDs = append(explanationIDs, pagePair.ChildID)
-	}
-	for _, pagePair := range fasterPagePairs {
-		explanationIDs = append(explanationIDs, pagePair.ChildID)
-	}
-
-	rows := database.NewQuery(`
-		SELECT
-			pageId AS explanationId,
-			COALESCE(
-				(
-					SELECT
-						speed
-					FROM
-						(
-							SELECT
-								childId AS pageId,
-								IF(SUM(parentId='6b4'), -1, IF(SUM(parentId='6b5'), 1, 0)) AS speed
-							FROM pagePairs
-							WHERE type='tag'
-							GROUP BY childId
-						) AS s WHERE s.pageId=pi.pageId
-				), 0
-			) AS speed
-		FROM pageInfos AS pi
-		WHERE pageId IN`).AddArgsGroupStr(explanationIDs).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var explanationID string
-		var speed int
-		err := rows.Scan(&explanationID, &speed)
-		if err != nil {
-			return fmt.Errorf("Failed to scan: %v", err)
-		}
-		pageSpeeds[explanationID] = speed
-		return nil
-	})
-	return pageSpeeds, err
 }
