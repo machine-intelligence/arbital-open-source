@@ -204,7 +204,10 @@ type Page struct {
 	DomainIDs   []string `json:"domainIds"`
 	MarkIDs     []string `json:"markIds"`
 
-	// Requisite sstuff
+	// Explanations pairs for Concept pages
+	Explanations []*PagePair `json:"explanations"`
+
+	// Requisite stuff
 	Requirements []*PagePair `json:"requirements"`
 	Subjects     []*PagePair `json:"subjects"`
 
@@ -290,6 +293,7 @@ func NewPage(pageID string) *Page {
 	p.ChildIDs = make([]string, 0)
 	p.ParentIDs = make([]string, 0)
 	p.MarkIDs = make([]string, 0)
+	p.Explanations = make([]*PagePair, 0)
 	p.TrustMap = make(map[string]*Trust)
 	p.Lenses = make(LensList, 0)
 	p.PathPages = make(Path, 0)
@@ -623,6 +627,15 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	})
 	if err != nil {
 		return fmt.Errorf("LoadChildIds for questions failed: %v", err)
+	}
+
+	// Load explanations
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Explanations })
+	err = LoadExplanations(db, data, &LoadDataOptions{
+		ForPages: filteredPageMap,
+	})
+	if err != nil {
+		return fmt.Errorf("LoadExplanationIds failed: %v", err)
 	}
 
 	// Load children
@@ -2445,6 +2458,35 @@ func LoadAliasToPageID(db *database.DB, u *CurrentUser, alias string) (string, b
 	}
 	pageID, ok := aliasToIDMap[strings.ToLower(alias)]
 	return pageID, ok, nil
+}
+
+// Load all explanations for the given pages
+func LoadExplanations(db *database.DB, resultData *CommonHandlerData, options *LoadDataOptions) error {
+	sourcePageMap := options.ForPages
+	if len(sourcePageMap) <= 0 {
+		return nil
+	}
+
+	explanationLoadOptions := (&PageLoadOptions{
+		Tags: true,
+	}).Add(IntrasitePopoverLoadOptions)
+
+	pageIDs := PageIDsListFromMap(sourcePageMap)
+	queryPart := database.NewQuery(`
+		JOIN`).AddPart(PageInfosTable(resultData.User)).Add(`AS pi
+		ON (pp.childId=pi.pageId)`).Add(`
+		WHERE pp.parentId IN`).AddArgsGroup(pageIDs).Add(`
+			AND pp.type=?`, SubjectPagePairType).Add(`
+			AND pp.isStrong`)
+	err := LoadPagePairs(db, queryPart, func(db *database.DB, pp *PagePair) error {
+		sourcePageMap[pp.ParentID].Explanations = append(sourcePageMap[pp.ParentID].Explanations, pp)
+		AddPageToMap(pp.ChildID, resultData.PageMap, explanationLoadOptions)
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("Couldn't load explanations: %v", err)
+	}
+	return nil
 }
 
 type ProcessLensCallback func(db *database.DB, lens *Lens) error

@@ -12,8 +12,9 @@ import (
 // Keep in mind that we check each option only once for all pages.
 type PageLoadOptions struct {
 	// Load options for subpages
-	Comments  bool
-	Questions bool
+	Comments     bool
+	Questions    bool
+	Explanations bool
 
 	// Load options for titlePlus pages
 	Children                bool
@@ -80,6 +81,7 @@ var (
 	// Options for loading the primary page
 	PrimaryPageLoadOptions = (&PageLoadOptions{
 		Questions:       true,
+		Explanations:    true,
 		Children:        true,
 		Parents:         true,
 		Tags:            true,

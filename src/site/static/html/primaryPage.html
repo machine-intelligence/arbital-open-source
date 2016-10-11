@@ -3,5 +3,73 @@
 	<!-- The primary page -->
 	<div arb-page page-id="{{::arb.stateService.primaryPage.pageId}}"></div>
 
+	<!-- The explanations for a concept -->
+	<div ng-if="arb.stateService.primaryPage.isConcept()">
+		<h1>Explanations ({{page.explanations.length}})</h1>
+
+		<!-- Explanation panels -->
+		<div class="explanation-panel lens-text-container md-whiteframe-1dp"
+				ng-repeat="explanation in ::page.explanations">
+			<!-- Explanation panel header -->
+			<div layout="row" layout-align="start center">
+				<div flex>
+					<arb-likes object-id="{{::explanation.childId}}" is-button="true"></arb-likes>
+					<a ng-href="{{arb.urlService.getPageUrl(explanation.childId)}}" class="black-link">
+						<arb-page-title page-id="{{::explanation.childId}}"></arb-page-title>
+					</a>
+				</div>
+				<div layout="column" layout-align="start end">
+					<div class="md-caption">{{::page.textLength | numSuffix}} characters</div>
+					<div class="md-caption">
+						Level: {{arb.stateService.getLevelName(1)}}
+					</div>
+					<div class="md-caption">
+						Explanation speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[explanation.childId].tagIds)}}
+					</div>
+				</div>
+			</div>
+			<hr>
+
+			<!-- Summary content -->
+			<div arb-markdown page-id="{{::explanation.childId}}"	summary-name="Explanation"></div>
+			<div class="read-explanation-div" layout="row" layout-align="end start">
+				<md-button ng-href="{{arb.urlService.getPageUrl(explanation.childId)}}"
+						class="md-primary md-raised">
+					Read this explanation
+					<md-icon>chevron_right</md-icon>
+				</md-button>
+			</div>
+		</div>
+
+		<!-- Request an explanation -->
+		<div class="explanation-panel lens-text-container md-whiteframe-1dp">
+			<h2>Request an explanation</h2>
+			Can't find an explanation that works for you? You can:
+			<div layout="row" layout-align="start center" ng-if="!requestSubmitted">
+				<div>
+					Request a
+					<md-input-container class="inline-md-select no-margins">
+						<md-select ng-model="explanationRequest.speed" aria-label="speed">
+							<md-option ng-repeat="(key,value) in ::speedOptions" value="{{::key}}" ng-bind="::value"></md-option>
+						</md-select>
+					</md-input-container>
+					explanation that teaches {{page.title}} at
+					<md-input-container class="inline-md-select no-margins">
+						<md-select ng-model="explanationRequest.level" aria-label="level">
+							<md-option ng-repeat="(key,value) in ::levelOptions" value="{{::key}}" ng-bind="::value"></md-option>
+						</md-select>
+					</md-input-container>
+				</div>
+				<md-button ng-click="submitRequest()" class="md-primary">
+					Submit
+				</md-button>
+			</div>
+			<div ng-if="requestSubmitted">
+				<i>Thanks for making the request! We'll show it to our authors, and will notify you when the requested explanation is available.</i>
+			</div>
+		</div>
+
+	</div>
+
 	<div ng-include="arb.versionUrl('static/html/footer.html')" ng-if="::!noFooter"></div>
 </div>

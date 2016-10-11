@@ -92,6 +92,9 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		isUser: function() {
 			return this.pageId in userService.userMap;
 		},
+		isConcept: function() {
+			return this.tagIds.indexOf('6cc') >= 0;
+		},
 		// Return number of domainSubmissions values
 		domainSubmissionsCount: function() {
 			return Object.keys(this.domainSubmissions).length;
@@ -637,6 +640,18 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		}
 
 		return '4ym'
+	};
+
+	// Return the name of the speed
+	this.getPageSpeedName = function(tagIds: string[]): string {
+		if (tagIds.includes('6b4')) {
+			return 'low';
+		}
+		if (tagIds.includes('6b5')) {
+			return 'fast';
+		}
+
+		return 'normal';
 	};
 
 	this.getPageSpeed = function(tagIds: string[]): number {

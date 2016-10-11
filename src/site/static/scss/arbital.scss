@@ -333,7 +333,7 @@ arb-update-row,
 }
 
 .after-page-container {
-	margin: 20px 0;
+	//margin: 20px 0;
 }
 
 // Container for a list of tags/parents
@@ -557,6 +557,12 @@ a:not(.md-button) {
 			}
 		}
 	}
+}
+
+.black-link {
+	$color: #000000;
+	color: $color !important;
+	font-weight: 500;
 }
 
 .support-visited-links {
@@ -1971,4 +1977,14 @@ arb-path-nav, [arb-path-nav] {
 .helper-icon {
 	font-size: 18px;
 	opacity: 0.6;
+}
+
+.explanation-panel {
+	width: initial;
+	margin-top: 10px;
+	margin-bottom: 50px;
+}
+
+.read-explanation-div {
+	margin-top: 20px;
 }

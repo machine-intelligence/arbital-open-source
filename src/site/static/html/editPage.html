@@ -444,7 +444,8 @@
 			</md-tab>
 
 			<!-- (3) Settings tab -->
-			<md-tab label="Settings" ng-disabled="::!arb.userService.user.isAdmin && (page.isComment() || page.isGroup() || page.isDomain())">
+			<md-tab label="Settings"
+					ng-disabled="::!arb.userService.user.isAdmin && (page.isComment() || page.isGroup() || page.isDomain())">
 				<div layout="column" flex>
 					<md-content class="editor-tab" flex>
 						<div ng-if="::!showAdvancedMode()">

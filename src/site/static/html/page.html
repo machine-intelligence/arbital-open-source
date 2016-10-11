@@ -90,7 +90,7 @@
 					layout-xs="column"
 					layout-align="start end"
 					layout-align-xs="start start"
-					ng-if="::lenses.length > 1">
+					ng-if="::lenses.length > 1 && !page.isConcept()">
 				<div class="page-tabs-header" layout="column" layout-align="center center">
 					<div ng-bind="page.title"></div>
 				</div>
@@ -194,14 +194,6 @@
 								type="tag"
 								force-edit-mode="true"></div>
 					</div>
-
-					<!-- Join slack invite for non-logged in users -->
-					<div layout-padding>
-						<div>
-							Want to discuss this page or talk to other authors?
-							<arb-slack-button></arb-slack-button>
-						</div>
-					</div>
 				</div>
 			</div>
 		</div>
@@ -242,7 +234,7 @@
 		</div>
 
 		<!-- Learn more section -->
-		<div class="after-page-container md-whiteframe-1dp">
+		<div class="after-page-container md-whiteframe-1dp" ng-if="!page.isConcept()">
 			<arb-learn-more ng-repeat="lens in ::lenses"
 					class="reveal-after-render"
 					page-id="{{::lens.lensId}}"
@@ -250,7 +242,7 @@
 		</div>
 
 		<!-- Discussion section -->
-		<div class="after-page-container" ng-if="arb.userService.userIsLoggedIn()">
+		<div class="after-page-container" ng-if="arb.userService.userIsLoggedIn() && !page.isConcept()">
 			<arb-page-discussion ng-repeat="lens in ::lenses"
 					class="reveal-after-render"
 					page-id="{{::lens.lensId}}"

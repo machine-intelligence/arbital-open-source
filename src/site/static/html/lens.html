@@ -31,7 +31,7 @@
 	<div layout="row">
 		<arb-change-speed-button page-id="{{::page.pageId}}"
 				go-slow="::true"
-				ng-if="::!isHub()"></arb-change-speed-button>
+				ng-if="::!isHub() && !page.isConcept()"></arb-change-speed-button>
 		<div class="lens-text-container">
 
 			<!-- Page title -->
@@ -149,7 +149,7 @@
 		</div>
 		<arb-change-speed-button page-id="{{::page.pageId}}"
 				go-slow="::false"
-				ng-if="::!isHub()"></arb-change-speed-button>
+				ng-if="::!isHub() && !page.isConcept()"></arb-change-speed-button>
 	</div>
 
 	<!-- Action bar -->
