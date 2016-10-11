@@ -25,7 +25,7 @@ app.directive('arbPrimaryPage', function($compile, $location, $timeout, arb) {
 			};
 			$scope.speedOptions = {
 				'0': 'normal speed',
-				'1': 'fast speed',
+				'1': 'high speed',
 				'-1': 'low speed',
 			};
 			$scope.levelOptions = {

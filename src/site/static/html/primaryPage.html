@@ -21,7 +21,7 @@
 				<div layout="column" layout-align="start end">
 					<div class="md-caption">{{::page.textLength | numSuffix}} characters</div>
 					<div class="md-caption">
-						Level: {{arb.stateService.getLevelName(1)}}
+						Level: {{arb.stateService.getLevelName(explanation.level)}}
 					</div>
 					<div class="md-caption">
 						Explanation speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[explanation.childId].tagIds)}}
@@ -53,7 +53,7 @@
 							<md-option ng-repeat="(key,value) in ::speedOptions" value="{{::key}}" ng-bind="::value"></md-option>
 						</md-select>
 					</md-input-container>
-					explanation that teaches {{page.title}} at
+					explanation that teaches <strong>{{page.title}}<strong> at
 					<md-input-container class="inline-md-select no-margins">
 						<md-select ng-model="explanationRequest.level" aria-label="level">
 							<md-option ng-repeat="(key,value) in ::levelOptions" value="{{::key}}" ng-bind="::value"></md-option>

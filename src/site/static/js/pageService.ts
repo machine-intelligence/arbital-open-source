@@ -648,7 +648,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 			return 'low';
 		}
 		if (tagIds.includes('6b5')) {
-			return 'fast';
+			return 'high';
 		}
 
 		return 'normal';
