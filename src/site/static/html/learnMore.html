@@ -15,7 +15,7 @@
 			This page is marked as teaching
 			<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
 			<span class="comma">.</span>
-			Read a page that expands on that concept:
+			You can read a page that expands on that concept:
 			<ul class="no-top-margin">
 				<li ng-repeat="pageId in pageIds">
 					<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
@@ -28,7 +28,7 @@
 			This page is marked as teaching
 			<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
 			<span class="comma">.<span>
-			Read a page that relies on that concept:
+			You can read a page that relies on that concept:
 			<ul class="no-top-margin">
 				<li ng-repeat="pageId in pageIds">
 					<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
@@ -38,10 +38,10 @@
 
 		<!-- Covered -->
 		<div ng-repeat="(subjectId,pageIds) in page.learnMoreCoveredMap">
-			This page is marked as covering
+			This page is marked as expanding on
 			<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
 			<span class="comma">.<span>
-			Read a page that expands on that concept:
+			You can read another page that expands on that concept:
 			<ul class="no-top-margin">
 				<li ng-repeat="pageId in pageIds">
 					<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>

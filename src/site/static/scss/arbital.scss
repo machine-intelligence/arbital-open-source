@@ -333,7 +333,6 @@ arb-update-row,
 }
 
 .after-page-container {
-	//margin: 20px 0;
 }
 
 // Container for a list of tags/parents
@@ -1982,9 +1981,14 @@ arb-path-nav, [arb-path-nav] {
 .explanation-panel {
 	width: initial;
 	margin-top: 10px;
-	margin-bottom: 50px;
-}
+	margin-bottom: 10px;
 
-.read-explanation-div {
-	margin-top: 20px;
+	.explanation-panel-info {
+		opacity: 1;
+	}
+
+	.explanation-hr {
+		border-top-style: solid;
+		opacity: 0.2;
+	}
 }

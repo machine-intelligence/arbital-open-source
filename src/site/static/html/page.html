@@ -125,7 +125,7 @@
 					<div class="md-whiteframe-1dp page-lens-body">
 						<!-- How to make this page better box -->
 						<div arb-page-improvement page="selectedLens"
-								ng-if="selectedLens && selectedLens.isInDomain('1lw')"></div>
+								ng-if="selectedLens && selectedLens.isInDomain('1lw') && !selectedLens.isConcept()"></div>
 
 						<div ng-style="{'min-height': 500}"
 								layout="column"

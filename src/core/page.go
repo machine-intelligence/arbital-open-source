@@ -204,8 +204,9 @@ type Page struct {
 	DomainIDs   []string `json:"domainIds"`
 	MarkIDs     []string `json:"markIds"`
 
-	// Explanations pairs for Concept pages
+	// Page pairs for Concept pages
 	Explanations []*PagePair `json:"explanations"`
+	LearnMore    []*PagePair `json:"learnMore"`
 
 	// Requisite stuff
 	Requirements []*PagePair `json:"requirements"`
@@ -294,6 +295,7 @@ func NewPage(pageID string) *Page {
 	p.ParentIDs = make([]string, 0)
 	p.MarkIDs = make([]string, 0)
 	p.Explanations = make([]*PagePair, 0)
+	p.LearnMore = make([]*PagePair, 0)
 	p.TrustMap = make(map[string]*Trust)
 	p.Lenses = make(LensList, 0)
 	p.PathPages = make(Path, 0)
@@ -2476,10 +2478,13 @@ func LoadExplanations(db *database.DB, resultData *CommonHandlerData, options *L
 		JOIN`).AddPart(PageInfosTable(resultData.User)).Add(`AS pi
 		ON (pp.childId=pi.pageId)`).Add(`
 		WHERE pp.parentId IN`).AddArgsGroup(pageIDs).Add(`
-			AND pp.type=?`, SubjectPagePairType).Add(`
-			AND pp.isStrong`)
+			AND pp.type=?`, SubjectPagePairType)
 	err := LoadPagePairs(db, queryPart, func(db *database.DB, pp *PagePair) error {
-		sourcePageMap[pp.ParentID].Explanations = append(sourcePageMap[pp.ParentID].Explanations, pp)
+		if pp.IsStrong {
+			sourcePageMap[pp.ParentID].Explanations = append(sourcePageMap[pp.ParentID].Explanations, pp)
+		} else {
+			sourcePageMap[pp.ParentID].LearnMore = append(sourcePageMap[pp.ParentID].LearnMore, pp)
+		}
 		AddPageToMap(pp.ChildID, resultData.PageMap, explanationLoadOptions)
 		return nil
 	})

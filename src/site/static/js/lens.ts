@@ -54,6 +54,45 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 
 			$scope.qualityTag = arb.pageService.getQualityTag($scope.page.tagIds)
 
+			// Explanation request
+			$scope.page.explanations.sort(function(a,b) {
+				return arb.stateService.pageMap[b.childId].likeScore() - arb.stateService.pageMap[a.childId].likeScore();
+			});
+			$scope.explanationRequest = {
+				speed: '0',
+				level: 2,
+			};
+			$scope.speedOptions = {
+				'0': 'normal speed',
+				'1': 'high speed',
+				'-1': 'low speed',
+			};
+			$scope.levelOptions = {
+				1: arb.stateService.getLevelName(1) + ' level',
+				2: arb.stateService.getLevelName(2) + ' level',
+				3: arb.stateService.getLevelName(3) + ' level',
+				4: arb.stateService.getLevelName(4) + ' level',
+			};
+			$scope.getRequestName = function(level) {
+				switch (+level) {
+					case 0:
+						return 'NoUnderstanding';
+					case 1:
+						return 'LooseUnderstanding';
+					case 2:
+						return 'BasicUnderstanding';
+					case 3:
+						return 'TechnicalUnderstanding';
+					case 4:
+						return 'ResearchLevelUnderstanding';
+				}
+			};
+			$scope.requestSubmitted = false;
+			$scope.submitRequest = function() {
+				var requestKey = 'teach' + $scope.getRequestName($scope.explanationRequest.level + 1);
+				arb.signupService.submitContentRequest(requestKey, $scope.page);
+				$scope.requestSubmitted = true;
+			};
 
 			// Compute how many visible comments there are.
 			$scope.visibleCommentCount = function() {
