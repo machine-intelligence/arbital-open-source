@@ -71,7 +71,8 @@
 				<ul ng-if="pagePairs.length > 0">
 					<li ng-repeat="pagePair in pagePairs">
 						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
-						at a {{arb.stateService.getLevelName(pagePair.level)}} level
+						(Level: {{arb.stateService.getLevelName(pagePair.level)}} |
+						Speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[pagePair.childId].tagIds)}})
 					</li>
 				</ul>
 			</div>
@@ -84,45 +85,48 @@
 				<ul ng-if="pagePairs.length > 0">
 					<li ng-repeat="pagePair in pagePairs">
 						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
-						at a {{arb.stateService.getLevelName(pagePair.level)}} level
+						(Level: {{arb.stateService.getLevelName(pagePair.level)}} |
+						Speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[pagePair.childId].tagIds)}})
 					</li>
 				</ul>
 			</div>
 
 
 			<!-- Learn a subject at an easier level -->
-			<div ng-repeat="(subjectId,pagePairs) in page.slowDownMap" ng-if="::goSlow">
-				<div>
-					You can read a page that teaches
+			<div ng-repeat="(subjectId,pagePairs) in page.lowerLevelMap" ng-if="::goSlow">
+				<div ng-if="pagePairs.length > 0">
+					For a less technical explanation of
 					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-					at a less technical level:
+					see:
 				</div>
 				<ul>
 					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
 						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
-						at a {{arb.stateService.getLevelName(pagePair.level)}} level
+						(Level: {{arb.stateService.getLevelName(pagePair.level)}} |
+						Speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[pagePair.childId].tagIds)}})
 					</li>
 				</ul>
 			</div>
 
 			<!-- Learn a subject at a harder level -->
-			<div ng-repeat="(subjectId,pagePairs) in page.speedUpMap" ng-if="::!goSlow">
-				<div>
-					You can read a page that teaches
+			<div ng-repeat="(subjectId,pagePairs) in page.higherLevelMap" ng-if="::!goSlow">
+				<div ng-if="pagePairs.length > 0">
+					For a more technical explanation of
 					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-					at a more technical level:
+					see:
 				</div>
 				<ul>
 					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
 						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
-						at a {{arb.stateService.getLevelName(pagePair.level)}} level
+						(Level: {{arb.stateService.getLevelName(pagePair.level)}} |
+						Speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[pagePair.childId].tagIds)}})
 					</li>
 				</ul>
 			</div>
 
-			<!-- Learn a subject at an easier level -->
+			<!-- Visit the concepts taught by this page -->
 			<div ng-if="::pageSubjectsExceptItself.length > 0 && !goSlow">
-				This page tries to teach the following concepts. You can read about them directly.
+				This page tries to teach the following concepts. You can visit their pages to read more about them.
 				<ul>
 					<li ng-repeat="subject in pageSubjectsExceptItself | orderBy: ['-level']">
 						<arb-page-title page-id="{{::subject.parentId}}"
@@ -131,7 +135,6 @@
 						<span ng-if="subject.parentId == pageId">
 							Itself
 						</span>
-						at a {{arb.stateService.getLevelName(subject.level)}} level
 					</li>
 				</ul>
 			</div>
@@ -141,7 +144,7 @@
 
 			<!-- Learn one of the requirements -->
 			<div ng-if="pageRequirements.length > 0 && goSlow">
-				This page likely relies on the following concepts. You can read about them first.
+				This page likely relies on the following concepts. You may want to read about them first.
 				<ul>
 					<li ng-repeat="requirement in pageRequirements | orderBy: ['-isStrong', '-level']">
 						<span ng-if="!requirement.isStrong">(Optional)</span>
@@ -151,7 +154,6 @@
 						<span ng-if="requirement.parentId == pageId">
 							Itself
 						</span>
-						at a {{arb.stateService.getLevelName(requirement.level)}} level
 					</li>
 				</ul>
 			</div>

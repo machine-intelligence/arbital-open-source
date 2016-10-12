@@ -31,42 +31,62 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 				arb.stateService.postData('/json/changeSpeed/', {pageId: $scope.pageId}, function() {
 
 					$scope.page.slowerAtSameLevelMap = {};
+					$scope.page.lowerLevelMap = {};
+
 					$scope.page.fasterAtSameLevelMap = {};
+					$scope.page.higherLevelMap = {};
 
-					for (var i = 0; i<$scope.page.subjects.length; ++i) {
-						var subjectPair = $scope.page.subjects[i];
+					for (let i = 0; i<$scope.page.subjects.length; ++i) {
+						let subjectPair = $scope.page.subjects[i];
+						let currentPageSpeed = arb.pageService.getPageSpeed($scope.page.tagIds);
 
-						var currentPageSpeed = arb.pageService.getPageSpeed($scope.page.tagIds);
+						// Find pages that teach the same subject at the same level, but slower, or at a lower level.
+						let slowerOrLowerPages = $scope.page.slowDownMap[subjectPair.parentId];
+						if (slowerOrLowerPages) {
+							let slowerPagesAtSameLevel = [];
+							let lowerLevelPages = [];
+							for (let j=0; j<slowerOrLowerPages.length; ++j) {
+								let otherPair = $scope.page.slowDownMap[subjectPair.parentId][j];
 
-						// Find pages that teach the same subject at the same level, but slower.
-						var slowerPagesAtSameLevel = [];
-						for (var j=0; j<$scope.page.slowDownMap[subjectPair.parentId].length; ++j) {
-							var otherPair = $scope.page.slowDownMap[subjectPair.parentId][j];
+								if (otherPair.level == subjectPair.level) {
+									let otherTeacher = arb.stateService.pageMap[otherPair.childId];
+									let otherTeacherSpeed = arb.pageService.getPageSpeed(otherTeacher.tagIds);
 
-							if (otherPair.level == subjectPair.level) {
-								var otherTeacher = arb.stateService.pageMap[otherPair.childId];
-								var otherTeacherSpeed = arb.pageService.getPageSpeed(otherTeacher.tagIds);
-								if (otherTeacherSpeed < currentPageSpeed) {
-									slowerPagesAtSameLevel.push(otherPair);
+									if (otherTeacherSpeed < currentPageSpeed) {
+										slowerPagesAtSameLevel.push(otherPair);
+									}
+								}
+								if (otherPair.level < subjectPair.level) {
+									lowerLevelPages.push(otherPair);
 								}
 							}
+							$scope.page.slowerAtSameLevelMap[subjectPair.parentId] = slowerPagesAtSameLevel;
+							$scope.page.lowerLevelMap[subjectPair.parentId] = lowerLevelPages;
 						}
-						$scope.page.slowerAtSameLevelMap[subjectPair.parentId] = slowerPagesAtSameLevel;
 
-						// Find pages that teach the same subject at the same level, but faster.
-						var fasterPagesAtSameLevel = [];
-						for (var j=0; j<$scope.page.speedUpMap[subjectPair.parentId].length; ++j) {
-							var otherPair = $scope.page.speedUpMap[subjectPair.parentId][j];
+						// Find pages that teach the same subject at the same level, but faster, or at a higher level.
+						let fasterOrHigherPages = $scope.page.speedUpMap[subjectPair.parentId];
+						if (fasterOrHigherPages) {
+							let fasterPagesAtSameLevel = [];
+							let higherLevelPages = [];
+							for (let j=0; j<fasterOrHigherPages.length; ++j) {
+								let otherPair = $scope.page.speedUpMap[subjectPair.parentId][j];
 
-							if (otherPair.level == subjectPair.level) {
-								var otherTeacher = arb.stateService.pageMap[otherPair.childId];
-								var otherTeacherSpeed = arb.pageService.getPageSpeed(otherTeacher.tagIds);
-								if (otherTeacherSpeed > currentPageSpeed) {
-									fasterPagesAtSameLevel.push(otherPair);
+								if (otherPair.level == subjectPair.level) {
+									let otherTeacher = arb.stateService.pageMap[otherPair.childId];
+									let otherTeacherSpeed = arb.pageService.getPageSpeed(otherTeacher.tagIds);
+
+									if (otherTeacherSpeed > currentPageSpeed) {
+										fasterPagesAtSameLevel.push(otherPair);
+									}
+								}
+								if (otherPair.level > subjectPair.level) {
+									higherLevelPages.push(otherPair);
 								}
 							}
+							$scope.page.fasterAtSameLevelMap[subjectPair.parentId] = fasterPagesAtSameLevel;
+							$scope.page.higherLevelMap[subjectPair.parentId] = higherLevelPages;
 						}
-						$scope.page.fasterAtSameLevelMap[subjectPair.parentId] = fasterPagesAtSameLevel;
 					}
 
 				});
