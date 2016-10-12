@@ -47,6 +47,12 @@
 				</div>
 				<span class="md-caption">{{result.page.clickbait}}</span>
 			</div>
+			<div class="chip" ng-if="result.page.isConcept()">
+				<md-tooltip>This is a learnable concept</md-tooltip>
+
+				<md-icon class="no-margins">lightbulb_outline</md-icon>
+				<span>Concept</span>
+			</div>
 		</div>
 	</md-item-template>
 	<md-not-found>

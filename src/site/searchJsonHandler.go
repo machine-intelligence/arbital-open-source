@@ -200,17 +200,18 @@ func searchJSONInternalHandler(params *pages.HandlerParams, query string) *pages
 	}
 
 	// Adjust results' scores
-	penaltyMap := map[string]float32{
+	tag2MultiplierMap := map[string]float32{
 		"22t": 0.75, // Just a requisite
 		"15r": 0.85, // Out of date
 		"4v":  0.75, // Work in progress
 		"72":  0.65, // Stub
+		"6cc": 2.0,  // Concept
 	}
 	for _, hit := range results.Hits.Hits {
 		if page, ok := returnData.PageMap[hit.Source.PageID]; ok {
 			// Adjust the score based on tags
 			for _, tagID := range page.TagIDs {
-				if penalty, ok := penaltyMap[tagID]; ok {
+				if penalty, ok := tag2MultiplierMap[tagID]; ok {
 					hit.Score *= penalty
 				}
 			}
