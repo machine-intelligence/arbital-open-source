@@ -155,40 +155,45 @@
 	<!-- The explanations for a concept -->
 	<div layout="row">
 		<div class="lens-text-container" ng-if="page.isConcept()">
-			<div class="page-title md-display-3" ng-class="::{'center-text': isTinyScreen}">
-				Explanations ({{page.explanations.length}})
-			</div>
-			<hr class="page-title-hr"></hr>
-	
+
 			<!-- Explanation panels -->
-			<div class="explanation-panel"
-					ng-repeat="explanation in ::page.explanations">
-				<hr class="explanation-hr" ng-if="::!$first"></hr>
-				<!-- Explanation panel header -->
-				<div>
-					<div layout="row" layout-align="start center" flex>
-						<arb-likes object-id="{{::explanation.childId}}" is-button="true"></arb-likes>
-						<div flex>
-							<div arb-page-title page-id="{{::explanation.childId}}" show-clickbait="true" is-link="true"></div>
-							<div class="explanation-panel-info md-caption">
-								{{::arb.stateService.pageMap[explanation.childId].textLength | numSuffix}} characters
-								&nbsp;&nbsp;|&nbsp;&nbsp;
-								Level: {{arb.stateService.getLevelName(explanation.level)}}
-								&nbsp;&nbsp;|&nbsp;&nbsp;
-								Explanation speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[explanation.childId].tagIds)}}
+			<div>
+				<div class="page-title md-display-2" ng-class="::{'center-text': isTinyScreen}">
+					Explanations ({{page.explanations.length}})
+				</div>
+				<hr class="page-title-hr"></hr>
+
+				<div class="explanation-panel"
+						ng-repeat="explanation in ::page.explanations">
+					<hr class="explanation-hr" ng-if="::!$first"></hr>
+					<!-- Explanation panel header -->
+					<div>
+						<div layout="row" layout-align="start center" flex>
+							<arb-likes object-id="{{::explanation.childId}}" is-button="true"></arb-likes>
+							<div flex>
+								<div arb-page-title page-id="{{::explanation.childId}}" show-clickbait="true" is-link="true"></div>
+								<div class="explanation-panel-info md-caption">
+									Level: {{arb.stateService.getLevelName(explanation.level)}}
+									&nbsp;&nbsp;|&nbsp;&nbsp;
+									Explanation speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[explanation.childId].tagIds)}}
+									&nbsp;&nbsp;|&nbsp;&nbsp;
+									{{::arb.stateService.pageMap[explanation.childId].textLength | numSuffix}} characters
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-	
+			<br>
+			<br>
+
 			<!-- Request an explanation -->
-			<div class="explanation-panel">
-				<div class="page-title md-display-3" ng-class="::{'center-text': isTinyScreen}">
+			<div>
+				<div class="page-title md-display-2" ng-class="::{'center-text': isTinyScreen}">
 					Request an explanation
 				</div>
 				<hr class="page-title-hr"></hr>
-				Can't find an explanation that works for you? You can:
+				<i>Can't find an explanation that works for you? You can:</i>
 				<div layout="row" layout-align="start center" ng-if="!requestSubmitted">
 					<div>
 						Request a
@@ -197,7 +202,7 @@
 								<md-option ng-repeat="(key,value) in ::speedOptions" value="{{::key}}" ng-bind="::value"></md-option>
 							</md-select>
 						</md-input-container>
-						explanation that teaches <strong>{{page.title}}</strong> at
+						explanation that teaches <strong>{{page.title}}</strong> at a
 						<md-input-container class="inline-md-select no-margins">
 							<md-select ng-model="explanationRequest.level" aria-label="level">
 								<md-option ng-repeat="(key,value) in ::levelOptions" value="{{::key}}" ng-bind="::value"></md-option>
@@ -212,42 +217,33 @@
 					<i>Thanks for making the request! We'll show it to our authors, and will notify you when the requested explanation is available.</i>
 				</div>
 			</div>
-	
+			<br>
+			<br>
+
 			<!-- Learn more -->
-			<div class="explanation-panel">
-				<div class="page-title md-display-3" ng-class="::{'center-text': isTinyScreen}">
+			<div>
+				<div class="page-title md-display-2" ng-class="::{'center-text': isTinyScreen}">
 					Learn more
 				</div>
 				<hr class="page-title-hr"></hr>
 				<div class="explanation-panel"
 						ng-repeat="explanation in ::page.learnMore">
+					<hr class="explanation-hr" ng-if="::!$first"></hr>
 					<!-- Explanation panel header -->
-					<div layout="row" layout-align="start center">
-						<div flex>
+					<div>
+						<div layout="row" layout-align="start center" flex>
 							<arb-likes object-id="{{::explanation.childId}}" is-button="true"></arb-likes>
-							<a ng-href="{{arb.urlService.getPageUrl(explanation.childId)}}" class="black-link">
-								<arb-page-title page-id="{{::explanation.childId}}"></arb-page-title>
-							</a>
-						</div>
-						<div layout="column" layout-align="start end">
-							<div class="md-caption">
-								{{::arb.stateService.pageMap[explanation.childId].textLength | numSuffix}} characters
-							</div>
-							<div class="md-caption">
-								Level: {{arb.stateService.getLevelName(explanation.level)}}
-							</div>
-							<div class="md-caption">
-								Explanation speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[explanation.childId].tagIds)}}
+							<div flex>
+								<div arb-page-title page-id="{{::explanation.childId}}" show-clickbait="true" is-link="true"></div>
+								<div class="explanation-panel-info md-caption">
+									Level: {{arb.stateService.getLevelName(explanation.level)}}
+									&nbsp;&nbsp;|&nbsp;&nbsp;
+									Explanation speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[explanation.childId].tagIds)}}
+									&nbsp;&nbsp;|&nbsp;&nbsp;
+									{{::arb.stateService.pageMap[explanation.childId].textLength | numSuffix}} characters
+								</div>
 							</div>
 						</div>
-					</div>
-	
-					<div class="read-explanation-div" layout="row" layout-align="start start">
-						<md-button ng-href="{{arb.urlService.getPageUrl(explanation.childId)}}"
-								class="md-primary md-raised">
-							Read this explanation
-							<md-icon>chevron_right</md-icon>
-						</md-button>
 					</div>
 				</div>
 			</div>
