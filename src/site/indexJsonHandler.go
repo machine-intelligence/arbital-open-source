@@ -19,27 +19,29 @@ func indexJSONHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	returnData := core.NewHandlerData(u).SetResetEverything()
 
-	// Load what paths the user is on
-	queryPart := database.NewQuery(`WHERE pathi.userId=?`, u.ID)
-	err := core.LoadPathInstances(db, queryPart, u, func(db *database.DB, pathInstance *core.PathInstance) error {
-		if pathInstance.GuideID == "3wj" {
-			// Log guide
-			if u.ContinueLogPath == nil || u.ContinueLogPath.Progress < pathInstance.Progress {
-				u.ContinueLogPath = pathInstance
+	if u.ID != "" {
+		// Load what paths the user is on
+		queryPart := database.NewQuery(`WHERE pathi.userId=?`, u.ID)
+		err := core.LoadPathInstances(db, queryPart, u, func(db *database.DB, pathInstance *core.PathInstance) error {
+			if pathInstance.GuideID == "3wj" {
+				// Log guide
+				if u.ContinueLogPath == nil || u.ContinueLogPath.Progress < pathInstance.Progress {
+					u.ContinueLogPath = pathInstance
+				}
+			} else if pathInstance.GuideID == "61b" ||
+				pathInstance.GuideID == "62c" ||
+				pathInstance.GuideID == "62d" ||
+				pathInstance.GuideID == "62f" {
+				// Bayes guide
+				if u.ContinueBayesPath == nil || u.ContinueBayesPath.Progress < pathInstance.Progress {
+					u.ContinueBayesPath = pathInstance
+				}
 			}
-		} else if pathInstance.GuideID == "61b" ||
-			pathInstance.GuideID == "62c" ||
-			pathInstance.GuideID == "62d" ||
-			pathInstance.GuideID == "62f" {
-			// Bayes guide
-			if u.ContinueBayesPath == nil || u.ContinueBayesPath.Progress < pathInstance.Progress {
-				u.ContinueBayesPath = pathInstance
-			}
+			return nil
+		})
+		if err != nil {
+			return pages.Fail("Couldn't load path instances", err)
 		}
-		return nil
-	})
-	if err != nil {
-		return pages.Fail("Couldn't load path instances", err)
 	}
 
 	// Load pages.
@@ -51,7 +53,7 @@ func indexJSONHandler(params *pages.HandlerParams) *pages.Result {
 	core.AddPageToMap("1ln", returnData.PageMap, core.TitlePlusLoadOptions)
 	core.AddPageToMap("5zs", returnData.PageMap, core.TitlePlusLoadOptions)
 	core.AddPageToMap("3rb", returnData.PageMap, core.TitlePlusLoadOptions)
-	err = core.ExecuteLoadPipeline(db, returnData)
+	err := core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
 	}
