@@ -92,6 +92,7 @@ app.run(function($http, $location, arb) {
 						title: arb.stateService.pageMap[$scope.subdomain].title + ' - Private Domain',
 						content: $scope.newElement('<arb-group-index group-id=\'' + data.result.domainId +
 							'\' ids-map=\'::indexPageIdsMap\'></arb-group-index>'),
+						analytics: {page: 'domainIndex', domainId: data.result.domainId},
 					};
 				}))
 				.error($scope.getErrorFunc('domainPage'));
@@ -102,6 +103,7 @@ app.run(function($http, $location, arb) {
 					return {
 						title: '',
 						content: $scope.newElement('<arb-index></arb-index>'),
+						analytics: {page: 'index'},
 					};
 				}))
 				.error($scope.getErrorFunc('index'));
@@ -116,6 +118,7 @@ app.run(function($http, $location, arb) {
 				return {
 					title: '',
 					content: $scope.newElement('<arb-project></arb-project>'),
+					analytics: {page: 'project'},
 				};
 			}))
 			.error($scope.getErrorFunc('index'));
@@ -129,6 +132,7 @@ app.run(function($http, $location, arb) {
 				return {
 					title: 'Achievements',
 					content: $scope.newElement('<arb-hedons-mode-page></arb-hedons-mode-page>'),
+					analytics: {page: 'achievements'},
 				};
 			}))
 			.error($scope.getErrorFunc('default'));
@@ -145,6 +149,7 @@ app.run(function($http, $location, arb) {
 				return {
 					title: 'Admin dashboard',
 					content: $scope.newElement('<arb-admin-dashboard-page data=\'::adminDashboardData\'></arb-admin-dashboard-page>'),
+					analytics: {page: 'adminDashboard'},
 				};
 			}))
 			.error($scope.getErrorFunc('adminDashboardPage'));
@@ -161,6 +166,7 @@ app.run(function($http, $location, arb) {
 				return {
 					title: 'Your dashboard',
 					content: $scope.newElement('<arb-dashboard-page data=\'::data\'></arb-dashboard-page>'),
+					analytics: {page: 'dashboard'},
 				};
 			}))
 			.error($scope.getErrorFunc('dashboardPage'));
@@ -174,6 +180,7 @@ app.run(function($http, $location, arb) {
 				return {
 					title: 'Discussions',
 					content: $scope.newElement('<arb-discussion-mode-page></arb-discussion-mode-page>'),
+					analytics: {page: 'discussion'},
 				};
 			}))
 			.error($scope.getErrorFunc('default'));
@@ -273,6 +280,7 @@ app.run(function($http, $location, arb) {
 							title: 'Edit ' + (page.title ? page.title : 'New Page'),
 							content: $scope.newElement('<arb-edit-page class=\'full-height\' page-id=\'' + page.pageId +
 								'\' done-fn=\'doneFn(result)\' layout=\'column\'></arb-edit-page>'),
+							analytics: {page: 'editPage', pageId: page.pageId},
 						};
 					}),
 					error: $scope.getErrorFunc('edit'),
@@ -327,6 +335,7 @@ app.run(function($http, $location, arb) {
 					title: 'Explore ' + page.title,
 					content: $scope.newElement('<arb-explore-page page-id=\'' + data.result.pageId +
 						'\'></arb-explore-page>'),
+					analytics: {page: 'explore', pageId: data.result.pageId},
 				};
 			}))
 			.error($scope.getErrorFunc('explore'));
@@ -340,6 +349,7 @@ app.run(function($http, $location, arb) {
 				return {
 					title: 'Groups',
 					content: $scope.newElement('<arb-groups-page></arb-groups-page>'),
+					analytics: {page: 'groups'},
 				};
 			}))
 			.error($scope.getErrorFunc('groups'));
@@ -382,6 +392,7 @@ app.run(function($http, $location, arb) {
 						'\' options-map=\'::learnOptionsMap\'' +
 						' tutor-map=\'::learnTutorMap\' requirement-map=\'::learnRequirementMap\'' +
 						'></arb-learn-page>'),
+					analytics: {page: 'learn'},
 				};
 			}))
 			.error($scope.getErrorFunc('learn'));
@@ -398,6 +409,7 @@ app.run(function($http, $location, arb) {
 				return {
 					title: 'Log In',
 					content: $scope.newElement('<div class=\'md-whiteframe-1dp capped-body-width\'><arb-login></arb-login></div>'),
+					analytics: {page: 'login'},
 				};
 			}))
 			.error($scope.getErrorFunc('default'));
@@ -411,6 +423,7 @@ app.run(function($http, $location, arb) {
 				return {
 					title: 'Maintain',
 					content: $scope.newElement('<arb-maintenance-mode-page></arb-maintenance-mode-page>'),
+					analytics: {page: 'maintain'},
 				};
 			}))
 			.error($scope.getErrorFunc('default'));
@@ -424,6 +437,7 @@ app.run(function($http, $location, arb) {
 				return {
 					title: 'Newsletter',
 					content: $scope.newElement('<arb-newsletter></arb-newsletter>'),
+					analytics: {page: 'newsletter'},
 				};
 			}))
 			.error($scope.getErrorFunc('newsletter'));
@@ -437,6 +451,7 @@ app.run(function($http, $location, arb) {
 				return {
 					title: 'Notifications',
 					content: $scope.newElement('<arb-bell-updates-page></arb-bell-updates-page>'),
+					analytics: {page: 'notifications'},
 				};
 			}))
 			.error($scope.getErrorFunc('default'));
@@ -493,6 +508,7 @@ app.run(function($http, $location, arb) {
 					return {
 						title: 'Not Found',
 						error: 'Page doesn\'t exist or you don\'t have permission to view it.',
+						analytics: {page: 'pageNotFound'},
 					};
 				}
 
@@ -522,6 +538,7 @@ app.run(function($http, $location, arb) {
 				return {
 					title: page.title,
 					content: $scope.newElement(pageTemplate),
+					analytics: {page: 'page', pageId: data.result.lensId ? data.result.lensId : page.pageId},
 				};
 			}))
 			.error($scope.getErrorFunc('primaryPage'));
@@ -535,6 +552,7 @@ app.run(function($http, $location, arb) {
 				return {
 					title: 'Read',
 					content: $scope.newElement('<arb-read-mode-page></arb-read-mode-page>'),
+					analytics: {page: 'read'},
 				};
 			}))
 			.error($scope.getErrorFunc('default'));
@@ -548,6 +566,7 @@ app.run(function($http, $location, arb) {
 				return {
 					title: 'Recent changes',
 					content: $scope.newElement('<arb-recent-changes-page></arb-recent-changes-page>'),
+					analytics: {page: 'recentChanges'},
 				};
 			}))
 			.error($scope.getErrorFunc('default'));
@@ -561,6 +580,7 @@ app.run(function($http, $location, arb) {
 				return {
 					title: 'Requisites',
 					content: $scope.newElement('<arb-requisites-page></arb-requisites-page>'),
+					analytics: {page: 'requisites'},
 				};
 			}))
 			.error($scope.getErrorFunc('requisites'));
@@ -583,6 +603,7 @@ app.run(function($http, $location, arb) {
 					title: 'Settings',
 					content: $scope.newElement('<arb-settings-page domains="::domains" ' +
 						'invites-sent="::invitesSent"></arb-settings-page>'),
+					analytics: {page: 'settings'},
 				};
 			}))
 			.error($scope.getErrorFunc('settingsPage'));
@@ -599,6 +620,7 @@ app.run(function($http, $location, arb) {
 				return {
 					title: 'Sign Up',
 					content: $scope.newElement('<arb-signup></arb-signup>'),
+					analytics: {page: 'signup'},
 				};
 			}))
 			.error($scope.getErrorFunc('default'));

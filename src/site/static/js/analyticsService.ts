@@ -64,8 +64,10 @@ app.service('analyticsService', function($http, $location, stateService) {
 	};
 
 	// This is called when a user goes to any web page.
-	this.reportWebPageView = function() {
-		track('Web page view', {path: $location.path()});
+	this.reportWebPageView = function(data) {
+		data = data || {};
+		data.path = $location.path();
+		track('Web page view', data);
 
 		if (!isLive()) return;
 		// Set the page, which which will be included with all future events.

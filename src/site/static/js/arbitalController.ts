@@ -160,7 +160,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 			if (result.title !== undefined) {
 				arb.stateService.setTitle(result.title);
 			}
-			arb.analyticsService.reportWebPageView();
+			arb.analyticsService.reportWebPageView(result.analytics);
 		};
 	};
 
