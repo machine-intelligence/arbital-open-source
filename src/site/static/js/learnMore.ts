@@ -18,5 +18,13 @@ app.directive('arbLearnMore', function($compile, $location, $timeout, arb) {
 						 Object.keys($scope.page.learnMoreRequiredMap).length > 0;
 			};
 		},
+		link: function(scope: any, element, attrs) {
+			if (scope.hasLearnMore()) {
+				arb.analyticsService.reportEventToHeapAndMixpanel('learn more shown');
+			}
+			$(element).on('click', '.intrasite-link', function(event) {
+				arb.analyticsService.reportEventToHeapAndMixpanel('learn more link clicked');
+			});
+		}
 	};
 });
