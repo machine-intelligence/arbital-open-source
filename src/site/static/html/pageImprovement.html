@@ -1,77 +1,87 @@
-<!-- Improvement header -->
-<div class="improvement-header {{qualityTag}}"
-		layout="row"
-		layout-align="start center"
-		ng-if="showQualityBar()">
-	<div flex ng-switch="qualityTag">
-		<span ng-switch-when="unassessed_meta_tag">
-			This page's quality has not been assessed.
-		</span>
-		<span ng-switch-when="stub">
-			This page is just getting started. Can you
-			<arb-page-title page-id="3hs"
-					is-link="true"
-					custom-page-title="help"></arb-page-title>
-			improve it?
-		</span>
-		<span ng-switch-when="start">
-			This page has some issues, would you like to
-			<arb-page-title page-id="3hs"
-					is-link="true"
-					custom-page-title="help"></arb-page-title>
-			fix them?
-		</span>
-		<span ng-switch-when="c-class">
-			This page could use some improvement, would you like to
-			<arb-page-title page-id="3hs"
-					is-link="true"
-					custom-page-title="help"></arb-page-title>
-			with it?
-		</span>
-	</div>
-	<md-button ng-click="toggleExpand()"
-			class="short-button icon-last"
-			aria-label="Expand"
-			ng-if="shouldShowImprovements()">
-		<span ng-if="!expanded">See details</span>
-		<span ng-if="expanded">Hide details</span>
-		<arb-expand-icon expanded="expanded"></arb-expand-icon>
-	</md-button>
-</div>
-
 <!-- Improvement body -->
-<div class="improvement-body expand-tray vertical-layout-padding"
+<a id="improvement"></a>
+
+<div class="md-whiteframe-1dp"
 		layout="column"
-		ng-if="expanded && shouldShowImprovements()">
+		ng-if="shouldShowImprovements()">
+	<md-toolbar class="md-hue-2 no-margins">
+		<div class="md-toolbar-tools">
+			<h1>Help to improve this page</h1>
+		</div>
+	</md-toolbar>
 
-	<div ng-if="shouldShowTags()">
-		<span>
-			This page has the following issues:
-			<span ng-repeat="tagId in page.improvementTagIds">
-				<arb-page-title page-id="{{::tagId}}"
-						is-link="true"></arb-page-title>
-				<span class="comma" ng-if="!$last">,</span>
+	<div class="improvement-body">
+		<p>
+			Anyone can help with improving Arbital's content. This page's quality is 
+			<arb-page-title page-id="{{::arb.pageService.getQualityTagId(page.tagIds)}}" is-link="true"></arb-page-title>
+			<span class="comma">, which means</span>
+			<span ng-switch="qualityTag">
+				<span ng-switch-when="unassessed_meta_tag">
+					if you have the permissions, you should add a quality tag. Otherwise, ping of of the Reviewers in Slack.
+				</span>
+				<span ng-switch-when="stub">
+					it will benefit the most from more content.
+				</span>
+				<span ng-switch-when="start">
+					it will benefit the most from additional content.
+				</span>
+				<span ng-switch-when="c-class">
+					it will benefit the most from polish and editing.
+				</span>
+				<span ng-switch-when="b-class">
+					it will benefit the most from more readers and feedback.
+				</span>
 			</span>
-		</span>
-	</div>
+		</p>
+	
+		<!-- Show various meta tags this page has -->
+		<div class="improvement-section" ng-if="shouldShowTags()">
+			<span>
+				This page has the following issues:
+				<span ng-repeat="tagId in page.improvementTagIds">
+					<arb-page-title page-id="{{::tagId}}"
+							is-link="true"></arb-page-title>
+					<span class="comma" ng-if="!$last">,</span>
+				</span>
+			</span>
+		</div>
+	
+		<!-- Show todos this page has -->
+		<div class="improvement-section" ng-if="shouldShowTodos()">
+			This page has {{page.todos.length}} TODO
+			<ng-pluralize count="page.todos.length"
+					when="{'one': 'item', 'other': 'items'}"></ng-pluralize>:
+			<ul>
+				<li ng-repeat="text in page.todos track by $index">
+					{{text}}
+				</li>
+			</ul>
+		</div>
 
-	<div ng-if="shouldShowTodos()">
-		This page has {{page.todos.length}} TODO
-		<ng-pluralize count="page.todos.length"
-				when="{'one': 'item', 'other': 'items'}"></ng-pluralize>:
-		<ul>
-			<li ng-repeat="text in page.todos track by $index">
-				{{text}}
-			</li>
-		</ul>
-	</div>
-
-	<div>
-		<md-button ng-href="{{arb.urlService.getEditPageUrl(page.pageId)}}"
-				ng-class="::{'md-icon-button': isTinyScreen}"
-				arb-user-check="cool">
-			<md-icon>create</md-icon>
-			<span>Edit</span>
-		</md-button>
+		<!-- Show red links this page has -->
+		<div class="improvement-section" ng-if="shouldShowRedLinks()">
+			This page refers to these pages that haven't been created yet:
+			<ul>
+				<li ng-repeat="(alias,text) in page.redAliases">
+					<a ng-href="{{arb.urlService.getEditPageUrl(alias)}}"
+							class="intrasite-link red-link"
+							page-id=""
+							ng-bind="arb.pageService.getPrettyAlias(alias)"></a>
+					<span ng-if="arb.pageService.getPrettyAlias(alias) != arb.pageService.getPrettyAlias(text)">
+						with custom text <strong>"{{text}}"</strong>
+					</span>
+				</li>
+			</ul>
+		</div>
+	
+		<!-- Convenient edit page button -->
+		<div class="improvement-section">
+			<md-button ng-href="{{arb.urlService.getEditPageUrl(page.pageId)}}"
+					ng-class="::{'md-icon-button': isTinyScreen}"
+					arb-user-check="cool">
+				<md-icon>create</md-icon>
+				<span>Edit this page</span>
+			</md-button>
+		</div>
 	</div>
 </div>

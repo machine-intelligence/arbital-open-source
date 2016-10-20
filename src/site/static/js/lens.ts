@@ -87,11 +87,14 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 						return 'ResearchLevelUnderstanding';
 				}
 			};
-			$scope.requestSubmitted = false;
+			$scope.requestStage = 0;
+			$scope.createRequest = function() {
+				$scope.requestStage = 1;
+			};
 			$scope.submitRequest = function() {
 				var requestKey = 'teach' + $scope.getRequestName($scope.explanationRequest.level + 1);
 				arb.signupService.submitContentRequest(requestKey, $scope.page);
-				$scope.requestSubmitted = true;
+				$scope.requestStage = 2;
 			};
 
 			// Compute how many visible comments there are.

@@ -1840,28 +1840,32 @@ arb-likes.tiny {
 	min-width: 200px !important;
 }
 
+.improvement-header {
+	background-color: $accent-hue-1;
+	padding: 8px 16px;
+	min-height: 46px;
+	border-bottom: 1px solid #efefef;
+}
+
+.improvement-header.c-class {
+	background-color: #ffffe8;
+}
+
+.improvement-header.start {
+	background-color: rgba(241,103,0,.15);
+}
+
 arb-page-improvement, [arb-page-improvement] {
-
-	.improvement-header {
-		background-color: $accent-hue-1;
-		padding: 8px 16px;
-		min-height: 46px;
-		border-bottom: 1px solid #efefef;
-	}
-
-	.improvement-header.c-class {
-		background-color: #ffffe8;
-	}
-
-	.improvement-header.start {
-		background-color: rgba(241,103,0,.15);
-	}
 
 	.improvement-body {
 		padding: 5px 20px 16px 20px;
 		color: #282828;
 		font-size: 14px;
 		line-height: 18px;
+
+		.improvement-section {
+			margin: 10px 0px;
+		}
 	}
 
 	ul {

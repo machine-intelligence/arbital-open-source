@@ -1,8 +1,7 @@
 <div layout="column">
 
 	<!-- Requirements -->
-	<div class="requirements-container"
-			ng-if="showRequirementsPanel">
+	<div class="requirements-container" ng-if="showRequirementsPanel">
 		<div>
 			<span class="md-subhead" ng-class="{'md-accent': !meetsAllRequirements()}">
 				This lens relies on:
@@ -187,10 +186,16 @@
 
 			<!-- Request an explanation -->
 			<div>
-				<div>Can't find an explanation that works for you?</div>
-				<div layout="row" layout-align="start center" ng-if="!requestSubmitted">
+				<div layout="row" layout-align="start center">
+					<div>Can't find an explanation that works for you?</div>
+					<md-button ng-click="createRequest()" class="md-primary" ng-if="requestStage == 0">
+						Request a new explanation
+					</md-button>
+				</div>
+
+				<div ng-if="requestStage == 1">
 					<div>
-						You can request a
+						Request a new
 						<md-input-container class="inline-md-select no-margins">
 							<md-select ng-model="explanationRequest.speed" aria-label="speed">
 								<md-option ng-repeat="(key,value) in ::speedOptions" value="{{::key}}" ng-bind="::value"></md-option>
@@ -203,12 +208,12 @@
 							</md-select>
 						</md-input-container>
 					</div>
-					<md-button ng-click="submitRequest()" class="md-primary">
+					<md-button ng-click="submitRequest()" class="md-primary md-raised">
 						Submit
 					</md-button>
 				</div>
-				<div ng-if="requestSubmitted">
-					<i>Thanks for making the request! We'll show it to our authors, and will notify you when the requested explanation is available.</i>
+				<div ng-if="requestStage == 2">
+					<strong>Thanks for making the request! We'll show it to our authors, and will notify you when the requested explanation is available.</strong>
 				</div>
 			</div>
 			<br>

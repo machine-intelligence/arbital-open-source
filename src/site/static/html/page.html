@@ -123,10 +123,37 @@
 				<!-- Lens body -->
 				<div class="md-whiteframe-1dp">
 					<div class="md-whiteframe-1dp page-lens-body">
-						<!-- How to make this page better box -->
-						<div arb-page-improvement page="selectedLens"
-								ng-if="selectedLens && selectedLens.isInDomain('1lw') && !selectedLens.isConcept()"></div>
+						<!-- Header to show page's quality -->
+						<div class="improvement-header {{arb.pageService.getQualityTag(selectedLens.tagIds)}}"
+								layout="row"
+								layout-align="start center"
+								ng-if="isQualityBarVisible()">
+							<div flex ng-switch="arb.pageService.getQualityTag(selectedLens.tagIds)">
+								<span ng-switch-when="unassessed_meta_tag">
+									This page's quality has not been assessed.
+									<!-- TODO: +1 to read this -->
+								</span>
+								<span ng-switch-when="stub">
+									This page is currently just a stub. Its content will be filled out over time.
+									<!-- TODO: +1 to read this -->
+								</span>
+								<span ng-switch-when="start">
+									The work on this page is just getting started. Its content is still in a rough state.
+									<!-- TODO: +1 to read this -->
+								</span>
+								<span ng-switch-when="c-class">
+									This page's content is still being worked on.
+									<!-- TODO: +1 to read this -->
+								</span>
+							</div>
+							<md-button href="#improvement"
+									class="md-icon-button"
+									aria-label="Jump down">
+								<md-icon>arrow_downward</md-icon>
+							</md-button>
+						</div>
 
+						<!-- Lens itself -->
 						<div ng-style="{'min-height': 500}"
 								layout="column"
 								layout-align="center center"
@@ -240,6 +267,10 @@
 					page-id="{{::lens.lensId}}"
 					ng-if="isLoaded(lens.lensId) && lens.lensId === selectedLens.pageId"></arb-learn-more>
 		</div>
+
+		<!-- Improvement section -->
+		<div arb-page-improvement page="selectedLens"
+				ng-if="selectedLens && selectedLens.isInDomain('1lw') && !selectedLens.isConcept()"></div>
 
 		<!-- Discussion section -->
 		<div class="after-page-container" ng-if="arb.userService.userIsLoggedIn() && !page.isConcept()">

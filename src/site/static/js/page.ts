@@ -124,6 +124,12 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 				};
 				arb.stateService.postDataWithoutProcessing('/json/updateUserTrust/', data);
 			};
+
+			// Check if the quality of the page bar should be displayed
+			$scope.isQualityBarVisible = function() {
+				if ($scope.selectedLens.isConcept()) return false;
+				return !['b-class', 'a-class', 'featured'].includes($scope.qualityTag);
+			};
 		},
 		link: function(scope: any, element, attrs) {
 			// Manage switching between lenses, including loading the necessary data.

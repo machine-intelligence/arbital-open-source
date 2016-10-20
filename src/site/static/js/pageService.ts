@@ -667,7 +667,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 
 	// Convert "alias_text" into "Alias text";
 	this.getPrettyAlias = function(alias: string): string {
-		let aliasWithSpaces = alias.replace(/_/g, ' ');
+		let aliasWithSpaces = alias.replace(/_/g, ' ').replace(/-/g, '');
 		return aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
 	};
 

@@ -21,7 +21,7 @@ app.directive('arbPageImprovement', function($timeout, $http, $compile, arb) {
 			$scope.arb = arb;
 
 			// Determine which style of bar to show
-			$scope.qualityTag = arb.pageService.getQualityTag($scope.page.tagIds)
+			$scope.qualityTag = arb.pageService.getQualityTag($scope.page.tagIds);
 
 			$scope.shouldShowTags = function() {
 				return $scope.page.improvementTagIds.length > 0;
@@ -29,16 +29,11 @@ app.directive('arbPageImprovement', function($timeout, $http, $compile, arb) {
 			$scope.shouldShowTodos = function() {
 				return $scope.page.todos.length > 0;
 			};
+			$scope.shouldShowRedLinks = function() {
+				return Object.keys($scope.page.redAliases).length > 0;
+			};
 			$scope.shouldShowImprovements = function() {
-				return $scope.shouldShowTags() || $scope.shouldShowTodos();
-			};
-			$scope.showQualityBar = function() {
-				return !['b-class', 'a-class', 'featured'].includes($scope.qualityTag);
-			};
-
-			$scope.expanded = $scope.page.isSubscribedAsMaintainer;
-			$scope.toggleExpand = function() {
-				$scope.expanded = !$scope.expanded;
+				return !['a-class', 'featured'].includes($scope.qualityTag);
 			};
 		},
 	};
