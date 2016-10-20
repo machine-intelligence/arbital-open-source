@@ -3,7 +3,7 @@
 import app from './angular.ts';
 
 // Manages marks
-app.service('markService', function(stateService) {
+app.service('markService', function(stateService, analyticsService) {
 	var that = this;
 
 	// Map of all loaded marks: mark id -> mark object.
@@ -26,14 +26,17 @@ app.service('markService', function(stateService) {
 	// Create a new mark.
 	this.newMark = function(params, successFn, errorFn) {
 		stateService.postData('/newMark/', params, successFn, errorFn);
+		analyticsService.reportEventToHeapAndMixpanel('newMark', params);
 	};
 
 	this.updateMark = function(params, successFn, errorFn) {
 		stateService.postData('/updateMark/', params, successFn, errorFn);
+		analyticsService.reportEventToHeapAndMixpanel('updateMark', params);
 	};
 
 	this.resolveMark = function(params, successFn, errorFn) {
 		stateService.postData('/resolveMark/', params, successFn, errorFn);
+		analyticsService.reportEventToHeapAndMixpanel('resolveMark', params);
 	};
 
 	// Load all marks for a given page.

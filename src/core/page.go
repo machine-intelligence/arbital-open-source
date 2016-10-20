@@ -701,8 +701,8 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 			return false
 		}
 		// Make sure the page has the necessary "Hub" meta tag
-		for _, tagId := range p.TagIDs {
-			if tagId == HubPageID {
+		for _, tagID := range p.TagIDs {
+			if tagID == HubPageID {
 				return true
 			}
 		}
@@ -755,7 +755,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	if u.ID != "" {
 		// Load user's marks
 		filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.UserMarks })
-		err = LoadMarkIDs(db, u, pageMap, markMap, &LoadMarkIdsOptions{
+		err = LoadMarkIDs(db, u, pageMap, markMap, &LoadMarkIDsOptions{
 			ForPages:              filteredPageMap,
 			CurrentUserConstraint: true,
 		})
@@ -765,7 +765,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 		// Load unresolved marks
 		filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.UnresolvedMarks })
-		err = LoadMarkIDs(db, u, pageMap, markMap, &LoadMarkIdsOptions{
+		err = LoadMarkIDs(db, u, pageMap, markMap, &LoadMarkIDsOptions{
 			ForPages:         filteredPageMap,
 			EditorConstraint: true,
 		})
@@ -775,7 +775,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 		// Load all marks if forced to
 		filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.AllMarks })
-		err = LoadMarkIDs(db, u, pageMap, markMap, &LoadMarkIdsOptions{
+		err = LoadMarkIDs(db, u, pageMap, markMap, &LoadMarkIDsOptions{
 			ForPages:        filteredPageMap,
 			LoadResolvedToo: true,
 		})
@@ -2000,7 +2000,7 @@ func LoadAnswer(db *database.DB, answerID string) (*Answer, error) {
 	return &answer, err
 }
 
-type LoadMarkIdsOptions struct {
+type LoadMarkIDsOptions struct {
 	// If set, we'll only load links for the pages with these ids
 	ForPages map[string]*Page
 
@@ -2013,7 +2013,7 @@ type LoadMarkIdsOptions struct {
 }
 
 // LoadMarkIds loads all the marks owned by the given user
-func LoadMarkIDs(db *database.DB, u *CurrentUser, pageMap map[string]*Page, markMap map[string]*Mark, options *LoadMarkIdsOptions) error {
+func LoadMarkIDs(db *database.DB, u *CurrentUser, pageMap map[string]*Page, markMap map[string]*Mark, options *LoadMarkIDsOptions) error {
 	sourceMap := options.ForPages
 	if sourceMap == nil {
 		sourceMap = pageMap
@@ -2034,11 +2034,11 @@ func LoadMarkIDs(db *database.DB, u *CurrentUser, pageMap map[string]*Page, mark
 	pageIdsPart := database.NewQuery(``).AddArgsGroup(pageIDs)
 	if options.EditorConstraint {
 		pageIdsPart = database.NewQuery(`(
-			SELECT p.pageId
-			FROM pages AS p
-			WHERE p.pageId IN`).AddArgsGroup(pageIDs).Add(`
-				AND NOT p.isSnapshot AND NOT p.isAutosave
-				AND p.creatorId=?`, u.ID).Add(`
+			SELECT s.toId
+			FROM subscriptions AS s
+			WHERE s.toId IN`).AddArgsGroup(pageIDs).Add(`
+				AND s.userId=?`, u.ID).Add(`
+				AND s.asMaintainer
 		)`)
 		constraint.Add(`AND m.isSubmitted`)
 	}
@@ -2069,50 +2069,48 @@ func LoadMarkIDs(db *database.DB, u *CurrentUser, pageMap map[string]*Page, mark
 
 // LoadMarkData loads all the relevant data for each mark
 func LoadMarkData(db *database.DB, pageMap map[string]*Page, userMap map[string]*User, markMap map[string]*Mark, u *CurrentUser) error {
-	return nil
-	// TODO: bring this back once we're ready to handle query marks again
-	// if len(markMap) <= 0 {
-	// 	return nil
-	// }
-	// markIds := make([]interface{}, 0)
-	// for markId, _ := range markMap {
-	// 	markIds = append(markIds, markId)
-	// }
+	if len(markMap) <= 0 {
+		return nil
+	}
+	markIDs := make([]interface{}, 0)
+	for markID := range markMap {
+		markIDs = append(markIDs, markID)
+	}
 
-	// rows := db.NewStatement(`
-	// 		SELECT id,type,pageId,creatorId,createdAt,anchorContext,anchorText,anchorOffset,
-	// 			text,requisiteSnapshotId,resolvedPageId,resolvedBy,answered,isSubmitted
-	// 		FROM marks
-	// 		WHERE id IN` + database.InArgsPlaceholder(len(markIds))).Query(markIds...)
-	// err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-	// 	var creatorId string
-	// 	mark := &Mark{}
-	// 	err := rows.Scan(&mark.Id, &mark.Type, &mark.PageId, &mark.CreatorId, &mark.CreatedAt,
-	// 		&mark.AnchorContext, &mark.AnchorText, &mark.AnchorOffset, &mark.Text,
-	// 		&mark.RequisiteSnapshotId, &mark.ResolvedPageId, &mark.ResolvedBy, &mark.Answered,
-	// 		&mark.IsSubmitted)
-	// 	if err != nil {
-	// 		return fmt.Errorf("failed to scan: %v", err)
-	// 	}
-	// 	mark.IsCurrentUserOwned = mark.CreatorId == u.Id
-	// 	if mark.CreatorId == mark.ResolvedBy {
-	// 		mark.ResolvedBy = "0"
-	// 		mark.IsResolvedByOwner = true
-	// 	}
-	// 	*markMap[mark.Id] = *mark
+	rows := db.NewStatement(`
+		SELECT id,type,pageId,creatorId,createdAt,anchorContext,anchorText,anchorOffset,
+			text,requisiteSnapshotId,resolvedPageId,resolvedBy,answered,isSubmitted
+		FROM marks
+		WHERE id IN` + database.InArgsPlaceholder(len(markIDs))).Query(markIDs...)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var creatorID string
+		mark := &Mark{}
+		err := rows.Scan(&mark.ID, &mark.Type, &mark.PageID, &mark.CreatorID, &mark.CreatedAt,
+			&mark.AnchorContext, &mark.AnchorText, &mark.AnchorOffset, &mark.Text,
+			&mark.RequisiteSnapshotID, &mark.ResolvedPageID, &mark.ResolvedBy, &mark.Answered,
+			&mark.IsSubmitted)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		mark.IsCurrentUserOwned = mark.CreatorID == u.ID
+		if mark.CreatorID == mark.ResolvedBy {
+			mark.ResolvedBy = "0"
+			mark.IsResolvedByOwner = true
+		}
+		*markMap[mark.ID] = *mark
 
-	// 	if page, ok := pageMap[mark.PageId]; ok {
-	// 		page.MarkIds = append(page.MarkIds, mark.Id)
-	// 	}
-	// 	AddPageToMap(mark.PageId, pageMap, TitlePlusLoadOptions)
-	// 	if mark.ResolvedPageId != "" {
-	// 		AddPageToMap(mark.ResolvedPageId, pageMap, TitlePlusLoadOptions)
-	// 		userMap[mark.ResolvedBy] = &User{Id: mark.ResolvedBy}
-	// 	}
-	// 	userMap[creatorId] = &User{Id: creatorId}
-	// 	return nil
-	// })
-	// return err
+		if page, ok := pageMap[mark.PageID]; ok {
+			page.MarkIDs = append(page.MarkIDs, mark.ID)
+		}
+		AddPageToMap(mark.PageID, pageMap, TitlePlusLoadOptions)
+		if mark.ResolvedPageID != "" {
+			AddPageToMap(mark.ResolvedPageID, pageMap, TitlePlusLoadOptions)
+			userMap[mark.ResolvedBy] = &User{ID: mark.ResolvedBy}
+		}
+		userMap[creatorID] = &User{ID: creatorID}
+		return nil
+	})
+	return err
 }
 
 // Given a parent page that collects meta tags, load all its children.

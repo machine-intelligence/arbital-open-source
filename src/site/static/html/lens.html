@@ -165,7 +165,6 @@
 
 				<div class="explanation-panel"
 						ng-repeat="explanation in ::page.explanations">
-					<hr class="explanation-hr" ng-if="::!$first"></hr>
 					<!-- Explanation panel header -->
 					<div>
 						<div layout="row" layout-align="start center" flex>
@@ -182,21 +181,16 @@
 							</div>
 						</div>
 					</div>
+					<hr class="explanation-hr"></hr>
 				</div>
 			</div>
-			<br>
-			<br>
 
 			<!-- Request an explanation -->
 			<div>
-				<div class="page-title md-display-2" ng-class="::{'center-text': isTinyScreen}">
-					Request an explanation
-				</div>
-				<hr class="page-title-hr"></hr>
-				<i>Can't find an explanation that works for you? You can:</i>
+				<div>Can't find an explanation that works for you?</div>
 				<div layout="row" layout-align="start center" ng-if="!requestSubmitted">
 					<div>
-						Request a
+						You can request a
 						<md-input-container class="inline-md-select no-margins">
 							<md-select ng-model="explanationRequest.speed" aria-label="speed">
 								<md-option ng-repeat="(key,value) in ::speedOptions" value="{{::key}}" ng-bind="::value"></md-option>
