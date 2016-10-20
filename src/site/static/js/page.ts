@@ -2,6 +2,14 @@
 
 import app from './angular.ts';
 
+// TypeScript doesn't currently include Array.prototype.includes from ES7.
+// Declare it ourselves for now.
+declare global {
+	interface Array<T> {
+		includes(search: T): boolean;
+	}
+}
+
 // Directive for showing a standard Arbital page.
 app.directive('arbPage', function($http, $location, $compile, $timeout, $interval, $mdMedia, arb) {
 	return {
@@ -128,7 +136,8 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 			// Check if the quality of the page bar should be displayed
 			$scope.isQualityBarVisible = function() {
 				if ($scope.selectedLens.isConcept()) return false;
-				return !['b-class', 'a-class', 'featured'].includes($scope.qualityTag);
+				let qualityTag = arb.pageService.getQualityTag($scope.selectedLens.tagIds);
+				return ['b-class', 'a-class', 'featured'].indexOf(qualityTag) < 0;
 			};
 		},
 		link: function(scope: any, element, attrs) {

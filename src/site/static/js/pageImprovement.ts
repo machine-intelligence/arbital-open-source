@@ -2,14 +2,6 @@
 
 import app from './angular.ts';
 
-// TypeScript doesn't currently include Array.prototype.includes from ES7.
-// Declare it ourselves for now.
-declare global {
-	interface Array<T> {
-		includes(search: T): boolean;
-	}
-}
-
 // arb-page-improvement is the directive which shows what improvements should be made for a page.
 app.directive('arbPageImprovement', function($timeout, $http, $compile, arb) {
 	return {
@@ -33,7 +25,7 @@ app.directive('arbPageImprovement', function($timeout, $http, $compile, arb) {
 				return Object.keys($scope.page.redAliases).length > 0;
 			};
 			$scope.shouldShowImprovements = function() {
-				return !['a-class', 'featured'].includes($scope.qualityTag);
+				return ['a-class', 'featured'].indexOf($scope.qualityTag) < 0;
 			};
 		},
 	};
