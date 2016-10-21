@@ -173,6 +173,15 @@ app.directive('arbExplanationRequestRow', function(arb) {
 				}
 			};
 
+			// Get how total number of views between all the pages that use this red link.
+			$scope.getRedLinkViews = function(request) {
+				let totalViews = 0;
+				for (let pageId of request.linkedByPageIds) {
+					totalViews += arb.stateService.pageMap[pageId].viewCount;
+				}
+				return totalViews;
+			};
+
 			$scope.likeClicked = function(result) {
 				if (result.myLikeValue > 0) {
 					reportEvent('explanation request +1');

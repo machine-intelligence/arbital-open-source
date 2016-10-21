@@ -249,7 +249,9 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 	};
 	this.getEditPageUrl = function(pageId : string, options : getEditPageUrlOptions) : string {
 		options = options || {};
-		pageId = pageId.replace(/[-+]/g, '');
+		if (pageId) {
+			pageId = pageId.replace(/[-+]/g, '');
+		}
 		let url = '';
 		let page = stateService.pageMap[pageId];
 		if (page) {

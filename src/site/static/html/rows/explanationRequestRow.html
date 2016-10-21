@@ -36,7 +36,7 @@
 			</span>
 
 			<span ng-switch="request.requestType">
-				<span ng-switch-when="redLink">&nbsp;an explanation of&nbsp;</span>
+				<span ng-switch-when="redLink">&nbsp;a concept page for&nbsp;</span>
 				<span ng-switch-when="improveStub">&nbsp;someone to <b>add more content</b> to the stub page&nbsp;</span>
 
 				<!-- These requests come from HUB pages -->
@@ -64,12 +64,20 @@
 			<!-- If it's a redlink, show the prettified alias -->
 			<span ng-if="request.prettifiedAlias">
 				<strong>{{::request.prettifiedAlias}}</strong>
+				<span class="md-caption">
+					&nbsp;&nbsp;({{getRedLinkViews(request)}} total views across
+					<ng-pluralize count="request.linkedByPageIds.length"
+							when="{'1': '1 page)', 'other': '{} pages)'}"></ng-pluralize>
+				</span>
 			</span>
 
 			<!-- If it's a page, show the page title -->
 			<arb-page-title page-id="{{::request.pageId}}"
 					is-link="true"
 					ng-if="::request.pageId"></arb-page-title>
+			<span class="md-caption" ng-if="::request.pageId">
+				&nbsp;&nbsp;({{arb.stateService.pageMap[request.pageId].viewCount}} views)
+			</span>
 		</span>
 
 		<!-- Expand button -->
