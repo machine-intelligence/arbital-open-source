@@ -231,10 +231,6 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 			$scope.showTagsPanel = function() {
 				$scope.$emit('showTagsPanel');
 			};
-
-			$scope.requestImprovement = function(requestType) {
-				arb.signupService.submitContentRequest(requestType, $scope.page);
-			};
 		},
 		link: function(scope: any, element, attrs) {
 			var processInlineEverything = function() {

@@ -30,7 +30,7 @@
 	<div layout="row">
 		<arb-change-speed-button page-id="{{::page.pageId}}"
 				go-slow="::true"
-				ng-if="::!isHub() && !page.isConcept()"></arb-change-speed-button>
+				ng-if="::!isHub() && !page.isConcept() && !page.isUser()"></arb-change-speed-button>
 		<div class="lens-text-container">
 
 			<!-- Page title -->
@@ -69,26 +69,6 @@
 						<arb-user-name ng-class="::{bold: creatorId === page.pageCreatorId}"
 								user-id="{{::creatorId}}"></arb-user-name>
 					</span>
-				</div>
-
-				<!-- Page improvement requests -->
-				<div ng-if="qualityTag == 'stub'">
-					<br>
-					<i>
-						This page is a
-						<arb-page-title page-id="72" is-link="true"></arb-page-title>
-						<span class="comma">.</span>
-						<span ng-if="!page.contentRequests.improveStub.myLikeValue">
-							You can vote to impove this page:
-							<md-button class="short-button" ng-click="requestImprovement('improveStub', $event)">+1</md-button>
-						</span>
-						<span ng-if="page.contentRequests.improveStub.myLikeValue">
-							Thanks for voting to improve the page!
-							<span ng-if="page.contentRequests.improveStub.likeCount > 1">
-								({{page.contentRequests.improveStub.likeCount}} other people also voted for this page)
-							</span>
-						</span>
-					</i>
 				</div>
 			</div>
 
@@ -148,7 +128,7 @@
 		</div>
 		<arb-change-speed-button page-id="{{::page.pageId}}"
 				go-slow="::false"
-				ng-if="::!isHub() && !page.isConcept()"></arb-change-speed-button>
+				ng-if="::!isHub() && !page.isConcept() && !page.isUser()"></arb-change-speed-button>
 	</div>
 
 	<!-- The explanations for a concept -->

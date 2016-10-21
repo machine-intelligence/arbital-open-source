@@ -125,32 +125,46 @@
 					<div class="md-whiteframe-1dp page-lens-body">
 						<!-- Header to show page's quality -->
 						<div class="improvement-header {{arb.pageService.getQualityTag(selectedLens.tagIds)}}"
-								layout="row"
-								layout-align="start center"
-								ng-if="isQualityBarVisible()">
-							<div flex ng-switch="arb.pageService.getQualityTag(selectedLens.tagIds)">
-								<span ng-switch-when="unassessed_meta_tag">
-									This page's quality has not been assessed.
-									<!-- TODO: +1 to read this -->
+									ng-if="isQualityBarVisible()">
+							<div layout="row" layout-align="start center">
+								<div flex ng-switch="arb.pageService.getQualityTag(selectedLens.tagIds)">
+									<span ng-switch-when="unassessed_meta_tag">
+										This page's quality has not been assessed.
+									</span>
+									<span ng-switch-when="stub">
+										This page is currently just a stub. Its content will be filled out over time.
+									</span>
+									<span ng-switch-when="start">
+										The work on this page is just getting started. Its content is still in a rough state.
+									</span>
+									<span ng-switch-when="c-class">
+										This page's content is still being worked on.
+									</span>
+								</div>
+								<md-button href="#improvement"
+										class="md-icon-button"
+										aria-label="Jump down">
+									<md-icon>arrow_downward</md-icon>
+								</md-button>
+							</div>
+
+							<!-- Page improvement requests -->
+							<div>
+								<span ng-if="!selectedLens.contentRequests.improveStub.myLikeValue">
+									You can vote to impove this page:
+									<md-button class="short-button"
+											ng-click="arb.signupService.submitContentRequest('improveStub', selectedLens)">
+										<md-icon>plus_one</md-icon>
+									</md-button>
 								</span>
-								<span ng-switch-when="stub">
-									This page is currently just a stub. Its content will be filled out over time.
-									<!-- TODO: +1 to read this -->
-								</span>
-								<span ng-switch-when="start">
-									The work on this page is just getting started. Its content is still in a rough state.
-									<!-- TODO: +1 to read this -->
-								</span>
-								<span ng-switch-when="c-class">
-									This page's content is still being worked on.
-									<!-- TODO: +1 to read this -->
+								<span ng-if="selectedLens.contentRequests.improveStub.myLikeValue">
+									Thanks for voting to improve the page!
+									<span ng-if="selectedLens.contentRequests.improveStub.likeCount > 1">
+										({{page.contentRequests.improveStub.likeCount}} other people also voted for this page)
+									</span>
 								</span>
 							</div>
-							<md-button href="#improvement"
-									class="md-icon-button"
-									aria-label="Jump down">
-								<md-icon>arrow_downward</md-icon>
-							</md-button>
+
 						</div>
 
 						<!-- Lens itself -->
