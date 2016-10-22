@@ -66,6 +66,15 @@ func redLinkPopoverHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't load relationships", err)
 	}
 	redLinkRow.LinkedByPageIDs = related[redLinkRow.Alias]
+	for _, pageId := range redLinkRow.LinkedByPageIDs {
+		core.AddPageIDToMap(pageId, returnData.PageMap)
+	}
+
+	// Load pages
+	err = core.ExecuteLoadPipeline(db, returnData)
+	if err != nil {
+		return pages.Fail("Pipeline error", err)
+	}
 
 	returnData.ResultMap["redLinkRow"] = redLinkRow
 	return pages.Success(returnData)
