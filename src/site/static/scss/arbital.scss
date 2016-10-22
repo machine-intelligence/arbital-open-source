@@ -922,7 +922,7 @@ md-toast {
 }
 
 // Intrasite popover
-arb-intrasite-popover, arb-user-popover, arb-text-popover {
+arb-intrasite-popover, arb-user-popover, arb-text-popover, arb-red-link-popover {
 	position: absolute;
 	background: white;
 	z-index: $popoverZ;
@@ -947,7 +947,7 @@ arb-text-popover {
 	@extend .shadow-primary-hue-1;
 }
 
-arb-intrasite-popover {
+arb-intrasite-popover{
 	border: 3px solid $primary-hue-2;
 
 	box-shadow: 0 6px 6px -3px rgba(0,96,88,0.25),
@@ -964,6 +964,14 @@ arb-intrasite-popover {
 			line-height: 6px;
 		}
 	}
+}
+
+arb-red-link-popover {
+	border: 3px solid $accent-hue-2;
+
+	box-shadow: 0 6px 6px -3px rgba(96,88,0,0.25),
+		0 10px 14px 1px rgba(96,88,0,0.25),
+		0 4px 18px 3px rgba(96,88,0,0.25);
 }
 
 .popover-tab-body {

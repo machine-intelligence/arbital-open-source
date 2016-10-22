@@ -284,11 +284,12 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 
 		var successFn = function(data) {
 			var pageData = data.pages;
+			delete loadingPageAliases[loadKey];
 			for (var id in pageData) {
 				delete loadingPageAliases[options.url + id];
 				delete loadingPageAliases[options.url + pageData[id].alias];
 			}
-			if (options.success) options.success();
+			if (options.success) options.success(data);
 		};
 		var errorFn = function(data) {
 			if (options.error) options.error(data);
@@ -303,6 +304,17 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		options.url = '/json/intrasitePopover/';
 		loadPage(pageAlias, options);
 		analyticsService.reportPopover(pageAlias);
+	};
+
+	// Get data to display a popover for the given red link.
+	this.loadRedLinkPopover = function(pageAlias, options) {
+		options = options || {};
+		options.url = '/json/redLinkPopover/';
+		loadPage(pageAlias, options);
+		analyticsService.reportEventToHeapAndMixpanel('Red link popover', {
+			alias: pageAlias,
+			primaryPageId: stateService.primaryPage ? stateService.primaryPage.pageId : undefined,
+		});
 	};
 
 	// Get data to display a lens.

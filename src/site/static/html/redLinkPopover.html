@@ -1,0 +1,53 @@
+<div class="intrasite-popover"
+		ng-class="::{
+			'touch-device': arb.isTouchDevice,
+		}"
+		md-swipe-left="onSwipe()"
+		md-swipe-right="onSwipe()">
+	<div class="popover-close-note md-caption" ng-if="arb.isTouchDevice">Swipe to close</div>
+
+	<div layout="column">
+		<md-content class="prevent-scroll-leak popover-tab-body" layout-padding>
+			<!-- Title row -->
+			<div class="intrasite-popover-title" layout="row" layout-align="start center">
+				<div flex>{{arb.pageService.getPrettyAlias(alias)}}</div>
+				<arb-edit-button
+						page-id="{{::alias}}"
+						custom-text="Create"
+						analytics-desc="write new red link"></arb-edit-button>
+			</div>
+
+			<!-- Body of the popover -->
+			<div layout="column"
+					layout-align="center center"
+					ng-if="!redLinkRow">
+				<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+			</div>
+			<div ng-if="redLinkRow">
+				<div ng-if="redLinkRow.linkedByPageIds.length > 0">
+					This red link had a total of <strong>{{getRedLinkViews()}} views</strong>
+					<ng-pluralize count="redLinkRow.linkedByPageIds.length"
+							when="{'1': 'via this page.', 'other': 'across {} pages.'}"></ng-pluralize>
+				</div>
+				<div layout="row" layout-align="start center">
+					<arb-likes object-id="{{::alias}}"
+							likeable="redLinkRow"
+							is-button="true"
+							is-plus-one="true"></arb-likes>
+					<span ng-if="redLinkRow.myLikeValue + redLinkRow.likeCount > 0">
+						<strong><ng-pluralize count="redLinkRow.myLikeValue + redLinkRow.likeCount"
+								when="{'1': '{} person', 'other': '{} people'}"></ng-pluralize></strong>
+						would love to read this page.
+					</span>
+					<span ng-if="redLinkRow.myLikeValue + redLinkRow.likeCount <= 0">
+						You can +1 this red link if you'd love to read this page.
+					</span>
+				</div>
+			</div>
+			<div class="md-caption">
+				A red link highlights author's intention to point at a concept that doesn't yet exist on Arbital.
+				It's an open invitation for anyone (including you) to create the corresponding page for this concept.
+			</div>
+		</md-content>
+	</div>
+</div>

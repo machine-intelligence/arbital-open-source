@@ -141,6 +141,7 @@ func init() {
 	s.HandleFunc(recentlyCreatedCommentHandler.URI, handlerWrapper(recentlyCreatedCommentHandler)).Methods("POST")
 	s.HandleFunc(recentlyEditedHandler.URI, handlerWrapper(recentlyEditedHandler)).Methods("POST")
 	s.HandleFunc(recentRelationshipChangesHandler.URI, handlerWrapper(recentRelationshipChangesHandler)).Methods("POST")
+	s.HandleFunc(redLinkPopoverHandler.URI, handlerWrapper(redLinkPopoverHandler)).Methods("POST")
 	s.HandleFunc(requisitesHandler.URI, handlerWrapper(requisitesHandler)).Methods("POST")
 	s.HandleFunc(resolveMarkHandler.URI, handlerWrapper(resolveMarkHandler)).Methods("POST")
 	s.HandleFunc(resolveThreadHandler.URI, handlerWrapper(resolveThreadHandler)).Methods("POST")

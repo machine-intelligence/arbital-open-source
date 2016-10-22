@@ -296,6 +296,41 @@ app.directive('arbTextPopoverAnchor', function($timeout, arb) {
 	};
 });
 
+// RedLinkPopover is shown when the user hovers over a red link
+app.directive('arbRedLinkPopover', function($timeout, arb) {
+	return {
+		templateUrl: versionUrl('static/html/redLinkPopover.html'),
+		scope: {
+			alias: '@',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+			$scope.redLinkRow = undefined;
+
+			$scope.onSwipe = function() {
+				if (!arb.isTouchDevice) return;
+				arb.popoverService.removePopover();
+			};
+
+			// Fetch data from the server.
+			arb.pageService.loadRedLinkPopover($scope.alias, {
+				success: function(data) {
+					$scope.redLinkRow = data.result.redLinkRow;
+				},
+			});
+
+			// Get how total number of views between all the pages that use this red link.
+			$scope.getRedLinkViews = function() {
+				let totalViews = 0;
+				for (let pageId of $scope.redLinkRow.linkedByPageIds) {
+					totalViews += arb.stateService.pageMap[pageId].viewCount;
+				}
+				return totalViews;
+			};
+		},
+	};
+});
+
 // pageTitle displays page's title with optional meta info.
 app.directive('arbPageTitle', function(arb) {
 	return {

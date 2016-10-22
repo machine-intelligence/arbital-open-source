@@ -98,7 +98,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			if (!isEditor && markdownPage) {
 				markdownPage.redAliases[alias] = text;
 			}
-			return '<a href="' + url + '" class="' + classText + '" page-id="">' + text + '</a>';
+			return '<a href="' + url + '" class="' + classText + '" page-id="' + trimmedAlias + '">' + text + '</a>';
 		};
 
 		// Get info from BE to render the given page alias

@@ -17,6 +17,7 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 	var mousePageY: number;
 
 	var linkTypeIntrasite = 'intrasite';
+	var linkTypeRed = 'red';
 	var linkTypeUser = 'user';
 	var linkTypeText = 'text';
 
@@ -120,6 +121,9 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 			$popoverElement = $compile('<arb-intrasite-popover page-id=\'' + $target.attr('page-id') +
 				'\' direction=\'' + direction + '\' arrow-offset=\'' + arrowOffset +
 				'\'></arb-intrasite-popover>')(popoverScope);
+		} else if (targetCandidateLinkType == linkTypeRed) {
+			$popoverElement = $compile('<arb-red-link-popover alias=\'' + $target.attr('page-id') +
+				'\'></arb-red-link-popover>')(popoverScope);
 		} else if (targetCandidateLinkType == linkTypeUser) {
 			$popoverElement = $compile('<arb-user-popover user-id=\'' + $target.attr('user-id') +
 				'\' direction=\'' + direction + '\' arrow-offset=\'' + arrowOffset +
@@ -166,7 +170,9 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 
 	var mouseEnterPopoverLink = function(event, linkType) {
 		var $target = $(event.currentTarget);
-		if ($target.hasClass('red-link')) return;
+		if ($target.hasClass('red-link')) {
+			linkType = linkTypeRed;
+		}
 
 		// DO allow recursive hover in popovers
 		// if ($target.closest('arb-intrasite-popover').length > 0) return;
@@ -203,6 +209,7 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 				if (!page || Object.keys(page.summaries).length <= 0) {
 					userService.loadUserPopover(userId);
 				}
+			} else if (targetCandidateLinkType == linkTypeRed) {
 			} else if (targetCandidateLinkType == linkTypeText) {
 			} else {
 				console.error('Unknown link type: ' + targetCandidateLinkType);

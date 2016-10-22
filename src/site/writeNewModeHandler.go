@@ -58,7 +58,7 @@ func writeNewModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load redlinks in math
-	returnData.ResultMap["redLinks"], err = loadRedLinkRows(db, returnData, numPagesToLoad)
+	returnData.ResultMap["redLinks"], err = loadRedLinkRows(db, returnData, numPagesToLoad, "")
 	if err != nil {
 		return pages.Fail("Error loading red link rows", err)
 	}
@@ -83,7 +83,7 @@ func selectRandomNFrom(n int, query *database.QueryPart) *database.QueryPart {
 }
 
 // Load pages that are linked to but don't exist
-func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit int) ([]*RedLinkRow, error) {
+func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit int, optionalPageAlias string) ([]*RedLinkRow, error) {
 	u := returnData.User
 	redLinks := []*RedLinkRow{}
 
@@ -94,8 +94,12 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 	publishedAndRecentAliases := core.PageInfosTableWithOptions(u, &core.PageInfosOptions{
 		Unpublished: true,
 		Fields:      []string{"alias"},
-		WhereFilter: database.NewQuery(`currentEdit>0 OR DATEDIFF(NOW(),createdAt) <= ?`, hideRedLinkIfDraftExistsDays),
+		WhereFilter: database.NewQuery(`currentEdit > 0 OR DATEDIFF(NOW(),createdAt) <= ?`, hideRedLinkIfDraftExistsDays),
 	})
+	optionalPageAliasConstraint := database.NewQuery(``)
+	if optionalPageAlias != "" {
+		optionalPageAliasConstraint.Add(`WHERE l.childAlias=?`, optionalPageAlias)
+	}
 	rows := selectRandomNFrom(limit, database.NewQuery(`
 		SELECT childAlias,groupedRedLinks.likeableId
 		FROM (
@@ -109,7 +113,7 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 				AND l.childAlias NOT IN`).AddPart(publishedPageIDs).Add(`
 				AND l.childAlias NOT IN`).AddPart(publishedAndRecentAliases).Add(`
 			LEFT JOIN redLinks AS rl
-			ON l.childAlias=rl.alias
+			ON l.childAlias=rl.alias`).AddPart(optionalPageAliasConstraint).Add(`
 			GROUP BY 1,2
 		) AS groupedRedLinks
 		LEFT JOIN (
