@@ -101,7 +101,6 @@ arb-change-speed-button, [arb-change-speed-button] {
 		}
 
 		.change-speed-tray {
-			padding: 8px;
 			width: auto;
 			height: auto;
 			border-radius: 0 0 5px 5px;
@@ -114,6 +113,10 @@ arb-change-speed-button, [arb-change-speed-button] {
 				border-left: 2px solid $link-color;
 				border-right: 2px solid $link-color;
 				border-bottom: 2px solid $link-color;
+
+				.md-subheader {
+					background-color: $very-light-link-color;
+				}
 			}
 		}
 
@@ -192,16 +195,12 @@ arb-change-speed-button, [arb-change-speed-button] {
 }
 
 .change-speed-something-else {
-	padding-left: 18px;
-
 	.md-button {
-		line-height: 24px !important;
-		min-height: 0 !important;
+		margin-bottom: 3px;
 	}
+}
 
-	input {
-		height: auto;
-		margin-left: 2px;
-		line-height: 24px;
-	}
+.change-speed-div {
+	margin-bottom: 1em;
+	padding: 0px 8px;
 }

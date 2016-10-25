@@ -36,7 +36,7 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 					$scope.page.fasterAtSameLevelMap = {};
 					$scope.page.higherLevelMap = {};
 
-					for (let i = 0; i<$scope.page.subjects.length; ++i) {
+					for (let i = 0; i < $scope.page.subjects.length; ++i) {
 						let subjectPair = $scope.page.subjects[i];
 						let currentPageSpeed = arb.pageService.getPageSpeed($scope.page.tagIds);
 
@@ -45,7 +45,7 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 						if (slowerOrLowerPages) {
 							let slowerPagesAtSameLevel = [];
 							let lowerLevelPages = [];
-							for (let j=0; j<slowerOrLowerPages.length; ++j) {
+							for (let j = 0; j < slowerOrLowerPages.length; ++j) {
 								let otherPair = $scope.page.slowDownMap[subjectPair.parentId][j];
 
 								if (otherPair.level == subjectPair.level) {
@@ -60,7 +60,9 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 									lowerLevelPages.push(otherPair);
 								}
 							}
-							$scope.page.slowerAtSameLevelMap[subjectPair.parentId] = slowerPagesAtSameLevel;
+							if (slowerPagesAtSameLevel.length > 0) {
+								$scope.page.slowerAtSameLevelMap[subjectPair.parentId] = slowerPagesAtSameLevel;
+							}
 							$scope.page.lowerLevelMap[subjectPair.parentId] = lowerLevelPages;
 						}
 
@@ -92,12 +94,20 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 				});
 			}
 
+			$scope.hasLowerLevelMap = function() {
+				return $scope.page.lowerLevelMap && Object.keys($scope.page.lowerLevelMap).length > 0;
+			};
+
+			$scope.hasHigherLevelMap = function() {
+				return $scope.page.higherLevelMap && Object.keys($scope.page.higherLevelMap).length > 0;
+			};
+
 			$scope.hasSlowDownMap = function() {
-				return $scope.page.slowDownMap && Object.keys($scope.page.slowDownMap).length > 0;
+				return $scope.page.slowerAtSameLevelMap && Object.keys($scope.page.slowerAtSameLevelMap).length > 0;
 			};
 
 			$scope.hasSpeedUpMap = function() {
-				return $scope.page.speedUpMap && Object.keys($scope.page.speedUpMap).length > 0;
+				return $scope.page.fasterAtSameLevelMap && Object.keys($scope.page.fasterAtSameLevelMap).length > 0;
 			};
 
 			// Return true if there is at least one page that's suggested

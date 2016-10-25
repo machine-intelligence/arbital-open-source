@@ -40,92 +40,131 @@
 	<div class="change-speed-tray md-body-1 change-speed-top-offset"
 			ng-class="{'has-info': hasSomeSuggestions()}">
 		<div ng-if="isHovered">
-			<div class="change-speed-div" ng-if="!hasSlowDownMap() && goSlow">
-				No slower versions of this page currently exist.
-			</div>
-			<div class="change-speed-div" ng-if="!hasSpeedUpMap() && !goSlow">
-				No faster versions of this page currently exist.
-			</div>
-
 			<!-- List arcs that contain this page -->
-			<div class="change-speed-div" ng-if="::goSlow && page.arcPageIds.length > 0 && !arb.pathService.isOnPath()">
-				<div>
-					This page is a part of
-					<ng-pluralize count="page.arcPageIds.length"
-							when="{'one': 'this arc:', 'other': 'these arcs:'}"></ng-pluralize>
+			<div ng-if="::goSlow && page.arcPageIds.length > 0 && !arb.pathService.isOnPath()">
+				<md-subheader class="md-no-sticky">
+					Paths
+				</md-subheader>
+				<div class="change-speed-div">
+					<div>
+						This page is a part of
+						<ng-pluralize count="page.arcPageIds.length"
+								when="{'one': 'this path:', 'other': 'these paths:'}"></ng-pluralize>
+					</div>
+					<ul>
+						<li ng-repeat="pageId in page.arcPageIds">
+							<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
+						</li>
+					</ul>
 				</div>
-				<ul>
-					<li ng-repeat="pageId in page.arcPageIds">
-						<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
-					</li>
-				</ul>
 			</div>
 
-			<!-- Learn a subject at the same level, but a different speed -->
-			<div ng-repeat="(subjectId,pagePairs) in page.slowerAtSameLevelMap" ng-if="::goSlow">
-				<div ng-if="pagePairs.length > 0">
-					For a slower explanation of
-					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-					see:
+			<!-- Less technical versions -->
+			<div ng-if="::goSlow">
+				<md-subheader class="md-no-sticky">
+					Less technical versions
+				</md-subheader>
+				<div class="change-speed-div">
+					<div ng-repeat="(subjectId,pagePairs) in page.lowerLevelMap" ng-if="::goSlow">
+						<div ng-if="pagePairs.length > 0">
+							For a less technical explanation of
+							<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
+							see:
+						</div>
+						<ul>
+							<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
+								<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
+								(Level: {{arb.stateService.getLevelName(pagePair.level)}} |
+								Speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[pagePair.childId].tagIds)}})
+							</li>
+						</ul>
+					</div>
+					<div class="md-caption" ng-if="!hasLowerLevelMap()">
+						No less technical explanations currently exist.
+					</div>
 				</div>
-				<ul ng-if="pagePairs.length > 0">
-					<li ng-repeat="pagePair in pagePairs">
-						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
-						(Level: {{arb.stateService.getLevelName(pagePair.level)}} |
-						Speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[pagePair.childId].tagIds)}})
-					</li>
-				</ul>
-			</div>
-			<div ng-repeat="(subjectId,pagePairs) in page.fasterAtSameLevelMap" ng-if="::!goSlow">
-				<div ng-if="pagePairs.length > 0">
-					For a quicker explanation of
-					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-					see:
-				</div>
-				<ul ng-if="pagePairs.length > 0">
-					<li ng-repeat="pagePair in pagePairs">
-						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
-						(Level: {{arb.stateService.getLevelName(pagePair.level)}} |
-						Speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[pagePair.childId].tagIds)}})
-					</li>
-				</ul>
-			</div>
-
-
-			<!-- Learn a subject at an easier level -->
-			<div ng-repeat="(subjectId,pagePairs) in page.lowerLevelMap" ng-if="::goSlow">
-				<div ng-if="pagePairs.length > 0">
-					For a less technical explanation of
-					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-					see:
-				</div>
-				<ul>
-					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
-						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
-						(Level: {{arb.stateService.getLevelName(pagePair.level)}} |
-						Speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[pagePair.childId].tagIds)}})
-					</li>
-				</ul>
 			</div>
 
 			<!-- Learn a subject at a harder level -->
-			<div ng-repeat="(subjectId,pagePairs) in page.higherLevelMap" ng-if="::!goSlow">
-				<div ng-if="pagePairs.length > 0">
-					For a more technical explanation of
-					<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-					see:
+			<div ng-if="::!goSlow">
+				<md-subheader class="md-no-sticky">
+					More technical versions
+				</md-subheader>
+				<div class="change-speed-div">
+					<div ng-repeat="(subjectId,pagePairs) in page.higherLevelMap">
+						<div ng-if="pagePairs.length > 0">
+							For a more technical explanation of
+							<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
+							see:
+						</div>
+						<ul>
+							<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
+								<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
+								(Level: {{arb.stateService.getLevelName(pagePair.level)}} |
+								Speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[pagePair.childId].tagIds)}})
+							</li>
+						</ul>
+					</div>
+					<div class="md-caption" ng-if="!hasHigherLevelMap()">
+						No more technical explanations currently exist.
+					</div>
 				</div>
-				<ul>
-					<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
-						<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
-						(Level: {{arb.stateService.getLevelName(pagePair.level)}} |
-						Speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[pagePair.childId].tagIds)}})
-					</li>
-				</ul>
+			</div>
+
+			<!-- Learn a subject at the same level, but a slower speed -->
+			<div ng-if="::goSlow">
+				<md-subheader class="md-no-sticky">
+					More detailed versions
+				</md-subheader>
+				<div class="change-speed-div">
+					<div ng-repeat="(subjectId,pagePairs) in page.slowerAtSameLevelMap">
+						<div ng-if="pagePairs.length > 0">
+							For a slower explanation of
+							<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
+							see:
+						</div>
+						<ul ng-if="pagePairs.length > 0">
+							<li ng-repeat="pagePair in pagePairs">
+								<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
+								(Level: {{arb.stateService.getLevelName(pagePair.level)}} |
+								Speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[pagePair.childId].tagIds)}})
+							</li>
+						</ul>
+					</div>
+					<div class="md-caption" ng-if="!hasSlowDownMap()">
+						No more detailed versions of this page currently exist.
+					</div>
+				</div>
+			</div>
+
+			<!-- Learn a subject at the same level, but a faster speed -->
+			<div ng-if="::!goSlow">
+				<md-subheader class="md-no-sticky">
+					More concise versions
+				</md-subheader>
+				<div class="change-speed-div">
+					<div ng-repeat="(subjectId,pagePairs) in page.fasterAtSameLevelMap">
+						<div ng-if="pagePairs.length > 0">
+							For a quicker explanation of
+							<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
+							see:
+						</div>
+						<ul ng-if="pagePairs.length > 0">
+							<li ng-repeat="pagePair in pagePairs">
+								<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
+								(Level: {{arb.stateService.getLevelName(pagePair.level)}} |
+								Speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[pagePair.childId].tagIds)}})
+							</li>
+						</ul>
+					</div>
+					<div class="md-caption" ng-if="!hasSpeedUpMap()">
+						No more concise versions of this page currently exist.
+					</div>
+				</div>
 			</div>
 
 			<!-- Visit the concepts taught by this page -->
-			<div ng-if="::pageSubjectsExceptItself.length > 0 && !goSlow">
+			<!-- <div ng-if="::pageSubjectsExceptItself.length > 0 && !goSlow">
 				This page tries to teach the following concepts. You can visit their pages to read more about them.
 				<ul>
 					<li ng-repeat="subject in pageSubjectsExceptItself | orderBy: ['-level']">
@@ -137,50 +176,54 @@
 						</span>
 					</li>
 				</ul>
-			</div>
+			</div> -->
 			<!-- <p ng-if="::pageSubjectsExceptItself.length == 0 && !goSlow">
 				Either this page doesn't teach any concepts or the authors haven't added them yet.
 			</p> -->
 
 			<!-- Learn one of the requirements -->
-			<div ng-if="pageRequirements.length > 0 && goSlow">
-				This page likely relies on the following concepts. You may want to read about them first.
-				<ul>
-					<li ng-repeat="requirement in pageRequirements | orderBy: ['-isStrong', '-level']">
-						<span ng-if="!requirement.isStrong">(Optional)</span>
-						<arb-page-title page-id="{{::requirement.parentId}}"
-								is-link="true"
-								ng-if="requirement.parentId != pageId"></arb-page-title>
-						<span ng-if="requirement.parentId == pageId">
-							Itself
-						</span>
-					</li>
-				</ul>
+			<div ng-if="::goSlow">
+				<md-subheader class="md-no-sticky">
+					Requirements
+				</md-subheader>
+				<div class="change-speed-div" ng-if="pageRequirements.length > 0">
+					This page relies on the following concepts:
+					<ul>
+						<li ng-repeat="requirement in pageRequirements | orderBy: ['-isStrong', '-level']">
+							<span class="md-caption" ng-if="!requirement.isStrong">(Optional)</span>
+							<arb-page-title page-id="{{::requirement.parentId}}"
+									is-link="true"
+									ng-if="requirement.parentId != pageId"></arb-page-title>
+							<span ng-if="requirement.parentId == pageId">
+								Itself
+							</span>
+						</li>
+					</ul>
+				</div>
+				<div class="change-speed-div md-caption" ng-if="page.requirements.length <= 0">
+					No prerequisites (or may be authors haven't added them yet).
+				</div>
 			</div>
-			<!-- <p ng-if="::page.requirements.length == 0 && goSlow">
-				Either this page doesn't have any prerequisites or the authors haven't added them yet.
-			</p> -->
 
 			<!-- Request a different explanation -->
-			<div>
+			<md-subheader class="md-no-sticky">
+				Request a new explanation
+			</md-subheader>
+			<div class="change-speed-div">
 				<div>
-					<span ng-if="hasSomeSuggestions()">
-						Can't find what you are looking for? You can request a new page with a different explanation:
-					</span>
-					<span ng-if="!hasSomeSuggestions()">
-						Want to request a new page with a different explanation?
-					</span>
+					Can't find what you are looking for?
 				</div>
 
 				<div class="change-speed-something-else" layout="column" layout-align="start start">
 					<!-- Other slow down things -->
 					<div layout="row" layout-align="start center" ng-if="::goSlow">
 						<span ng-if="!page.contentRequests.lessTechnical.myLikeValue">
-							<md-button class="short-button" ng-click="submitExplanationRequest('lessTechnical', $event)">+1</md-button>
-							a less technical explanation
-							<span title="If this explanation is too technical, you can request a less technical explanation. It will have fewer and/or less technical prerequisites.&#13;&#10;We show users' requests to authors, so they can prioritize which explanations to write. We will notify you when this new explanation exists.">
+							<md-button class="minor-button" ng-click="submitExplanationRequest('lessTechnical', $event)">
+								Request a less technical explanation
+							</md-button>
+							<!--<span title="If this explanation is too technical, you can request a less technical explanation. It will have fewer and/or less technical prerequisites.&#13;&#10;We show users' requests to authors, so they can prioritize which explanations to write. We will notify you when this new explanation exists.">
 								<md-icon class="helper-icon">help</md-icon>
-							</span>
+							</span>-->
 						</span>
 						<span ng-if="page.contentRequests.lessTechnical.myLikeValue">
 							Thanks for requesting a less technical explanation!
@@ -189,11 +232,12 @@
 
 					<div layout="row" layout-align="start center" ng-if="::goSlow">
 						<span ng-if="!page.contentRequests.moreWords.myLikeValue">
-							<md-button class="short-button" ng-click="submitExplanationRequest('moreWords', $event)">+1</md-button>
-							a more detailed explanation
-							<span title="If this explanation is moving too fast or skips over some parts, you can request a more detailed. It will have mostly the same prerequisites, but will be longer and more thorough.&#13;&#10;We show users' requests to authors, so they can prioritize which explanations to write. We will notify you when this new explanation exists.">
+							<md-button class="minor-button" ng-click="submitExplanationRequest('moreWords', $event)">
+								Request a more detailed explanation
+							</md-button>
+							<!--<span title="If this explanation is moving too fast or skips over some parts, you can request a more detailed. It will have mostly the same prerequisites, but will be longer and more thorough.&#13;&#10;We show users' requests to authors, so they can prioritize which explanations to write. We will notify you when this new explanation exists.">
 								<md-icon class="helper-icon">help</md-icon>
-							</span>
+							</span>-->
 						</span>
 						<span ng-if="page.contentRequests.moreWords.myLikeValue">
 							Thanks for requesting a more detailed explanation!
@@ -203,11 +247,12 @@
 					<!-- Other speed up things -->
 					<div layout="row" layout-align="start center" ng-if="::!goSlow">
 						<span ng-if="!page.contentRequests.moreTechnical.myLikeValue">
-							<md-button class="short-button" ng-click="submitExplanationRequest('moreTechnical', $event)">+1</md-button>
-							a more technical explanation
-							<span title="If this explanation is not technical enough, you can request a more technical explanation. It will have other and/or more technical prerequisites.&#13;&#10;We show users' requests to authors, so they can prioritize which explanations to write. We will notify you when this new explanation exists.">
+							<md-button class="minor-button" ng-click="submitExplanationRequest('moreTechnical', $event)">
+								Request a more technical explanation
+							</md-button>
+							<!--<span title="If this explanation is not technical enough, you can request a more technical explanation. It will have other and/or more technical prerequisites.&#13;&#10;We show users' requests to authors, so they can prioritize which explanations to write. We will notify you when this new explanation exists.">
 								<md-icon class="helper-icon">help</md-icon>
-							</span>
+							</span>-->
 						</span>
 						<span ng-if="page.contentRequests.moreTechnical.myLikeValue">
 							Thanks for requesting a more technical explanation!
@@ -216,30 +261,15 @@
 
 					<div layout="row" layout-align="start center" ng-if="::!goSlow">
 						<span ng-if="!page.contentRequests.fewerWords.myLikeValue">
-							<md-button class="short-button" ng-click="submitExplanationRequest('fewerWords', $event)">+1</md-button>
-							a more concise explanation
-							<span title="If this explanation is moving too slowly for you or has too much detail, you can request a more concise explanation. It will have mostly the same prerequisites, but will be shorter and more to the point.&#13;&#10;We show users' requests to authors, so they can prioritize which explanations to write. We will notify you when this new explanation exists.">
+							<md-button class="minor-button" ng-click="submitExplanationRequest('fewerWords', $event)">
+								Request a more concise explanation
+							</md-button>
+							<!--<span title="If this explanation is moving too slowly for you or has too much detail, you can request a more concise explanation. It will have mostly the same prerequisites, but will be shorter and more to the point.&#13;&#10;We show users' requests to authors, so they can prioritize which explanations to write. We will notify you when this new explanation exists.">
 								<md-icon class="helper-icon">help</md-icon>
-							</span>
+							</span>-->
 						</span>
 						<span ng-if="page.contentRequests.fewerWords.myLikeValue">
 							Thanks for requesting a more concise explanation!
-						</span>
-					</div>
-
-					<!-- Freeform text -->
-					<div layout="row" layout-align="start center">
-						<span ng-if="!submittedFreeform">
-							<md-input-container md-no-float flex>
-								<input ng-model="request.freeformText"
-										aria-label="Alternate page request"
-										placeholder="Other"
-										flex>
-							</md-input-container>
-							<md-button class="short-button" ng-click="submitExplanationRequest('', $event)">submit</md-button>
-						</span>
-						<span ng-if="submittedFreeform">
-							Thanks for your feedback!
 						</span>
 					</div>
 				</div>
