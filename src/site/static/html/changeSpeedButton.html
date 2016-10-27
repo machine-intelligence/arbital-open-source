@@ -48,7 +48,7 @@
 				</md-subheader>
 				<div class="change-speed-div">
 					<div>
-						This page is a part of
+						This explanation is a part of
 						<ng-pluralize count="page.arcPageIds.length"
 								when="{'one': 'this path:', 'other': 'these paths:'}"></ng-pluralize>
 					</div>
@@ -73,9 +73,8 @@
 							<span class="md-caption">
 								teaches
 								<span ng-repeat="becausePageId in becausePageIds">
-									<arb-page-title page-id="{{::becausePageId}}"
-											is-link="true"
-											ng-if="becausePageId != suggestionPageId"></arb-page-title>
+									<span ng-bind="arb.stateService.pageMap[becausePageId].title"
+											ng-if="becausePageId != suggestionPageId"></span>
 									<span ng-if="becausePageId == suggestionPageId">itself</span>
 									<span class="comma" ng-if="::!$last">,</span>
 								</span>
@@ -101,9 +100,8 @@
 							<span class="md-caption">
 								teaches
 								<span ng-repeat="becausePageId in becausePageIds">
-									<arb-page-title page-id="{{::becausePageId}}"
-											is-link="true"
-											ng-if="becausePageId != suggestionPageId"></arb-page-title>
+									<span ng-bind="arb.stateService.pageMap[becausePageId].title"
+											ng-if="becausePageId != suggestionPageId"></span>
 									<span ng-if="becausePageId == suggestionPageId">itself</span>
 									<span class="comma" ng-if="::!$last">,</span>
 								</span>
@@ -129,9 +127,8 @@
 							<span class="md-caption">
 								teaches
 								<span ng-repeat="becausePageId in becausePageIds">
-									<arb-page-title page-id="{{::becausePageId}}"
-											is-link="true"
-											ng-if="becausePageId != suggestionPageId"></arb-page-title>
+									<span ng-bind="arb.stateService.pageMap[becausePageId].title"
+											ng-if="becausePageId != suggestionPageId"></span>
 									<span ng-if="becausePageId == suggestionPageId">itself</span>
 									<span class="comma" ng-if="::!$last">,</span>
 								</span>
@@ -157,9 +154,8 @@
 							<span class="md-caption">
 								teaches
 								<span ng-repeat="becausePageId in becausePageIds">
-									<arb-page-title page-id="{{::becausePageId}}"
-											is-link="true"
-											ng-if="becausePageId != suggestionPageId"></arb-page-title>
+									<span ng-bind="arb.stateService.pageMap[becausePageId].title"
+											ng-if="becausePageId != suggestionPageId"></span>
 									<span ng-if="becausePageId == suggestionPageId">itself</span>
 									<span class="comma" ng-if="::!$last">,</span>
 								</span>
@@ -196,7 +192,7 @@
 					Requirements
 				</md-subheader>
 				<div class="change-speed-div" ng-if="pageRequirements.length > 0">
-					This page relies on the following concepts:
+					This explanation relies on the following concepts:
 					<ul>
 						<li ng-repeat="requirement in pageRequirements | orderBy: ['-isStrong', '-level']">
 							<span class="md-caption" ng-if="!requirement.isStrong">(Optional)</span>
