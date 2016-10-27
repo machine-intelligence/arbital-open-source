@@ -103,11 +103,11 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 				return $scope.page.higherLevelMap && Object.keys($scope.page.higherLevelMap).length > 0;
 			};
 
-			$scope.hasSlowDownMap = function() {
+			$scope.hasSlowerLevelMap = function() {
 				return $scope.page.slowerLevelMap && Object.keys($scope.page.slowerLevelMap).length > 0;
 			};
 
-			$scope.hasSpeedUpMap = function() {
+			$scope.hasFasterLevelMap = function() {
 				return $scope.page.fasterLevelMap && Object.keys($scope.page.fasterLevelMap).length > 0;
 			};
 
@@ -115,9 +115,9 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 			$scope.hasSomeSuggestions = function() {
 				if ($scope.goSlow) {
 					if ($scope.page.arcPageIds && $scope.page.arcPageIds.length > 0 && !arb.pathService.isOnPath()) return true;
-					return $scope.pageRequirements.length > 0 || $scope.hasSlowDownMap();
+					return $scope.pageRequirements.length > 0 || $scope.hasLowerLevelMap() || $scope.hasSlowerLevelMap();
 				}
-				return $scope.hasSpeedUpMap();
+				return $scope.hasHigherLevelMap() || $scope.hasFasterLevelMap();
 			};
 
 			// Allow the user to request an easier explanation

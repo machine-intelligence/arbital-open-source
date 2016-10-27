@@ -52,7 +52,7 @@
 						<ng-pluralize count="page.arcPageIds.length"
 								when="{'one': 'this path:', 'other': 'these paths:'}"></ng-pluralize>
 					</div>
-					<ul>
+					<ul ng-if="page.arcPageIds.length > 0">
 						<li ng-repeat="pageId in page.arcPageIds">
 							<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
 						</li>
@@ -66,16 +66,14 @@
 					Less technical alternatives
 				</md-subheader>
 				<div class="change-speed-div">
-					<ul>
+					<ul ng-if="hasLowerLevelMap()">
 						<li ng-repeat="(suggestionPageId,becausePageIds) in page.lowerLevelMap">
 							<arb-page-title page-id="{{::suggestionPageId}}" is-link="true"></arb-page-title>
 							<br>
 							<span class="md-caption">
 								teaches
 								<span ng-repeat="becausePageId in becausePageIds">
-									<span ng-bind="arb.stateService.pageMap[becausePageId].title"
-											ng-if="becausePageId != suggestionPageId"></span>
-									<span ng-if="becausePageId == suggestionPageId">itself</span>
+									<span ng-bind="arb.stateService.pageMap[becausePageId].title"></span>
 									<span class="comma" ng-if="::!$last">,</span>
 								</span>
 							</span>
@@ -93,16 +91,14 @@
 					More technical alternatives
 				</md-subheader>
 				<div class="change-speed-div">
-					<ul>
+					<ul ng-if="hasHigherLevelMap()">
 						<li ng-repeat="(suggestionPageId,becausePageIds) in page.higherLevelMap">
 							<arb-page-title page-id="{{::suggestionPageId}}" is-link="true"></arb-page-title>
 							<br>
 							<span class="md-caption">
 								teaches
 								<span ng-repeat="becausePageId in becausePageIds">
-									<span ng-bind="arb.stateService.pageMap[becausePageId].title"
-											ng-if="becausePageId != suggestionPageId"></span>
-									<span ng-if="becausePageId == suggestionPageId">itself</span>
+									<span ng-bind="arb.stateService.pageMap[becausePageId].title"></span>
 									<span class="comma" ng-if="::!$last">,</span>
 								</span>
 							</span>
@@ -117,26 +113,24 @@
 			<!-- Learn a subject at the same level, but a slower speed -->
 			<div ng-if="::goSlow">
 				<md-subheader class="md-no-sticky">
-					More detailed alternatives
+					Slower alternatives
 				</md-subheader>
 				<div class="change-speed-div">
-					<ul>
-						<li ng-repeat="(subjectId,pagePairs) in page.slowerLevelMap">
+					<ul ng-if="hasSlowerLevelMap()">
+						<li ng-repeat="(suggestionPageId,becausePageIds) in page.slowerLevelMap">
 							<arb-page-title page-id="{{::suggestionPageId}}" is-link="true"></arb-page-title>
 							<br>
 							<span class="md-caption">
 								teaches
 								<span ng-repeat="becausePageId in becausePageIds">
-									<span ng-bind="arb.stateService.pageMap[becausePageId].title"
-											ng-if="becausePageId != suggestionPageId"></span>
-									<span ng-if="becausePageId == suggestionPageId">itself</span>
+									<span ng-bind="arb.stateService.pageMap[becausePageId].title"></span>
 									<span class="comma" ng-if="::!$last">,</span>
 								</span>
 							</span>
 						</li>
 					</ul>
-					<div class="md-caption" ng-if="!hasSlowDownMap()">
-						No more detailed alternatives of this page currently exist.
+					<div class="md-caption" ng-if="!hasSlowerLevelMap()">
+						No slower alternatives of this page currently exist.
 					</div>
 				</div>
 			</div>
@@ -144,26 +138,24 @@
 			<!-- Learn a subject at the same level, but a faster speed -->
 			<div ng-if="::!goSlow">
 				<md-subheader class="md-no-sticky">
-					More concise alternatives
+					Faster alternatives
 				</md-subheader>
 				<div class="change-speed-div">
-					<ul>
+					<ul ng-if="hasFasterLevelMap()">
 						<li ng-repeat="(suggestionPageId,becausePageIds) in page.fasterLevelMap">
 							<arb-page-title page-id="{{::suggestionPageId}}" is-link="true"></arb-page-title>
 							<br>
 							<span class="md-caption">
 								teaches
 								<span ng-repeat="becausePageId in becausePageIds">
-									<span ng-bind="arb.stateService.pageMap[becausePageId].title"
-											ng-if="becausePageId != suggestionPageId"></span>
-									<span ng-if="becausePageId == suggestionPageId">itself</span>
+									<span ng-bind="arb.stateService.pageMap[becausePageId].title"></span>
 									<span class="comma" ng-if="::!$last">,</span>
 								</span>
 							</span>
 						</li>
 					</ul>
-					<div class="md-caption" ng-if="!hasSpeedUpMap()">
-						No more concise alternatives of this page currently exist.
+					<div class="md-caption" ng-if="!hasFasterLevelMap()">
+						No faster alternatives of this page currently exist.
 					</div>
 				</div>
 			</div>
@@ -191,22 +183,24 @@
 				<md-subheader class="md-no-sticky">
 					Requirements
 				</md-subheader>
-				<div class="change-speed-div" ng-if="pageRequirements.length > 0">
-					This explanation relies on the following concepts:
-					<ul>
-						<li ng-repeat="requirement in pageRequirements | orderBy: ['-isStrong', '-level']">
-							<span class="md-caption" ng-if="!requirement.isStrong">(Optional)</span>
-							<arb-page-title page-id="{{::requirement.parentId}}"
-									is-link="true"
-									ng-if="requirement.parentId != pageId"></arb-page-title>
-							<span ng-if="requirement.parentId == pageId">
-								Itself
-							</span>
-						</li>
-					</ul>
-				</div>
-				<div class="change-speed-div md-caption" ng-if="page.requirements.length <= 0">
-					No prerequisites (or may be authors haven't added them yet).
+				<div class="change-speed-div">
+					<div ng-if="pageRequirements.length > 0">
+						This explanation relies on the following concepts:
+						<ul>
+							<li ng-repeat="requirement in pageRequirements | orderBy: ['-isStrong', '-level']">
+								<span class="md-caption" ng-if="!requirement.isStrong">(Optional)</span>
+								<arb-page-title page-id="{{::requirement.parentId}}"
+										is-link="true"
+										ng-if="requirement.parentId != pageId"></arb-page-title>
+								<span ng-if="requirement.parentId == pageId">
+									Itself
+								</span>
+							</li>
+						</ul>
+					</div>
+					<div class="md-caption" ng-if="pageRequirements.length <= 0">
+						No prerequisites (or may be authors haven't added them yet).
+					</div>
 				</div>
 			</div>
 
@@ -234,14 +228,14 @@
 					<div layout="row" layout-align="start center" ng-if="::goSlow">
 						<span ng-if="!page.contentRequests.moreWords.myLikeValue">
 							<md-button class="minor-button" ng-click="submitExplanationRequest('moreWords', $event)">
-								Request a more detailed explanation
+								Request a slower explanation
 							</md-button>
 							<!--<span title="If this explanation is moving too fast or skips over some parts, you can request a more detailed. It will have mostly the same prerequisites, but will be longer and more thorough.&#13;&#10;We show users' requests to authors, so they can prioritize which explanations to write. We will notify you when this new explanation exists.">
 								<md-icon class="helper-icon">help</md-icon>
 							</span>-->
 						</span>
 						<span ng-if="page.contentRequests.moreWords.myLikeValue">
-							Thanks for requesting a more detailed explanation!
+							Thanks for requesting a slower explanation!
 						</span>
 					</div>
 
@@ -263,14 +257,14 @@
 					<div layout="row" layout-align="start center" ng-if="::!goSlow">
 						<span ng-if="!page.contentRequests.fewerWords.myLikeValue">
 							<md-button class="minor-button" ng-click="submitExplanationRequest('fewerWords', $event)">
-								Request a more concise explanation
+								Request a faster explanation
 							</md-button>
 							<!--<span title="If this explanation is moving too slowly for you or has too much detail, you can request a more concise explanation. It will have mostly the same prerequisites, but will be shorter and more to the point.&#13;&#10;We show users' requests to authors, so they can prioritize which explanations to write. We will notify you when this new explanation exists.">
 								<md-icon class="helper-icon">help</md-icon>
 							</span>-->
 						</span>
 						<span ng-if="page.contentRequests.fewerWords.myLikeValue">
-							Thanks for requesting a more concise explanation!
+							Thanks for requesting a faster explanation!
 						</span>
 					</div>
 				</div>
