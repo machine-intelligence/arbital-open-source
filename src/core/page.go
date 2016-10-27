@@ -185,9 +185,6 @@ type Page struct {
 	// What actions the current user can perform with this page
 	Permissions *Permissions `json:"permissions"`
 
-	// If the page is a "hub", this is the data for it
-	HubContent *HubPageContent `json:"hubContent"`
-
 	// === Other data ===
 	// This data is included under "Full data", but can also be loaded along side "Auxillary data".
 	Summaries map[string]string `json:"summaries"`
@@ -463,26 +460,6 @@ type Mark struct {
 	CreatorID string `json:"-"`
 }
 
-// HubPageContent is data loaded for hub pages
-type HubPageContent struct {
-	// Level -> list of pageIds that will teach the user to that level
-	LearnPageIDs [][]string `json:"learnPageIds"`
-	// Level -> list of pageIds that will boost the understanding at that level
-	BoostPageIDs [][]string `json:"boostPageIds"`
-}
-
-func NewHubPageContent() *HubPageContent {
-	content := HubPageContent{
-		LearnPageIDs: make([][]string, MasteryLevelCount, MasteryLevelCount),
-		BoostPageIDs: make([][]string, MasteryLevelCount, MasteryLevelCount),
-	}
-	for n := 0; n < MasteryLevelCount; n++ {
-		content.LearnPageIDs[n] = make([]string, 0)
-		content.BoostPageIDs[n] = make([]string, 0)
-	}
-	return &content
-}
-
 // PageObject stores some information for an object embedded in a page
 type PageObject struct {
 	PageID string `json:"pageId"`
@@ -664,7 +641,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	}
 
 	// Load tags
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Tags || p.LoadOptions.HubContent })
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Tags })
 	err = LoadParentIDs(db, pageMap, u, &LoadParentIdsOptions{
 		ForPages:     filteredPageMap,
 		PagePairType: TagPagePairType,
@@ -693,26 +670,6 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	})
 	if err != nil {
 		return fmt.Errorf("LoadLensesForPages failed: %v", err)
-	}
-
-	// Load hub content
-	hubContentPageMap := filterPageMap(pageMap, func(p *Page) bool {
-		if !p.LoadOptions.HubContent {
-			return false
-		}
-		// Make sure the page has the necessary "Hub" meta tag
-		for _, tagID := range p.TagIDs {
-			if tagID == HubPageID {
-				return true
-			}
-		}
-		return false
-	})
-	err = LoadHubContent(db, u, pageMap, &LoadDataOptions{
-		ForPages: hubContentPageMap,
-	})
-	if err != nil {
-		return fmt.Errorf("LoadHubContent failed: %v", err)
 	}
 
 	// Load path pages
@@ -1017,16 +974,6 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	err = LoadMasteries(db, u, masteryMap)
 	if err != nil {
 		return fmt.Errorf("LoadMasteries failed: %v", err)
-	}
-	// For HUB pages, make sure we have the mastery object, even if the user doesn't have the mastery
-	for pageID := range hubContentPageMap {
-		if _, ok := masteryMap[pageID]; !ok {
-			masteryMap[pageID] = &Mastery{
-				PageID:    pageID,
-				Level:     NoMasteryLevel,
-				UpdatedAt: database.Now(),
-			}
-		}
 	}
 
 	// Load all the users
@@ -1850,49 +1797,6 @@ func LoadLearnMore(db *database.DB, u *CurrentUser, pageMap map[string]*Page, op
 		return err
 	}
 	return nil
-}
-
-// LoadHubContent loads the content to populate hub pages
-func LoadHubContent(db *database.DB, u *CurrentUser, pageMap map[string]*Page, options *LoadDataOptions) error {
-	if options == nil {
-		options = &LoadDataOptions{}
-	}
-
-	sourceMap := options.ForPages
-	if sourceMap == nil {
-		sourceMap = pageMap
-	}
-
-	pageIDs := PageIDsListFromMap(sourceMap)
-	if len(pageIDs) <= 0 {
-		return nil
-	}
-
-	queryPart := database.NewQuery(`
-		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
-		ON (pi.pageId=pp.childId)
-		WHERE pp.parentId IN`).AddArgsGroup(pageIDs).Add(`
-			AND pp.type=?`, SubjectPagePairType)
-	err := LoadPagePairs(db, queryPart, func(db *database.DB, pp *PagePair) error {
-		if pp.ChildID == pp.ParentID {
-			return nil
-		}
-		if sourceMap[pp.ParentID].HubContent == nil {
-			sourceMap[pp.ParentID].HubContent = NewHubPageContent()
-		}
-		hubContent := sourceMap[pp.ParentID].HubContent
-		if pp.IsStrong {
-			hubContent.LearnPageIDs[pp.Level] = append(hubContent.LearnPageIDs[pp.Level], pp.ChildID)
-		} else {
-			hubContent.BoostPageIDs[pp.Level] = append(hubContent.BoostPageIDs[pp.Level], pp.ChildID)
-		}
-		AddPageToMap(pp.ChildID, pageMap, &PageLoadOptions{
-			Requisites: true,
-			Path:       true,
-		})
-		return nil
-	})
-	return err
 }
 
 type ProcessLoadPageToDomainSubmissionCallback func(db *database.DB, submission *PageToDomainSubmission) error

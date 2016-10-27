@@ -56,7 +56,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 
 	// These functions will be added to each page object.
 	var pageFuncs = {
-		likeScore: function() {
+		getLikeScore: function() {
 			return this.likeCount + this.myLikeValue;
 		},
 		// Check if the user has never visited this page before.
@@ -249,7 +249,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 				console.error('Unknown sort type: ' + sortChildrenBy);
 			}
 			return function(aId, bId) {
-				var diff = pageMap[bId].likeScore() - pageMap[aId].likeScore();
+				var diff = pageMap[bId].getLikeScore() - pageMap[aId].getLikeScore();
 				if (diff === 0) {
 					return pageMap[bId].pageCreatedAt.localeCompare(pageMap[aId].pageCreatedAt);
 				}

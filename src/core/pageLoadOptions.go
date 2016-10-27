@@ -35,7 +35,6 @@ type PageLoadOptions struct {
 	AllMarks                bool // just load all marks
 	TrustMap                bool // trust map for this user
 	LearnMore               bool
-	HubContent              bool
 
 	// Load options for basic pages
 	Edit                  bool // because otherwise a non-published page id will be deleted from the pageMap
@@ -69,7 +68,6 @@ type PageLoadOptions struct {
 	Summaries bool
 
 	// Options for what data to load after the page's data has been loaded
-	NextPrevIDs bool
 	PageObjects bool
 
 	// Load the page even if it's deleted
@@ -95,14 +93,12 @@ var (
 		UnresolvedMarks: true,
 		TrustMap:        true,
 		LearnMore:       true,
-		HubContent:      true,
 		Answers:         true,
 		LinkedMarkCount: true,
 		Mastery:         true,
 		UsedAsMastery:   true,
 		Creators:        true,
 		ProposalEditNum: true,
-		NextPrevIDs:     true,
 		ContentRequests: true,
 	}).Add(SubpageLoadOptions)
 	// Options for full page edit
@@ -128,6 +124,7 @@ var (
 	LensFullLoadOptions = (&PageLoadOptions{
 		Questions:       true,
 		Children:        true,
+		Parents:         true,
 		Tags:            true,
 		Path:            true,
 		SubpageCounts:   true,
@@ -135,7 +132,6 @@ var (
 		SubmittedTo:     true,
 		UserMarks:       true,
 		LearnMore:       true,
-		HubContent:      true,
 		UnresolvedMarks: true,
 		Mastery:         true,
 		Creators:        true,

@@ -45,18 +45,11 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				$scope.mastery = {has: false};
 			}
 
-			// Compute HUB stuff
-			$scope.hubPageId = $location.search().hubId;
-			if ($scope.hubPageId == $scope.pageId) {
-				$location.search('hubId', undefined);
-				$scope.hubPageId = undefined;
-			}
-
 			$scope.qualityTag = arb.pageService.getQualityTag($scope.page.tagIds)
 
 			// Explanation request
 			$scope.page.explanations.sort(function(a,b) {
-				return arb.stateService.pageMap[b.childId].likeScore() - arb.stateService.pageMap[a.childId].likeScore();
+				return arb.stateService.pageMap[b.childId].getLikeScore() - arb.stateService.pageMap[a.childId].getLikeScore();
 			});
 			$scope.explanationRequest = {
 				speed: '0',

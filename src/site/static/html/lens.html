@@ -56,8 +56,8 @@
 			<arb-markdown class="lens-text"
 					page-id="{{::page.pageId}}"></arb-markdown>
 
+			<!-- Contributors -->
 			<div class="md-caption page-list-span">
-				<!-- Contributors -->
 				<div class="author-list"
 						ng-if="::page.creatorIds.length > 0 && page.seeGroupId &&
 							!(page.editGroupId === page.creatorIds[0] && page.creatorIds.length == 1)">
@@ -74,11 +74,6 @@
 
 			<!-- HUB page GUI -->
 			<div arb-hub-page-gui page-id="{{::pageId}}" ng-if="::isHub()"></div>
-
-			<!-- HUB navigation -->
-			<arb-hub-page-footer page-id="{{::pageId}}"
-					hub-page-id="{{::hubPageId}}"
-					ng-if="::hubPageId"></arb-hub-page-footer>
 
 			<div layout-gt-xs="row" layout-align="start end">
 				<!-- Subjects taught -->
@@ -138,7 +133,7 @@
 			<!-- Explanation panels -->
 			<div>
 				<div class="page-title md-display-2" ng-class="::{'center-text': isTinyScreen}">
-					Explanations ({{page.explanations.length}})
+					Learn this concept ({{page.explanations.length}})
 				</div>
 				<hr class="page-title-hr"></hr>
 
