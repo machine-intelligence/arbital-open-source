@@ -211,7 +211,6 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		});
 
-
 		// Process %hidden: text% blocks.
 		var hiddenBlockRegexp = new RegExp('^(%+)hidden\\(([\\s\\S]+?)\\): ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
@@ -224,7 +223,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 					buttonText = '';
 				}
 				var html = '\n\n<div class=\'' + divClass + '\'>' + blockText + '\n\n</div>';
-				return '<div arb-hidden-text button-text=\'' + buttonText + '\'>' + html + '</div>';
+				return '<div arb-hidden-text button-text=\'' + buttonText + '\'>' + html + '\n\n</div>';
 			});
 		});
 
@@ -682,4 +681,3 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		return createConverterInternal(scope, pageId, true);
 	};
 });
-
