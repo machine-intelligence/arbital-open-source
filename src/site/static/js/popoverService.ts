@@ -97,6 +97,7 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 	// Create a new intrasite popover.
 	var createPopover = function(event) {
 		var $target = $(event.currentTarget);
+		if ($target.parents('.ignore-popover').length > 0) return;
 
 		// If mouse is in the top part of the screen, show popover down, otherwise up.
 		var mouseInTopPart = ((mousePageY - $('body').scrollTop()) / $(window).height()) <= 0.4;

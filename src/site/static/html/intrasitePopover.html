@@ -34,7 +34,10 @@
 								<!-- Title -->
 								<arb-page-title page-id="{{::page.pageId}}"
 										custom-page-title="{{::page.isComment() ? 'Comment': undefined}}"
-										ng-if="::page" flex></arb-page-title>
+										is-link="true"
+										class="ignore-popover" 
+										flex
+										ng-if="::page"></arb-page-title>
 							</div>
 
 							<!-- Likes -->
