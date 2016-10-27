@@ -30,21 +30,20 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 				$scope.page.speedUpMap = {};
 				arb.stateService.postData('/json/changeSpeed/', {pageId: $scope.pageId}, function() {
 
-					$scope.page.slowerAtSameLevelMap = {};
+					// These maps contain objects: suggested page id -> list of page ids that teach similar subjects
+					$scope.page.slowerLevelMap = {};
 					$scope.page.lowerLevelMap = {};
-
-					$scope.page.fasterAtSameLevelMap = {};
+					$scope.page.fasterLevelMap = {};
 					$scope.page.higherLevelMap = {};
+
+					let currentPageSpeed = arb.pageService.getPageSpeed($scope.page.tagIds);
 
 					for (let i = 0; i < $scope.page.subjects.length; ++i) {
 						let subjectPair = $scope.page.subjects[i];
-						let currentPageSpeed = arb.pageService.getPageSpeed($scope.page.tagIds);
 
 						// Find pages that teach the same subject at the same level, but slower, or at a lower level.
 						let slowerOrLowerPages = $scope.page.slowDownMap[subjectPair.parentId];
 						if (slowerOrLowerPages) {
-							let slowerPagesAtSameLevel = [];
-							let lowerLevelPages = [];
 							for (let j = 0; j < slowerOrLowerPages.length; ++j) {
 								let otherPair = $scope.page.slowDownMap[subjectPair.parentId][j];
 
@@ -53,25 +52,24 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 									let otherTeacherSpeed = arb.pageService.getPageSpeed(otherTeacher.tagIds);
 
 									if (otherTeacherSpeed < currentPageSpeed) {
-										slowerPagesAtSameLevel.push(otherPair);
+										if (!(otherPair.childId in $scope.page.slowerLevelMap)) {
+											$scope.page.slowerLevelMap[otherPair.childId] = [];
+										} 
+										$scope.page.slowerLevelMap[otherPair.childId].push(subjectPair.parentId);
 									}
-								}
-								if (otherPair.level < subjectPair.level) {
-									lowerLevelPages.push(otherPair);
+								} else if (otherPair.level < subjectPair.level) {
+									if (!(otherPair.childId in $scope.page.lowerLevelMap)) {
+										$scope.page.lowerLevelMap[otherPair.childId] = [];
+									} 
+									$scope.page.lowerLevelMap[otherPair.childId].push(subjectPair.parentId);
 								}
 							}
-							if (slowerPagesAtSameLevel.length > 0) {
-								$scope.page.slowerAtSameLevelMap[subjectPair.parentId] = slowerPagesAtSameLevel;
-							}
-							$scope.page.lowerLevelMap[subjectPair.parentId] = lowerLevelPages;
 						}
 
 						// Find pages that teach the same subject at the same level, but faster, or at a higher level.
 						let fasterOrHigherPages = $scope.page.speedUpMap[subjectPair.parentId];
 						if (fasterOrHigherPages) {
-							let fasterPagesAtSameLevel = [];
-							let higherLevelPages = [];
-							for (let j=0; j<fasterOrHigherPages.length; ++j) {
+							for (let j = 0; j < fasterOrHigherPages.length; ++j) {
 								let otherPair = $scope.page.speedUpMap[subjectPair.parentId][j];
 
 								if (otherPair.level == subjectPair.level) {
@@ -79,15 +77,18 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 									let otherTeacherSpeed = arb.pageService.getPageSpeed(otherTeacher.tagIds);
 
 									if (otherTeacherSpeed > currentPageSpeed) {
-										fasterPagesAtSameLevel.push(otherPair);
+										if (!(otherPair.childId in $scope.page.fasterLevelMap)) {
+											$scope.page.fasterLevelMap[otherPair.childId] = [];
+										} 
+										$scope.page.fasterLevelMap[otherPair.childId].push(subjectPair.parentId);
 									}
-								}
-								if (otherPair.level > subjectPair.level) {
-									higherLevelPages.push(otherPair);
+								} else if (otherPair.level > subjectPair.level) {
+									if (!(otherPair.childId in $scope.page.higherLevelMap)) {
+										$scope.page.higherLevelMap[otherPair.childId] = [];
+									} 
+									$scope.page.higherLevelMap[otherPair.childId].push(subjectPair.parentId);
 								}
 							}
-							$scope.page.fasterAtSameLevelMap[subjectPair.parentId] = fasterPagesAtSameLevel;
-							$scope.page.higherLevelMap[subjectPair.parentId] = higherLevelPages;
 						}
 					}
 
@@ -103,11 +104,11 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 			};
 
 			$scope.hasSlowDownMap = function() {
-				return $scope.page.slowerAtSameLevelMap && Object.keys($scope.page.slowerAtSameLevelMap).length > 0;
+				return $scope.page.slowerLevelMap && Object.keys($scope.page.slowerLevelMap).length > 0;
 			};
 
 			$scope.hasSpeedUpMap = function() {
-				return $scope.page.fasterAtSameLevelMap && Object.keys($scope.page.fasterAtSameLevelMap).length > 0;
+				return $scope.page.fasterLevelMap && Object.keys($scope.page.fasterLevelMap).length > 0;
 			};
 
 			// Return true if there is at least one page that's suggested
@@ -121,39 +122,18 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 
 			// Allow the user to request an easier explanation
 			$scope.request = {
-				freeformText: '',
 			};
 
 			$scope.submitExplanationRequest = function(requestType, event) {
 				// Register the +1 to request
-				arb.signupService.submitContentRequest(requestType || ($scope.goSlow ? 'slowDown' : 'speedUp'), $scope.page);
+				arb.signupService.submitContentRequest(requestType, $scope.page);
 
-				// Submit feedback if there is any text
-				if ($scope.request.freeformText.length > 0) {
-					var text = $scope.goSlow ? 'Slower' : 'Faster';
-					text += ' explanation request for page ' + $scope.page.pageId + ':\n' + $scope.request.freeformText;
-					arb.stateService.postData(
-						'/feedback/',
-						{text: text}
-					)
-					$scope.request.freeformText = '';
-					$scope.submittedFreeform = true;
-
-					analyticsService.reportEventToHeapAndMixpanel('lateral nav: submit an "other" request', {
-						type: $scope.goSlow ? 'say-what' : 'go-faster',
-						wasBlue: $scope.hasSomeSuggestions(),
-						pageId: $scope.pageId,
-						requestType: 'other',
-						text: text,
-					});
-				} else {
-					analyticsService.reportEventToHeapAndMixpanel('lateral nav: submit a +1 request', {
-						type: $scope.goSlow ? 'say-what' : 'go-faster',
-						wasBlue: $scope.hasSomeSuggestions(),
-						pageId: $scope.pageId,
-						requestType: requestType,
-					});
-				}
+				analyticsService.reportEventToHeapAndMixpanel('lateral nav: submit a +1 request', {
+					type: $scope.goSlow ? 'say-what' : 'go-faster',
+					wasBlue: $scope.hasSomeSuggestions(),
+					pageId: $scope.pageId,
+					requestType: requestType,
+				});
 			};
 
 			$scope.hoverStart = function() {
@@ -198,7 +178,7 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 
 			angular.element($window).bind('scroll', function() {
 				scope.haveScrolled = true;
-				// positionButton();
+				//positionButton();
 			});
 
 			positionButton();

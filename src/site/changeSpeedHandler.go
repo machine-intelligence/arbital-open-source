@@ -99,8 +99,11 @@ func _loadChangeSpeedPagePairs(db *database.DB, slower bool, pageID string, retu
 		comparison = ">"
 	}
 
-	pageSpeeds := database.NewQuery(
-		`(SELECT childId AS pageId, IF(SUM(parentId='6b4'), -1, IF(SUM(parentId='6b5'), 1, 0)) AS speed FROM pagePairs WHERE type='tag' GROUP BY childId)`)
+	pageSpeeds := database.NewQuery(`
+		(SELECT childId AS pageId, IF(SUM(parentId='6b4'), -1, IF(SUM(parentId='6b5'), 1, 0)) AS speed
+		FROM pagePairs
+		WHERE type=?`, core.TagPagePairType).Add(`
+		GROUP BY childId)`)
 
 	queryPart := database.NewQuery(`
 		/* find pages (pp.childId) that teach one of the same subjects as pageId teaches, but at a lower or higher level */

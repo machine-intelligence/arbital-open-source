@@ -40,6 +40,7 @@
 	<div class="change-speed-tray md-body-1 change-speed-top-offset"
 			ng-class="{'has-info': hasSomeSuggestions()}">
 		<div ng-if="isHovered">
+
 			<!-- List arcs that contain this page -->
 			<div ng-if="::goSlow && page.arcPageIds.length > 0 && !arb.pathService.isOnPath()">
 				<md-subheader class="md-no-sticky">
@@ -59,26 +60,28 @@
 				</div>
 			</div>
 
-			<!-- Less technical versions -->
+			<!-- Less technical alternatives -->
 			<div ng-if="::goSlow">
 				<md-subheader class="md-no-sticky">
-					Less technical versions
+					Less technical alternatives
 				</md-subheader>
 				<div class="change-speed-div">
-					<div ng-repeat="(subjectId,pagePairs) in page.lowerLevelMap" ng-if="::goSlow">
-						<div ng-if="pagePairs.length > 0">
-							For a less technical explanation of
+					<ul>
+						<li ng-repeat="(suggestionPageId,becausePageIds) in page.lowerLevelMap">
 							<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-							see:
-						</div>
-						<ul>
-							<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
-								<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
-								(Level: {{arb.stateService.getLevelName(pagePair.level)}} |
-								Speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[pagePair.childId].tagIds)}})
-							</li>
-						</ul>
-					</div>
+							<br>
+							<span class="md-caption">
+								teaches
+								<span ng-repeat="becausePageId in becausePageIds">
+									<arb-page-title page-id="{{::becausePageId}}"
+											is-link="true"
+											ng-if="becausePageId != suggestionPageId"></arb-page-title>
+									<span ng-if="becausePageId == suggestionPageId">itself</span>
+									<span class="comma" ng-if="::!$last">,</span>
+								</span>
+							</span>
+						</li>
+					</ul>
 					<div class="md-caption" ng-if="!hasLowerLevelMap()">
 						No less technical explanations currently exist.
 					</div>
@@ -88,23 +91,25 @@
 			<!-- Learn a subject at a harder level -->
 			<div ng-if="::!goSlow">
 				<md-subheader class="md-no-sticky">
-					More technical versions
+					More technical alternatives
 				</md-subheader>
 				<div class="change-speed-div">
-					<div ng-repeat="(subjectId,pagePairs) in page.higherLevelMap">
-						<div ng-if="pagePairs.length > 0">
-							For a more technical explanation of
-							<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-							see:
-						</div>
-						<ul>
-							<li ng-repeat="pagePair in pagePairs | orderBy: '-level'">
-								<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
-								(Level: {{arb.stateService.getLevelName(pagePair.level)}} |
-								Speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[pagePair.childId].tagIds)}})
-							</li>
-						</ul>
-					</div>
+					<ul>
+						<li ng-repeat="(suggestionPageId,becausePageIds) in page.higherLevelMap">
+							<arb-page-title page-id="{{::suggestionPageId}}" is-link="true"></arb-page-title>
+							<br>
+							<span class="md-caption">
+								teaches
+								<span ng-repeat="becausePageId in becausePageIds">
+									<arb-page-title page-id="{{::becausePageId}}"
+											is-link="true"
+											ng-if="becausePageId != suggestionPageId"></arb-page-title>
+									<span ng-if="becausePageId == suggestionPageId">itself</span>
+									<span class="comma" ng-if="::!$last">,</span>
+								</span>
+							</span>
+						</li>
+					</ul>
 					<div class="md-caption" ng-if="!hasHigherLevelMap()">
 						No more technical explanations currently exist.
 					</div>
@@ -114,25 +119,27 @@
 			<!-- Learn a subject at the same level, but a slower speed -->
 			<div ng-if="::goSlow">
 				<md-subheader class="md-no-sticky">
-					More detailed versions
+					More detailed alternatives
 				</md-subheader>
 				<div class="change-speed-div">
-					<div ng-repeat="(subjectId,pagePairs) in page.slowerAtSameLevelMap">
-						<div ng-if="pagePairs.length > 0">
-							For a slower explanation of
-							<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-							see:
-						</div>
-						<ul ng-if="pagePairs.length > 0">
-							<li ng-repeat="pagePair in pagePairs">
-								<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
-								(Level: {{arb.stateService.getLevelName(pagePair.level)}} |
-								Speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[pagePair.childId].tagIds)}})
-							</li>
-						</ul>
-					</div>
+					<ul>
+						<li ng-repeat="(subjectId,pagePairs) in page.slowerLevelMap">
+							<arb-page-title page-id="{{::suggestionPageId}}" is-link="true"></arb-page-title>
+							<br>
+							<span class="md-caption">
+								teaches
+								<span ng-repeat="becausePageId in becausePageIds">
+									<arb-page-title page-id="{{::becausePageId}}"
+											is-link="true"
+											ng-if="becausePageId != suggestionPageId"></arb-page-title>
+									<span ng-if="becausePageId == suggestionPageId">itself</span>
+									<span class="comma" ng-if="::!$last">,</span>
+								</span>
+							</span>
+						</li>
+					</ul>
 					<div class="md-caption" ng-if="!hasSlowDownMap()">
-						No more detailed versions of this page currently exist.
+						No more detailed alternatives of this page currently exist.
 					</div>
 				</div>
 			</div>
@@ -140,25 +147,27 @@
 			<!-- Learn a subject at the same level, but a faster speed -->
 			<div ng-if="::!goSlow">
 				<md-subheader class="md-no-sticky">
-					More concise versions
+					More concise alternatives
 				</md-subheader>
 				<div class="change-speed-div">
-					<div ng-repeat="(subjectId,pagePairs) in page.fasterAtSameLevelMap">
-						<div ng-if="pagePairs.length > 0">
-							For a quicker explanation of
-							<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-							see:
-						</div>
-						<ul ng-if="pagePairs.length > 0">
-							<li ng-repeat="pagePair in pagePairs">
-								<arb-page-title page-id="{{::pagePair.childId}}" is-link="true"></arb-page-title>
-								(Level: {{arb.stateService.getLevelName(pagePair.level)}} |
-								Speed: {{arb.pageService.getPageSpeedName(arb.stateService.pageMap[pagePair.childId].tagIds)}})
-							</li>
-						</ul>
-					</div>
+					<ul>
+						<li ng-repeat="(suggestionPageId,becausePageIds) in page.fasterLevelMap">
+							<arb-page-title page-id="{{::suggestionPageId}}" is-link="true"></arb-page-title>
+							<br>
+							<span class="md-caption">
+								teaches
+								<span ng-repeat="becausePageId in becausePageIds">
+									<arb-page-title page-id="{{::becausePageId}}"
+											is-link="true"
+											ng-if="becausePageId != suggestionPageId"></arb-page-title>
+									<span ng-if="becausePageId == suggestionPageId">itself</span>
+									<span class="comma" ng-if="::!$last">,</span>
+								</span>
+							</span>
+						</li>
+					</ul>
 					<div class="md-caption" ng-if="!hasSpeedUpMap()">
-						No more concise versions of this page currently exist.
+						No more concise alternatives of this page currently exist.
 					</div>
 				</div>
 			</div>
@@ -207,13 +216,9 @@
 
 			<!-- Request a different explanation -->
 			<md-subheader class="md-no-sticky">
-				Request a new explanation
+				Can't find what you are looking for?
 			</md-subheader>
 			<div class="change-speed-div">
-				<div>
-					Can't find what you are looking for?
-				</div>
-
 				<div class="change-speed-something-else" layout="column" layout-align="start start">
 					<!-- Other slow down things -->
 					<div layout="row" layout-align="start center" ng-if="::goSlow">
