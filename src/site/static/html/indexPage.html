@@ -42,43 +42,59 @@
 
 	<!-- Featured pages -->
 	<div layout="column" class="featured-pages-div dynamic-hor-padding" ng-if="showFeaturedPages">
-		<a ng-href="{{continueBayesUrl()}}"
-				layout="row"
-				layout-align="start center"
-				class="md-whiteframe-1dp featured-pages-panel"
-				ng-if="!user.continueBayesPath.isFinished">
-			<div class="featured-pages-image">
-				<md-icon>blur_linear</md-icon>
-			</div>
-			<div class="featured-pages-body" flex>
-				<div class="featured-pages-title">Learn about Bayes' Rule</div>
-				<div class="featured-pages-subtitle">
-					The quantitative law of probability theory governing how to revise probabilistic beliefs in response to observing new evidence.
+
+		<div class="md-whiteframe-1dp featured-pages-panel" ng-if="showFeaturedPage('1zq')">
+			<a ng-href="{{continueBayesUrl()}}"
+					layout="row"
+					layout-align="start center"
+					class="featured-pages-link">
+				<div class="featured-pages-image">
+					<md-icon>blur_linear</md-icon>
 				</div>
-			</div>
-			<div class="featured-pages-image">
-				<md-icon>chevron_right</md-icon>
-			</div>
-		</a>
-		<a ng-href="{{continueLogUrl()}}"
-				layout="row"
-				layout-align="start center"
-				class="md-whiteframe-1dp featured-pages-panel"
-				ng-if="!user.continueLogPath.isFinished">
-			<div class="featured-pages-image">
-				<md-icon>graphic_eq</md-icon>
-			</div>
-			<div class="featured-pages-body" flex>
-				<div class="featured-pages-title" ng-if="user.continueLogPath">Continue learning about Logarithms</div>
-				<div class="featured-pages-title" ng-if="!user.continueLogPath">Learn about Logarithms</div>
-				<div class="featured-pages-subtitle">
-					An intuitive guide to logarithms, n-digits, and information theory.
+				<div class="featured-pages-body" flex>
+					<div class="featured-pages-title" ng-if="user.continueBayesPath">Continue learning about Bayes' Rule</div>
+					<div class="featured-pages-title" ng-if="!user.continueBayesPath">Learn about Bayes' Rule</div>
+					<div class="featured-pages-subtitle">
+						The quantitative law of probability theory governing how to revise probabilistic beliefs in response to observing new evidence.
+					</div>
 				</div>
-			</div>
-			<div class="featured-pages-image">
-				<md-icon>chevron_right</md-icon>
-			</div>
-		</a>
+				<div class="featured-pages-image">
+					<md-icon>chevron_right</md-icon>
+				</div>
+			</a>
+			<md-button class="md-icon-button featured-pages-close-button"
+				ng-click="hideFeaturedPage('1zq')"
+				aria-label="Hide recommendation">
+				<md-icon>close</md-icon>
+			</md-button>
+		</div>
+
+		<div class="md-whiteframe-1dp featured-pages-panel" ng-if="showFeaturedPage('3wj')">
+			<a ng-href="{{continueLogUrl()}}"
+					layout="row"
+					layout-align="start center"
+					class="featured-pages-link">
+				<div class="featured-pages-image">
+					<md-icon>graphic_eq</md-icon>
+				</div>
+				<div class="featured-pages-body" flex>
+					<div class="featured-pages-title" ng-if="user.continueLogPath">Continue learning about Logarithms</div>
+					<div class="featured-pages-title" ng-if="!user.continueLogPath">Learn about Logarithms</div>
+					<div class="featured-pages-subtitle">
+						An intuitive guide to logarithms, n-digits, and information theory.
+					</div>
+				</div>
+				<div class="featured-pages-image">
+					<md-icon>chevron_right</md-icon>
+				</div>
+			</a>
+			<md-button class="md-icon-button featured-pages-close-button"
+				ng-click="hideFeaturedPage('3wj')"
+				aria-label="Hide recommendation">
+				<md-icon>close</md-icon>
+			</md-button>
+		</div>
+
 	</div>
 
 	<div layout="column" layout-gt-sm="row" class="children-margin-gt-xs children-vertical-margin-lt-xs">

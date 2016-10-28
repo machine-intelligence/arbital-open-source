@@ -28,6 +28,20 @@ app.directive('arbIndex', function($http, $mdMedia, arb) {
 			$scope.showFeaturedPages = (!$scope.user.continueBayesPath || !$scope.user.continueBayesPath.isFinished) ||
 				(!$scope.user.continueLogPath || !$scope.user.continueLogPath.isFinished);
 
+			$scope.hideFeaturedPage = function(id) {
+				Cookies.set('hide.' + id, true);
+			};
+
+			$scope.showFeaturedPage = function(id) {
+				if (id == '1zq' && $scope.user.continueBayesPath && $scope.user.continueBayesPath.isFinished) {
+					return false;
+				}
+				if (id == '3wj' && $scope.user.continueLogPath && $scope.user.continueLogPath.isFinished) {
+					return false;
+				}
+				return !Cookies.getJSON('hide.' + id);
+			};
+
 			// Tab stuff
 			$scope.readTab = 0;
 			$scope.writeTab = 0;

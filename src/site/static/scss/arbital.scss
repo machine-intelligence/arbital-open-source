@@ -1952,8 +1952,18 @@ arb-hub-page-gui, [arb-hub-page-gui] {
 	margin-bottom: 30vmin;
 
 	.featured-pages-panel {
-		padding: 10vmin 10vmin;
 		margin: 5vmin 0;
+		position: relative;
+	}
+
+	.featured-pages-close-button {
+		position: absolute;
+		top: 0;
+		right: 0;
+	}
+
+	.featured-pages-link {
+		padding: 10vmin 10vmin;
 	}
 
 	.featured-pages-image md-icon {
