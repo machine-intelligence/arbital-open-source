@@ -7,48 +7,17 @@
 		</div>
 	</md-toolbar>
 
-	<div class="dynamic-hor-padding">
-		<br>
-
-		<!-- Taught -->
-		<div ng-repeat="(subjectId,pageIds) in page.learnMoreTaughtMap">
-			This page is marked as teaching
-			<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-			<span class="comma">.</span>
-			You can read a page that expands on that concept:
-			<ul class="no-top-margin">
-				<li ng-repeat="pageId in pageIds">
-					<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
-				</li>
-			</ul>
-		</div>
-
-		<!-- Required -->
-		<div ng-repeat="(subjectId,pageIds) in page.learnMoreRequiredMap">
-			This page is marked as teaching
-			<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-			<span class="comma">.<span>
-			You can read a page that relies on that concept:
-			<ul class="no-top-margin">
-				<li ng-repeat="pageId in pageIds">
-					<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
-				</li>
-			</ul>
-		</div>
-
-		<!-- Covered -->
-		<div ng-repeat="(subjectId,pageIds) in page.learnMoreCoveredMap">
-			This page is marked as expanding on
-			<arb-page-title page-id="{{::subjectId}}" is-link="true"></arb-page-title>
-			<span class="comma">.<span>
-			You can read another page that expands on that concept:
-			<ul class="no-top-margin">
-				<li ng-repeat="pageId in pageIds">
-					<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
-				</li>
-			</ul>
-		</div>
-
-		<br>
-	</div>
+	<md-list class="full-height">
+		<md-list-item ng-repeat="(suggestionId,reasons) in suggestedPageIds" class="panel-list-item">
+			<div layout="row" layout-xs="column" layout-align="start start" flex>
+				<arb-page-row page-id="{{::suggestionId}}" flex></arb-page-row>
+				<div class="md-caption">
+					<div ng-if="reasons.teaches.length > 0">Teaches: {{reasons.teaches}}</div>
+					<div ng-if="reasons.reliesOn.length > 0">Relies on: {{reasons.reliesOn}}</div>
+					<div ng-if="reasons.expandsOn > 0">Expands on: {{reasons.expandsOn}}</div>
+				</div>
+			</div>
+			<md-divider ng-if="::!$last"></md-divider>
+		</md-list-item>
+	</md-list>
 </div>

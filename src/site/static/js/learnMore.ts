@@ -13,10 +13,39 @@ app.directive('arbLearnMore', function($compile, $location, $timeout, arb) {
 
 			// Return true if there are any learn more suggestions to show
 			$scope.hasLearnMore = function() {
-				return Object.keys($scope.page.learnMoreTaughtMap).length > 0 ||
-						Object.keys($scope.page.learnMoreCoveredMap).length > 0 ||
-						 Object.keys($scope.page.learnMoreRequiredMap).length > 0;
+				return Object.keys($scope.suggestedPageIds).length > 0;
 			};
+
+			// Map of suggested page id -> {
+			//  teaches: pages it teaches
+			//  reliesOn: pages it relies on,
+			//  expandsOn: pages it expands on,
+			// }
+			$scope.suggestedPageIds = {};
+			let addSuggestion = function(kind, subjectId, pageIds) {
+				for (let pageId of pageIds) {
+					if (!(pageId in $scope.suggestedPageIds)) {
+						$scope.suggestedPageIds[pageId] = {
+							teaches: '',
+							reliesOn: '',
+							expandsOn: '',
+						};
+					}
+					if ($scope.suggestedPageIds[pageId][kind].length > 0) {
+						$scope.suggestedPageIds[pageId][kind] += ', ';
+					}
+					$scope.suggestedPageIds[pageId][kind] += arb.stateService.pageMap[subjectId].title;
+				}
+			};
+			for (let subjectId in $scope.page.learnMoreTaughtMap) {
+				addSuggestion('teaches', subjectId, $scope.page.learnMoreTaughtMap[subjectId]);
+			}
+			for (let subjectId in $scope.page.learnMoreRequiredMap) {
+				addSuggestion('reliesOn', subjectId, $scope.page.learnMoreRequiredMap[subjectId]);
+			}
+			for (let subjectId in $scope.page.learnMoreCoveredMap) {
+				addSuggestion('expandsOn', subjectId, $scope.page.learnMoreCoveredMap[subjectId]);
+			}
 		},
 		link: function(scope: any, element, attrs) {
 			if (scope.hasLearnMore()) {

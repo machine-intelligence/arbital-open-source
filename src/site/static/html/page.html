@@ -274,7 +274,7 @@
 		</div>
 
 		<!-- Learn more section -->
-		<div class="after-page-container md-whiteframe-1dp" ng-if="!page.isConcept()">
+		<div class="after-page-container md-whiteframe-1dp" ng-if="!selectedLens.isConcept()">
 			<arb-learn-more ng-repeat="lens in ::lenses"
 					class="reveal-after-render"
 					page-id="{{::lens.lensId}}"
@@ -286,7 +286,7 @@
 				ng-if="selectedLens && selectedLens.isInDomain('1lw') && !selectedLens.isConcept()"></div>
 
 		<!-- Discussion section -->
-		<div class="after-page-container" ng-if="arb.userService.userIsLoggedIn() && !page.isConcept()">
+		<div class="after-page-container" ng-if="arb.userService.userIsLoggedIn() && !selectedLens.isConcept()">
 			<arb-page-discussion ng-repeat="lens in ::lenses"
 					class="reveal-after-render"
 					page-id="{{::lens.lensId}}"
