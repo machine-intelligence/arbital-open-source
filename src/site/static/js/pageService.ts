@@ -171,6 +171,18 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 			var pageIds = this.hubContent.learnPageIds[currentLevel + 1];
 			return this._getBestPageId(pageIds, excludePageId);
 		},
+		computeAuthors: function() {
+			return this.changeLogs
+					.map(function(changeLog) {
+						return changeLog.userId;
+					})
+					.reduce(function(accumulator, item) {
+						if (!accumulator.includes(item)) {
+							accumulator.push(item);
+						}
+						return accumulator;
+					}, []);
+		},
 	};
 
 	// Massage page's variables to be easier to deal with.

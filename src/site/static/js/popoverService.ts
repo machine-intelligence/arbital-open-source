@@ -123,7 +123,14 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 				'\' direction=\'' + direction + '\' arrow-offset=\'' + arrowOffset +
 				'\'></arb-intrasite-popover>')(popoverScope);
 		} else if (targetCandidateLinkType == linkTypeRed) {
-			$popoverElement = $compile('<arb-red-link-popover alias=\'' + $target.attr('page-id') +
+			let pageId = $target.attr('page-id');
+			let isRedText = false;
+			if (!pageId) {
+				pageId = $target.text();
+				isRedText = true;
+			}
+			$popoverElement = $compile('<arb-red-link-popover alias=\'' + pageId  +
+				'\' is-red-text=\'' + isRedText +
 				'\'></arb-red-link-popover>')(popoverScope);
 		} else if (targetCandidateLinkType == linkTypeUser) {
 			$popoverElement = $compile('<arb-user-popover user-id=\'' + $target.attr('user-id') +

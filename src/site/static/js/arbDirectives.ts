@@ -302,6 +302,7 @@ app.directive('arbRedLinkPopover', function($timeout, arb) {
 		templateUrl: versionUrl('static/html/redLinkPopover.html'),
 		scope: {
 			alias: '@',
+			isRedText: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -313,11 +314,13 @@ app.directive('arbRedLinkPopover', function($timeout, arb) {
 			};
 
 			// Fetch data from the server.
-			arb.pageService.loadRedLinkPopover($scope.alias, {
-				success: function(data) {
-					$scope.redLinkRow = data.result.redLinkRow;
-				},
-			});
+			if (!$scope.isRedText) {
+				arb.pageService.loadRedLinkPopover($scope.alias, {
+					success: function(data) {
+						$scope.redLinkRow = data.result.redLinkRow;
+					},
+				});
+			}
 
 			// Get how total number of views between all the pages that use this red link.
 			$scope.getRedLinkViews = function() {

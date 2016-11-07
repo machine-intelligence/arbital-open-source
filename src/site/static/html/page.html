@@ -214,14 +214,15 @@
 					 			</span>
 					 		</div>
 					 	</div>
-						<div layout="column" layout-gt-sm="row">
-							<a ng-href="{{arb.urlService.getEditPageUrl(selectedLens.pageId, {tabId: 4})}}"
-									class="md-caption"
-									flex>
-								{{page.changeLogs.length}} changes by {{page.authors.length}}
-								<ng-pluralize count="page.authors.length" when="{'one': 'author', 'other': 'authors'}"></ng-pluralize>
+						<div class="md-caption" layout="column" layout-gt-sm="row">
+							<a ng-href="{{arb.urlService.getEditPageUrl(selectedLens.pageId, {tabId: 4})}}" flex>
+								<span ng-bind="selectedLens.changeLogs.length"></span>
+								changes by
+								<ng-pluralize count="selectedLens.computeAuthors().length"
+										when="{'one': '{} author', 'other': '{} authors'}"></ng-pluralize>
 							</a>
-							<span class="md-caption">{{page.viewCount}} views</span>
+							<span ng-bind="selectedLens.viewCount"></span>
+							&nbsp;views
 						</div>
 					</div>
 

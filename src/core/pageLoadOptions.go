@@ -129,6 +129,7 @@ var (
 		Path:            true,
 		SubpageCounts:   true,
 		Requisites:      true,
+		ChangeLogs:      true,
 		SubmittedTo:     true,
 		UserMarks:       true,
 		LearnMore:       true,

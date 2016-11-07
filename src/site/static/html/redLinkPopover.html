@@ -20,7 +20,7 @@
 			<!-- Body of the popover -->
 			<div layout="column"
 					layout-align="center center"
-					ng-if="!redLinkRow">
+					ng-if="!redLinkRow && !isRedText">
 				<md-progress-circular md-mode="indeterminate"></md-progress-circular>
 			</div>
 			<div ng-if="redLinkRow">
@@ -29,7 +29,7 @@
 					<ng-pluralize count="redLinkRow.linkedByPageIds.length"
 							when="{'1': 'via this page.', 'other': 'across {} pages.'}"></ng-pluralize>
 				</div>
-				<div layout="row" layout-align="start center">
+				<div layout="row" layout-align="start center" ng-if="!isRedText">
 					<arb-likes object-id="{{::alias}}"
 							likeable="redLinkRow"
 							is-button="true"
