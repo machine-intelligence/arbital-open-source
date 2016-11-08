@@ -13,6 +13,8 @@ app.directive('arbQueryInfo', function($interval, arb) {
 			isNew: '=',
 			// Set to true if this is in a popup
 			inPopup: '=',
+			// Whether we should show the context of the query.
+			showContext: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -23,6 +25,8 @@ app.directive('arbQueryInfo', function($interval, arb) {
 			$scope.isOnPage = function() {
 				return $scope.mark.pageId == arb.pageService.getCurrentPageId();
 			};
+
+			$scope.showContext = $scope.showContext || !$scope.isOnPage();
 
 			// Whether or not to show which text the user selected
 			$scope.showAnchor = function() {

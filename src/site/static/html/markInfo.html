@@ -15,7 +15,7 @@
 </div>
 
 <!-- Meta info -->
-<div ng-if="::!mark.isCurrentUserOwned && isOnPage">
+<div ng-if="::!mark.isCurrentUserOwned && !showContext">
 	This mark was created
 	<span ng-bind="::(mark.createdAt | relativeDateTime)"></span>.
 </div>
@@ -31,7 +31,7 @@
 			had a spelling/grammar error.
 		</span>
 	<span>
-	<blockquote arb-markdown mark-id="{{::mark.id}}" ng-if="::!isOnPage"></blockquote>
+	<blockquote arb-markdown mark-id="{{::mark.id}}" ng-if="::showContext"></blockquote>
 </div>
 
 <!-- Resolved -->
@@ -48,7 +48,7 @@
 <a ng-href="{{::arb.urlService.getPageUrl(mark.pageId, {markId: markId})}}"
 		page-id="{{::mark.pageId}}"
 		class="intrasite-link"
-		ng-if="::!isOnPage">
+		ng-if="::showContext">
 	View this mark on the page
 </a>
 

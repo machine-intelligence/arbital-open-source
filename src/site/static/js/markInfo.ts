@@ -11,11 +11,15 @@ app.directive('arbMarkInfo', function($interval, arb) {
 			markId: '@',
 			// Set to true if the user just created this mark.
 			isNew: '=',
+			// Whether we should show the context of the mark.
+			showContext: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.mark = arb.markService.markMap[$scope.markId];
 			$scope.isOnPage = $scope.mark.pageId == arb.pageService.getCurrentPageId();
+
+			$scope.showContext = $scope.showContext || !$scope.isOnPage;
 
 			// Call to resolve the mark with the given page.
 			$scope.resolveWith = function(pageId) {
