@@ -4,11 +4,11 @@
 	help
 </md-icon>
 <a ng-href="{{::pageUrl}}"
-		ng-class="::('intrasite-link' + (page.isDeleted ? ' red-link' : ''))"
+		ng-class="::'intrasite-link' + (page.isDeleted ? ' red-link' : '')"
 		page-id="{{::page ? page.pageId : pageId}}"
 		ng-bind="::getTitle()"
 		ng-if="::isLink"></a>
 <span ng-bind="::getTitle()"
 		ng-if="::!isLink"></span>
-<div class="md-caption" ng-bind="::page.clickbait" ng-if="::showClickbait">
+<div ng-class="::clickbaitClass || 'md-caption'" ng-bind="::page.clickbait" ng-if="::showClickbait">
 </div>

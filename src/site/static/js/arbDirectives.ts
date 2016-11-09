@@ -348,6 +348,8 @@ app.directive('arbPageTitle', function(arb) {
 			customLink: '@',
 			// Whether or not to show the clickbait
 			showClickbait: '=',
+			// The class to use for the clickbait (if not the default)
+			clickbaitClass: '@',
 			// Whether or not to show the type of the page icon
 			showType: '=',
 			// If true, show information about this being an arc

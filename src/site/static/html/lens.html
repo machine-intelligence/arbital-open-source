@@ -144,7 +144,8 @@
 						<div layout="row" layout-align="start center" flex>
 							<arb-likes object-id="{{::explanation.childId}}" is-button="true"></arb-likes>
 							<div flex>
-								<div arb-page-title page-id="{{::explanation.childId}}" show-clickbait="true" is-link="true"></div>
+								<div arb-page-title page-id="{{::explanation.childId}}" show-clickbait="true"
+									clickbait-class="md-caption explanation-clickbait" is-link="true"></div>
 								<div class="explanation-panel-info md-caption">
 									Level: {{arb.stateService.getLevelName(explanation.level)}}
 									&nbsp;&nbsp;|&nbsp;&nbsp;
