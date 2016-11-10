@@ -285,13 +285,19 @@ app.directive('arbTextPopover', function($compile, $timeout, arb) {
 // arb-text-popover-anchor is the thing you can hover over to get a text popover
 app.directive('arbTextPopoverAnchor', function($timeout, arb) {
 	return {
-		scope: {},
+		scope: {
+			popoverText: '@',
+		},
 		controller: function($scope) {
 			$scope.arb = arb;
 		},
-		link: function(scope, element, attrs) {
-			element.attr('encoded-html', encodeURIComponent(element.html()));
-			element.text('?');
+		link: function(scope: any, element, attrs) {
+			if (!scope.popoverText) {
+				element.attr('encoded-html', encodeURIComponent(element.html()));
+				element.text('?');
+			} else {
+				element.attr('encoded-html', encodeURIComponent(scope.popoverText));
+			}
 		},
 	};
 });
