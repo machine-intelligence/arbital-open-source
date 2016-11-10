@@ -287,6 +287,7 @@ app.directive('arbTextPopoverAnchor', function($timeout, arb) {
 	return {
 		scope: {
 			popoverText: '@',
+			replacementText: '@',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -294,7 +295,7 @@ app.directive('arbTextPopoverAnchor', function($timeout, arb) {
 		link: function(scope: any, element, attrs) {
 			if (!scope.popoverText) {
 				element.attr('encoded-html', encodeURIComponent(element.html()));
-				element.text('?');
+				element.text(scope.replacementText || '!');
 			} else {
 				element.attr('encoded-html', encodeURIComponent(scope.popoverText));
 			}

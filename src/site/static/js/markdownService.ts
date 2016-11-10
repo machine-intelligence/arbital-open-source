@@ -578,9 +578,13 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 
 	// Process all the links in the give element.
 	this.processLinks = function(scope, $pageText, isEditor) {
-		var index = 1; // start with 1, because masteryMap is at 0 (see pageService.js)
+		let index = 1; // start with 1, because masteryMap is at 0 (see pageService.js)
 		$pageText.find('arb-multiple-choice,arb-checkbox').each(function() {
 			$(this).attr('index', index++);
+		});
+		index = 1;
+		$pageText.find('.markdown-note').each(function() {
+			$(this).attr('replacement-text', '' + (index++));
 		});
 	};
 
