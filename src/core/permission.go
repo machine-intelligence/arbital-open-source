@@ -118,8 +118,8 @@ func (p *Page) computeDeletePermissions(c sessions.Context, u *CurrentUser) {
 		}
 		return
 	}
-	// For special pages, like groups and domains, only adomins can delete it
-	if p.Type == GroupPageType || p.Type == DomainPageType {
+	// For special pages, like groups and domains, only admins can delete it
+	if p.Type == GroupPageType {
 		p.Permissions.Delete.Has = u.IsAdmin
 		if !p.Permissions.Delete.Has {
 			p.Permissions.Delete.Reason = "Only admins can delete this type of page"
@@ -252,7 +252,7 @@ func isParentRelationshipSupported(parent *Page, child *Page) bool {
 	if child.Type == CommentPageType {
 		return true
 	}
-	parentOk := parent.Type == DomainPageType || parent.Type == GroupPageType ||
+	parentOk := parent.Type == GroupPageType ||
 		parent.Type == QuestionPageType || parent.Type == WikiPageType
 	childOk := child.Type == QuestionPageType || child.Type == WikiPageType
 	return parentOk && childOk
@@ -268,7 +268,7 @@ func isRequirementRelationshipSupported(parent *Page, child *Page) bool {
 	if child.Type == CommentPageType || parent.Type == CommentPageType {
 		return false
 	}
-	childOk := child.Type == DomainPageType || child.Type == WikiPageType
+	childOk := child.Type == WikiPageType
 	return childOk
 }
 
@@ -277,8 +277,8 @@ func isSubjectRelationshipSupported(parent *Page, child *Page) bool {
 	if child.Type == CommentPageType || parent.Type == CommentPageType {
 		return false
 	}
-	parentOk := parent.Type == DomainPageType || parent.Type == WikiPageType
-	childOk := child.Type == DomainPageType || child.Type == WikiPageType
+	parentOk := parent.Type == WikiPageType
+	childOk := child.Type == WikiPageType
 	return parentOk && childOk
 }
 

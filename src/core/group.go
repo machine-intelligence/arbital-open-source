@@ -138,7 +138,7 @@ func NewGroup(tx *database.Tx, groupID, userID string, title, alias string) sess
 
 // NewDomain create a new domain and a corresponding page.
 func NewDomain(tx *database.Tx, domainID, userID string, fullName, alias string) sessions.Error {
-	return newInternalGroup(tx, DomainPageType, domainID, userID, fullName, alias, "", false)
+	return newInternalGroup(tx, WikiPageType, domainID, userID, fullName, alias, "", false)
 }
 
 // NewUserGroup create a new person group for a user and the corresponding page.

@@ -89,9 +89,8 @@ func LoadUserTrust(db *database.DB, userID string) (map[string]*Trust, error) {
 			FROM userTrust AS ut
 			WHERE ut.userId=?`, userID).Add(`
 			UNION ALL
-			SELECT pi.pageId AS domainId,0 AS generalTrust,0 AS editTrust
-			FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
-			WHERE pi.type=?`, DomainPageType).Add(`
+			SELECT d.pageId AS domainId,0 AS generalTrust,0 AS editTrust
+			FROM domains AS d
 		) AS u
 		GROUP BY 1`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {

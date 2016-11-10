@@ -325,8 +325,7 @@ func CorrectPageType(pageType string) (string, error) {
 	if pageType != WikiPageType &&
 		pageType != QuestionPageType &&
 		pageType != CommentPageType &&
-		pageType != GroupPageType &&
-		pageType != DomainPageType {
+		pageType != GroupPageType {
 		return pageType, fmt.Errorf("Invalid page type: %s", pageType)
 	}
 	return pageType, nil

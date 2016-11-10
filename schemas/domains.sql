@@ -1,4 +1,4 @@
-/* This file contains the recent changes to schemas, sorted from oldest to newest. */
+/* This table contains all domains and relevant info. */
 CREATE TABLE domains (
 	/* Domain id. */
 	id BIGINT NOT NULL AUTO_INCREMENT,
@@ -19,5 +19,3 @@ CREATE TABLE domains (
 
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-insert into domains (pageId,createdAt,createdBy,alias,canUsersComment,canUsersProposeEdits) (select pageId,createdAt,createdBy,alias,true,true from pageInfos where type="domain");
-update pageInfos set type="wiki" where type="domain";

@@ -16,7 +16,6 @@ const (
 	CommentPageType  = "comment"
 	QuestionPageType = "question"
 	GroupPageType    = "group"
-	DomainPageType   = "domain"
 
 	// Options for sorting page's children.
 	RecentFirstChildSortingOption  = "recentFirst"

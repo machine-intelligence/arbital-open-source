@@ -361,16 +361,15 @@ func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 	subscribedDomains := database.NewQuery(`
 		SELECT subs.toId
 		FROM subscriptions AS subs
-		JOIN pageInfos AS pi
-		ON subs.toId=pi.pageId
-		WHERE subs.userId=?`, returnData.User.ID).Add(`
-		AND pi.type=?`, core.DomainPageType)
+		JOIN domains AS d
+		ON subs.toId=d.pageId
+		WHERE subs.userId=?`, returnData.User.ID)
 
 	rows := database.NewQuery(`
 		SELECT DISTINCT pi.pageId, pi.`+pageInfoActivityDateField+`
 		FROM`).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
 		JOIN pageDomainPairs AS pdp ON pi.pageId=pdp.pageId
-		WHERE pi.type IN (?,?,?)`, core.WikiPageType, core.DomainPageType, core.QuestionPageType).Add(`
+		WHERE pi.type IN (?,?)`, core.WikiPageType, core.QuestionPageType).Add(`
 			AND pi.`+pageInfoActivityDateField+`!=0
 			AND (pdp.domainId=?`, core.MathDomainID).Add(`OR pdp.domainId IN(`).AddPart(subscribedDomains).Add(`))
 		ORDER BY pi.`+pageInfoActivityDateField+` DESC

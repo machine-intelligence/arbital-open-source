@@ -127,9 +127,8 @@ func _getDomainPages(tx *database.Tx, pageIDs []string) (map[string]bool, error)
 	domainPagesSet := make(map[string]bool)
 	rows := database.NewQuery(`
 		SELECT pageId
-		FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
-		WHERE pageId IN`).AddArgsGroupStr(pageIDs).Add(`
-			AND type=?`, DomainPageType).ToTxStatement(tx).Query()
+		FROM domains
+		WHERE pageId IN`).AddArgsGroupStr(pageIDs).ToTxStatement(tx).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageID string
 		if err := rows.Scan(&pageID); err != nil {
@@ -138,7 +137,6 @@ func _getDomainPages(tx *database.Tx, pageIDs []string) (map[string]bool, error)
 		domainPagesSet[pageID] = true
 		return nil
 	})
-
 	return domainPagesSet, err
 }
 

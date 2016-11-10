@@ -127,7 +127,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Make sure alias is valid
 	if strings.ToLower(data.Alias) == "www" {
 		return pages.Fail("Alias can't be 'www'", nil).Status(http.StatusBadRequest)
-	} else if data.Type == core.GroupPageType || data.Type == core.DomainPageType {
+	} else if data.Type == core.GroupPageType {
 		data.Alias = oldPage.Alias
 	} else if data.Alias == "" {
 		data.Alias = data.PageID
@@ -138,7 +138,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Prefix alias with the group alias, if appropriate
-		if core.IsIDValid(data.SeeGroupID) && data.Type != core.GroupPageType && data.Type != core.DomainPageType {
+		if core.IsIDValid(data.SeeGroupID) && data.Type != core.GroupPageType {
 			tempPageMap := map[string]*core.Page{data.SeeGroupID: core.NewPage(data.SeeGroupID)}
 			err = core.LoadPages(db, u, tempPageMap)
 			if err != nil {
