@@ -27,7 +27,12 @@
 				<div ng-if="redLinkRow.linkedByPageIds.length > 0">
 					This red link had a total of <strong>{{getRedLinkViews()}} views</strong>
 					<ng-pluralize count="redLinkRow.linkedByPageIds.length"
-							when="{'1': 'via this page.', 'other': 'across {} pages.'}"></ng-pluralize>
+							when="{'1': 'via this page.', 'other': 'across {} pages:'}"></ng-pluralize>
+					<ul ng-if="redLinkRow.linkedByPageIds.length > 1">
+						<li ng-repeat="linkedByPageId in redLinkRow.linkedByPageIds">
+							<arb-page-title page-id="{{::linkedByPageId}}" is-link="true"></arb-page-title>
+						</li>
+					</ul>
 				</div>
 				<div layout="row" layout-align="start center" ng-if="!isRedText">
 					<arb-likes object-id="{{::alias}}"
