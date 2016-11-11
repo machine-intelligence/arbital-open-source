@@ -445,7 +445,7 @@
 
 			<!-- (3) Settings tab -->
 			<md-tab label="Settings"
-					ng-disabled="::!arb.userService.user.isAdmin && (page.isComment() || page.isGroup() || page.isDomain())">
+					ng-disabled="::!arb.userService.user.isAdmin && (page.isComment() || page.isGroup())">
 				<div layout="column" flex>
 					<md-content class="editor-tab" flex>
 						<div ng-if="::!showAdvancedMode()">
@@ -459,7 +459,7 @@
 
 						<div ng-if="showAdvancedMode()">
 							<!-- Alias -->
-							<div layout="row" ng-if="::(!page.isComment() && !page.isGroup() && !page.isDomain())">
+							<div layout="row" ng-if="::(!page.isComment() && !page.isGroup())">
 								<div layout="column" flex>
 									<md-input-container>
 										<label>Alias</label>

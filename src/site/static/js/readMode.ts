@@ -22,6 +22,7 @@ app.directive('arbReadModePanel', function($http, arb) {
 			numToDisplay: '=',
 			isFullPage: '=',
 			type: '@',
+			domainId: '@',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -29,6 +30,7 @@ app.directive('arbReadModePanel', function($http, arb) {
 			arb.stateService.postData('/json/readMode/', {
 					type: $scope.type,
 					numPagesToLoad: $scope.numToDisplay,
+					domainIdConstraint: $scope.domainId,
 				},
 				function(data) {
 					$scope.modeRows = data.result.modeRows;

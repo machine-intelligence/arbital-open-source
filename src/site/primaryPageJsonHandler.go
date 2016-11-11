@@ -13,6 +13,10 @@ import (
 	"zanaduu3/src/pages"
 )
 
+const (
+	indexPanelLimit = 10
+)
+
 // primaryPageJsonData contains parameters passed in via the request.
 type primaryPageJSONData struct {
 	// Alias of the primary page to load

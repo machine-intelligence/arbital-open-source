@@ -349,7 +349,7 @@ func loadReqsTaughtModeRows(db *database.DB, returnData *core.CommonHandlerData,
 }
 
 // Internal to this file
-func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int, pageInfoActivityDateField string) (ModeRows, error) {
+func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int, pageInfoActivityDateField string, domainId int64) (ModeRows, error) {
 	modeRows := make(ModeRows, 0)
 	pageLoadOptions := (&core.PageLoadOptions{
 		SubpageCounts: true,
@@ -358,12 +358,16 @@ func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 
 	// For now, we want to only suggest pages in the math domain, or other domains you're explicitly
 	// subscribed to.
-	subscribedDomains := database.NewQuery(`
+	subscribedDomains := database.NewQuery(`?`, domainId)
+	if domainId <= 0 {
+		subscribedDomains = database.NewQuery(`
 		SELECT subs.toId
 		FROM subscriptions AS subs
 		JOIN domains AS d
 		ON subs.toId=d.pageId
-		WHERE subs.userId=?`, returnData.User.ID)
+		WHERE subs.userId=?`, returnData.User.ID).Add(`
+		UNION SELECT ?`, core.MathDomainID)
+	}
 
 	rows := database.NewQuery(`
 		SELECT DISTINCT pi.pageId, pi.`+pageInfoActivityDateField+`
@@ -371,7 +375,7 @@ func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 		JOIN pageDomainPairs AS pdp ON pi.pageId=pdp.pageId
 		WHERE pi.type IN (?,?)`, core.WikiPageType, core.QuestionPageType).Add(`
 			AND pi.`+pageInfoActivityDateField+`!=0
-			AND (pdp.domainId=?`, core.MathDomainID).Add(`OR pdp.domainId IN(`).AddPart(subscribedDomains).Add(`))
+			AND pdp.domainId IN (`).AddPart(subscribedDomains).Add(`)
 		ORDER BY pi.`+pageInfoActivityDateField+` DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -395,12 +399,12 @@ func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 	return modeRows, nil
 }
 
-func loadFeaturedPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
-	return loadReadPagesModeRows(db, returnData, limit, "featuredAt")
+func loadFeaturedPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int, domainId int64) (ModeRows, error) {
+	return loadReadPagesModeRows(db, returnData, limit, "featuredAt", domainId)
 }
 
-func loadNewPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
-	return loadReadPagesModeRows(db, returnData, limit, "createdAt")
+func loadNewPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int, domainId int64) (ModeRows, error) {
+	return loadReadPagesModeRows(db, returnData, limit, "createdAt", domainId)
 }
 
 func loadDraftRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {

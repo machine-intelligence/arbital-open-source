@@ -74,6 +74,7 @@ require('js/editPage.ts');
 require('js/hedonsMode.ts');
 require('js/writeMode.ts');
 require('js/indexPage.ts');
+require('js/domainIndexPage.ts');
 require('js/projectPage.ts');
 require('js/groupsPage.ts');
 require('js/userPage.ts');

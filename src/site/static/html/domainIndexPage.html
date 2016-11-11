@@ -1,0 +1,77 @@
+<div class="padding-gt-xs children-margin-gt-xs children-vertical-margin-lt-xs">
+	<div id="index-header"
+			layout="column"
+			layout-gt-xs="row"
+			layout-align="space-between start"
+			class="children-margin-gt-xs children-vertical-margin-lt-xs">
+		<div class="md-whiteframe-1dp arbital-blurb"
+				layout="column"
+				layout-gt-sm="row"
+				layout-align="start center">
+			<span>
+				<a ng-href="{{::arb.urlService.getPageUrl('3d')}}"
+						class="intrasite-link"
+						page-id="3d">Arbital</a>
+				is the place for crowdsourced, intuitive math
+				<a ng-href="{{::arb.urlService.getPageUrl('4d6')}}"
+						class="intrasite-link"
+						page-id="4d6">explanations</a>.
+			</span>
+		</div>
+		<div layout="row"
+				layout-align="end center"
+				layout-wrap
+				class="horizontal-margin-between-children">
+			<arb-slack-button raised="true"></arb-slack-button>
+			<md-button ng-href="/recentChanges/"
+					class="md-raised"
+					ng-if="!arb.stateService.isTinyScreen">
+				Recent changes
+			</md-button>
+			<md-button ng-href="/dashboard/"
+					class="md-raised"
+					ng-if="arb.userService.userIsLoggedIn() && !arb.stateService.isTinyScreen">
+				Your dashboard
+			</md-button>
+			<arb-edit-button custom-text="Create new page"
+					analytics-desc="front page, new page button"
+					hide-icon="true"
+					primary="true"></arb-edit-button>
+		</div>
+	</div>
+
+	<div layout="column" layout-gt-sm="row" class="children-margin-gt-xs children-vertical-margin-lt-xs">
+		<!-- Left half -->
+		<div class="full-page-panel" flex>
+			<div class="tab-panel-header list-panel" layout="row" layout-align="start end">
+				<div class="tab-panel-title">Read</div>
+				<div flex></div>
+				<md-button class="tab-panel-tab"
+						ng-class="{'active-tab': readTab==0}"
+						ng-click="selectReadTab(0)">
+					Featured
+				</md-button>
+				<md-button class="tab-panel-tab"
+						ng-class="{'active-tab': readTab==1}"
+						ng-click="selectReadTab(1)">
+					New
+				</md-button>
+			</div>
+			<div arb-read-mode-panel
+					class="support-visited-links"
+					hide-title="::true"
+					type="featured"
+					is-full-page="::true"
+					domain-id="{{domain.id}}"
+					ng-if="readTab==0"></div>
+			<div arb-read-mode-panel
+					class="support-visited-links"
+					hide-title="::true"
+					type="new"
+					is-full-page="true"
+					domain-id="{{domain.id}}"
+					ng-if="readTab==1"></div>
+		</div>
+	</div>
+	<div ng-include="arb.versionUrl('static/html/footer.html')"></div>
+</div>

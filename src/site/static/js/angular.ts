@@ -110,20 +110,6 @@ app.run(function($http, $location, arb) {
 			}
 		},
 	});
-	arb.urlService.addUrlHandler('/project/', {
-		name: 'ProjectPage',
-		handler: function(args, $scope) {
-			$http({method: 'POST', url: '/json/index/'})
-			.success($scope.getSuccessFunc(function(data) {
-				return {
-					title: '',
-					content: $scope.newElement('<arb-project></arb-project>'),
-					analytics: {page: 'project'},
-				};
-			}))
-			.error($scope.getErrorFunc('index'));
-		},
-	});
 	arb.urlService.addUrlHandler('/achievements/', {
 		name: 'AchievementsPage',
 		handler: function(args, $scope) {
@@ -184,6 +170,21 @@ app.run(function($http, $location, arb) {
 				};
 			}))
 			.error($scope.getErrorFunc('default'));
+		},
+	});
+	arb.urlService.addUrlHandler('/domain/:domainAlias', {
+		name: 'DomainIndexPage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/domainPage/', data: JSON.stringify({domainAlias: args.domainAlias})})
+			.success($scope.getSuccessFunc(function(data) {
+				$scope.domainIndexData = data.result.domain;
+				return {
+					title: arb.pageService.getPrettyAlias($scope.domainIndexData.alias) + ' domain',
+					content: $scope.newElement('<arb-domain-index domain=\'::domainIndexData\'></arb-domain-index>'),
+					analytics: {page: 'domainIndex', domainId: $scope.domainIndexData.id},
+				};
+			}))
+			.error($scope.getErrorFunc('domainIndexPage'));
 		},
 	});
 	arb.urlService.addUrlHandler('/edit/:alias?/:alias2?', {
@@ -542,6 +543,20 @@ app.run(function($http, $location, arb) {
 				};
 			}))
 			.error($scope.getErrorFunc('primaryPage'));
+		},
+	});
+	arb.urlService.addUrlHandler('/project/', {
+		name: 'ProjectPage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/index/'})
+			.success($scope.getSuccessFunc(function(data) {
+				return {
+					title: '',
+					content: $scope.newElement('<arb-project></arb-project>'),
+					analytics: {page: 'project'},
+				};
+			}))
+			.error($scope.getErrorFunc('index'));
 		},
 	});
 	arb.urlService.addUrlHandler('/read/', {

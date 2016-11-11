@@ -8,9 +8,34 @@ import (
 	"zanaduu3/src/sessions"
 )
 
+type Domain struct {
+	ID     int64  `json:"id,string"`
+	PageID string `json:"pageId"`
+	Alias  string `json:"alias"`
+
+	// Settings
+	CanUsersComment      bool `json:"canUsersComment"`
+	CanUsersProposeEdits bool `json:"canUsersProposeEdits"`
+}
+
+// LoadDomain loads the domain info with the given alias.
+func LoadDomain(db *database.DB, domainAlias string) (*Domain, error) {
+	var d Domain
+	row := database.NewQuery(`
+		SELECT id,pageId,alias,canUsersComment,canUsersProposeEdits
+		FROM domains
+		WHERE alias=?`, domainAlias).ToStatement(db).QueryRow()
+	found, err := row.Scan(&d.ID, &d.PageID, &d.Alias, &d.CanUsersComment, &d.CanUsersProposeEdits)
+	if err != nil {
+		return nil, err
+	} else if !found {
+		return nil, nil
+	}
+	return &d, nil
+}
+
 // Recalculate and update the domains for the given pages
 func PropagateDomains(db *database.DB, pagesToUpdate []string) error {
-
 	serr := db.Transaction(func(tx *database.Tx) sessions.Error {
 		_, _, err := PropagateDomainsWithTx(tx, pagesToUpdate)
 		return sessions.PassThrough(err)

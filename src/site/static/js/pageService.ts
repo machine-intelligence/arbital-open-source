@@ -86,9 +86,6 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		isGroup: function() {
 			return this.type === 'group';
 		},
-		isDomain: function() {
-			return this.type === 'domain';
-		},
 		isUser: function() {
 			return this.pageId in userService.userMap;
 		},

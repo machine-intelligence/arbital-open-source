@@ -18,6 +18,8 @@ const (
 type readModeData struct {
 	NumPagesToLoad int
 	Type           string
+	// Optional constraint on which domains to load
+	DomainIdConstraint int64 `json:"domainIdConstraint,string"`
 }
 
 var readModeHandler = siteHandler{
@@ -44,9 +46,9 @@ func readModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Load the page ids
 	var pageIDs ModeRows
 	if data.Type == FeaturedReadModeType {
-		pageIDs, err = loadFeaturedPagesModeRows(db, returnData, data.NumPagesToLoad)
+		pageIDs, err = loadFeaturedPagesModeRows(db, returnData, data.NumPagesToLoad, data.DomainIdConstraint)
 	} else if data.Type == NewReadModeType {
-		pageIDs, err = loadNewPagesModeRows(db, returnData, data.NumPagesToLoad)
+		pageIDs, err = loadNewPagesModeRows(db, returnData, data.NumPagesToLoad, data.DomainIdConstraint)
 	}
 	if err != nil {
 		return pages.Fail("failed to load page ids", err)
