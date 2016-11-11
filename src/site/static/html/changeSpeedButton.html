@@ -166,11 +166,7 @@
 				<ul>
 					<li ng-repeat="subject in pageSubjectsExceptItself | orderBy: ['-level']">
 						<arb-page-title page-id="{{::subject.parentId}}"
-								is-link="true"
-								ng-if="subject.parentId != pageId"></arb-page-title>
-						<span ng-if="subject.parentId == pageId">
-							Itself
-						</span>
+								is-link="true"></arb-page-title>
 					</li>
 				</ul>
 			</div> -->
@@ -190,11 +186,7 @@
 							<li ng-repeat="requirement in pageRequirements | orderBy: ['-isStrong', '-level']">
 								<span class="md-caption" ng-if="!requirement.isStrong">(Optional)</span>
 								<arb-page-title page-id="{{::requirement.parentId}}"
-										is-link="true"
-										ng-if="requirement.parentId != pageId"></arb-page-title>
-								<span ng-if="requirement.parentId == pageId">
-									Itself
-								</span>
+										is-link="true"></arb-page-title>
 							</li>
 						</ul>
 					</div>
