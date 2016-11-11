@@ -1131,7 +1131,6 @@ ins {
 		font-weight: 400;
 		@media (min-width: 600px) {
 			border-bottom: $link-color 3px solid;
-			max-width: 25vw;
 		}
 	}
 
@@ -1147,7 +1146,7 @@ ins {
 			box-sizing: border-box;
 		}
 		@media (min-width: 600px) {
-			max-width: 10vw;
+			max-width: 15vw;
 		}
 
 		& .tab-subtitle {
