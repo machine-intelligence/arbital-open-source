@@ -15,45 +15,27 @@ import (
 )
 
 const (
-	DefaultTrustLevel  = iota // 0
-	BasicTrustLevel    = iota
-	ReviewerTrustLevel = iota
-	ArbiterTrustLevel  = iota
-)
-
-const (
-	// Made up karma numbers. These correspond one-to-one with trust levels for now.
-	BasicKarmaLevel    = 200
-	ReviewerKarmaLevel = 300
-	ArbiterKarmaLevel  = 400
-)
-
-const (
 	DailyEmailFrequency       = "daily"
 	WeeklyEmailFrequency      = "weekly"
 	NeverEmailFrequency       = "never"
 	ImmediatelyEmailFrequency = "immediately"
-)
-
-var (
-	sessionKey = "arbitalSession2" // key for session storage
-
-	// Highest karma lock a user can create is equal to their karma * this constant.
-	MaxKarmaLockFraction = 0.8
 
 	DefaultEmailFrequency = DailyEmailFrequency
 	DefaultEmailThreshold = 3
 )
 
+const (
+	sessionKey = "arbitalSession2" // key for session storage
+)
+
 // User holds information about the current user of the app.
 // Note: this structure is also stored in a cookie.
 type CurrentUser struct {
+	User
+
 	// DB variables
-	ID                     string `json:"id"`
 	FbUserID               string `json:"fbUserId"`
 	Email                  string `json:"email"`
-	FirstName              string `json:"firstName"`
-	LastName               string `json:"lastName"`
 	IsAdmin                bool   `json:"isAdmin"`
 	EmailFrequency         string `json:"emailFrequency"`
 	EmailThreshold         int    `json:"emailThreshold"`
@@ -67,15 +49,12 @@ type CurrentUser struct {
 	AnalyticsID string `json:"analyticsId"`
 
 	// Computed variables
-	MaxTrustLevel                 int               `json:"maxTrustLevel"`
-	HasReceivedMaintenanceUpdates bool              `json:"hasReceivedMaintenanceUpdates"`
-	HasReceivedNotifications      bool              `json:"hasReceivedNotifications"`
-	NewNotificationCount          int               `json:"newNotificationCount"`
-	NewAchievementCount           int               `json:"newAchievementCount"`
-	MaintenanceUpdateCount        int               `json:"maintenanceUpdateCount"`
-	GroupIDs                      []string          `json:"groupIds"`
-	TrustMap                      map[string]*Trust `json:"trustMap"`
-	InvitesClaimed                []*Invite         `json:"invitesClaimed"`
+	HasReceivedMaintenanceUpdates bool      `json:"hasReceivedMaintenanceUpdates"`
+	HasReceivedNotifications      bool      `json:"hasReceivedNotifications"`
+	NewNotificationCount          int       `json:"newNotificationCount"`
+	NewAchievementCount           int       `json:"newAchievementCount"`
+	MaintenanceUpdateCount        int       `json:"maintenanceUpdateCount"`
+	InvitesClaimed                []*Invite `json:"invitesClaimed"`
 	// If set, these are the lists the user is subscribed to via mailchimp
 	MailchimpInterests map[string]bool `json:"mailchimpInterests"`
 
@@ -96,16 +75,6 @@ type Invite struct {
 	EmailSentAt string `json:"emailSentAt"`
 }
 
-// Trust has the different scores for how much we trust a user.
-type Trust struct {
-	Level int `json:"level"`
-
-	// TODO(when admins no longer have to edit trust directly):
-	// Note that we don't want to send the trust numbers to the FE.
-	GeneralTrust int `json:"generalTrust"`
-	EditTrust    int `json:"editTrust"`
-}
-
 type CookieSession struct {
 	Email       string
 	SessionID   string
@@ -117,8 +86,7 @@ type CookieSession struct {
 
 func NewCurrentUser() *CurrentUser {
 	var u CurrentUser
-	u.GroupIDs = make([]string, 0)
-	u.TrustMap = make(map[string]*Trust)
+	u.User = *NewUser()
 	u.InvitesClaimed = make([]*Invite, 0)
 	u.MailchimpInterests = make(map[string]bool)
 	return &u
@@ -134,20 +102,6 @@ func (user *CurrentUser) GetSomeID() string {
 		return user.ID
 	}
 	return user.SessionID
-}
-
-// IsMemberOfGroup returns true iff the user is member of the given group.
-// NOTE: we are assuming GroupIds have been loaded.
-func (user *CurrentUser) IsMemberOfGroup(groupID string) bool {
-	isMember := false
-	oldGroupIDStr := groupID
-	for _, groupIDStr := range user.GroupIDs {
-		if groupIDStr == oldGroupIDStr {
-			isMember = true
-			break
-		}
-	}
-	return isMember
 }
 
 // Store a unique session id (and email if they're logged in) in a cookie so we can track the user's session
@@ -257,7 +211,7 @@ func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (u
 		}
 	}
 
-	if err := LoadUserGroupIDs(db, u); err != nil {
+	if err := LoadUserDomainMembership(db, &u.User); err != nil {
 		return nil, fmt.Errorf("Couldn't load group membership: %v", err)
 	}
 
@@ -360,22 +314,6 @@ func loadUpdateCountInternal(db *database.DB, userID string, updateTypes []strin
 	}
 
 	return updateCount, err
-}
-
-// LoadCurrentUserTrust computes the trust that the current user has in all domains.
-func LoadCurrentUserTrust(db *database.DB, u *CurrentUser) error {
-	var err error
-	u.TrustMap, err = LoadUserTrust(db, u.ID)
-	if err != nil {
-		return err
-	}
-
-	for _, trust := range u.TrustMap {
-		if u.MaxTrustLevel < trust.Level {
-			u.MaxTrustLevel = trust.Level
-		}
-	}
-	return nil
 }
 
 // Get invites filtered by the given condition.

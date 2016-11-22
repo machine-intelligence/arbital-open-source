@@ -68,25 +68,18 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			return
 		}
 		params.U = u
-		params.PrivateGroupID, err = loadSubdomain(r, db, u)
+		params.PrivateDomain, err = loadSubdomain(r, db, u)
 		if err != nil {
 			fail(http.StatusInternalServerError, "Couldn't load subdomain", err)
 			return
 		}
 
 		// Load all domains
-		params.DomainIDs, err = core.LoadAllDomainIDs(db, nil)
+		/*params.DomainIDs, err = core.LoadAllDomainIDs(db, nil)
 		if err != nil {
 			fail(http.StatusInternalServerError, "Couldn't load domainIds", err)
 			return
-		}
-
-		// Load the user's trust
-		err = core.LoadCurrentUserTrust(db, u)
-		if err != nil {
-			fail(http.StatusInternalServerError, "Couldn't retrieve user trust", err)
-			return
-		}
+		}*/
 
 		// Check permissions
 		if h.Options.RequireLogin && !core.IsIDValid(u.ID) {
@@ -98,15 +91,11 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			return
 		}
 
-		// Check if we have access to the private group
-		if core.IsIDValid(params.PrivateGroupID) {
-			if !h.Options.AllowAnyone && !u.IsMemberOfGroup(params.PrivateGroupID) {
-				fail(http.StatusForbidden, "Don't have access to this group", nil)
+		// Check if we have access to the private domain
+		if params.PrivateDomain.ID != "" {
+			if !h.Options.AllowAnyone && !core.CanUserSeeDomain(u, params.PrivateDomain.ID) {
+				fail(http.StatusForbidden, "Don't have access to this domain", nil)
 				return
-			}
-			// We don't allow personal private groups for now
-			if params.PrivateGroupID == u.ID {
-				fail(http.StatusForbidden, "Arbital no longer supports personal private groups", nil)
 			}
 		}
 
@@ -178,19 +167,18 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 	}
 }
 
-// loadSubdomain loads the id for the private group corresponding to the private group id.
-func loadSubdomain(r *http.Request, db *database.DB, u *core.CurrentUser) (string, error) {
+// loadSubdomain loads the id for the private domain corresponding to the private domain id.
+func loadSubdomain(r *http.Request, db *database.DB, u *core.CurrentUser) (*core.Domain, error) {
 	subdomain := strings.ToLower(mux.Vars(r)["subdomain"])
 	if subdomain == "" {
-		return "", nil
+		return core.NoDomain, nil
 	}
-	// Get actual page id for the group
-	privateGroupID, ok, err := core.LoadAliasToPageID(db, u, subdomain)
+	// Get actual page id for the domain
+	domain, err := core.LoadDomainByAlias(db, subdomain)
 	if err != nil {
-		return "", fmt.Errorf("Couldn't convert subdomain to id: %v", err)
+		return nil, fmt.Errorf("Couldn't convert subdomain to id: %v", err)
+	} else if domain == nil {
+		return nil, fmt.Errorf("Couldn't find private domain %s", subdomain)
 	}
-	if !ok {
-		return "", fmt.Errorf("Couldn't find private group %s", subdomain)
-	}
-	return privateGroupID, nil
+	return domain, nil
 }

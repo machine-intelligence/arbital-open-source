@@ -34,7 +34,7 @@ func domainPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 
-	returnData.ResultMap["domain"], err = core.LoadDomain(db, data.DomainAlias)
+	returnData.ResultMap["domain"], err = core.LoadDomainByAlias(db, data.DomainAlias)
 	if err != nil {
 		return pages.Fail("Couldn't load domain", err)
 	}

@@ -29,12 +29,13 @@ const (
 	StubPageID                    = "72"
 	RequestForEditTagParentPageID = "3zj"
 	QualityMetaTagsPageID         = "5dg"
-	MathDomainID                  = "1lw"
 	AClassPageID                  = "4yf"
 	BClassPageID                  = "4yd"
 	FeaturedClassPageID           = "4yl"
 	HubPageID                     = "5ls"
 	ConceptPageID                 = "6cc"
+
+	MathDomainID = 1
 )
 
 // AddPageToMap adds a new page with the given page id to the map if it's not
@@ -348,6 +349,12 @@ func IsIDValid(pageID string) bool {
 	return false
 }
 
+// We store int64 ids in strings. Because of that invalid ids can have two values: "" and "0".
+// Check if the given int64 id is valid.
+func IsIntIDValid(id string) bool {
+	return id != "" && id != "0"
+}
+
 // Check if the given alias is valid
 func IsAliasValid(alias string) bool {
 	return regexp.MustCompile("^" + AliasOrPageIDRegexpStr + "$").MatchString(alias)
@@ -356,6 +363,7 @@ func IsAliasValid(alias string) bool {
 func GetCommentParents(db *database.DB, pageID string) (string, string, error) {
 	var commentParentID string
 	var commentPrimaryPageID string
+	db.C.Debugf("===================== pageID: %v", pageID)
 	rows := database.NewQuery(`
 		SELECT pi.pageId,pi.type
 		FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
@@ -371,6 +379,7 @@ func GetCommentParents(db *database.DB, pageID string) (string, string, error) {
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
+		db.C.Debugf("===================== relevantPageID: %v (%v)", parentID, pageType)
 		if pageType == CommentPageType {
 			if IsIDValid(commentParentID) {
 				return fmt.Errorf("Can't have more than one comment parent")
@@ -386,8 +395,7 @@ func GetCommentParents(db *database.DB, pageID string) (string, string, error) {
 	})
 	if err != nil {
 		return "", "", fmt.Errorf("failed to process rows: %v", err)
-	}
-	if !IsIDValid(commentPrimaryPageID) {
+	} else if !IsIDValid(commentPrimaryPageID) {
 		return "", "", fmt.Errorf("Comment pages need at least one normal page parent")
 	}
 
@@ -396,7 +404,7 @@ func GetCommentParents(db *database.DB, pageID string) (string, string, error) {
 
 // LoadAllDomainIds loads all the domains that currently exist on Arbital.
 // If pageMap is given, it also adds them to the pageMap.
-func LoadAllDomainIDs(db *database.DB, pageMap map[string]*Page) ([]string, error) {
+/*func LoadAllDomainIDs(db *database.DB, pageMap map[string]*Page) ([]string, error) {
 	domainIDs := make([]string, 0)
 	rows := database.NewQuery(`
 		SELECT DISTINCT domainId
@@ -414,7 +422,7 @@ func LoadAllDomainIDs(db *database.DB, pageMap map[string]*Page) ([]string, erro
 		return nil
 	})
 	return domainIDs, err
-}
+}*/
 
 // Return true iff the string is in the list
 func IsStringInList(str string, list []string) bool {

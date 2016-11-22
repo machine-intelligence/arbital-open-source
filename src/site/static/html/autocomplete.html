@@ -27,7 +27,7 @@
 			<div layout="column" flex>
 				<div layout="row" layout-align="start center">
 					<md-icon class="no-margins" ng-if="arb.pageService.showPrivate(result.page.pageId)">
-						<md-tooltip>This page belongs to {{arb.stateService.pageMap[page.seeGroupId].title}} group</md-tooltip>
+						<md-tooltip>This page belongs to a private domain</md-tooltip>
 						lock
 					</md-icon>
 					<md-icon class="no-margins" ng-if="arb.pageService.showPublic(result.page.pageId)">

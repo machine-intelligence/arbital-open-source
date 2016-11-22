@@ -31,7 +31,7 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 	var pageType string
 	var seeGroupID string
 	row := database.NewQuery(`
-		SELECT type,seeGroupId
+		SELECT type,seeDomainId
 		FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		WHERE pageId=?`, pageID).ToStatement(db).QueryRow()
 	exists, err := row.Scan(&pageType, &seeGroupID)
@@ -40,13 +40,13 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check if a subdomain redirect is necessary.
-	if exists && seeGroupID != params.PrivateGroupID {
+	if exists && seeGroupID != params.PrivateDomain.ID {
 		subdomain := ""
 		if core.IsIDValid(seeGroupID) {
 			row := database.NewQuery(`
-					SELECT alias
-					FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
-					WHERE pageId=?`, seeGroupID).ToStatement(db).QueryRow()
+				SELECT alias
+				FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+				WHERE pageId=?`, seeGroupID).ToStatement(db).QueryRow()
 			exists, err := row.Scan(&subdomain)
 			if err != nil || !exists {
 				return pages.Fail("Failed to redirect to subdomain", err)

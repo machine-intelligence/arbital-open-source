@@ -68,27 +68,6 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		return -1, fmt.Errorf("Invalid new update task: %v", err)
 	}
 
-	// Load seeGroupIds for the groupByPage and goToPage. Used to filter out updates for users who
-	// won't have permission to click through to the pages linked in the update.
-	var requiredGroupMemberships []string
-	rows = database.NewQuery(`
-		SELECT DISTINCT seeGroupId
-		FROM`).AddPart(core.PageInfosTableWithOptions(nil, &core.PageInfosOptions{Deleted: true})).Add(`AS pi
-		WHERE seeGroupId != '' AND pageId IN (?)`, task.GoToPageID).ToStatement(db).Query()
-	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var groupID string
-		err := rows.Scan(&groupID)
-		if err != nil {
-			return fmt.Errorf("failed to scan for required groups: %v", err)
-		}
-
-		requiredGroupMemberships = append(requiredGroupMemberships, groupID)
-		return nil
-	})
-	if err != nil {
-		return -1, fmt.Errorf("Couldn't process group requirements: %v", err)
-	}
-
 	var query *database.QueryPart
 	// Iterate through all users who are subscribed to this page/comment.
 	// If it is an editors only comment, only select editor ids.
@@ -96,8 +75,12 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 			SELECT DISTINCT s.userId
 			FROM subscriptions AS s
 			JOIN pages as p
-			ON s.userId = p.creatorId
-			WHERE s.toId=? AND p.pageId=?`, task.SubscribedToID, task.SubscribedToID)
+			ON (s.userId = p.creatorId)
+			JOIN pageInfos AS pi
+			ON (p.pageId = pi.pageId)
+			WHERE s.toId=?`, task.SubscribedToID).Add(`
+				AND p.pageId=?`, task.SubscribedToID).Add(`
+				AND pi.seeDomainId != 0`)
 	if !task.ForceMaintainersOnly &&
 		(task.UpdateType == core.TopLevelCommentUpdateType || task.UpdateType == core.ReplyUpdateType ||
 			task.UpdateType == core.NewPageByUserUpdateType || task.UpdateType == core.AtMentionUpdateType ||
@@ -108,14 +91,6 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	} else {
 		// This update is only for authors who explicitly opted into maintaining the page
 		query = query.Add(`AND s.asMaintainer`)
-	}
-	if len(requiredGroupMemberships) > 0 {
-		query = query.Add(`AND
-		(
-			SELECT COUNT(*)
-			FROM groupMembers AS gm
-			WHERE gm.userId = s.userId AND gm.groupId IN`).AddArgsGroupStr(requiredGroupMemberships).Add(`
-		) = ?`, len(requiredGroupMemberships))
 	}
 	rows = query.ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {

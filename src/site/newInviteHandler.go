@@ -49,11 +49,11 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check to make sure user has permissions for all the domains
-	for _, domainID := range data.DomainIDs {
+	/*for _, domainID := range data.DomainIDs {
 		if u.TrustMap[domainID].Level < core.ArbiterTrustLevel {
 			return pages.Fail("Don't have permissions to invite to one of the domains", nil).Status(http.StatusBadRequest)
 		}
-	}
+	}*/
 
 	// Check to see if the invitee is already a user in our DB
 	var inviteeUserID string
@@ -133,15 +133,7 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 					return sessions.NewError("Couldn't add a new update for the invitee", err)
 				}
 
-				// Create/update user trust
-				hashmap = make(map[string]interface{})
-				hashmap["userId"] = inviteeUserID
-				hashmap["domainId"] = domainID
-				hashmap["editTrust"] = core.BasicKarmaLevel
-				statement = db.NewInsertStatement("userTrust", hashmap, "editTrust")
-				if _, err := statement.WithTx(tx).Exec(); err != nil {
-					return sessions.NewError("Couldn't update/create userTrust row", err)
-				}
+				// TODO: Create/update user trust?
 			}
 		}
 

@@ -281,8 +281,9 @@
 		</div>
 
 		<!-- Improvement section -->
-		<div arb-page-improvement page="selectedLens"
-				ng-if="selectedLens && selectedLens.isInDomain('1lw') && !selectedLens.isConcept()"></div>
+		<div arb-page-improvement
+				page="selectedLens"
+				ng-if="selectedLens && selectedLens.editDomainId == '1' && !selectedLens.isConcept()"></div>
 
 		<!-- Discussion section -->
 		<div class="after-page-container" ng-if="arb.userService.userIsLoggedIn() && !selectedLens.isConcept()">

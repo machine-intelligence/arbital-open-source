@@ -13,6 +13,9 @@ app.service('stateService', function($http, $mdMedia, popupService) {
 	// All loaded pages.
 	this.pageMap = {};
 
+	// All loaded domains.
+	this.domainMap = {};
+
 	// All loaded deleted pages.
 	this.deletedPagesMap = {};
 

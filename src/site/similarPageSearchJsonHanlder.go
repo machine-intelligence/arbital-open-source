@@ -37,7 +37,7 @@ func similarPageSearchJSONHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Success(nil)
 	}
 
-	groupIDs := []string{"\"\"", "\"" + params.PrivateGroupID + "\""}
+	domainIDs := []string{"\"\"", "\"" + params.PrivateDomain.ID + "\""}
 	escapedTitle := elastic.EscapeMatchTerm(data.Title)
 	escapedClickbait := elastic.EscapeMatchTerm(data.Clickbait)
 	escapedText := elastic.EscapeMatchTerm(data.Text)
@@ -67,7 +67,7 @@ func similarPageSearchJSONHandler(params *pages.HandlerParams) *pages.Result {
 					"bool": {
 						"must": [
 							{
-								"terms": { "seeGroupId": [%s] }
+								"terms": { "seeDomainId": [%s] }
 							}
 						]
 					}
@@ -75,6 +75,6 @@ func similarPageSearchJSONHandler(params *pages.HandlerParams) *pages.Result {
 			}
 		},
 		"_source": []
-	}`, minSearchScore, searchSize, escapedTitle, escapedClickbait, escapedText, strings.Join(groupIDs, ","))
+	}`, minSearchScore, searchSize, escapedTitle, escapedClickbait, escapedText, strings.Join(domainIDs, ","))
 	return searchJSONInternalHandler(params, jsonStr)
 }

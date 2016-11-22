@@ -58,10 +58,10 @@ func settingsPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't load sent invites", err)
 	}
 
-	_, err = core.LoadAllDomainIDs(db, returnData.PageMap)
+	/*_, err = core.LoadAllDomainIDs(db, returnData.PageMap)
 	if err != nil {
 		return pages.Fail("Couldn't load domain ids", err)
-	}
+	}*/
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)

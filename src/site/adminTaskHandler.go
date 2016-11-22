@@ -39,12 +39,6 @@ func adminTaskHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			return pages.Fail("Couldn't enqueue a task", err)
 		}
-	} else if task == "propagateDomain" {
-		var task tasks.PropagateDomainTask
-		task.PageID = params.R.FormValue("pageId")
-		if err := tasks.Enqueue(c, &task, nil); err != nil {
-			return pages.Fail("Couldn't enqueue a task", err)
-		}
 	} else if task == "sendInvite" {
 		var task tasks.SendInviteTask
 		task.FromUserID = "1"

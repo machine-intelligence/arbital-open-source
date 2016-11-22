@@ -33,7 +33,7 @@ type Document struct {
 	Title         string   `json:"title"`
 	Clickbait     string   `json:"clickbait"`
 	Text          string   `json:"text"`
-	SeeGroupID    string   `json:"seeGroupId"`
+	SeeDomainID   string   `json:"seeDomainId"`
 	CreatorID     string   `json:"creatorId"`
 	SearchStrings []string `json:"searchStrings"`
 }
@@ -160,7 +160,7 @@ func CreatePageIndex(c sessions.Context) error {
 	mapping.Properties["clickbait"] = &Property{Type: "string", Analyzer: "english"}
 	mapping.Properties["text"] = &Property{Type: "string", Analyzer: "english"}
 	mapping.Properties["alias"] = &Property{Type: "string"}
-	mapping.Properties["seeGroupId"] = &Property{Type: "string", Index: "not_analyzed"}
+	mapping.Properties["seeDomainId"] = &Property{Type: "string", Index: "not_analyzed"}
 	mapping.Properties["creatorId"] = &Property{Type: "string", Index: "not_analyzed"}
 	mapping.Properties["searchStrings"] = &Property{Type: "string", IndexName: "searchString", Analyzer: "english"}
 

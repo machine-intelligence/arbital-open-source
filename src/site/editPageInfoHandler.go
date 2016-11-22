@@ -22,8 +22,8 @@ type editPageInfoData struct {
 	Type                     string
 	HasVote                  bool
 	VoteType                 string
-	SeeGroupID               string
-	EditGroupID              string
+	SeeDomainID              string
+	EditDomainID             string
 	Alias                    string // if empty, leave the current one
 	SortChildrenBy           string
 	IsRequisite              bool
@@ -71,7 +71,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Fix some data.
 	if data.Type == core.CommentPageType {
-		data.EditGroupID = u.ID
+		data.EditDomainID = u.MyDomainID()
 	}
 	if oldPage.WasPublished {
 		if (data.Type == core.WikiPageType || data.Type == core.QuestionPageType) &&
@@ -85,7 +85,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Error checking.
 	// Check the group settings
-	if oldPage.SeeGroupID != data.SeeGroupID && oldPage.WasPublished {
+	if oldPage.SeeDomainID != data.SeeDomainID && oldPage.WasPublished {
 		return pages.Fail("Editing this page in incorrect private group", nil).Status(http.StatusBadRequest)
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)
@@ -138,13 +138,11 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Prefix alias with the group alias, if appropriate
-		if core.IsIDValid(data.SeeGroupID) && data.Type != core.GroupPageType {
-			tempPageMap := map[string]*core.Page{data.SeeGroupID: core.NewPage(data.SeeGroupID)}
-			err = core.LoadPages(db, u, tempPageMap)
-			if err != nil {
-				return pages.Fail("Couldn't load the see group", err)
+		if core.IsIntIDValid(data.SeeDomainID) && data.Type != core.GroupPageType {
+			if data.SeeDomainID != params.PrivateDomain.ID {
+				return pages.Fail("Editing outside of the correct private domain", nil)
 			}
-			data.Alias = fmt.Sprintf("%s.%s", tempPageMap[data.SeeGroupID].Alias, data.Alias)
+			data.Alias = fmt.Sprintf("%s.%s", params.PrivateDomain.Alias, data.Alias)
 		}
 
 		// Check if another page is already using the alias
@@ -179,8 +177,8 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			data.HasVote == oldPage.HasVote &&
 			data.VoteType == oldPage.VoteType &&
 			data.Type == oldPage.Type &&
-			data.SeeGroupID == oldPage.SeeGroupID &&
-			data.EditGroupID == oldPage.EditGroupID &&
+			data.SeeDomainID == oldPage.SeeDomainID &&
+			data.EditDomainID == oldPage.EditDomainID &&
 			data.IsRequisite == oldPage.IsRequisite &&
 			data.IndirectTeacher == oldPage.IndirectTeacher &&
 			isEditorComment == oldPage.IsEditorComment &&
@@ -209,8 +207,8 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["hasVote"] = hasVote
 		hashmap["voteType"] = data.VoteType
 		hashmap["type"] = data.Type
-		hashmap["seeGroupId"] = data.SeeGroupID
-		hashmap["editGroupId"] = data.EditGroupID
+		hashmap["seeDomainID"] = data.SeeDomainID
+		hashmap["editDomainID"] = data.EditDomainID
 		hashmap["isRequisite"] = data.IsRequisite
 		hashmap["indirectTeacher"] = data.IndirectTeacher
 		hashmap["isEditorComment"] = isEditorComment
@@ -277,8 +275,8 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				}
 				changeLogIDs = append(changeLogIDs, changeLogID)
 			}
-			if data.EditGroupID != oldPage.EditGroupID {
-				changeLogID, err2 := updateChangeLog(core.NewEditGroupChangeLog, data.EditGroupID, oldPage.EditGroupID, data.EditGroupID)
+			if data.EditDomainID != oldPage.EditDomainID {
+				changeLogID, err2 := updateChangeLog(core.NewEditGroupChangeLog, data.EditDomainID, oldPage.EditDomainID, data.EditDomainID)
 				if err2 != nil {
 					return err2
 				}

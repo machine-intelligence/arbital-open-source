@@ -8,6 +8,41 @@ import (
 	"zanaduu3/src/sessions"
 )
 
+type DomainRoleType string
+
+const (
+	BannedDomainRole     DomainRoleType = "banned"
+	NoDomainRole         DomainRoleType = ""        // aka, not a member
+	DefaultDomainRole    DomainRoleType = "default" // aka, is a member, can comment, vote, and propose edits
+	TrustedDomainRole    DomainRoleType = "trusted"
+	ReviewerDomainRole   DomainRoleType = "reviewer"
+	ArbiterDomainRole    DomainRoleType = "arbiter"
+	ArbitratorDomainRole DomainRoleType = "arbitrator"
+)
+
+// Ordered list of roles
+var _allDomainRoleTypes = []DomainRoleType{
+	BannedDomainRole,
+	NoDomainRole,
+	DefaultDomainRole,
+	TrustedDomainRole,
+	ReviewerDomainRole,
+	ArbiterDomainRole,
+	ArbitratorDomainRole,
+}
+
+// Returns true if this role is at least as high as the given role.
+func (role *DomainRoleType) AtLeast(asHighAs DomainRoleType) bool {
+	for _, domainRole := range _allDomainRoleTypes {
+		if domainRole == asHighAs && domainRole != *role {
+			return false
+		} else if domainRole == *role {
+			return true
+		}
+	}
+	return false
+}
+
 type Permissions struct {
 	Edit        Permission `json:"edit"`
 	ProposeEdit Permission `json:"proposeEdit"`
@@ -25,6 +60,11 @@ type Permission struct {
 	Has bool `json:"has"`
 	// Reason why this action is not allowed.
 	Reason string `json:"reason"`
+}
+
+// Return true iff the user has the permission to view the given domain
+func CanUserSeeDomain(u *CurrentUser, domainID string) bool {
+	return u.GetDomainMembershipRole(domainID).AtLeast(DefaultDomainRole) || u.IsAdmin
 }
 
 func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
@@ -49,102 +89,40 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 		return
 	}
 
-	if IsIDValid(p.SeeGroupID) && !u.IsMemberOfGroup(p.SeeGroupID) && !u.IsAdmin {
-		p.Permissions.Edit.Reason = "You don't have group permission to EVEN SEE this page"
+	if !CanUserSeeDomain(u, p.SeeDomainID) {
+		p.Permissions.Edit.Reason = "You don't have domain permission to EVEN SEE this page"
 		return
 	}
 
-	if IsIDValid(p.EditGroupID) && !u.IsMemberOfGroup(p.EditGroupID) && !u.IsAdmin {
-		p.Permissions.Edit.Reason = "You don't have group permission to edit this page, but you can propose edits"
+	if !u.GetDomainMembershipRole(p.EditDomainID).AtLeast(DefaultDomainRole) {
+		// TODO: check if domain allows for people to propose edits anyway
+		p.Permissions.Edit.Reason = "You don't have domain permission to edit this page"
+		return
+	}
+
+	if !u.GetDomainMembershipRole(p.EditDomainID).AtLeast(TrustedDomainRole) {
+		p.Permissions.Edit.Reason = "You don't have domain permission to edit this page, but you can propose edits"
 		p.Permissions.ProposeEdit.Has = true
 		return
 	}
 
-	// The page creator can always edit the page
-	if p.PageCreatorID == u.ID {
-		p.Permissions.Edit.Has = true
-		return
-	}
-
-	// If a page hasn't been published, only the creator can edit it
-	if !p.WasPublished {
-		p.Permissions.Edit.Has = false
-		p.Permissions.Edit.Reason = "Can't edit an unpublished page you didn't create"
-		return
-	}
-	// If it's a comment, only the creator can edit it
-	if p.Type == CommentPageType {
-		p.Permissions.Edit.Has = false
-		p.Permissions.Edit.Reason = "Can't edit a comment you didn't create"
-		return
-	}
-	// If the page is part of the general domain, only the creator and domain members
-	// can edit it.
-	if len(p.DomainIDs) <= 0 {
-		p.Permissions.Edit.Has = u.MaxTrustLevel >= BasicTrustLevel
-		if !p.Permissions.Edit.Has {
-			p.Permissions.Edit.Reason = "Only the creator and domain members can edit an unlisted page, but you can still propose edits"
-			p.Permissions.ProposeEdit.Has = true
-		}
-		return
-	}
-	// Compute whether the user can edit via any of the domains
-	for _, domainID := range p.DomainIDs {
-		if u.TrustMap[domainID].Level >= BasicTrustLevel {
-			p.Permissions.Edit.Has = true
-			return
-		}
-	}
-	if !p.Permissions.Edit.Has {
-		p.Permissions.Edit.Reason = "You don't have the permissions to edit this page, but you can still propose edits"
-		p.Permissions.ProposeEdit.Has = true
-	}
+	p.Permissions.Edit.Has = true
 }
 
 func (p *Page) computeDeletePermissions(c sessions.Context, u *CurrentUser) {
+	if u.IsAdmin {
+		p.Permissions.Delete.Has = true
+	}
 	if !p.WasPublished {
 		p.Permissions.Delete.Reason = "Can't delete an unpublished page"
 		return
 	}
-	if !p.Permissions.Edit.Has {
-		p.Permissions.Delete.Reason = p.Permissions.Edit.Reason
+	if !u.GetDomainMembershipRole(p.EditDomainID).AtLeast(TrustedDomainRole) {
+		p.Permissions.Delete.Reason = "You don't have domain permission to delete this page"
 		return
 	}
-	// If it's a comment, only the creator can delete it
-	if p.Type == CommentPageType {
-		p.Permissions.Delete.Has = p.PageCreatorID == u.ID || u.IsAdmin
-		if !p.Permissions.Delete.Has {
-			p.Permissions.Delete.Reason = "Can't delete a comment you didn't create"
-		}
-		return
-	}
-	// For special pages, like groups and domains, only admins can delete it
-	if p.Type == GroupPageType {
-		p.Permissions.Delete.Has = u.IsAdmin
-		if !p.Permissions.Delete.Has {
-			p.Permissions.Delete.Reason = "Only admins can delete this type of page"
-		}
-		return
-	}
-	// If the page is part of the general domain, only the creator and domain reviewers
-	// can edit it.
-	if len(p.DomainIDs) <= 0 {
-		p.Permissions.Delete.Has = p.PageCreatorID == u.ID || u.MaxTrustLevel >= ReviewerTrustLevel
-		if !p.Permissions.Delete.Has {
-			p.Permissions.Delete.Reason = "Only the creator and domain members can delete an unlisted page"
-		}
-		return
-	}
-	// Compute whether the user can delete via any of the domains
-	for _, domainID := range p.DomainIDs {
-		if u.TrustMap[domainID].Level >= ReviewerTrustLevel {
-			p.Permissions.Delete.Has = true
-			return
-		}
-	}
-	if !p.Permissions.Delete.Has {
-		p.Permissions.Delete.Reason = "You don't have the permissions to delete this page"
-	}
+
+	p.Permissions.Delete.Has = true
 }
 
 func (p *Page) computeCommentPermissions(c sessions.Context, u *CurrentUser) {
@@ -152,21 +130,16 @@ func (p *Page) computeCommentPermissions(c sessions.Context, u *CurrentUser) {
 		p.Permissions.Comment.Reason = "Can't comment on an unpublished page"
 		return
 	}
-	// Anyone who can edit the page can also comment
-	if p.Permissions.Edit.Has {
-		p.Permissions.Comment.Has = true
+	if !u.GetDomainMembershipRole(p.EditDomainID).AtLeast(NoDomainRole) {
+		p.Permissions.Comment.Reason = "You don't have domain permission to comment on this page"
 		return
 	}
-	// Compute whether the user can comment via any of the domains
-	for _, domainID := range p.DomainIDs {
-		if u.TrustMap[domainID].Level >= BasicTrustLevel {
-			p.Permissions.Comment.Has = true
-			return
-		}
+	if *u.GetDomainMembershipRole(p.EditDomainID) == NoDomainRole {
+		// TODO: check if domain allows for people to comment
+		p.Permissions.Comment.Reason = "You don't have domain permission to comment on this page"
+		return
 	}
-	if !p.Permissions.Comment.Has {
-		p.Permissions.Comment.Reason = "You don't have the permissions to comment"
-	}
+	p.Permissions.Comment.Has = true
 }
 
 // ComputePermissions computes all the permissions for the given page.
@@ -185,15 +158,7 @@ func ComputePermissionsForMap(c sessions.Context, pageMap map[string]*Page, u *C
 
 // Verify that the user has edit permissions for all the pages in the map.
 func VerifyEditPermissionsForMap(db *database.DB, pageMap map[string]*Page, u *CurrentUser) (string, error) {
-	filteredPageMap := filterPageMap(pageMap, func(p *Page) bool { return len(p.DomainIDs) <= 0 })
-	err := LoadDomainIDs(db, nil, &LoadDataOptions{
-		ForPages: filteredPageMap,
-	})
-	if err != nil {
-		return "", fmt.Errorf("Couldn't load domains: %v", err)
-	}
-
-	err = LoadPages(db, u, pageMap)
+	err := LoadPages(db, u, pageMap)
 	if err != nil {
 		return "", fmt.Errorf("Couldn't load pages: %v", err)
 	}
@@ -218,9 +183,9 @@ func VerifyEditPermissionsForList(db *database.DB, pageIDs []string, u *CurrentU
 
 // Check if the given user can affect a relationship between the two pages.
 func CanAffectRelationship(c sessions.Context, parent *Page, child *Page, relationshipType string) (string, error) {
-	// No intragroup links allowed.
-	if child.SeeGroupID != parent.SeeGroupID {
-		return "Parent and child need to have the same See Group", nil
+	// No intra-domain links allowed.
+	if child.SeeDomainID != parent.SeeDomainID {
+		return "Parent and child need to have the same domain", nil
 	}
 
 	// Check if this is a pairing we support

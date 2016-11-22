@@ -20,6 +20,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 	var postDataCallback = function(data) {
 		if (data.resetEverything) {
 			stateService.pageMap = {};
+			stateService.domainMap = {};
 			stateService.deletedPagesMap = {};
 			stateService.editMap = {};
 		}
@@ -40,6 +41,8 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		for (var id in editData) {
 			that.addPageToEditMap(editData[id]);
 		}
+
+		angular.extend(stateService.domainMap, data.domains);
 	};
 	stateService.addPostDataCallback('pageService', postDataCallback);
 
@@ -131,8 +134,8 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 				pageId: this.pageId,
 				alias: this.alias,
 				type: this.type,
-				seeGroupId: this.seeGroupId,
-				editGroupId: this.editGroupId,
+				seeDomainId: this.seeDomainId,
+				editDomainId: this.editDomainId,
 				hasVote: this.hasVote,
 				voteType: this.voteType,
 				sortChildrenBy: this.sortChildrenBy,
@@ -140,10 +143,6 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 				indirectTeacher: this.indirectTeacher,
 				isEditorCommentIntention: this.isEditorCommentIntention,
 			};
-		},
-		// Return true iff the page is in the given domain
-		isInDomain: function(domainId) {
-			return this.domainIds.indexOf(domainId) >= 0;
 		},
 		// Helper function for getBest...Id functions
 		_getBestPageId: function(pageIds, excludePageId) {

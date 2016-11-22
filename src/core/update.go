@@ -202,14 +202,8 @@ func LoadUpdateEmail(db *database.DB, userID string) (resultData *UpdateData, re
 	}
 
 	// Load the groups the user belongs to.
-	if err = LoadUserGroupIDs(db, u); err != nil {
-		return nil, fmt.Errorf("Couldn't load user groups: %v", err)
-	}
-
-	// Load the user's trust
-	err = LoadCurrentUserTrust(db, u)
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't retrieve user trust", err)
+	if err = LoadUserDomainMembership(db, &u.User); err != nil {
+		return nil, fmt.Errorf("Couldn't load user domain membership: %v", err)
 	}
 
 	handlerData := NewHandlerData(u)

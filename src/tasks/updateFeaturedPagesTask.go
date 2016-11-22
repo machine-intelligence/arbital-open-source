@@ -39,6 +39,8 @@ func (task UpdateFeaturedPagesTask) Execute(db *database.DB) (delay int, err err
 	c.Infof("==== UPDATE FEATURED PAGES START ====")
 	defer c.Infof("==== UPDATE FEATURED PAGES COMPLETED ====")
 
+	return
+
 	// Which pages should be featured
 	featuredPageIDs := make([]string, 0)
 

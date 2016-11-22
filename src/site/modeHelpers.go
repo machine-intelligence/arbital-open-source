@@ -358,24 +358,26 @@ func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 
 	// For now, we want to only suggest pages in the math domain, or other domains you're explicitly
 	// subscribed to.
+	domainId = core.MathDomainID
 	subscribedDomains := database.NewQuery(`?`, domainId)
-	if domainId <= 0 {
+	/*if domainId <= 0 {
 		subscribedDomains = database.NewQuery(`
-		SELECT subs.toId
-		FROM subscriptions AS subs
-		JOIN domains AS d
-		ON subs.toId=d.pageId
-		WHERE subs.userId=?`, returnData.User.ID).Add(`
-		UNION SELECT ?`, core.MathDomainID)
-	}
+			SELECT subs.toId
+			FROM subscriptions AS subs
+			JOIN domains AS d
+			ON subs.toId=d.pageId
+			WHERE subs.userId=?`, returnData.User.ID).Add(`
+			UNION SELECT ?`, core.MathDomainID)
+	}*/
 
 	rows := database.NewQuery(`
 		SELECT DISTINCT pi.pageId, pi.`+pageInfoActivityDateField+`
 		FROM`).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
-		JOIN pageDomainPairs AS pdp ON pi.pageId=pdp.pageId
+		JOIN domains AS d
+		ON pi.editDomainId=d.id
 		WHERE pi.type IN (?,?)`, core.WikiPageType, core.QuestionPageType).Add(`
 			AND pi.`+pageInfoActivityDateField+`!=0
-			AND pdp.domainId IN (`).AddPart(subscribedDomains).Add(`)
+			AND d.id IN (`).AddPart(subscribedDomains).Add(`)
 		ORDER BY pi.`+pageInfoActivityDateField+` DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {

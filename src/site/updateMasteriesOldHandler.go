@@ -105,21 +105,16 @@ func updateMasteriesInternalOldHandlerFunc(params *pages.HandlerParams, data *up
 	}
 
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		snapshotID, err := InsertUserTrustSnapshots(tx, u)
-		if err != nil {
-			return sessions.NewError("Couldn't insert userTrustSnapshot", err)
-		}
-
 		hashmaps := make(database.InsertMaps, 0)
 		for _, masteryAlias := range data.RemoveMasteries {
 			if masteryID, ok := aliasMap[masteryAlias]; ok {
-				hashmap := getHashmapForMasteryInsert(masteryID, userID, false, false, "", snapshotID)
+				hashmap := getHashmapForMasteryInsert(masteryID, userID, false, false, "")
 				hashmaps = append(hashmaps, hashmap)
 			}
 		}
 		for _, masteryAlias := range data.WantsMasteries {
 			if masteryID, ok := aliasMap[masteryAlias]; ok {
-				hashmap := getHashmapForMasteryInsert(masteryID, userID, false, true, "", snapshotID)
+				hashmap := getHashmapForMasteryInsert(masteryID, userID, false, true, "")
 				hashmaps = append(hashmaps, hashmap)
 			}
 		}
@@ -129,13 +124,13 @@ func updateMasteriesInternalOldHandlerFunc(params *pages.HandlerParams, data *up
 				if _, ok := subjectIDs[masteryID]; ok {
 					taughtBy = data.TaughtBy
 				}
-				hashmap := getHashmapForMasteryInsert(masteryID, userID, true, false, taughtBy, snapshotID)
+				hashmap := getHashmapForMasteryInsert(masteryID, userID, true, false, taughtBy)
 				hashmaps = append(hashmaps, hashmap)
 			}
 		}
 
 		if len(hashmaps) > 0 {
-			statement := tx.DB.NewMultipleInsertStatement("userMasteryPairs", hashmaps, "has", "wants", "updatedAt", "taughtBy", "userTrustSnapshotId")
+			statement := tx.DB.NewMultipleInsertStatement("userMasteryPairs", hashmaps, "has", "wants", "updatedAt", "taughtBy")
 			if _, err := statement.WithTx(tx).Exec(); err != nil {
 				return sessions.NewError("Failed to insert masteries", err)
 			}
@@ -186,7 +181,7 @@ func updateMasteriesInternalOldHandlerFunc(params *pages.HandlerParams, data *up
 	return pages.Success(returnData)
 }
 
-func getHashmapForMasteryInsert(masteryID string, userID string, has bool, wants bool, taughtBy string, snapshotID int64) database.InsertMap {
+func getHashmapForMasteryInsert(masteryID string, userID string, has bool, wants bool, taughtBy string) database.InsertMap {
 	hashmap := make(database.InsertMap)
 	hashmap["masteryId"] = masteryID
 	hashmap["userId"] = userID
@@ -195,6 +190,5 @@ func getHashmapForMasteryInsert(masteryID string, userID string, has bool, wants
 	hashmap["createdAt"] = database.Now()
 	hashmap["updatedAt"] = database.Now()
 	hashmap["taughtBy"] = taughtBy
-	hashmap["userTrustSnapshotId"] = snapshotID
 	return hashmap
 }

@@ -21,37 +21,28 @@ func groupsJSONHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	returnData := core.NewHandlerData(u).SetResetEverything()
 
-	// Load the groups and members
+	currentUserDomainIDs := make([]string, 0)
+	for domainID := range u.DomainMembershipMap {
+		currentUserDomainIDs = append(currentUserDomainIDs, domainID)
+	}
+
+	// Load all members
 	rows := database.NewQuery(`
-		SELECT p.pageId,m.userId,m.canAddMembers,m.canAdmin
-		FROM pages AS p
-		LEFT JOIN (
-			SELECT userId,groupId,canAddMembers,canAdmin
-			FROM groupMembers
-		) AS m
-		ON (p.pageId=m.groupId)
-		WHERE p.pageId IN`).AddArgsGroupStr(u.GroupIDs).ToStatement(db).Query()
+		SELECT domainId,userId,createdAt,role
+		FROM domainMembers
+		WHERE domainId IN`).AddArgsGroupStr(currentUserDomainIDs).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var groupID string
-		var m core.Member
-		err := rows.Scan(&groupID, &m.UserID, &m.CanAddMembers, &m.CanAdmin)
+		var dm core.DomainMember
+		err := rows.Scan(&dm.DomainID, &dm.UserID, &dm.CreatedAt, &dm.Role)
 		if err != nil {
-			return fmt.Errorf("failed to scan a group member: %v", err)
+			return fmt.Errorf("failed to scan for a member: %v", err)
 		}
-
-		// Add group
-		curGroup := core.AddPageIDToMap(groupID, returnData.PageMap)
-		if curGroup.Members == nil {
-			curGroup.Members = make(map[string]*core.Member)
-		}
-
-		// Add member
-		curGroup.Members[m.UserID] = &m
-		returnData.UserMap[m.UserID] = &core.User{ID: m.UserID}
+		user := core.AddUserToMap(dm.UserID, returnData.UserMap)
+		user.DomainMembershipMap[dm.DomainID] = &dm
 		return nil
 	})
 	if err != nil {
-		return pages.Fail("Error while loading group members", err)
+		return pages.Fail("Error while loading domain members", err)
 	}
 
 	// Load pages.
