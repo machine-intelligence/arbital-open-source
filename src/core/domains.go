@@ -26,7 +26,7 @@ type Domain struct {
 // Information about a member of a domain
 type DomainMember struct {
 	DomainID     string `json:"domainId"`
-	DomainPageID string `json:"domainPageID"`
+	DomainPageID string `json:"domainPageId"`
 	UserID       string `json:"userId"`
 	CreatedAt    string `json:"createdAt"`
 	Role         string `json:"role"`
@@ -70,26 +70,32 @@ func LoadDomainByAlias(db *database.DB, domainAlias string) (*Domain, error) {
 	return resultDomain, err
 }
 
-// LoadAllDomain loads all domains associated with the given pages into the domainMap.
-func LoadAllDomains(db *database.DB, u *CurrentUser, pageMap map[string]*Page, domainMap map[string]*Domain) error {
+// LoadDomainsForPages loads all domains associated with the given pages into the domainMap.
+func LoadDomainsForPages(db *database.DB, u *CurrentUser, pageMap map[string]*Page, userMap map[string]*User, domainMap map[string]*Domain) error {
 	domainIDs := make([]string, 0)
-	for _, p := range pageMap {
-		if IsIntIDValid(p.SeeDomainID) {
-			domainIDs = append(domainIDs, p.SeeDomainID)
-		}
-		if IsIntIDValid(p.EditDomainID) {
-			domainIDs = append(domainIDs, p.EditDomainID)
-		}
+	for domainID := range domainMap {
+		domainIDs = append(domainIDs, domainID)
 	}
 	for domainID := range u.DomainMembershipMap {
 		domainIDs = append(domainIDs, domainID)
 	}
-	if len(domainIDs) <= 0 {
-		return nil
+	whereClause := database.NewQuery(`WHERE FALSE`)
+	if len(domainIDs) > 0 {
+		whereClause.Add(`OR d.id IN`).AddArgsGroupStr(domainIDs)
 	}
-	queryPart := database.NewQuery(`WHERE d.id IN`).AddArgsGroupStr(domainIDs)
-	err := LoadDomains(db, queryPart, func(db *database.DB, domain *Domain) error {
+
+	pageIDs := PageIDsListFromMap(pageMap)
+	if len(pageIDs) > 0 {
+		whereClause.Add(`
+			OR d.id IN (
+				SELECT seeDomainId FROM pageInfos WHERE pageId IN`).AddArgsGroup(pageIDs).Add(`
+				UNION SELECT editDomainId FROM pageInfos WHERE pageId IN`).AddArgsGroup(pageIDs).Add(`
+			)`)
+	}
+
+	err := LoadDomains(db, whereClause, func(db *database.DB, domain *Domain) error {
 		domainMap[domain.ID] = domain
+		AddPageIDToMap(domain.PageID, pageMap)
 		return nil
 	})
 	return err

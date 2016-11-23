@@ -9,8 +9,8 @@ import (
 	"zanaduu3/src/sessions"
 )
 
-// User has a selection of the information about a user.
-type User struct {
+// corePageData has data we load directly from the users and other tables.
+type coreUserData struct {
 	ID               string `json:"id"`
 	FirstName        string `json:"firstName"`
 	LastName         string `json:"lastName"`
@@ -19,6 +19,12 @@ type User struct {
 	// Computed variables
 	// True if the currently logged in user is subscribed to this user
 	IsSubscribed bool `json:"isSubscribed"`
+}
+
+// User has a selection of the information about a user.
+type User struct {
+	coreUserData
+
 	// Which domains this user belongs to; map key is "domain id"
 	DomainMembershipMap map[string]*DomainMember `json:"domainMembershipMap"`
 }
@@ -84,19 +90,19 @@ func LoadUsers(db *database.DB, userMap map[string]*User, currentUserID string) 
 		) AS s
 		ON (u.id=s.toId)`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var u User
+		var u coreUserData
 		err := rows.Scan(&u.ID, &u.FirstName, &u.LastName, &u.LastWebsiteVisit, &u.IsSubscribed)
 		if err != nil {
 			return fmt.Errorf("failed to scan for user: %v", err)
 		}
-		*userMap[u.ID] = u
+		userMap[u.ID].coreUserData = u
 		return nil
 	})
 	return err
 }
 func LoadUser(db *database.DB, userID string, currentUserID string) (*User, error) {
-	user := &User{ID: userID}
-	userMap := map[string]*User{userID: user}
+	userMap := make(map[string]*User)
+	user := AddUserIDToMap(userID, userMap)
 	err := LoadUsers(db, userMap, currentUserID)
 	return user, err
 }
@@ -112,7 +118,7 @@ func (u *User) GetDomainMembershipRole(domainID string) *DomainRoleType {
 }
 
 // LoadUserDomainMembership loads all the group names this user belongs to.
-func LoadUserDomainMembership(db *database.DB, u *User) error {
+func LoadUserDomainMembership(db *database.DB, u *User, domainMap map[string]*Domain) error {
 	u.DomainMembershipMap = make(map[string]*DomainMember)
 	rows := db.NewStatement(`
 		SELECT dm.domainId,dm.userId,dm.createdAt,dm.role,d.pageId
@@ -127,6 +133,9 @@ func LoadUserDomainMembership(db *database.DB, u *User) error {
 			return fmt.Errorf("failed to scan for a member: %v", err)
 		}
 		u.DomainMembershipMap[dm.DomainID] = &dm
+		if domainMap != nil {
+			domainMap[dm.DomainID] = &Domain{ID: dm.DomainID}
+		}
 		return nil
 	})
 	return err

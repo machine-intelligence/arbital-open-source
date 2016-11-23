@@ -114,12 +114,12 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 				});
 			};
 
-			// Edit trust stuff
-			$scope.updateUserTrust = function(domainId) {
+			// Edit domain role
+			$scope.updateUserDomainRole = function(domainId) {
 				var data = {
 					userId: $scope.page.pageId,
 					domainId: domainId,
-					editTrust: +$scope.page.trustMap[domainId].editTrust,
+					role: arb.userService.userMap[$scope.pageId].domainMembershipMap[domainId].role,
 				};
 				arb.stateService.postDataWithoutProcessing('/json/updateUserTrust/', data);
 			};

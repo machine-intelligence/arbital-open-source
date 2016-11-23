@@ -25,7 +25,7 @@ app.service('autocompleteService', function($http, $compile, pageService, stateS
 				alias: source.alias,
 				title: source.title,
 				clickbait: source.clickbait,
-				seeGroupId: source.seeGroupId,
+				seeDomainId: source.seeDomainId,
 				score: hits[n]._score,
 			});
 		}

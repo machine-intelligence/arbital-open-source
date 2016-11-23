@@ -211,7 +211,7 @@ func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (u
 		}
 	}
 
-	if err := LoadUserDomainMembership(db, &u.User); err != nil {
+	if err := LoadUserDomainMembership(db, &u.User, nil); err != nil {
 		return nil, fmt.Errorf("Couldn't load group membership: %v", err)
 	}
 

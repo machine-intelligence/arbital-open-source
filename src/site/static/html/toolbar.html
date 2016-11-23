@@ -1,6 +1,6 @@
 <!-- Top toolbar appearing on every page -->
 <md-toolbar class="top-toolbar md-whiteframe-1dp md-hue-3"
-		ng-class="{'md-accent': arb.stateService.privateGroupId !== ''}"
+		ng-class="{'md-accent': arb.isIntIdValid(arb.stateService.privateDomainId)}"
 		ng-if="!hide">
 	<div class="md-toolbar-tools">
 		<a ng-href="http://{{arb.urlService.getTopLevelDomain()}}" layout="row" layout-align="start end">
@@ -10,8 +10,8 @@
 
 		<a href="/"
 				layout-margin
-				ng-bind="::(arb.stateService.pageMap[arb.stateService.privateGroupId].title | shorten: 30)"
-				ng-if="arb.stateService.privateGroupId !== ''"></a>
+				ng-bind="::(arb.stateService.domainMap[arb.stateService.privateDomainId].alias | shorten: 30)"
+				ng-if="arb.isIntIdValid(arb.stateService.privateDomainId)"></a>
 
 		<!-- Search -->
 		<span flex></span>
@@ -28,7 +28,8 @@
 				class="md-icon-button notifications-icon"
 				ng-if="arb.userService.userIsLoggedIn() && arb.userService.userHasReceivedNotifications()">
 			<md-icon class="toolbar-update-icon"
-					ng-class="{on: arb.userService.user.newNotificationCount > 0, selected: selectedUpdatesButton == 0}">notifications</md-icon>
+					ng-class="{on: arb.userService.user.newNotificationCount > 0,
+							selected: selectedUpdatesButton == 0}">notifications</md-icon>
 			<span class="toolbar-update-count"
 					ng-bind="arb.userService.user.newNotificationCount"
 					ng-if="arb.userService.user.newNotificationCount > 0"></span>
@@ -41,7 +42,8 @@
 				class="md-icon-button achievements-icon"
 				ng-if="arb.userService.userIsLoggedIn()">
 			<md-icon class="toolbar-update-icon"
-					ng-class="{on: arb.userService.user.newAchievementCount > 0, selected: selectedUpdatesButton == 1}">favorite</md-icon>
+					ng-class="{on: arb.userService.user.newAchievementCount > 0,
+							selected: selectedUpdatesButton == 1}">favorite</md-icon>
 			<span class="toolbar-update-count"
 					ng-bind="arb.userService.user.newAchievementCount"
 					ng-if="arb.userService.user.newAchievementCount > 0"></span>

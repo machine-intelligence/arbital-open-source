@@ -1,7 +1,7 @@
 'use strict';
 
 import app from './angular.ts';
-import {isTouchDevice} from './util.ts';
+import {isTouchDevice,isIntIdValid} from './util.ts';
 
 // Contains all the services.
 app.service('arb', function(analyticsService, autocompleteService, diffService, markService, markdownService,
@@ -25,5 +25,6 @@ app.service('arb', function(analyticsService, autocompleteService, diffService, 
 	that.urlService = urlService;
 
 	this.isTouchDevice = isTouchDevice;
+	this.isIntIdValid = isIntIdValid;
 	this.versionUrl = versionUrl;
 });

@@ -68,7 +68,7 @@ func AddUserToMap(userID string, userMap map[string]*User) *User {
 	if u, ok := userMap[userID]; ok {
 		return u
 	}
-	u := &User{ID: userID}
+	u := &User{coreUserData: coreUserData{ID: userID}}
 	userMap[userID] = u
 	return u
 }
@@ -363,7 +363,6 @@ func IsAliasValid(alias string) bool {
 func GetCommentParents(db *database.DB, pageID string) (string, string, error) {
 	var commentParentID string
 	var commentPrimaryPageID string
-	db.C.Debugf("===================== pageID: %v", pageID)
 	rows := database.NewQuery(`
 		SELECT pi.pageId,pi.type
 		FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
@@ -379,7 +378,6 @@ func GetCommentParents(db *database.DB, pageID string) (string, string, error) {
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
-		db.C.Debugf("===================== relevantPageID: %v (%v)", parentID, pageType)
 		if pageType == CommentPageType {
 			if IsIDValid(commentParentID) {
 				return fmt.Errorf("Can't have more than one comment parent")

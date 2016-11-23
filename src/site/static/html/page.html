@@ -11,35 +11,27 @@
 
 		<!-- For user page display some additional info -->
 		<div ng-if="::page.isUser()">
-
-			<div ng-repeat="(domainId, trust) in ::page.trustMap">
+			<div ng-repeat="(domainId, domainMembership) in ::arb.userService.userMap[pageId].domainMembershipMap">
 				<!-- Admins can edit the level of the user -->
 				<div layout="row" ng-if="::arb.userService.user.isAdmin">
 					<md-input-container flex>
-						<label>User trust level ({{arb.stateService.pageMap[domainId].title}})</label>
-						<md-select ng-model="trust.editTrust"
-								md-on-close="updateUserTrust(domainId)">
-							<md-option value="0">Default</md-option>
-							<md-option value="200">Basic</md-option>
-							<md-option value="300">Reviewer</md-option>
-							<md-option value="400">Arbiter</md-option>
+						<label>User domain role ({{arb.stateService.domainMap[domainMembership.domainId].alias}})</label>
+						<md-select ng-model="domainMembership.role"
+								md-on-close="updateUserDomainRole(domainId)">
+							<md-option value="banned">Banned</md-option>
+							<md-option value="">None</md-option>
+							<md-option value="default">Default</md-option>
+							<md-option value="trusted">Trusted</md-option>
+							<md-option value="reviewer">Reviewer</md-option>
+							<md-option value="arbiter">Arbiter</md-option>
+							<md-option value="arbitrator">Arbitrator</md-option>
 						</md-select>
 					</md-input-container>
 				</div>
-				<div ng-if="::!arb.userService.user.isAdmin && trust.editTrust > 0">
-					This user is
-					<span ng-if="200 <= trust.editTrust && trust.editTrust < 300">
-						<arb-page-title page-id="58l" is-link="true" custom-page-title="a trusted member"></arb-page-title>
-					</span>
-					<span ng-if="300 <= trust.editTrust && trust.editTrust < 400">
-						<arb-page-title page-id="58l" is-link="true" custom-page-title="a reviewer"></arb-page-title>
-					</span>
-					<span ng-if="400 <= trust.editTrust">
-						<arb-page-title page-id="58l" is-link="true" custom-page-title="an arbiter"></arb-page-title>
-					</span>
-					of
+				<div ng-if="::!arb.userService.user.isAdmin">
+					This user's role in
 					<arb-page-title page-id="{{::domainId}}" is-link="true"></arb-page-title>
-					domain.
+					domain is {{domainMembership.role}}.
 				</div>
 			</div>
 

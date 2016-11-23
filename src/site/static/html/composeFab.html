@@ -20,7 +20,7 @@
 			<md-icon class="fab-icon" ng-if="data.isOpen">note_add</md-icon>
 			<md-tooltip md-direction="left" md-visible="showTooltips" ng-if="data.isOpen">New page (ALT+CTRL+P)</md-tooltip>
 		</md-button>
-		<md-icon class="private-group-icon" ng-if="arb.stateService.privateGroupId !== ''">
+		<md-icon class="private-group-icon" ng-if="arb.isIntIdValid(arb.stateService.privateDomainId)">
 			lock
 			<md-tooltip md-autohide="true" md-direction="left">Private domain</md-tooltip>
 		</md-icon>

@@ -136,9 +136,9 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 			AddPageToMap(row.GoToPageID, resultData.PageMap, domainSubmissionLoadOptions)
 		}
 
-		resultData.UserMap[row.UserID] = &User{ID: row.UserID}
+		AddUserIDToMap(row.UserID, resultData.UserMap)
 		if IsIDValid(row.ByUserID) {
-			resultData.UserMap[row.ByUserID] = &User{ID: row.ByUserID}
+			AddUserIDToMap(row.ByUserID, resultData.UserMap)
 		}
 		if row.MarkID == "0" {
 			row.MarkID = ""
@@ -202,7 +202,7 @@ func LoadUpdateEmail(db *database.DB, userID string) (resultData *UpdateData, re
 	}
 
 	// Load the groups the user belongs to.
-	if err = LoadUserDomainMembership(db, &u.User); err != nil {
+	if err = LoadUserDomainMembership(db, &u.User, nil); err != nil {
 		return nil, fmt.Errorf("Couldn't load user domain membership: %v", err)
 	}
 

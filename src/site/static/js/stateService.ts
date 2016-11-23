@@ -25,8 +25,8 @@ app.service('stateService', function($http, $mdMedia, popupService) {
 	// Collection of various data we got from the server.
 	this.globalData = undefined;
 
-	// Id of the private group we are in. (Corresponds to the subdomain).
-	this.privateGroupId = '';
+	// Id of the private domain we are in. (Corresponds to the subdomain).
+	this.privateDomainId = '';
 
 	// Set to true when user has some text selected.
 	this.lensTextSelected = false;

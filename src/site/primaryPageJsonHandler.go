@@ -159,7 +159,7 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 			return pages.Fail("error while loading recently edited by me page ids", err)
 		}
 
-		returnData.UserMap[pageID] = &core.User{ID: pageID}
+		core.AddUserIDToMap(pageID, returnData.UserMap)
 	}
 
 	if data.PathInstanceID != "" {

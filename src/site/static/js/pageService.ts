@@ -10,6 +10,7 @@ import {
 	notEscaped,
 	noParen,
 } from './markdownService.ts';
+import {isIntIdValid} from './util.ts';
 
 // pages stores all the loaded pages and provides multiple helper functions for
 // working with pages.
@@ -90,7 +91,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 			return this.type === 'group';
 		},
 		isUser: function() {
-			return this.pageId in userService.userMap;
+			return this.type === 'group';
 		},
 		isConcept: function() {
 			return this.tagIds.indexOf('6cc') >= 0;
@@ -509,7 +510,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 			console.error('Couldn\'t find pageId: ' + pageId);
 			return false;
 		}
-		return stateService.privateGroupId !== page.seeGroupId && page.seeGroupId === '';
+		return stateService.privateDomainId !== page.seeDomainId && !isIntIdValid(page.seeDomainId);
 	};
 	// Return true iff we should show that this page belongs to a group.
 	this.showPrivate = function(pageId, useEditMap) {
@@ -518,7 +519,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 			console.error('Couldn\'t find pageId: ' + pageId);
 			return false;
 		}
-		return stateService.privateGroupId !== page.seeGroupId && page.seeGroupId !== '';
+		return stateService.privateDomainId !== page.seeDomainId && isIntIdValid(page.seeDomainId);
 	};
 
 	// Create a new comment; optionally it's a reply to the given commentId

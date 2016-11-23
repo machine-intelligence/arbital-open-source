@@ -54,7 +54,7 @@ func (task UpdateFeaturedPagesTask) Execute(db *database.DB) (delay int, err err
 		ON (pi.pageId=pdp.pageId)
 		LEFT JOIN pagePairs AS pp
 		ON (pi.pageId=pp.childId)
-		WHERE pi.seeGroupId="" AND pi.featuredAt=0 AND pi.type!=?`, core.CommentPageType).Add(`
+		WHERE pi.seeDomainId=0 AND pi.featuredAt=0 AND pi.type!=?`, core.CommentPageType).Add(`
 			AND length(p.text)>=?`, minTextLengthForFeaturedPages).Add(`
 			AND pp.type=?`, core.TagPagePairType).Add(`
 			AND pp.parentId IN (?,?)`, core.AClassPageID, core.BClassPageID).Add(`

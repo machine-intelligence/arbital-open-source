@@ -11,20 +11,10 @@
 	<h3>
 		Your permissions
 	</h3>
-	<div ng-repeat="(domainId, trust) in ::arb.userService.user.trustMap"
-			ng-if="::trust.editTrust > 0">
-		You are
-		<span ng-if="200 <= trust.editTrust && trust.editTrust < 300">
-			<arb-page-title page-id="58l" is-link="true" custom-page-title="a trusted member"></arb-page-title>
-		</span>
-		<span ng-if="300 <= trust.editTrust && trust.editTrust < 400">
-			<arb-page-title page-id="58l" is-link="true" custom-page-title="a reviewer"></arb-page-title>
-		</span>
-		<span ng-if="400 <= trust.editTrust">
-			<arb-page-title page-id="58l" is-link="true" custom-page-title="an arbiter"></arb-page-title>
-		</span>
+	<div ng-repeat="(domainId, domainMembership) in ::arb.userService.user.domainMembershipMap">
+		You are {{domainMembership.role}}
 		of
-		<arb-page-title page-id="{{::domainId}}" is-link="true"></arb-page-title>
+		<arb-page-title page-id="{{::domainMembership.domainPageId}}" is-link="true"></arb-page-title>
 		domain.
 	</div>
 	<br>

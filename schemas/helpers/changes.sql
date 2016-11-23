@@ -54,7 +54,7 @@ alter table pageInfos drop column editGroupId;
 /* Convert all non-user group pages into normal wiki pages */
 update pageInfos as pi set type="wiki" where type="group" and not pageId in (select id from users);
 /* Convert group members into domain members */
-insert into domainMembers (domainId,userId,createdAt,role) (select (select id from domains where pageId=groupId),userId,createdAt,if(canAdmin,"founder",if(canAddMembers,"arbiter","editor")) from groupMembers where groupId!=userId);
+insert into domainMembers (domainId,userId,createdAt,role) (select (select id from domains where pageId=groupId),userId,createdAt,if(canAdmin,"arbitrator",if(canAddMembers,"arbiter","trusted")) from groupMembers where groupId!=userId);
 delete from domainMembers where domainId=0;
 drop table groupMembers;
 

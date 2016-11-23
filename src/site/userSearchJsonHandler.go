@@ -58,7 +58,7 @@ func userSearchJSONHandler(params *pages.HandlerParams) *pages.Result {
 					"bool": {
 						"must": [
 							{
-								"terms": { "seeGroupId": [%[2]s] }
+								"terms": { "seeDomainId": [%[2]s] }
 							},
 							{
 								"terms": { "type": ["%[3]s"] }

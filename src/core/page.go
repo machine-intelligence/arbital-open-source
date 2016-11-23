@@ -741,13 +741,6 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		return fmt.Errorf("LoadMarkData failed: %v", err)
 	}
 
-	// Load the trust map for users
-	/*filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.TrustMap })
-	err = LoadTrustMapForUsers(db, filteredPageMap)
-	if err != nil {
-		return fmt.Errorf("LoadTrustMapForUsers failed: %v", err)
-	}*/
-
 	// Load links
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Links })
 	err = LoadLinks(db, u, pageMap, &LoadDataOptions{
@@ -897,6 +890,23 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		}
 	}*/
 
+	// Load domain roles for user pages that need it
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.DomainRoles })
+	for pageID, p := range filteredPageMap {
+		if p.Type == GroupPageType {
+			err = LoadUserDomainMembership(db, userMap[pageID], data.DomainMap)
+			if err != nil {
+				return fmt.Errorf("LoadUserDomainMembership failed: %v", err)
+			}
+		}
+	}
+
+	// Load all relevant domains
+	err = LoadDomainsForPages(db, u, pageMap, userMap, data.DomainMap)
+	if err != nil {
+		return fmt.Errorf("LoadAllDomains failed: %v", err)
+	}
+
 	// Load page data
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return !p.LoadOptions.Edit && !p.LoadOptions.IncludeDeleted })
 	err = LoadPages(db, u, filteredPageMap)
@@ -974,14 +984,8 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		return fmt.Errorf("LoadMasteries failed: %v", err)
 	}
 
-	// Load all relevant domains
-	err = LoadAllDomains(db, u, pageMap, data.DomainMap)
-	if err != nil {
-		return fmt.Errorf("LoadAllDomains failed: %v", err)
-	}
-
 	// Load all the users
-	userMap[u.ID] = &User{ID: u.ID}
+	AddUserIDToMap(u.ID, userMap)
 	for _, p := range pageMap {
 		AddUserIDToMap(p.PageCreatorID, userMap)
 		AddUserIDToMap(p.EditCreatorID, userMap)
@@ -1530,7 +1534,7 @@ func LoadSearchString(db *database.DB, id string) (*SearchString, error) {
 }
 
 // LoadVotes loads probability votes corresponding to the given pages and updates the pages.
-func LoadVotes(db *database.DB, currentUserID string, pageMap map[string]*Page, usersMap map[string]*User) error {
+func LoadVotes(db *database.DB, currentUserID string, pageMap map[string]*Page, userMap map[string]*User) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
@@ -1560,8 +1564,8 @@ func LoadVotes(db *database.DB, currentUserID string, pageMap map[string]*Page, 
 			page.Votes = make([]*Vote, 0, 0)
 		}
 		page.Votes = append(page.Votes, &v)
-		if _, ok := usersMap[v.UserID]; !ok {
-			usersMap[v.UserID] = &User{ID: v.UserID}
+		if _, ok := userMap[v.UserID]; !ok {
+			AddUserIDToMap(v.UserID, userMap)
 		}
 		return nil
 	})
@@ -1654,38 +1658,12 @@ func LoadCreatorIDs(db *database.DB, u *CurrentUser, pageMap map[string]*Page, u
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
 		pageMap[pageID].CreatorIDs = append(pageMap[pageID].CreatorIDs, creatorID)
-		userMap[creatorID] = &User{ID: creatorID}
+		AddUserIDToMap(creatorID, userMap)
 		return nil
 	})
 	if err != nil {
 		return fmt.Errorf("Couldn't load page contributors: %v", err)
 	}
-
-	// For pages that have editGroupId set, make sure we load those pages too.
-	/*rows = database.NewQuery(`
-		SELECT pi.pageId,pi.editGroupId,ISNULL(u.id)
-		FROM`).AddPart(PageInfosTable(u)).Add(`AS pi
-		LEFT JOIN users AS u
-		ON (pi.pageId = u.id)
-		WHERE pi.pageId IN`).AddArgsGroup(pageIdsList).Add(`
-			AND pi.editGroupId!=""`).ToStatement(db).Query()
-	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageID, editGroupID string
-		var isPage bool
-		err := rows.Scan(&pageID, &editGroupID, &isPage)
-		if err != nil {
-			return fmt.Errorf("Failed to scan: %v", err)
-		}
-		if isPage {
-			AddPageToMap(editGroupID, pageMap, TitlePlusLoadOptions)
-		} else {
-			userMap[editGroupID] = &User{ID: editGroupID}
-		}
-		return nil
-	})
-	if err != nil {
-		return fmt.Errorf("Couldn't load page creators: %v", err)
-	}*/
 	return nil
 }
 
@@ -1893,7 +1871,7 @@ func LoadAnswers(db *database.DB, pageMap map[string]*Page, userMap map[string]*
 			return fmt.Errorf("failed to scan: %v", err)
 		}
 		AddPageToMap(answer.AnswerPageID, pageMap, AnswerLoadOptions)
-		userMap[answer.UserID] = &User{ID: answer.UserID}
+		AddUserIDToMap(answer.UserID, userMap)
 		pageMap[answer.QuestionID].Answers = append(pageMap[answer.QuestionID].Answers, &answer)
 		return nil
 	})
@@ -2016,9 +1994,9 @@ func LoadMarkData(db *database.DB, pageMap map[string]*Page, userMap map[string]
 		AddPageToMap(mark.PageID, pageMap, TitlePlusLoadOptions)
 		if mark.ResolvedPageID != "" {
 			AddPageToMap(mark.ResolvedPageID, pageMap, TitlePlusLoadOptions)
-			userMap[mark.ResolvedBy] = &User{ID: mark.ResolvedBy}
+			AddUserIDToMap(mark.ResolvedBy, userMap)
 		}
-		userMap[creatorID] = &User{ID: creatorID}
+		AddUserIDToMap(creatorID, userMap)
 		return nil
 	})
 	return err
@@ -2277,21 +2255,6 @@ func LoadSubscriberCount(db *database.DB, currentUserID string, pageMap map[stri
 	return LoadDomains(db, pageMap, &LoadDataOptions{
 		ForPages: pageMap,
 	})
-}*/
-
-// LoadTrustMapForUsers loads trust maps for given users
-/*func LoadTrustMapForUsers(db *database.DB, pageMap map[string]*Page) error {
-	var err error
-	if len(pageMap) > 1 {
-		db.C.Warningf("Loading more than one trust map. Inefficient!")
-	}
-	for pageID, page := range pageMap {
-		page.TrustMap, err = LoadUserTrust(db, pageID)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }*/
 
 // LoadAliasToPageIdMap loads the mapping from aliases to page ids.
