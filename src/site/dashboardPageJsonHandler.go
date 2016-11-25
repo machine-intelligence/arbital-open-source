@@ -45,27 +45,22 @@ func dashboardPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 		RedLinkCount: true,
 	}).Add(core.TitlePlusLoadOptions)
 
-	_, err = core.LoadAllDomainIDs(db, returnData.PageMap)
-	if err != nil {
-		return pages.Fail("Error while loading domain ids", err)
-	}
-
-	returnData.ResultMap[RecentlyCreatedCommentIdsHandlerType], err = LoadRecentlyCreatedComment(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
+	returnData.ResultMap[RecentlyCreatedCommentIdsHandlerType], err = LoadRecentlyCreatedComment(db, returnData, params.PrivateDomain.ID, data.NumToLoad, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading "+RecentlyCreatedCommentIdsHandlerType, err)
 	}
 
-	returnData.ResultMap[RecentlyEditedIdsHandlerType], err = LoadRecentlyEdited(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
+	returnData.ResultMap[RecentlyEditedIdsHandlerType], err = LoadRecentlyEdited(db, returnData, params.PrivateDomain.ID, data.NumToLoad, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading "+RecentlyEditedIdsHandlerType, err)
 	}
 
-	returnData.ResultMap[PagesWithDraftIdsHandlerType], err = LoadPagesWithDraft(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
+	returnData.ResultMap[PagesWithDraftIdsHandlerType], err = LoadPagesWithDraft(db, returnData, params.PrivateDomain.ID, data.NumToLoad, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading "+PagesWithDraftIdsHandlerType, err)
 	}
 
-	returnData.ResultMap[MostTodosIdsHandlerType], err = LoadMostTodos(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
+	returnData.ResultMap[MostTodosIdsHandlerType], err = LoadMostTodos(db, returnData, params.PrivateDomain.ID, data.NumToLoad, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading "+MostTodosIdsHandlerType, err)
 	}
@@ -291,12 +286,7 @@ func DashboardListJSONHandler(params *pages.HandlerParams, loadFunction Dashboar
 		RedLinkCount: true,
 	}).Add(core.TitlePlusLoadOptions)
 
-	_, err = core.LoadAllDomainIDs(db, returnData.PageMap)
-	if err != nil {
-		return pages.Fail("Error while loading domain ids", err)
-	}
-
-	returnData.ResultMap["pageIds"], err = loadFunction(db, returnData, params.PrivateGroupID, data.NumToLoad, pageOptions)
+	returnData.ResultMap["pageIds"], err = loadFunction(db, returnData, params.PrivateDomain.ID, data.NumToLoad, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading "+listName, err)
 	}

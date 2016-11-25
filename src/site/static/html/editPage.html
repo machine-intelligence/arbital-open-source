@@ -445,7 +445,7 @@
 
 			<!-- (3) Settings tab -->
 			<md-tab label="Settings"
-					ng-disabled="::!arb.userService.user.isAdmin && (page.isComment() || page.isGroup())">
+					ng-disabled="::!arb.userService.user.isAdmin && (page.isComment() || page.isUser())">
 				<div layout="column" flex>
 					<md-content class="editor-tab" flex>
 						<div ng-if="::!showAdvancedMode()">
@@ -459,7 +459,7 @@
 
 						<div ng-if="showAdvancedMode()">
 							<!-- Alias -->
-							<div layout="row" ng-if="::(!page.isComment() && !page.isGroup())">
+							<div layout="row" ng-if="::(!page.isComment() && !page.isUser())">
 								<div layout="column" flex>
 									<md-input-container>
 										<label>Alias</label>
@@ -468,8 +468,8 @@
 								</div>
 								<div class="md-caption" layout-margin flex>
 									<div>Unique name for this page, e.g. "linear_algebra"</div>
-									<div ng-if="page.seeGroupId != ''">
-										This alias will be prefixed with "{{arb.stateService.pageMap[page.seeGroupId].alias}}."
+									<div ng-if="isIntIdValid(page.seeDomainId)">
+										This alias will be prefixed with "{{arb.stateService.domainMap[page.seeDomainId].alias}}."
 										because it's part of the private domain
 									</div>
 								</div>
@@ -479,8 +479,8 @@
 							<!--<div layout="row" ng-if="::!page.wasPublished">
 								<md-input-container flex>
 									<label>See group</label>
-									<md-select ng-model="page.seeGroupId">
-										<md-option ng-repeat="(key,value) in ::groupOptions" value="{{::key}}" ng-bind="::value"></md-option>
+									<md-select ng-model="page.seeDomainId">
+										<md-option ng-repeat="(key,value) in ::domainOptions" value="{{::key}}" ng-bind="::value"></md-option>
 									</md-select>
 								</md-input-container>
 								<div class="md-caption" layout-margin flex>
@@ -491,13 +491,13 @@
 							<!-- Edit group id -->
 							<div layout="row" ng-if="arb.userService.user.isAdmin">
 								<md-input-container flex>
-									<label>Edit group</label>
-									<md-select ng-model="page.editGroupId">
-										<md-option ng-repeat="(key,value) in ::groupOptions" value="{{::key}}" ng-bind="::value"></md-option>
+									<label>Domain</label>
+									<md-select ng-model="page.editDomainId">
+										<md-option ng-repeat="(key,value) in ::domainOptions" value="{{::key}}" ng-bind="::value"></md-option>
 									</md-select>
 								</md-input-container>
 								<div class="md-caption" layout-margin flex>
-									Group that can edit this page. If not set, anyone can edit it
+									Domain which owns this page. This controls who can edit the page.
 								</div>
 							</div>
 

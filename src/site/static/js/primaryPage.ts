@@ -16,7 +16,7 @@ app.directive('arbPrimaryPage', function($compile, $location, $timeout, arb) {
 			$scope.page.relatedIds.sort(arb.pageService.getChildSortFunc('likes'));
 		},
 		link: function(scope: any, element, attrs) {
-			if (scope.page.domainIds.indexOf('1lw') >= 0) {
+			if (scope.page.editDomainId == '1') {
 				element.addClass('math-background');
 			}
 		},

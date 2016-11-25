@@ -33,7 +33,7 @@ type PageLoadOptions struct {
 	UserMarks               bool // marks owned by the logged in user
 	UnresolvedMarks         bool // all unresolved marks
 	AllMarks                bool // just load all marks
-	TrustMap                bool // trust map for this user
+	DomainRoles             bool // trust map for this user
 	LearnMore               bool
 
 	// Load options for basic pages
@@ -91,7 +91,7 @@ var (
 		SubmittedTo:     true,
 		UserMarks:       true,
 		UnresolvedMarks: true,
-		TrustMap:        true,
+		DomainRoles:     true,
 		LearnMore:       true,
 		Answers:         true,
 		LinkedMarkCount: true,

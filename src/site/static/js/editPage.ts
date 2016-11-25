@@ -2,6 +2,7 @@
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 
 import app from './angular.ts';
+import {isIntIdValid} from './util.ts';
 
 // Directive for the actual DOM elements which allows the user to edit a page.
 app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $http, $mdDialog, $mdMedia, arb) {
@@ -147,15 +148,17 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				$scope.pageTypes = {wiki: 'Wiki', question: 'Question'};
 			}
 
-			// Set up group names.
-			var groupIds = arb.userService.user.groupIds;
-			$scope.groupOptions = {'': '-'};
-			if (groupIds) {
-				for (var i in groupIds) {
-					var groupId = groupIds[i];
-					var groupName = arb.stateService.pageMap[groupId].title;
-					$scope.groupOptions[groupId] = groupName;
-				}
+			// Set up domain options.
+			$scope.domainOptions = {};
+			for (var domainId in arb.userService.user.domainMembershipMap) {
+				$scope.domainOptions[domainId] = arb.stateService.domainMap[domainId].alias;
+			}
+			// Make sure both see and edit domains are in the map.
+			if (isIntIdValid($scope.page.seeDomainId)) {
+				$scope.domainOptions[$scope.page.seeDomainId] = arb.stateService.domainMap[$scope.page.seeDomainId].alias;
+			}
+			if (isIntIdValid($scope.page.editDomainId)) {
+				$scope.domainOptions[$scope.page.editDomainId] = arb.stateService.domainMap[$scope.page.editDomainId].alias;
 			}
 
 			// Set up sort types.

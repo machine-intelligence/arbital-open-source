@@ -52,11 +52,13 @@ func searchJSONHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("No search term specified", nil).Status(http.StatusBadRequest)
 	}
 
-	var groupIDs []string
-	for _, id := range u.GroupIDs {
-		groupIDs = append(groupIDs, "\""+id+"\"")
+	var domainIDs []string
+	for domainID := range u.DomainMembershipMap {
+		if core.CanUserSeeDomain(u, domainID) {
+			domainIDs = append(domainIDs, "\""+domainID+"\"")
+		}
 	}
-	groupIDs = append(groupIDs, "\"\"")
+	domainIDs = append(domainIDs, "\"\"")
 
 	data.Term = elastic.EscapeMatchTerm(data.Term)
 
@@ -160,7 +162,7 @@ func searchJSONHandler(params *pages.HandlerParams) *pages.Result {
 						],
 						"must": [`+mandatoryTypeFilter+`
 							{
-								"terms": { "seeGroupId": [%[4]s] }
+								"terms": { "seeDomainId": [%[4]s] }
 							}
 						]
 					}
@@ -168,7 +170,7 @@ func searchJSONHandler(params *pages.HandlerParams) *pages.Result {
 			}
 		},
 		"_source": []
-	}`, minSearchScore, searchSize, data.Term, strings.Join(groupIDs, ","))
+	}`, minSearchScore, searchSize, data.Term, strings.Join(domainIDs, ","))
 	return searchJSONInternalHandler(params, jsonStr)
 }
 
@@ -199,8 +201,8 @@ func searchJSONInternalHandler(params *pages.HandlerParams, query string) *pages
 		return pages.Fail("error while loading pages", err)
 	}
 
-	// Adjust results' scores
-	tag2MultiplierMap := map[string]float32{
+	// Adjust results' scores: tag id -> multiplier factor
+	tagMultiplierMap := map[string]float32{
 		"22t": 0.75, // Just a requisite
 		"15r": 0.85, // Out of date
 		"4v":  0.75, // Work in progress
@@ -211,7 +213,7 @@ func searchJSONInternalHandler(params *pages.HandlerParams, query string) *pages
 		if page, ok := returnData.PageMap[hit.Source.PageID]; ok {
 			// Adjust the score based on tags
 			for _, tagID := range page.TagIDs {
-				if penalty, ok := tag2MultiplierMap[tagID]; ok {
+				if penalty, ok := tagMultiplierMap[tagID]; ok {
 					hit.Score *= penalty
 				}
 			}

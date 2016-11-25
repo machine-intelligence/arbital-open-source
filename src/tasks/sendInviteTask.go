@@ -61,7 +61,9 @@ func (task SendInviteTask) Execute(db *database.DB) (delay int, err error) {
 	for _, domainID := range task.DomainIDs {
 		core.AddPageIDToMap(domainID, pageMap)
 	}
-	err = core.LoadPages(db, &core.CurrentUser{ID: task.FromUserID}, pageMap)
+	u := core.NewCurrentUser()
+	u.ID = task.FromUserID
+	err = core.LoadPages(db, u, pageMap)
 	if err != nil {
 		return -1, fmt.Errorf("Couldn't load domain info: %v", err)
 	}

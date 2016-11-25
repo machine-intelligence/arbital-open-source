@@ -44,12 +44,11 @@ CREATE TABLE pageInfos (
 
 	/* === Permission settings === */
 	/* see: who can see the page */
-	/* act: who can perform actions on the page (e.g. vote, comment) */
-	/* edit: who can edit the page */
-	/* If set, only this group can see the page. FK into pages. */
-	seeGroupId VARCHAR(32) NOT NULL,
-	/* If set, only this group can edit the page. FK into pages. */
-	editGroupId VARCHAR(32) NOT NULL,
+	/* edit: who can do things to the page */
+	/* If set, only users in this domain can see the page. FK into domains. */
+	seeDomainId BIGINT NOT NULL,
+	/* If set, only users in this domain can do things to the page. FK into domains. */
+	editDomainId BIGINT NOT NULL,
 
 	/* If set, the page is locked by this user. FK into users. */
 	lockedBy VARCHAR(32) NOT NULL,

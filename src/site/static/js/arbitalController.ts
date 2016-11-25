@@ -93,7 +93,8 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 				for (var pageAlias in arb.stateService.pageMap) {
 					if ($scope.subdomain.toUpperCase() === pageAlias.toUpperCase()) {
 						$scope.subdomain = pageAlias;
-						arb.stateService.privateGroupId = arb.stateService.pageMap[pageAlias].pageId;
+						// TODO: set private domain id
+						// arb.stateService.privateDomainId = arb.stateService.pageMap[pageAlias].pageId;
 						break;
 					}
 				}

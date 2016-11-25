@@ -52,8 +52,13 @@ func PageInfosTableWithOptions(u *CurrentUser, options *PageInfosOptions) *datab
 
 	q := database.NewQuery(`(SELECT ` + fieldsString + ` FROM pageInfos WHERE true`)
 	if u != nil {
-		allowedGroups := append(u.GroupIDs, "")
-		q.Add(`AND seeGroupId IN`).AddArgsGroupStr(allowedGroups)
+		allowedDomainIDs := []string{"0"}
+		for domainID := range u.DomainMembershipMap {
+			if CanUserSeeDomain(u, domainID) {
+				allowedDomainIDs = append(allowedDomainIDs, domainID)
+			}
+		}
+		q.Add(`AND seeDomainId IN`).AddArgsGroupStr(allowedDomainIDs)
 	}
 	if !options.Unpublished {
 		q.Add(`AND currentEdit>0`)

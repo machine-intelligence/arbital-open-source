@@ -29,12 +29,13 @@ const (
 	StubPageID                    = "72"
 	RequestForEditTagParentPageID = "3zj"
 	QualityMetaTagsPageID         = "5dg"
-	MathDomainID                  = "1lw"
 	AClassPageID                  = "4yf"
 	BClassPageID                  = "4yd"
 	FeaturedClassPageID           = "4yl"
 	HubPageID                     = "5ls"
 	ConceptPageID                 = "6cc"
+
+	MathDomainID = 1
 )
 
 // AddPageToMap adds a new page with the given page id to the map if it's not
@@ -67,7 +68,7 @@ func AddUserToMap(userID string, userMap map[string]*User) *User {
 	if u, ok := userMap[userID]; ok {
 		return u
 	}
-	u := &User{ID: userID}
+	u := &User{coreUserData: coreUserData{ID: userID}}
 	userMap[userID] = u
 	return u
 }
@@ -348,6 +349,12 @@ func IsIDValid(pageID string) bool {
 	return false
 }
 
+// We store int64 ids in strings. Because of that invalid ids can have two values: "" and "0".
+// Check if the given int64 id is valid.
+func IsIntIDValid(id string) bool {
+	return id != "" && id != "0"
+}
+
 // Check if the given alias is valid
 func IsAliasValid(alias string) bool {
 	return regexp.MustCompile("^" + AliasOrPageIDRegexpStr + "$").MatchString(alias)
@@ -386,34 +393,11 @@ func GetCommentParents(db *database.DB, pageID string) (string, string, error) {
 	})
 	if err != nil {
 		return "", "", fmt.Errorf("failed to process rows: %v", err)
-	}
-	if !IsIDValid(commentPrimaryPageID) {
+	} else if !IsIDValid(commentPrimaryPageID) {
 		return "", "", fmt.Errorf("Comment pages need at least one normal page parent")
 	}
 
 	return commentParentID, commentPrimaryPageID, nil
-}
-
-// LoadAllDomainIds loads all the domains that currently exist on Arbital.
-// If pageMap is given, it also adds them to the pageMap.
-func LoadAllDomainIDs(db *database.DB, pageMap map[string]*Page) ([]string, error) {
-	domainIDs := make([]string, 0)
-	rows := database.NewQuery(`
-		SELECT DISTINCT domainId
-		FROM pageDomainPairs`).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var domainID string
-		err := rows.Scan(&domainID)
-		if err != nil {
-			return fmt.Errorf("failed to scan for a domain: %v", err)
-		}
-		domainIDs = append(domainIDs, domainID)
-		if pageMap != nil {
-			AddPageToMap(domainID, pageMap, TitlePlusLoadOptions)
-		}
-		return nil
-	})
-	return domainIDs, err
 }
 
 // Return true iff the string is in the list

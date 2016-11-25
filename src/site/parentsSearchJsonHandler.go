@@ -31,7 +31,7 @@ func parentsSearchJSONHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("No search term specified", nil).Status(http.StatusBadRequest)
 	}
 
-	groupIDs := []string{params.PrivateGroupID}
+	domainIDs := []string{params.PrivateDomain.ID}
 	escapedTerm := elastic.EscapeMatchTerm(data.Term)
 
 	// Construct the search JSON
@@ -64,7 +64,7 @@ func parentsSearchJSONHandler(params *pages.HandlerParams) *pages.Result {
 						],
 						"must": [
 							{
-								"terms": { "seeGroupId": [%[4]s] }
+								"terms": { "seeDomainId": [%[4]s] }
 							}
 						]
 					}
@@ -72,6 +72,6 @@ func parentsSearchJSONHandler(params *pages.HandlerParams) *pages.Result {
 			}
 		},
 		"_source": []
-	}`, minSearchScore, searchSize, escapedTerm, strings.Join(groupIDs, ","))
+	}`, minSearchScore, searchSize, escapedTerm, strings.Join(domainIDs, ","))
 	return searchJSONInternalHandler(params, jsonStr)
 }

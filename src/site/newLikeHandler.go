@@ -73,15 +73,6 @@ func addNewLike(tx *database.Tx, u *core.CurrentUser, likeableID int64, objectID
 		}
 	}
 
-	// Snapshot the state of the user's trust.
-	var snapshotID int64
-	if likeableType == core.ChangeLogLikeableType || likeableType == core.PageLikeableType {
-		snapshotID, err = InsertUserTrustSnapshots(tx, u)
-		if err != nil {
-			return sessions.NewError("Couldn't insert userTrustSnapshot", err)
-		}
-	}
-
 	// Create/update the like.
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = u.ID
@@ -89,8 +80,7 @@ func addNewLike(tx *database.Tx, u *core.CurrentUser, likeableID int64, objectID
 	hashmap["value"] = value
 	hashmap["createdAt"] = database.Now()
 	hashmap["updatedAt"] = database.Now()
-	hashmap["userTrustSnapshotId"] = snapshotID
-	statement := tx.DB.NewInsertStatement("likes", hashmap, "value", "updatedAt", "userTrustSnapshotId")
+	statement := tx.DB.NewInsertStatement("likes", hashmap, "value", "updatedAt")
 	if _, err = statement.WithTx(tx).Exec(); err != nil {
 		return sessions.NewError("Couldn't update/create a like", err)
 	}

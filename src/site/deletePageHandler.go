@@ -129,12 +129,5 @@ func deletePageTx(tx *database.Tx, params *pages.HandlerParams, data *deletePage
 		}
 	}
 
-	// Create a task to propagate the domain change to all children
-	var task tasks.PropagateDomainTask
-	task.PageID = data.PageID
-	if err := tasks.Enqueue(params.C, &task, nil); err != nil {
-		c.Errorf("Couldn't enqueue a task: %v", err)
-	}
-
 	return nil
 }

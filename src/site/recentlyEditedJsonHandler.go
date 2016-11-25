@@ -22,7 +22,7 @@ func recentlyEditedJSONHandler(params *pages.HandlerParams) *pages.Result {
 	return DashboardListJSONHandler(params, LoadRecentlyEdited, RecentlyEditedIdsHandlerType)
 }
 
-func LoadRecentlyEdited(db *database.DB, returnData *core.CommonHandlerData, privateGroupID string, numToLoad int,
+func LoadRecentlyEdited(db *database.DB, returnData *core.CommonHandlerData, privateDomainID string, numToLoad int,
 	pageOptions *core.PageLoadOptions) ([]string, error) {
 	// Load recently created and edited by me page ids
 	rows := database.NewQuery(`
@@ -31,7 +31,7 @@ func LoadRecentlyEdited(db *database.DB, returnData *core.CommonHandlerData, pri
 		JOIN`).AddPart(core.PageInfosTable(returnData.User)).Add(`AS pi
 		ON (p.pageId=pi.pageId)
 		WHERE p.creatorId=?`, returnData.User.ID).Add(`
-			AND pi.seeGroupId=?`, privateGroupID).Add(`
+			AND pi.seeDomainId=?`, privateDomainID).Add(`
 			AND pi.type!=?`, core.CommentPageType).Add(`
 		GROUP BY 1
 		ORDER BY MAX(p.createdAt) DESC

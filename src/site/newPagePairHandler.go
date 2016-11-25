@@ -126,31 +126,6 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 			return sessions.NewError("Couldn't get page pair id", err)
 		}
 
-		// Go ahead and update the domains for the child page
-		// (we'll handle its descendants in the PublishPagePairTask)
-		if data.Type == core.ParentPagePairType {
-			addedDomainsMap, _, err := core.PropagateDomainsWithTx(tx, []string{data.ChildID})
-			if err != nil {
-				return sessions.NewError("Couldn't update domains for the child page", err)
-			}
-			if addedDomainsSet, ok := addedDomainsMap[data.ChildID]; ok {
-				// Check to see if the child page had been submitted for approval to any of the domains it was just added to.
-				for domainID := range addedDomainsSet {
-					submission, err := core.LoadPageToDomainSubmission(tx.DB, data.ChildID, domainID)
-					if err != nil {
-						return sessions.NewError("Couldn't load submission", err)
-					}
-					// The child had been submitted to this domain, so we mark the request as approved.
-					if submission != nil {
-						serr := approvePageToDomainTx(tx, u, submission, child.PageCreatorID)
-						if serr != nil {
-							return serr
-						}
-					}
-				}
-			}
-		}
-
 		var task tasks.PublishPagePairTask
 		task.UserID = u.ID
 		task.PagePairID = fmt.Sprintf("%d", pagePairID)

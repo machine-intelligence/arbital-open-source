@@ -27,7 +27,7 @@
 			<div layout="column" flex>
 				<div layout="row" layout-align="start center">
 					<md-icon class="no-margins" ng-if="arb.pageService.showPrivate(result.page.pageId)">
-						<md-tooltip>This page belongs to {{arb.stateService.pageMap[page.seeGroupId].title}} group</md-tooltip>
+						<md-tooltip>This page belongs to a private domain</md-tooltip>
 						lock
 					</md-icon>
 					<md-icon class="no-margins" ng-if="arb.pageService.showPublic(result.page.pageId)">
@@ -38,8 +38,8 @@
 						<md-tooltip>This is a question page</md-tooltip>
 						help
 					</md-icon>
-					<md-icon class="no-margins" ng-if="result.page.isGroup()">
-						<md-tooltip>This is a user/group page</md-tooltip>
+					<md-icon class="no-margins" ng-if="result.page.isUser()">
+						<md-tooltip>This is a user page</md-tooltip>
 						person
 					</md-icon>
 					<span>{{result.page.title}}</span>

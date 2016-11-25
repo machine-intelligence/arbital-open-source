@@ -51,7 +51,7 @@ func (task PopulateElasticTask) Execute(db *database.DB) (delay int, err error) 
 
 	// Compute all priors.
 	rows := database.NewQuery(`
-		SELECT p.pageId,pi.type,p.title,p.clickbait,p.text,pi.alias,pi.seeGroupId,p.creatorId
+		SELECT p.pageId,pi.type,p.title,p.clickbait,p.text,pi.alias,pi.seeDomainId,p.creatorId
 		FROM pages AS p
 		JOIN`).AddPart(core.PageInfosTable(nil)).Add(`AS pi
 		ON (p.pageId=pi.pageId)
@@ -67,7 +67,7 @@ func (task PopulateElasticTask) Execute(db *database.DB) (delay int, err error) 
 func populateElasticProcessPage(db *database.DB, rows *database.Rows) error {
 	doc := &elastic.Document{}
 	if err := rows.Scan(&doc.PageID, &doc.Type, &doc.Title, &doc.Clickbait,
-		&doc.Text, &doc.Alias, &doc.SeeGroupID, &doc.CreatorID); err != nil {
+		&doc.Text, &doc.Alias, &doc.SeeDomainID, &doc.CreatorID); err != nil {
 		return fmt.Errorf("failed to scan for page: %v", err)
 	}
 

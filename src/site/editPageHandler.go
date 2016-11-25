@@ -130,9 +130,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 
 	// Set the see-group
-	var seeGroupID string
-	if core.IsIDValid(params.PrivateGroupID) {
-		seeGroupID = params.PrivateGroupID
+	var seeDomainID string
+	if core.IsIntIDValid(params.PrivateDomain.ID) {
+		seeDomainID = params.PrivateDomain.ID
 	}
 
 	// Error checking.
@@ -146,7 +146,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		return pages.Fail("Can't set autosave and snapshot", nil).Status(http.StatusBadRequest)
 	}
 	// Check the group settings
-	if oldPage.SeeGroupID != seeGroupID && newEditNum != 1 {
+	if oldPage.SeeDomainID != seeDomainID && newEditNum != 1 {
 		return pages.Fail("Editing this page in incorrect private group", nil).Status(http.StatusBadRequest)
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)
@@ -550,14 +550,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			}
 		}
 
-		// Create a task to propagate the domain change to all children
-		if oldPage.IsDeleted || !oldPage.WasPublished {
-			var task tasks.PropagateDomainTask
-			task.PageID = data.PageID
-			if err := tasks.Enqueue(c, &task, nil); err != nil {
-				c.Errorf("Couldn't enqueue a task: %v", err)
-			}
-		}
 	}
 
 	return pages.Success(returnData)

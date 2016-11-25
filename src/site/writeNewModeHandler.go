@@ -105,9 +105,9 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 		FROM (
 			SELECT l.childAlias,rl.likeableId,COUNT(*) AS refCount
 			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS mathPi
-			JOIN pageDomainPairs AS pdp
-			ON pdp.pageId=mathPi.pageId
-				AND pdp.domainId=?`, core.MathDomainID).Add(`
+			JOIN domains AS d
+			ON d.id=mathPi.editDomainId
+				AND d.id=?`, core.MathDomainID).Add(`
 			JOIN links AS l
 			ON l.parentId=mathPi.pageId
 				AND l.childAlias NOT IN`).AddPart(publishedPageIDs).Add(`

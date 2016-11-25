@@ -99,7 +99,7 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 			SELECT pi.pageId
 			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 			WHERE pi.createdBy=?`, pageID).Add(`
-				AND pi.seeGroupId=?`, params.PrivateGroupID).Add(`
+				AND pi.seeDomainId=?`, params.PrivateDomain.ID).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
 			ORDER BY pi.createdAt DESC
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
@@ -115,7 +115,7 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 			JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 			ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
 			WHERE p.creatorId=?`, pageID).Add(`
-				AND pi.seeGroupId=?`, params.PrivateGroupID).Add(`
+				AND pi.seeDomainId=?`, params.PrivateDomain.ID).Add(`
 				AND pi.type=?`, core.CommentPageType).Add(`
 			ORDER BY pi.createdAt DESC
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
@@ -132,7 +132,7 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 			JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 			ON (p.pageId=pi.pageId)
 			WHERE p.creatorId=?`, pageID).Add(`
-				AND pi.seeGroupId=?`, params.PrivateGroupID).Add(`
+				AND pi.seeDomainId=?`, params.PrivateDomain.ID).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
 			GROUP BY 1
 			ORDER BY MAX(p.createdAt) DESC
@@ -148,8 +148,8 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 			JOIN likes AS l2
 			ON (pi.likeableId=l2.likeableId)
-			WHERE pi.editGroupId=?`, pageID).Add(`
-				AND pi.seeGroupId=?`, params.PrivateGroupID).Add(`
+			WHERE pi.editDomainId=?`, u.MyDomainID()).Add(`
+				AND pi.seeDomainId=?`, params.PrivateDomain.ID).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
 			GROUP BY 1
 			ORDER BY SUM(l2.value) DESC
@@ -159,7 +159,7 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 			return pages.Fail("error while loading recently edited by me page ids", err)
 		}
 
-		returnData.UserMap[pageID] = &core.User{ID: pageID}
+		core.AddUserIDToMap(pageID, returnData.UserMap)
 	}
 
 	if data.PathInstanceID != "" {
@@ -177,6 +177,7 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 	// Load data
 	returnData.ResultMap["primaryPageId"] = pageID
 	core.AddPageIDToMap("14z", returnData.PageMap)
+	core.AddPageIDToMap("4ym", returnData.PageMap) // "Unassesed quality"
 	core.AddPageIDToMap("4yg", returnData.PageMap) // "Arbital quality"
 	core.AddPageIDToMap("3hs", returnData.PageMap) // "Author's guide"
 	core.AddPageIDToMap("58l", returnData.PageMap) // "Arbital user groups"

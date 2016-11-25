@@ -1,7 +1,7 @@
 'use strict';
 
 import app from './angular.ts';
-import {isLive} from './util.ts';
+import {isLive, isIntIdValid} from './util.ts';
 
 // arb.urlService handles working with URLs
 app.service('urlService', function($http, $location, $rootScope, stateService) {
@@ -167,10 +167,10 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 		if (page) {
 			let pageAlias = page.alias;
 			// Make sure the page's alias is scoped to its group
-			if (page.seeGroupId && page.pageId != page.alias) {
-				let groupAlias = stateService.pageMap[page.seeGroupId].alias;
+			if (isIntIdValid(page.seeDomainId) && page.pageId != page.alias) {
+				let domainAlias = stateService.domainMap[page.seeDomainId].alias;
 				if (pageAlias.indexOf('.') == -1) {
-					pageAlias = groupAlias + '.' + pageAlias;
+					pageAlias = domainAlias + '.' + pageAlias;
 				}
 			}
 
@@ -229,8 +229,8 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 		}
 		let urlAlreadyHasDomain = url.length > 4 && url.substring(0,4) == 'http';
 		if (!urlAlreadyHasDomain && !options.noHost) {
-			if (page && page.seeGroupId !== '') {
-				url = that.getDomainUrl(stateService.pageMap[page.seeGroupId].alias) + url;
+			if (page && isIntIdValid(page.seeDomainId)) {
+				url = that.getDomainUrl(stateService.domainMap[page.seeDomainId].alias) + url;
 			} else {
 				url = that.getDomainUrl() + url;
 			}

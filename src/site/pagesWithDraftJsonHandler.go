@@ -23,7 +23,7 @@ func pagesWithDraftJSONHandler(params *pages.HandlerParams) *pages.Result {
 	return DashboardListJSONHandler(params, LoadPagesWithDraft, PagesWithDraftIdsHandlerType)
 }
 
-func LoadPagesWithDraft(db *database.DB, returnData *core.CommonHandlerData, privateGroupID string, numToLoad int,
+func LoadPagesWithDraft(db *database.DB, returnData *core.CommonHandlerData, privateDomainID string, numToLoad int,
 	pageOptions *core.PageLoadOptions) ([]string, error) {
 	// Load pages with unpublished drafts
 	pagesWithDraftIDs := make([]string, 0)
@@ -34,7 +34,7 @@ func LoadPagesWithDraft(db *database.DB, returnData *core.CommonHandlerData, pri
 			ON (p.pageId = pi.pageId)
 			WHERE p.creatorId=?`, returnData.User.ID).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
-				AND pi.seeGroupId=?`, privateGroupID).Add(`
+				AND pi.seeDomainId=?`, privateDomainID).Add(`
 				AND p.edit>pi.currentEdit AND (p.text!="" OR p.title!="")
 			GROUP BY p.pageId
 			ORDER BY p.createdAt DESC

@@ -94,14 +94,14 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		params.U = u
 
 		// Get subdomain info
-		params.PrivateGroupID, err = loadSubdomain(r, db, u)
+		params.PrivateDomain, err = loadSubdomain(r, db, u)
 		if err != nil {
 			fail(http.StatusInternalServerError, "Couldn't load subdomain", err)
 			return
 		}
 
 		// When in a subdomain, we always have to be logged in
-		if core.IsIDValid(params.PrivateGroupID) && !core.IsIDValid(u.ID) {
+		if core.IsIntIDValid(params.PrivateDomain.ID) && !core.IsIDValid(u.ID) {
 			if r.URL.Path != "/login/" {
 				http.Redirect(w, r, fmt.Sprintf("/login/?continueUrl=%s", url.QueryEscape(r.URL.String())), http.StatusSeeOther)
 				return
@@ -117,16 +117,11 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 				return
 			}
 		}
-		// Check if we have access to the private group
-		if core.IsIDValid(params.PrivateGroupID) {
-			if !u.IsMemberOfGroup(params.PrivateGroupID) &&
-				r.URL.Path != "/login/" {
-				fail(http.StatusForbidden, "Don't have access to this group", nil)
+		// Check if we have access to the private domain
+		if core.IsIntIDValid(params.PrivateDomain.ID) {
+			if !core.CanUserSeeDomain(u, params.PrivateDomain.ID) && r.URL.Path != "/login/" {
+				fail(http.StatusForbidden, "Don't have access to this domain", nil)
 				return
-			}
-			// We don't allow personal private groups for now
-			if params.PrivateGroupID == u.ID {
-				fail(http.StatusForbidden, "Arbital no longer supports personal private groups", nil)
 			}
 		}
 

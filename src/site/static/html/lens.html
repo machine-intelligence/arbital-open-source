@@ -62,34 +62,15 @@
 			</div>
 
 			<!-- Owner -->
-			<div class="author-list md-caption page-list-span" ng-if="::page.editGroupId !== ''">
-				Owner:
-				<arb-page-title page-id="{{::page.editGroupId}}"
-						is-link="true"
-						ng-if="::!arb.userService.userMap[page.editGroupId]"></arb-page-title>
-				<arb-user-name user-id="{{::page.editGroupId}}"
-						ng-if="::arb.userService.userMap[page.editGroupId]"></arb-user-name>
+			<div class="author-list md-caption page-list-span"
+					ng-if="::arb.userService.userMap[arb.stateService.domainMap[page.editDomainId]]">
+				by
+				<arb-user-name user-id="{{::arb.stateService.domainMap[page.editDomainId].pageId}}"></arb-user-name>
 			</div>
 
 			<!-- Body text -->
 			<arb-markdown class="lens-text"
 					page-id="{{::page.pageId}}"></arb-markdown>
-
-			<!-- Contributors -->
-			<div class="md-caption page-list-span">
-				<div class="author-list"
-						ng-if="::page.creatorIds.length > 0 && page.seeGroupId &&
-							!(page.editGroupId === page.creatorIds[0] && page.creatorIds.length == 1)">
-					<br>
-					<ng-pluralize count="::page.creatorIds.length"
-							when="{'one': 'Contributor:', 'other': 'Contributors:'}"></ng-pluralize>
-					<span ng-repeat="(index, creatorId) in ::page.creatorIds">
-						<span class="comma" ng-if="::(index > 0)">,</span>
-						<arb-user-name ng-class="::{bold: creatorId === page.pageCreatorId}"
-								user-id="{{::creatorId}}"></arb-user-name>
-					</span>
-				</div>
-			</div>
 
 			<!-- HUB page GUI -->
 			<div arb-hub-page-gui page-id="{{::pageId}}" ng-if="::isHub()"></div>

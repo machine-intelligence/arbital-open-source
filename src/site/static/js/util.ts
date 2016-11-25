@@ -161,6 +161,12 @@ export var isValidEmail = function(email) {
 	return re.test(email);
 };
 
+// We store int64 ids in strings. Because of that invalid ids can have two values: "" and "0".
+// Check if the given int64 id is valid.
+export var isIntIdValid = function(id) {
+	return id != '' && id != '0';
+};
+
 // Return a string which prints one of:
 // 1) X1
 // 2) X2 and X3

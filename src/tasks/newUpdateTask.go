@@ -68,25 +68,25 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		return -1, fmt.Errorf("Invalid new update task: %v", err)
 	}
 
-	// Load seeGroupIds for the groupByPage and goToPage. Used to filter out updates for users who
+	// Load seeDomainIds for the goToPage. Used to filter out updates for users who
 	// won't have permission to click through to the pages linked in the update.
-	var requiredGroupMemberships []string
+	var requiredDomainIDs []string
 	rows = database.NewQuery(`
-		SELECT DISTINCT seeGroupId
+		SELECT DISTINCT seeDomainId
 		FROM`).AddPart(core.PageInfosTableWithOptions(nil, &core.PageInfosOptions{Deleted: true})).Add(`AS pi
-		WHERE seeGroupId != '' AND pageId IN (?)`, task.GoToPageID).ToStatement(db).Query()
+		WHERE seeDomainId != '0' AND pageId IN (?)`, task.GoToPageID).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var groupID string
-		err := rows.Scan(&groupID)
+		var domainID string
+		err := rows.Scan(&domainID)
 		if err != nil {
-			return fmt.Errorf("failed to scan for required groups: %v", err)
+			return fmt.Errorf("failed to scan for required seeDomainID: %v", err)
 		}
 
-		requiredGroupMemberships = append(requiredGroupMemberships, groupID)
+		requiredDomainIDs = append(requiredDomainIDs, domainID)
 		return nil
 	})
 	if err != nil {
-		return -1, fmt.Errorf("Couldn't process group requirements: %v", err)
+		return -1, fmt.Errorf("Couldn't process domain requirements: %v", err)
 	}
 
 	var query *database.QueryPart
@@ -109,20 +109,20 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		// This update is only for authors who explicitly opted into maintaining the page
 		query = query.Add(`AND s.asMaintainer`)
 	}
-	if len(requiredGroupMemberships) > 0 {
+	if len(requiredDomainIDs) > 0 {
 		query = query.Add(`AND
 		(
 			SELECT COUNT(*)
-			FROM groupMembers AS gm
-			WHERE gm.userId = s.userId AND gm.groupId IN`).AddArgsGroupStr(requiredGroupMemberships).Add(`
-		) = ?`, len(requiredGroupMemberships))
+			FROM domainMembers AS dm
+			WHERE dm.userId = s.userId AND dm.domainId IN`).AddArgsGroupStr(requiredDomainIDs).Add(`
+		) = ?`, len(requiredDomainIDs))
 	}
 	rows = query.ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var userID string
 		err := rows.Scan(&userID)
 		if err != nil {
-			return fmt.Errorf("failed to scan for subscriptions: %v", err)
+			return fmt.Errorf("failed to scan for domainMembers: %v", err)
 		}
 		if userID == task.UserID {
 			return nil
