@@ -507,8 +507,6 @@ func NewContentRequest() *ContentRequest {
 type GlobalHandlerData struct {
 	// Private domain the current user is in
 	PrivateDomain *Domain `json:"privateDomain"`
-	// List of all domains
-	//DomainIDs []string `json:"domainIds"`
 	// List of tags ids that mean a page should be improved
 	ImprovementTagIDs []string `json:"improvementTagIds"`
 }
@@ -574,14 +572,6 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	masteryMap := data.MasteryMap
 	pageObjectMap := data.PageObjectMap
 	markMap := data.MarkMap
-
-	// For fresh data, make sure that various things are definitely loaded
-	/*if data.ResetEverything {
-		_, err := LoadAllDomainIDs(db, pageMap)
-		if err != nil {
-			return fmt.Errorf("LoadAllDomainIds for failed: %v", err)
-		}
-	}*/
 
 	// Load comments
 	filteredPageMap := filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Comments })
@@ -750,15 +740,6 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		return fmt.Errorf("LoadLinks failed: %v", err)
 	}
 
-	// Load domains
-	/*filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.DomainsAndPermissions })
-	err = LoadDomainsForPages(db, data, &LoadDataOptions{
-		ForPages: filteredPageMap,
-	})
-	if err != nil {
-		return fmt.Errorf("LoadDomainsForPages failed: %v", err)
-	}*/
-
 	// Load learn more pages
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.LearnMore })
 	err = LoadLearnMore(db, u, pageMap, &LoadDataOptions{
@@ -883,13 +864,6 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		return fmt.Errorf("LoadEditHistory failed: %v", err)
 	}
 
-	// Add other pages we'll need
-	/*for _, u := range userMap {
-		for _, dm := range u.DomainMembershipMap {
-			AddPageIDToMap(dm.PageID, pageMap)
-		}
-	}*/
-
 	// Load domain roles for user pages that need it
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.DomainRoles })
 	for pageID, p := range filteredPageMap {
@@ -902,9 +876,9 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	}
 
 	// Load all relevant domains
-	err = LoadDomainsForPages(db, u, pageMap, userMap, data.DomainMap)
+	err = LoadRelevantDomains(db, u, pageMap, userMap, data.DomainMap)
 	if err != nil {
-		return fmt.Errorf("LoadAllDomains failed: %v", err)
+		return fmt.Errorf("LoadRelevantDomains failed: %v", err)
 	}
 
 	// Load page data
@@ -1463,14 +1437,7 @@ func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, options *LoadE
 		return nil, nil
 	}
 
-	/*if exists {
-		err = LoadDomainIDsForPage(db, p)
-		if err != nil {
-			return nil, fmt.Errorf("Couldn't load domain ids for page: %v", err)
-		}
-	}*/
 	p.ComputePermissions(db.C, u)
-
 	p.TextLength = len(p.Text)
 	return p, nil
 }
@@ -2230,32 +2197,6 @@ func LoadSubscriberCount(db *database.DB, currentUserID string, pageMap map[stri
 	})
 	return err
 }
-
-// LoadDomainsForPages loads the domain info for the given page and adds them to the map
-/*func LoadDomainsForPages(db *database.DB, resultData *CommonHandlerData, options *LoadDataOptions) error {
-	sourcePageMap := options.ForPages
-	if len(sourcePageMap) <= 0 {
-		return nil
-	}
-	pageIDs := PageIDsListFromMap(sourcePageMap)
-	queryPart := database.NewQuery(`
-		JOIN pageInfos AS pi
-		ON (pi.seeDomainId = d.domainId OR pi.editDomainId = d.domainId)
-		WHERE pi.pageId IN`).AddArgsGroup(pageIDs)
-	err := LoadDomains(db, queryPart, func(db *database.DB, domain *Domain) error {
-		resultData.DomainMap[domain.ID] = domain
-		AddPageToMap(domain.PageID, resultData.PageMap, TitlePlusLoadOptions)
-		return nil
-	})
-	return err
-}*/
-
-/*func LoadDomainIDsForPage(db *database.DB, page *Page) error {
-	pageMap := map[string]*Page{page.PageID: page}
-	return LoadDomains(db, pageMap, &LoadDataOptions{
-		ForPages: pageMap,
-	})
-}*/
 
 // LoadAliasToPageIdMap loads the mapping from aliases to page ids.
 func LoadAliasToPageIDMap(db *database.DB, u *CurrentUser, aliases []string) (map[string]string, error) {

@@ -74,13 +74,6 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			return
 		}
 
-		// Load all domains
-		/*params.DomainIDs, err = core.LoadAllDomainIDs(db, nil)
-		if err != nil {
-			fail(http.StatusInternalServerError, "Couldn't load domainIds", err)
-			return
-		}*/
-
 		// Check permissions
 		if h.Options.RequireLogin && !core.IsIDValid(u.ID) {
 			fail(http.StatusInternalServerError, "Have to be logged in", nil)
@@ -92,7 +85,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		}
 
 		// Check if we have access to the private domain
-		if params.PrivateDomain.ID != "" {
+		if core.IsIntIDValid(params.PrivateDomain.ID) {
 			if !h.Options.AllowAnyone && !core.CanUserSeeDomain(u, params.PrivateDomain.ID) {
 				fail(http.StatusForbidden, "Don't have access to this domain", nil)
 				return

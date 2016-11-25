@@ -38,12 +38,12 @@
 		</div>
 
 		<!-- Unlisted page -->
-		<div class="md-whiteframe-1dp md-accent md-hue-1"
+		<!--<div class="md-whiteframe-1dp md-accent md-hue-1"
 				layout-padding
 				layout="row"
 				layout-align="start center"
-				ng-if="page.domainIds.length <= 0 && !page.isUser() && !page.isGroup()">
-			<!-- Hasn't been submitted -->
+				ng-if="page.domainIds.length <= 0 && !page.isUser() && !page.isUser()">
+			<!-- Hasn't been submitted --
 			<div ng-if="page.domainSubmissionsCount() <= 0">
 				This page is
 				<arb-page-title page-id="14z" is-link="true" custom-page-title="unlisted."></arb-page-title>
@@ -53,7 +53,7 @@
 					Submit for approval
 				</md-button>
 			</div>
-			<!-- Has been submitted -->
+			<!-- Has been submitted --
 			<div ng-if="page.domainSubmissionsCount() > 0">
 				<span ng-if="page.domainSubmissions['1lw'].approverId == ''">
 					This page has been submitted to the Math domain and is pending approval.
@@ -68,7 +68,7 @@
 					added this page to the math domain, but the page is now orphaned.
 				</span>
 			</div>
-		</div>
+		</div>-->
 
 		<!-- Voting container -->
 		<arb-vote-bar class="md-whiteframe-1dp" page-id="{{::page.pageId}}" ng-if="::page.hasVote"></arb-vote-bar>

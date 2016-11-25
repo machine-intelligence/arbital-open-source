@@ -87,9 +87,6 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		isComment: function() {
 			return this.type === 'comment';
 		},
-		isGroup: function() {
-			return this.type === 'group';
-		},
 		isUser: function() {
 			return this.type === 'group';
 		},
@@ -599,10 +596,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		};
 		stateService.postData('/json/approvePageToDomain/', data, function(data) {
 			var page = stateService.pageMap[pageId];
-			if (page.domainIds.indexOf(data.domainId) < 0) {
-				// The page is now part of the domain, even though it hasn't propagated yet
-				page.domainIds.push(data.domainId);
-			}
+			page.seeDomainId = data.domainId;
 			if (successFn) successFn(data);
 		}, errorFn);
 	};

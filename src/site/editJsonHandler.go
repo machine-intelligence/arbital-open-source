@@ -77,7 +77,7 @@ func editJSONInternalHandler(params *pages.HandlerParams, data *editJSONData) *p
 		return pages.Fail("Exact page not found", err)
 	}
 	if p.SeeDomainID != params.PrivateDomain.ID {
-		if p.SeeDomainID != "" {
+		if core.IsIntIDValid(p.SeeDomainID) {
 			return pages.Fail("Trying to edit a private page. Go to the corresponding group", err).Status(http.StatusBadRequest)
 		} else {
 			return pages.Fail("Trying to edit a public page. Go to arbital.com", err).Status(http.StatusBadRequest)

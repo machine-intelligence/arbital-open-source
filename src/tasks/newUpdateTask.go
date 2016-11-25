@@ -68,6 +68,27 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		return -1, fmt.Errorf("Invalid new update task: %v", err)
 	}
 
+	// Load seeDomainIds for the goToPage. Used to filter out updates for users who
+	// won't have permission to click through to the pages linked in the update.
+	var requiredDomainIDs []string
+	rows = database.NewQuery(`
+		SELECT DISTINCT seeDomainId
+		FROM`).AddPart(core.PageInfosTableWithOptions(nil, &core.PageInfosOptions{Deleted: true})).Add(`AS pi
+		WHERE seeDomainId != '0' AND pageId IN (?)`, task.GoToPageID).ToStatement(db).Query()
+	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var domainID string
+		err := rows.Scan(&domainID)
+		if err != nil {
+			return fmt.Errorf("failed to scan for required seeDomainID: %v", err)
+		}
+
+		requiredDomainIDs = append(requiredDomainIDs, domainID)
+		return nil
+	})
+	if err != nil {
+		return -1, fmt.Errorf("Couldn't process domain requirements: %v", err)
+	}
+
 	var query *database.QueryPart
 	// Iterate through all users who are subscribed to this page/comment.
 	// If it is an editors only comment, only select editor ids.
@@ -75,12 +96,8 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 			SELECT DISTINCT s.userId
 			FROM subscriptions AS s
 			JOIN pages as p
-			ON (s.userId = p.creatorId)
-			JOIN pageInfos AS pi
-			ON (p.pageId = pi.pageId)
-			WHERE s.toId=?`, task.SubscribedToID).Add(`
-				AND p.pageId=?`, task.SubscribedToID).Add(`
-				AND pi.seeDomainId != 0`)
+			ON s.userId = p.creatorId
+			WHERE s.toId=? AND p.pageId=?`, task.SubscribedToID, task.SubscribedToID)
 	if !task.ForceMaintainersOnly &&
 		(task.UpdateType == core.TopLevelCommentUpdateType || task.UpdateType == core.ReplyUpdateType ||
 			task.UpdateType == core.NewPageByUserUpdateType || task.UpdateType == core.AtMentionUpdateType ||
@@ -92,12 +109,20 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		// This update is only for authors who explicitly opted into maintaining the page
 		query = query.Add(`AND s.asMaintainer`)
 	}
+	if len(requiredDomainIDs) > 0 {
+		query = query.Add(`AND
+		(
+			SELECT COUNT(*)
+			FROM domainMembers AS dm
+			WHERE dm.userId = s.userId AND dm.domainId IN`).AddArgsGroupStr(requiredDomainIDs).Add(`
+		) = ?`, len(requiredDomainIDs))
+	}
 	rows = query.ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var userID string
 		err := rows.Scan(&userID)
 		if err != nil {
-			return fmt.Errorf("failed to scan for subscriptions: %v", err)
+			return fmt.Errorf("failed to scan for domainMembers: %v", err)
 		}
 		if userID == task.UserID {
 			return nil

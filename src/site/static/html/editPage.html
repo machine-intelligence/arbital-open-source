@@ -445,7 +445,7 @@
 
 			<!-- (3) Settings tab -->
 			<md-tab label="Settings"
-					ng-disabled="::!arb.userService.user.isAdmin && (page.isComment() || page.isGroup())">
+					ng-disabled="::!arb.userService.user.isAdmin && (page.isComment() || page.isUser())">
 				<div layout="column" flex>
 					<md-content class="editor-tab" flex>
 						<div ng-if="::!showAdvancedMode()">
@@ -459,7 +459,7 @@
 
 						<div ng-if="showAdvancedMode()">
 							<!-- Alias -->
-							<div layout="row" ng-if="::(!page.isComment() && !page.isGroup())">
+							<div layout="row" ng-if="::(!page.isComment() && !page.isUser())">
 								<div layout="column" flex>
 									<md-input-container>
 										<label>Alias</label>
@@ -468,7 +468,7 @@
 								</div>
 								<div class="md-caption" layout-margin flex>
 									<div>Unique name for this page, e.g. "linear_algebra"</div>
-									<div ng-if="page.seeDomainId != '0'">
+									<div ng-if="isIntIdValid(page.seeDomainId)">
 										This alias will be prefixed with "{{arb.stateService.domainMap[page.seeDomainId].alias}}."
 										because it's part of the private domain
 									</div>

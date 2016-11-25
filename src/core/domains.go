@@ -70,8 +70,8 @@ func LoadDomainByAlias(db *database.DB, domainAlias string) (*Domain, error) {
 	return resultDomain, err
 }
 
-// LoadDomainsForPages loads all domains associated with the given pages into the domainMap.
-func LoadDomainsForPages(db *database.DB, u *CurrentUser, pageMap map[string]*Page, userMap map[string]*User, domainMap map[string]*Domain) error {
+// LoadRelevantDomains loads all domains associated with the given pages and users into the domainMap.
+func LoadRelevantDomains(db *database.DB, u *CurrentUser, pageMap map[string]*Page, userMap map[string]*User, domainMap map[string]*Domain) error {
 	domainIDs := make([]string, 0)
 	for domainID := range domainMap {
 		domainIDs = append(domainIDs, domainID)

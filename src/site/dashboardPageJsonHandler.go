@@ -45,11 +45,6 @@ func dashboardPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 		RedLinkCount: true,
 	}).Add(core.TitlePlusLoadOptions)
 
-	/*_, err = core.LoadAllDomainIDs(db, returnData.PageMap)
-	if err != nil {
-		return pages.Fail("Error while loading domain ids", err)
-	}*/
-
 	returnData.ResultMap[RecentlyCreatedCommentIdsHandlerType], err = LoadRecentlyCreatedComment(db, returnData, params.PrivateDomain.ID, data.NumToLoad, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading "+RecentlyCreatedCommentIdsHandlerType, err)
@@ -290,11 +285,6 @@ func DashboardListJSONHandler(params *pages.HandlerParams, loadFunction Dashboar
 	pageOptions := (&core.PageLoadOptions{
 		RedLinkCount: true,
 	}).Add(core.TitlePlusLoadOptions)
-
-	/*_, err = core.LoadAllDomainIDs(db, returnData.PageMap)
-	if err != nil {
-		return pages.Fail("Error while loading domain ids", err)
-	}*/
 
 	returnData.ResultMap["pageIds"], err = loadFunction(db, returnData, params.PrivateDomain.ID, data.NumToLoad, pageOptions)
 	if err != nil {

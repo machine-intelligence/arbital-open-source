@@ -93,13 +93,6 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		}
 		params.U = u
 
-		// Load the user's trust
-		/*err = core.LoadUserDomainMembership(db, u)
-		if err != nil {
-			fail(http.StatusInternalServerError, "Couldn't retrieve user trust", err)
-			return
-		}*/
-
 		// Get subdomain info
 		params.PrivateDomain, err = loadSubdomain(r, db, u)
 		if err != nil {
@@ -108,7 +101,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		}
 
 		// When in a subdomain, we always have to be logged in
-		if params.PrivateDomain.ID != "" && !core.IsIDValid(u.ID) {
+		if core.IsIntIDValid(params.PrivateDomain.ID) && !core.IsIDValid(u.ID) {
 			if r.URL.Path != "/login/" {
 				http.Redirect(w, r, fmt.Sprintf("/login/?continueUrl=%s", url.QueryEscape(r.URL.String())), http.StatusSeeOther)
 				return
@@ -125,7 +118,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			}
 		}
 		// Check if we have access to the private domain
-		if params.PrivateDomain.ID != "" {
+		if core.IsIntIDValid(params.PrivateDomain.ID) {
 			if !core.CanUserSeeDomain(u, params.PrivateDomain.ID) && r.URL.Path != "/login/" {
 				fail(http.StatusForbidden, "Don't have access to this domain", nil)
 				return

@@ -141,13 +141,6 @@ func LoadUserDomainMembership(db *database.DB, u *User, domainMap map[string]*Do
 	return err
 }
 
-/*// AddUserGroupIdsToPageMap adds user's groups to the page map so we can load them.
-func AddUserDomainIDsToPageMap(u *CurrentUser, pageMap map[string]*Page) {
-	for _, dm := range u.DomainMembershipMap {
-		AddPageIDToMap(dm.PageID, pageMap)
-	}
-}*/
-
 // NewUserDomainPage create a new page for a user and assigns it to a new domain.
 func NewUserDomainPage(tx *database.Tx, userID string, fullName, alias string) sessions.Error {
 	clickbait := "Automatically generated page for " + fullName
@@ -197,7 +190,7 @@ If you are the owner, click [here to edit](%s).`, fullName, url)
 	hashmap["userId"] = userID
 	hashmap["domainId"] = domainID
 	hashmap["createdAt"] = database.Now()
-	hashmap["role"] = ReviewerDomainRole
+	hashmap["role"] = string(ReviewerDomainRole)
 	statement = tx.DB.NewInsertStatement("domainMembers", hashmap).WithTx(tx)
 	if _, err := statement.Exec(); err != nil {
 		return sessions.NewError("Couldn't add user to the group", err)

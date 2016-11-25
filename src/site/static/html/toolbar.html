@@ -107,22 +107,21 @@
 		<md-subheader>
 			Your Account
 		</md-subheader>
-		<md-button ng-href="{{arb.urlService.getPageUrl(arb.userService.user.id)}}" ng-click="toggleRightMenu()">Your user page</md-button>
+		<md-button ng-href="{{arb.urlService.getPageUrl(arb.userService.user.id)}}"
+				ng-click="toggleRightMenu()">Your user page</md-button>
 		<md-button href="/dashboard/" ng-click="toggleRightMenu()">Your dashboard</md-button>
-		<md-button ng-href="/discussion" ng-click="toggleRightMenu()">Your discussions</md-button>
-		<md-button ng-href="/groups"
-				ng-click="toggleRightMenu()"
-				ng-if="(arb.userService.user.groupIds.length > 1)">Your groups</md-button>
+		<md-button ng-href="/discussion/" ng-click="toggleRightMenu()">Your discussions</md-button>
+		<md-button ng-href="/groups/" ng-click="toggleRightMenu()">Your domains</md-button>
 		<!-- Requisites page needs to be reworked if we bring it back -->
 		<!--<md-button ng-href="/requisites" ng-click="toggleRightMenu()">Your requisites</md-button>-->
-		<md-button ng-href="/settings" ng-click="toggleRightMenu()">Your settings</md-button>
+		<md-button ng-href="/settings/" ng-click="toggleRightMenu()">Your settings</md-button>
 
 		<md-divider></md-divider>
 
 		<!-- List of groups -->
 		<!-- ">1" because everyone is part of their own group, but we don't show it -->
 		<md-subheader ng-if="(arb.userService.user.groupIds.length > 1)">
-			Your Groups
+			Your Domains
 		</md-subheader>
 		<div layout="column" layout-align="start center">
 			<div ng-repeat="groupId in ::arb.userService.user.groupIds" ng-if="::groupId!==arb.userService.user.id">

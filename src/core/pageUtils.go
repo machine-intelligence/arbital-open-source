@@ -400,28 +400,6 @@ func GetCommentParents(db *database.DB, pageID string) (string, string, error) {
 	return commentParentID, commentPrimaryPageID, nil
 }
 
-// LoadAllDomainIds loads all the domains that currently exist on Arbital.
-// If pageMap is given, it also adds them to the pageMap.
-/*func LoadAllDomainIDs(db *database.DB, pageMap map[string]*Page) ([]string, error) {
-	domainIDs := make([]string, 0)
-	rows := database.NewQuery(`
-		SELECT DISTINCT domainId
-		FROM pageDomainPairs`).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var domainID string
-		err := rows.Scan(&domainID)
-		if err != nil {
-			return fmt.Errorf("failed to scan for a domain: %v", err)
-		}
-		domainIDs = append(domainIDs, domainID)
-		if pageMap != nil {
-			AddPageToMap(domainID, pageMap, TitlePlusLoadOptions)
-		}
-		return nil
-	})
-	return domainIDs, err
-}*/
-
 // Return true iff the string is in the list
 func IsStringInList(str string, list []string) bool {
 	for _, listID := range list {
