@@ -9,34 +9,6 @@
 			<div arb-next-prev page-id="{{::page.pageId}}" whiteframe="::true"></div>
 		</div>
 
-		<!-- For user page display some additional info -->
-		<div ng-if="::page.isUser()">
-			<div ng-repeat="(domainId, domainMembership) in ::arb.userService.userMap[pageId].domainMembershipMap">
-				<!-- Admins can edit the level of the user -->
-				<div layout="row" ng-if="::arb.userService.user.isAdmin">
-					<md-input-container flex>
-						<label>User domain role ({{arb.stateService.domainMap[domainMembership.domainId].alias}})</label>
-						<md-select ng-model="domainMembership.role"
-								md-on-close="updateDomainRole(domainId)">
-							<md-option value="banned">Banned</md-option>
-							<md-option value="">None</md-option>
-							<md-option value="default">Default</md-option>
-							<md-option value="trusted">Trusted</md-option>
-							<md-option value="reviewer">Reviewer</md-option>
-							<md-option value="arbiter">Arbiter</md-option>
-							<md-option value="arbitrator">Arbitrator</md-option>
-						</md-select>
-					</md-input-container>
-				</div>
-				<div ng-if="::!arb.userService.user.isAdmin">
-					This user's role in
-					<arb-page-title page-id="{{::domainId}}" is-link="true"></arb-page-title>
-					domain is {{domainMembership.role}}.
-				</div>
-			</div>
-
-		</div>
-
 		<!-- Unlisted page -->
 		<!--<div class="md-whiteframe-1dp md-accent md-hue-1"
 				layout-padding
@@ -225,6 +197,34 @@
 								type="tag"
 								force-edit-mode="true"></div>
 					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- For user page display some additional info -->
+		<div ng-if="::page.isUser()">
+			<h2>User domain roles</h2>
+			<div ng-repeat="(domainId, role) in ::userDomainRoleMap">
+				<!-- Admins can edit the level of the user -->
+				<div layout="row" ng-if="::arb.userService.user.isAdmin">
+					<md-input-container flex>
+						<label>{{arb.stateService.domainMap[domainId].alias}}</label>
+						<md-select ng-model="userDomainRoleMap[domainId]"
+								md-on-close="updateDomainRole(domainId)">
+							<md-option value="banned">Banned</md-option>
+							<md-option value="">None</md-option>
+							<md-option value="default">Default</md-option>
+							<md-option value="trusted">Trusted</md-option>
+							<md-option value="reviewer">Reviewer</md-option>
+							<md-option value="arbiter">Arbiter</md-option>
+							<md-option value="arbitrator">Arbitrator</md-option>
+						</md-select>
+					</md-input-container>
+				</div>
+				<div ng-if="::!arb.userService.user.isAdmin">
+					This user's role in
+					<arb-page-title page-id="{{::domainId}}" is-link="true"></arb-page-title>
+					domain is {{role}}.
 				</div>
 			</div>
 		</div>

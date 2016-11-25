@@ -114,15 +114,30 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 				});
 			};
 
-			// Edit domain role
-			$scope.updateDomainRole = function(domainId) {
-				var data = {
-					userId: $scope.page.pageId,
-					domainId: domainId,
-					role: arb.userService.userMap[$scope.pageId].domainMembershipMap[domainId].role,
+			// If this is a user page, construct a domainMembershipMap for this user. We are
+			// going to add current user's domains too, if the current user can change the user's role.
+			if ($scope.page.isUser()) {
+				$scope.userDomainRoleMap = {}; // domain Id -> role
+				let dmMap = arb.userService.userMap[$scope.pageId].domainMembershipMap;
+				for (let domainId in dmMap) {
+					$scope.userDomainRoleMap[domainId] = dmMap[domainId].role;
+				}
+				for (let domainId in arb.userService.user.domainMembershipMap) {
+					if (!(domainId in $scope.userDomainRoleMap)) {
+						$scope.userDomainRoleMap[domainId] = '';
+					}
+				}
+
+				// Edit domain role
+				$scope.updateDomainRole = function(domainId) {
+					let data = {
+						userId: $scope.page.pageId,
+						domainId: domainId,
+						role: $scope.userDomainRoleMap[domainId],
+					};
+					arb.stateService.postDataWithoutProcessing('/updateDomainRole/', data);
 				};
-				arb.stateService.postDataWithoutProcessing('/updateDomainRole/', data);
-			};
+			}
 
 			// Check if the quality of the page bar should be displayed
 			$scope.isQualityBarVisible = function() {
