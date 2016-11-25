@@ -866,9 +866,9 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 	// Load domain roles for user pages that need it
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.DomainRoles })
-	for pageID, p := range filteredPageMap {
-		if p.Type == GroupPageType {
-			err = LoadUserDomainMembership(db, userMap[pageID], data.DomainMap)
+	for pageID := range filteredPageMap {
+		if userPage, ok := userMap[pageID]; ok {
+			err = LoadUserDomainMembership(db, userPage, data.DomainMap)
 			if err != nil {
 				return fmt.Errorf("LoadUserDomainMembership failed: %v", err)
 			}

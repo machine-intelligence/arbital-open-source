@@ -43,6 +43,35 @@ func (role *DomainRoleType) AtLeast(asHighAs DomainRoleType) bool {
 	return false
 }
 
+// Return true if the given DomainRoleType is a valid one.
+func IsDomainRoleTypeValid(t DomainRoleType) bool {
+	for _, v := range _allDomainRoleTypes {
+		if t == v {
+			return true
+		}
+	}
+	return false
+}
+
+// Return true iff current user has permission to given the given role to another user
+// in the given domain.
+func CanCurrentUserGiveRole(u *CurrentUser, domainID string, role DomainRoleType) bool {
+	// TODO: check the current role of the user we are changing, since they might have a higher role than us
+	currentUserRole := u.GetDomainMembershipRole(domainID)
+	if !currentUserRole.AtLeast(ArbiterDomainRole) {
+		return false
+	}
+	// User can give any role up to, but not including Arbiter
+	if !role.AtLeast(ArbiterDomainRole) {
+		return true
+	}
+	if !currentUserRole.AtLeast(ArbitratorDomainRole) {
+		return false
+	}
+	// User can give any role up to and including Arbiter
+	return role == ArbiterDomainRole
+}
+
 type Permissions struct {
 	Edit        Permission `json:"edit"`
 	ProposeEdit Permission `json:"proposeEdit"`

@@ -17,7 +17,7 @@
 					<md-input-container flex>
 						<label>User domain role ({{arb.stateService.domainMap[domainMembership.domainId].alias}})</label>
 						<md-select ng-model="domainMembership.role"
-								md-on-close="updateUserDomainRole(domainId)">
+								md-on-close="updateDomainRole(domainId)">
 							<md-option value="banned">Banned</md-option>
 							<md-option value="">None</md-option>
 							<md-option value="default">Default</md-option>

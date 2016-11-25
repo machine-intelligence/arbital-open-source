@@ -130,7 +130,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 
 	// Set the see-group
-	var seeDomainID string
+	seeDomainID := "0"
 	if core.IsIntIDValid(params.PrivateDomain.ID) {
 		seeDomainID = params.PrivateDomain.ID
 	}

@@ -115,13 +115,13 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 			};
 
 			// Edit domain role
-			$scope.updateUserDomainRole = function(domainId) {
+			$scope.updateDomainRole = function(domainId) {
 				var data = {
 					userId: $scope.page.pageId,
 					domainId: domainId,
 					role: arb.userService.userMap[$scope.pageId].domainMembershipMap[domainId].role,
 				};
-				arb.stateService.postDataWithoutProcessing('/json/updateUserTrust/', data);
+				arb.stateService.postDataWithoutProcessing('/updateDomainRole/', data);
 			};
 
 			// Check if the quality of the page bar should be displayed

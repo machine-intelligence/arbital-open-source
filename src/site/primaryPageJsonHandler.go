@@ -87,8 +87,6 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 	}
 	// If page is a user page, add some values to returnData
 	if exists {
-		c.Infof("Page is a user page, id: %v", id)
-
 		// Options to load the pages with
 		pageOptions := (&core.PageLoadOptions{
 			RedLinkCount: true,
