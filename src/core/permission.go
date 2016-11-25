@@ -20,7 +20,7 @@ const (
 	ArbitratorDomainRole DomainRoleType = "arbitrator"
 )
 
-// Ordered list of roles
+// List of roles ordered from least to most priveledged
 var _allDomainRoleTypes = []DomainRoleType{
 	BannedDomainRole,
 	NoDomainRole,
@@ -33,11 +33,11 @@ var _allDomainRoleTypes = []DomainRoleType{
 
 // Returns true if this role is at least as high as the given role.
 func (role *DomainRoleType) AtLeast(asHighAs DomainRoleType) bool {
+	metThreshold := false
 	for _, domainRole := range _allDomainRoleTypes {
-		if domainRole == asHighAs && domainRole != *role {
-			return false
-		} else if domainRole == *role {
-			return true
+		metThreshold = metThreshold || (domainRole == asHighAs)
+		if domainRole == *role {
+			return metThreshold
 		}
 	}
 	return false
@@ -89,7 +89,7 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 		return
 	}
 
-	if !CanUserSeeDomain(u, p.SeeDomainID) {
+	if IsIntIDValid(p.SeeDomainID) && !CanUserSeeDomain(u, p.SeeDomainID) {
 		p.Permissions.Edit.Reason = "You don't have domain permission to EVEN SEE this page"
 		return
 	}
@@ -112,6 +112,7 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 func (p *Page) computeDeletePermissions(c sessions.Context, u *CurrentUser) {
 	if u.IsAdmin {
 		p.Permissions.Delete.Has = true
+		return
 	}
 	if !p.WasPublished {
 		p.Permissions.Delete.Reason = "Can't delete an unpublished page"
