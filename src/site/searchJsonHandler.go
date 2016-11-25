@@ -58,7 +58,7 @@ func searchJSONHandler(params *pages.HandlerParams) *pages.Result {
 			domainIDs = append(domainIDs, "\""+domainID+"\"")
 		}
 	}
-	domainIDs = append(domainIDs, "\"\"")
+	domainIDs = append(domainIDs, "\"0\"")
 
 	data.Term = elastic.EscapeMatchTerm(data.Term)
 

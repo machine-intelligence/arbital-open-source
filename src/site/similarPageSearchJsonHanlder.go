@@ -37,7 +37,7 @@ func similarPageSearchJSONHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Success(nil)
 	}
 
-	domainIDs := []string{"\"\"", "\"" + params.PrivateDomain.ID + "\""}
+	domainIDs := []string{"\"0\"", "\"" + params.PrivateDomain.ID + "\""}
 	escapedTitle := elastic.EscapeMatchTerm(data.Title)
 	escapedClickbait := elastic.EscapeMatchTerm(data.Clickbait)
 	escapedText := elastic.EscapeMatchTerm(data.Text)

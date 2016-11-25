@@ -87,14 +87,14 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 				arb.stateService.processServerData(data);
 			}
 
-			// Because the subdomain could have any case, we need to find the alias
-			// in the loaded map so we can get the alias with correct case
+			// Find the corresponding private domain
+			arb.stateService.privateDomainId = '0';
 			if ($scope.subdomain) {
-				for (var pageAlias in arb.stateService.pageMap) {
-					if ($scope.subdomain.toUpperCase() === pageAlias.toUpperCase()) {
-						$scope.subdomain = pageAlias;
-						// TODO: set private domain id
-						// arb.stateService.privateDomainId = arb.stateService.pageMap[pageAlias].pageId;
+				for (var domainId in arb.stateService.domainMap) {
+					var domainAlias = arb.stateService.domainMap[domainId].alias;
+					if ($scope.subdomain.toUpperCase() === domainAlias.toUpperCase()) {
+						$scope.subdomain = domainAlias;
+						arb.stateService.privateDomainId = domainId;
 						break;
 					}
 				}
