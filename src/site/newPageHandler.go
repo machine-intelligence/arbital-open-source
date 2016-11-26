@@ -77,6 +77,7 @@ func newPageInternalHandler(params *pages.HandlerParams, data *newPageData) *pag
 		hashmap["createdBy"] = u.ID
 		hashmap["createdAt"] = database.Now()
 		hashmap["seeDomainId"] = params.PrivateDomain.ID
+		hashmap["editDomainId"] = u.MyDomainID()
 		hashmap["lockedBy"] = u.ID
 		hashmap["lockedUntil"] = core.GetPageQuickLockedUntilTime()
 		if data.IsEditorComment {
