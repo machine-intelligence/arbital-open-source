@@ -1,0 +1,49 @@
+<div class="capped-body-width">
+	<div class="domain-user-list md-whiteframe-1dp"
+			layout="column"
+			ng-repeat="(domainId,users) in ::domainUsersMap"
+			ng-init="domain=arb.stateService.domainMap[domainId]">
+		<md-toolbar class="md-hue-2">
+			<div class="md-toolbar-tools">
+				<arb-page-title page-id="{{::domain.pageId}}" is-link="true"><arb-page-title>
+				({{domain.alias}})
+			</div>
+		</md-toolbar>
+
+		<!-- Members table -->
+		<!-- Header row -->
+		<div layout="row" class="domain-user-list-row">
+			<h3 flex>Member name</h3>
+			<h3 flex>Role</h3>
+		</div>
+		<md-divider></md-divider>
+		<!-- Member rows -->
+		<div layout="row"
+				layout-align="start center"
+				class="domain-user-list-row"
+				ng-repeat="memberId in ::users">
+			<arb-user-name user-id="{{::memberId}}" flex></arb-user-name>
+			<arb-domain-role-input
+					domain-id="{{::domainId}}"
+					user-id="{{::memberId}}"
+					layout="row"
+					flex></arb-domain-role-input>
+		</div>
+
+		<!-- New Member form -->
+		<div class="domain-user-list-row">
+			<form layout="row"
+					layout-align="start center"
+					ng-submit="newMemberFormSubmit($event, domainId, newMemberInput)">
+				<span><md-icon>person_add</md-icon></span>
+				<md-input-container>
+					<label>User's id, email, or alias</label>
+					<input name="newMemberInput" ng-model="newMemberInput">
+				</md-input-container>
+				<md-progress-circular md-mode="indeterminate" toggle-on-submit hide></md-progress-circular>
+				<md-button type="submit" toggle-on-submit>Add member</md-button>
+				<div class="submit-form-error md-warn" hidden></div>
+			</form>
+		</div>
+	</div>
+</div>

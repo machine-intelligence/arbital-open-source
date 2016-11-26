@@ -13,6 +13,20 @@ app.service('userService', function($http, $location, $rootScope, analyticsServi
 	// Map of all user objects.
 	this.userMap = {};
 
+	this.addUserToMap = function(newUser) {
+		var oldUser = that.userMap[newUser.id];
+		if (newUser === oldUser) return oldUser;
+		if (oldUser === undefined) {
+			that.userMap[newUser.id] = newUser;
+			return newUser;
+		}
+		// Merge each variable.
+		for (var k in oldUser) {
+			oldUser[k] = stateService.smartMerge(oldUser[k], newUser[k]);
+		}
+		return oldUser;
+	};
+
 	// Call this to process data we received from the server.
 	var postDataCallback = function(data) {
 		if (data.resetEverything) {
@@ -24,7 +38,9 @@ app.service('userService', function($http, $location, $rootScope, analyticsServi
 			analyticsService.identifyUser(that.user.id, that.user.firstName + ' ' + that.user.lastName, that.user.email, that.user.analyticsId);
 		}
 
-		$.extend(that.userMap, data.users);
+		for (let userId in data.users) {
+			that.addUserToMap(data.users[userId]);
+		}
 	};
 	stateService.addPostDataCallback('userService', postDataCallback);
 

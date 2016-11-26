@@ -238,7 +238,7 @@ arb-markdown, [arb-markdown], .preview-area {
 	arb-updates > & {
 		max-width: 1100px;
 	}
-	arb-groups-page > & {
+	arb-domains-page > & {
 		max-width: 900px;
 	}
 	arb-requisites-page > & {
@@ -2030,4 +2030,12 @@ arb-path-nav, [arb-path-nav] {
 	padding-left: 5px;
 	padding-right: 5px;
 	font-size:12px
+}
+
+.domain-user-list {
+	margin-top: 15px;
+
+	.domain-user-list-row {
+		margin: 0px 20px;
+	}
 }

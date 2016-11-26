@@ -1,0 +1,14 @@
+<md-input-container class="no-margins" flex>
+	<label ng-if="::showLabel">{{arb.stateService.domainMap[domainId].alias}}</label>
+	<md-select ng-model="arb.userService.userMap[userId].domainMembershipMap[domainId].role"
+			md-on-close="updateDomainRole()"
+			aria-label="{{::arb.stateService.domainMap[domainId].alias}}">
+		<md-option value="banned">Banned</md-option>
+		<md-option value="">None</md-option>
+		<md-option value="default">Default</md-option>
+		<md-option value="trusted">Trusted</md-option>
+		<md-option value="reviewer">Reviewer</md-option>
+		<md-option value="arbiter">Arbiter</md-option>
+		<md-option value="arbitrator">Arbitrator</md-option>
+	</md-select>
+</md-input-container>

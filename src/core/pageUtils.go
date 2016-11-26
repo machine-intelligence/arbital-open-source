@@ -68,7 +68,8 @@ func AddUserToMap(userID string, userMap map[string]*User) *User {
 	if u, ok := userMap[userID]; ok {
 		return u
 	}
-	u := &User{coreUserData: coreUserData{ID: userID}}
+	u := NewUser()
+	u.ID = userID
 	userMap[userID] = u
 	return u
 }

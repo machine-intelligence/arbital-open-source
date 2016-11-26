@@ -16,7 +16,7 @@ type MemberUpdateTask struct {
 
 	// Member is added to/removed from the given group
 	MemberID string
-	GroupID  string
+	DomainID string
 }
 
 func (task MemberUpdateTask) Tag() string {
@@ -43,7 +43,13 @@ func (task MemberUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	c := db.C
 
 	if err = task.IsValid(); err != nil {
-		c.Errorf("Invalid group update task: %s", err)
+		c.Errorf("Invalid group update task: %v", err)
+		return -1, err
+	}
+
+	d, err := core.LoadDomainByID(db, task.DomainID)
+	if err != nil {
+		c.Errorf("Couldn't load domain: %v", err)
 		return -1, err
 	}
 
@@ -52,8 +58,7 @@ func (task MemberUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	hashmap["userId"] = task.MemberID
 	hashmap["byUserId"] = task.UserID
 	hashmap["type"] = task.UpdateType
-	hashmap["groupByPageId"] = task.GroupID
-	hashmap["goToPageId"] = task.GroupID
+	hashmap["goToPageId"] = d.PageID
 	hashmap["createdAt"] = database.Now()
 	statement := db.NewInsertStatement("updates", hashmap)
 	if _, err = statement.Exec(); err != nil {

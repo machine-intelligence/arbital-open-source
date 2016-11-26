@@ -59,6 +59,17 @@ func LoadDomains(db *database.DB, queryPart *database.QueryPart, callback Proces
 	return nil
 }
 
+// LoadDomainByID loads the domain info with the given id.
+func LoadDomainByID(db *database.DB, domainID string) (*Domain, error) {
+	var resultDomain *Domain
+	queryPart := database.NewQuery(`WHERE d.id=?`, domainID)
+	err := LoadDomains(db, queryPart, func(db *database.DB, domain *Domain) error {
+		resultDomain = domain
+		return nil
+	})
+	return resultDomain, err
+}
+
 // LoadDomain loads the domain info with the given alias.
 func LoadDomainByAlias(db *database.DB, domainAlias string) (*Domain, error) {
 	var resultDomain *Domain

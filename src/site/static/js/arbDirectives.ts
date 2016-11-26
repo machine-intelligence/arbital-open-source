@@ -1018,3 +1018,26 @@ app.directive('arbSlackButton', function(arb) {
 		},
 	};
 });
+
+app.directive('arbDomainRoleInput', function(arb) {
+	return {
+		templateUrl: versionUrl('static/html/domainRoleInput.html'),
+		scope: {
+			domainId: '@',
+			userId: '@',
+			showLabel: '=',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+
+			$scope.updateDomainRole = function() {
+				let data = {
+					userId: $scope.userId,
+					domainId: $scope.domainId,
+					role: arb.userService.userMap[$scope.userId].domainMembershipMap[$scope.domainId].role,
+				};
+				arb.stateService.postDataWithoutProcessing('/updateDomainRole/', data);
+			};
+		},
+	};
+});

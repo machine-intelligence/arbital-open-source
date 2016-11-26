@@ -1,4 +1,4 @@
-// groupsJsonHandler.go returns the data about user's groups.
+// domainsHandler.go returns the data about current user's domains.
 
 package site
 
@@ -10,13 +10,13 @@ import (
 	"zanaduu3/src/pages"
 )
 
-var groupsHandler = siteHandler{
-	URI:         "/json/groups/",
-	HandlerFunc: groupsJSONHandler,
+var domainsHandler = siteHandler{
+	URI:         "/json/domains/",
+	HandlerFunc: domainsHandlerFunc,
 	Options:     pages.PageOptions{},
 }
 
-func groupsJSONHandler(params *pages.HandlerParams) *pages.Result {
+func domainsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 	returnData := core.NewHandlerData(u).SetResetEverything()

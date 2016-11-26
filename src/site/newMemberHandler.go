@@ -1,4 +1,4 @@
-// newMemberHandler.go adds a new member for a group.
+// newMemberHandler.go adds a new member to a domain.
 
 package site
 
@@ -14,7 +14,7 @@ import (
 
 // newMemberData contains data given to us in the request.
 type newMemberData struct {
-	GroupID   string
+	DomainID  string
 	UserInput string
 }
 
@@ -38,36 +38,25 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIDValid(data.GroupID) {
+	if !core.IsIntIDValid(data.DomainID) {
 		return pages.Fail("GroupId has to be set", nil).Status(http.StatusBadRequest)
 	}
 	if data.UserInput == "" {
 		return pages.Fail("Must provide an identifier for the new user", nil).Status(http.StatusBadRequest)
 	}
 
-	// Check to see if this user can add members.
-	var blank int64
-	var found bool
-	row := db.NewStatement(`
-		SELECT 1
-		FROM groupMembers
-		WHERE userId=? AND groupId=? AND canAddMembers
-		`).QueryRow(u.ID, data.GroupID)
-	found, err = row.Scan(&blank)
-	if err != nil {
-		return pages.Fail("Couldn't check for a group member", err)
-	} else if !found {
-		return pages.Fail("You don't have the permission to add a user", nil).Status(http.StatusForbidden)
+	if !core.CanCurrentUserGiveRole(u, data.DomainID, core.DefaultDomainRole) {
+		return pages.Fail("You don't have permissions to add users to this domain", nil)
 	}
 
 	var newMemberID string
 
 	// See if data.UserInput is the id or email of an existing user
-	row = db.NewStatement(`
+	row := db.NewStatement(`
 		SELECT id
 		FROM users
 		WHERE id=? OR email=?`).QueryRow(data.UserInput, data.UserInput)
-	found, err = row.Scan(&newMemberID)
+	found, err := row.Scan(&newMemberID)
 	if err != nil {
 		return pages.Fail("Couldn't check for a user", err)
 	}
@@ -89,9 +78,10 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Update groupMembers table
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = newMemberID
-	hashmap["groupId"] = data.GroupID
+	hashmap["domainId"] = data.DomainID
 	hashmap["createdAt"] = database.Now()
-	statement := db.NewInsertStatement("groupMembers", hashmap)
+	hashmap["role"] = string(core.DefaultDomainRole)
+	statement := db.NewInsertStatement("domainMembers", hashmap)
 	if _, err = statement.Exec(); err != nil {
 		return pages.Fail("Couldn't add a member", err)
 	}
@@ -101,7 +91,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	task.UserID = u.ID
 	task.UpdateType = core.AddedToGroupUpdateType
 	task.MemberID = newMemberID
-	task.GroupID = data.GroupID
+	task.DomainID = data.DomainID
 	if err := tasks.Enqueue(c, &task, nil); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}

@@ -187,6 +187,20 @@ app.run(function($http, $location, arb) {
 			.error($scope.getErrorFunc('domainIndexPage'));
 		},
 	});
+	arb.urlService.addUrlHandler('/domains/', {
+		name: 'DomainsPage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/domains/'})
+			.success($scope.getSuccessFunc(function(data) {
+				return {
+					title: 'Domains',
+					content: $scope.newElement('<arb-domains-page></arb-domains-page>'),
+					analytics: {page: 'domains'},
+				};
+			}))
+			.error($scope.getErrorFunc('domains'));
+		},
+	});
 	arb.urlService.addUrlHandler('/edit/:alias?/:alias2?', {
 		name: 'EditPage',
 		handler: function(args, $scope) {
@@ -340,20 +354,6 @@ app.run(function($http, $location, arb) {
 				};
 			}))
 			.error($scope.getErrorFunc('explore'));
-		},
-	});
-	arb.urlService.addUrlHandler('/groups/', {
-		name: 'GroupsPage',
-		handler: function(args, $scope) {
-			$http({method: 'POST', url: '/json/groups/'})
-			.success($scope.getSuccessFunc(function(data) {
-				return {
-					title: 'Groups',
-					content: $scope.newElement('<arb-groups-page></arb-groups-page>'),
-					analytics: {page: 'groups'},
-				};
-			}))
-			.error($scope.getErrorFunc('groups'));
 		},
 	});
 	arb.urlService.addUrlHandler('/learn/:pageAlias?', {
