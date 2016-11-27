@@ -356,6 +356,21 @@ app.run(function($http, $location, arb) {
 			.error($scope.getErrorFunc('explore'));
 		},
 	});
+	arb.urlService.addUrlHandler('/feed/', {
+		name: 'FeedPage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/feed/', data: JSON.stringify({})})
+			.success($scope.getSuccessFunc(function(data) {
+				$scope.feedRows = data.result.feedRows;
+				return {
+					title: 'Feed',
+					content: $scope.newElement('<arb-feed-page feed-rows=\'feedRows\'></arb-feed-page>'),
+					analytics: {page: 'feed'},
+				};
+			}))
+			.error($scope.getErrorFunc('feed'));
+		},
+	});
 	arb.urlService.addUrlHandler('/learn/:pageAlias?', {
 		name: 'LearnPage',
 		handler: function(args, $scope) {

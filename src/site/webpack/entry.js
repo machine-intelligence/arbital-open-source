@@ -77,6 +77,7 @@ require('js/indexPage.ts');
 require('js/domainIndexPage.ts');
 require('js/projectPage.ts');
 require('js/domainsPage.ts');
+require('js/feedPage.ts');
 require('js/userPage.ts');
 require('js/dashboardPage.ts');
 require('js/loginPage.ts');

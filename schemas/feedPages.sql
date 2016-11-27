@@ -1,4 +1,4 @@
-/* This file contains the recent changes to schemas, sorted from oldest to newest. */
+/* This table contains all the feed pages. */
 CREATE TABLE feedPages (
 
 	/* Id of the domain feed. FK into domains. */
@@ -15,4 +15,3 @@ CREATE TABLE feedPages (
 
 	PRIMARY KEY(domainId, pageId)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-

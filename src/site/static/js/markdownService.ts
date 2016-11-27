@@ -4,6 +4,7 @@ import app from './angular.ts';
 import {Editor} from './Markdown.Editor.ts';
 import {getSanitizingConverter} from './Markdown.Sanitizer.ts';
 import {InitMathjax} from './mathjax.ts';
+import {anyUrlMatch} from './util.ts';
 
 // From demo-bundle.js
 declare function loadAllDemos();
@@ -12,7 +13,6 @@ export var notEscaped = '(^|\\\\`|\\\\\\[|(?:[^A-Za-z0-9_`[\\\\]|\\\\\\\\))';
 export var noParen = '(?=$|[^(])';
 var nakedAliasMatch = '[\\-\\+]?[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*';
 export var aliasMatch = '(' + nakedAliasMatch + ')';
-var anyUrlMatch = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i;
 
 // [vote: alias]
 export var voteEmbedRegexp = new RegExp(notEscaped +

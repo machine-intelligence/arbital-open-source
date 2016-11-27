@@ -142,39 +142,24 @@ func LoadUserDomainMembership(db *database.DB, u *User, domainMap map[string]*Do
 }
 
 // NewUserDomainPage create a new page for a user and assigns it to a new domain.
-func NewUserDomainPage(tx *database.Tx, userID string, fullName, alias string) sessions.Error {
-	clickbait := "Automatically generated page for " + fullName
-	url := GetEditPageFullURL("", userID)
+func NewUserDomainPage(tx *database.Tx, u *CurrentUser, fullName, alias string) sessions.Error {
+	url := GetEditPageFullURL("", u.ID)
 	// NOTE: the tabbing/spacing is really important here since it gets preserved.
 	// If we have 4 spaces, in Markdown that will start a code block.
 	text := fmt.Sprintf(`
 Automatically generated page for "%s" user.
 If you are the owner, click [here to edit](%s).`, fullName, url)
-	// Create new group for the user.
-	hashmap := make(database.InsertMap)
-	hashmap["pageId"] = userID
-	hashmap["edit"] = 1
-	hashmap["title"] = fullName
-	hashmap["text"] = text
-	hashmap["clickbait"] = clickbait
-	hashmap["creatorId"] = userID
-	hashmap["createdAt"] = database.Now()
-	hashmap["isLiveEdit"] = true
-	statement := tx.DB.NewInsertStatement("pages", hashmap).WithTx(tx)
-	if _, err := statement.Exec(); err != nil {
-		return sessions.NewError("Couldn't create a new page", err)
-	}
 
 	// Create a new domain
 	var domainID string
-	hashmap = make(database.InsertMap)
-	hashmap["pageId"] = userID
+	hashmap := make(database.InsertMap)
+	hashmap["pageId"] = u.ID
 	hashmap["alias"] = alias
-	hashmap["createdBy"] = userID
+	hashmap["createdBy"] = u.ID
 	hashmap["createdAt"] = database.Now()
 	hashmap["canUsersComment"] = true
 	hashmap["canUsersProposeEdits"] = true
-	statement = tx.DB.NewInsertStatement("domains", hashmap).WithTx(tx)
+	statement := tx.DB.NewInsertStatement("domains", hashmap).WithTx(tx)
 	if result, err := statement.Exec(); err != nil {
 		return sessions.NewError("Couldn't create a new domain row", err)
 	} else {
@@ -187,7 +172,7 @@ If you are the owner, click [here to edit](%s).`, fullName, url)
 
 	// Add user to the domain
 	hashmap = make(database.InsertMap)
-	hashmap["userId"] = userID
+	hashmap["userId"] = u.ID
 	hashmap["domainId"] = domainID
 	hashmap["createdAt"] = database.Now()
 	hashmap["role"] = string(ReviewerDomainRole)
@@ -196,45 +181,167 @@ If you are the owner, click [here to edit](%s).`, fullName, url)
 		return sessions.NewError("Couldn't add user to the group", err)
 	}
 
-	// Add new group to pageInfos.
-	hashmap = make(database.InsertMap)
-	hashmap["pageId"] = userID
-	hashmap["alias"] = alias
-	hashmap["type"] = GroupPageType
-	hashmap["currentEdit"] = 1
-	hashmap["maxEdit"] = 1
-	hashmap["createdBy"] = userID
-	hashmap["createdAt"] = database.Now()
-	hashmap["sortChildrenBy"] = AlphabeticalChildSortingOption
-	hashmap["editDomainId"] = domainID
-	statement = tx.DB.NewInsertStatement("pageInfos", hashmap).WithTx(tx)
-	if _, err := statement.Exec(); err != nil {
+	// Create the new user page
+	_, err := CreateNewPage(tx.DB, u, &CreateNewPageOptions{
+		PageID:       u.ID,
+		Alias:        alias,
+		Type:         GroupPageType,
+		Title:        fullName,
+		Clickbait:    "Automatically generated page for " + fullName,
+		Text:         text,
+		EditDomainID: domainID,
+		IsPublished:  true,
+		Tx:           tx,
+	})
+	if err != nil {
 		return sessions.NewError("Couldn't create a new page", err)
 	}
 
-	// Add a summary for the page
-	hashmap = make(database.InsertMap)
-	hashmap["pageId"] = userID
-	hashmap["name"] = "Summary"
-	hashmap["text"] = text
-	statement = tx.DB.NewInsertStatement("pageSummaries", hashmap).WithTx(tx)
-	if _, err := statement.Exec(); err != nil {
-		return sessions.NewError("Couldn't create a new page summary", err)
+	return nil
+}
+
+type CreateNewPageOptions struct {
+	// If PageID isn't given, one will be created
+	PageID          string
+	Alias           string
+	Type            string
+	EditDomainID    string
+	SeeDomainID     string
+	Title           string
+	Clickbait       string
+	Text            string
+	IsEditorComment bool
+	IsPublished     bool
+
+	// Additional options
+	ParentIDs []string
+	Tx        *database.Tx
+}
+
+func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOptions) (string, error) {
+	// Error checking
+	if options.Alias != "" && !IsAliasValid(options.Alias) {
+		return "", fmt.Errorf("Invalid alias")
+	}
+	if options.IsEditorComment && options.Type != CommentPageType {
+		return "", fmt.Errorf("Can't set isEditorComment for non-comment pages")
 	}
 
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
+		if options.Tx != nil {
+			tx = options.Tx
+		}
+
+		if options.PageID == "" {
+			var err error
+			options.PageID, err = GetNextAvailableID(tx)
+			if err != nil {
+				return sessions.NewError("Couldn't get next available id", err)
+			}
+		}
+
+		// Fill in the defaults
+		if options.Alias == "" {
+			options.Alias = options.PageID
+		}
+		if options.Type == "" {
+			options.Type = WikiPageType
+		}
+		if !IsIntIDValid(options.EditDomainID) {
+			options.EditDomainID = u.MyDomainID()
+		}
+
+		// Update pageInfos
+		hashmap := make(map[string]interface{})
+		hashmap["pageId"] = options.PageID
+		hashmap["alias"] = options.Alias
+		hashmap["type"] = options.Type
+		hashmap["maxEdit"] = 1
+		hashmap["createdBy"] = u.ID
+		hashmap["createdAt"] = database.Now()
+		hashmap["seeDomainId"] = options.SeeDomainID
+		hashmap["editDomainId"] = options.EditDomainID
+		hashmap["lockedBy"] = u.ID
+		hashmap["lockedUntil"] = GetPageQuickLockedUntilTime()
+		hashmap["sortChildrenBy"] = LikesChildSortingOption
+		if options.IsEditorComment {
+			hashmap["isEditorComment"] = true
+			hashmap["isEditorCommentIntention"] = true
+		}
+		if options.IsPublished {
+			hashmap["currentEdit"] = 1
+		}
+		statement := db.NewInsertStatement("pageInfos", hashmap).WithTx(tx)
+		if _, err := statement.Exec(); err != nil {
+			return sessions.NewError("Couldn't update pageInfos", err)
+		}
+
+		// Update pages
+		hashmap = make(map[string]interface{})
+		hashmap["pageId"] = options.PageID
+		hashmap["edit"] = 1
+		hashmap["title"] = options.Title
+		hashmap["clickbait"] = options.Clickbait
+		hashmap["text"] = options.Text
+		hashmap["creatorId"] = u.ID
+		hashmap["createdAt"] = database.Now()
+		if options.IsPublished {
+			hashmap["isLiveEdit"] = true
+		} else {
+			hashmap["isAutosave"] = true
+		}
+		statement = db.NewInsertStatement("pages", hashmap).WithTx(tx)
+		if _, err := statement.Exec(); err != nil {
+			return sessions.NewError("Couldn't update pages", err)
+		}
+
+		if options.IsPublished {
+			// Add a summary for the page
+			hashmap = make(database.InsertMap)
+			hashmap["pageId"] = options.PageID
+			hashmap["name"] = "Summary"
+			hashmap["text"] = options.Text
+			statement = tx.DB.NewInsertStatement("pageSummaries", hashmap).WithTx(tx)
+			if _, err := statement.Exec(); err != nil {
+				return sessions.NewError("Couldn't create a new page summary", err)
+			}
+		}
+
+		return nil
+	})
+	if err2 != nil {
+		return "", sessions.ToError(err2)
+	}
+
+	// Add parents
+	/*for _, parentIDStr := range options.ParentIDs {
+		handlerData := newPagePairData{
+			ParentID: parentIDStr,
+			ChildID:  options.PageID,
+			Type:     ParentPagePairType,
+		}
+		result := newPagePairHandlerInternal(params.DB, params.U, &handlerData)
+		if result.Err != nil {
+			return "", result
+		}
+	}*/
+
 	// Update elastic search index.
-	doc := &elastic.Document{
-		PageID:    userID,
-		Type:      GroupPageType,
-		Title:     fullName,
-		Clickbait: clickbait,
-		Text:      text,
-		Alias:     alias,
-		CreatorID: userID,
+	if options.IsPublished {
+		doc := &elastic.Document{
+			PageID:    u.ID,
+			Type:      options.Type,
+			Title:     options.Title,
+			Clickbait: options.Clickbait,
+			Text:      options.Text,
+			Alias:     options.Alias,
+			CreatorID: u.ID,
+		}
+		err := elastic.AddPageToIndex(db.C, doc)
+		if err != nil {
+			return "", fmt.Errorf("Failed to update index: %v", err)
+		}
 	}
-	err := elastic.AddPageToIndex(tx.DB.C, doc)
-	if err != nil {
-		return sessions.NewError("Failed to update index", err)
-	}
-	return nil
+
+	return options.PageID, nil
 }

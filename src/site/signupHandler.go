@@ -183,17 +183,17 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return sessions.NewError("Couldn't update user's record", err)
 		}
 
-		// Create new domain for the user.
-		fullName := fmt.Sprintf("%s %s", data.FirstName, data.LastName)
-		err2 := core.NewUserDomainPage(tx, userID, fullName, alias)
-		if err2 != nil {
-			return err2
-		}
-
 		// Set the user value in params, since some internal handlers we might call
 		// will expect it to be set
 		u.ID = userID
 		u.Email = data.Email
+
+		// Create new domain for the user.
+		fullName := fmt.Sprintf("%s %s", data.FirstName, data.LastName)
+		err2 := core.NewUserDomainPage(tx, u, fullName, alias)
+		if err2 != nil {
+			return err2
+		}
 
 		// The user might have some data stored under their session id
 		if u.SessionID != "" {

@@ -49,7 +49,7 @@ func titleJSONHandler(params *pages.HandlerParams) *pages.Result {
 	core.AddPageIDToMap(pageID, returnData.PageMap)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		pages.Fail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
 	return pages.Success(returnData)

@@ -1,0 +1,95 @@
+<div class="padding-gt-xs children-margin-gt-xs children-vertical-margin-lt-xs">
+	<!-- Top row -->
+	<div id="index-header"
+			layout="column"
+			layout-gt-xs="row"
+			layout-align="space-between start"
+			class="children-margin-gt-xs children-vertical-margin-lt-xs">
+		<div class="md-whiteframe-1dp arbital-blurb"
+				layout="column"
+				layout-gt-sm="row"
+				layout-align="start center">
+			<span>
+				<a ng-href="{{::arb.urlService.getPageUrl('3d')}}"
+						class="intrasite-link"
+						page-id="3d">Arbital</a>
+				is the place for healthy discussions to improve your understanding of the world.
+			</span>
+		</div>
+		<div layout="row"
+				layout-align="end center"
+				layout-wrap
+				class="horizontal-margin-between-children">
+			<md-button class="md-raised"
+					ng-class="{'md-primary': !isSubmittingLink}"
+					ng-click="isSubmittingLink=true">
+				Submit new link
+			</md-button>
+		</div>
+	</div>
+
+	<!-- Submit link -->
+	<div class="md-whiteframe-1dp" layout="column" ng-if="isSubmittingLink">
+		<h2>Submit link</h2>
+		<md-input-container flex>
+			<label>URL</label>
+			<input ng-model="submission.url" ng-change="submissionUrlChanged()" autofocus>
+		</md-input-container>
+		<md-input-container flex>
+			<label>Title</label>
+			<input ng-model="submission.title" ng-disabled="submission.pageId">
+		</md-input-container>
+		<md-button class="md-primary md-raised" ng-click="submitLink()">
+			Submit
+		</md-button>
+	</div>
+
+	<!-- Feed rows -->
+	<div class="full-page-panel" layout="column">
+		<div ng-repeat="feedRow in feedRows" ng-init="page=arb.stateService.pageMap[feedRow.pageId]">
+			<div class="page-row" layout="row" layout-align="start center" flex>
+				<arb-likes object-id="{{::page.pageId}}"
+						ng-class="{'s18': isTinyScreen}"
+						ng-if="::!hideLikes"></arb-likes>
+			
+				<!-- Page title and caption -->
+				<div layout="column" layout-align="center" flex>
+					<div layout="row" layout-align="space between" flex>
+						<arb-page-title page-id="{{::page.pageId}}"
+								is-link="true"
+								flex></arb-page-title>
+			
+						<!-- Metadata and quick edit button -->
+						<div class="md-caption page-row-metadata"
+								layout="column"
+								layout-gt-xs="row"
+								layout-align="end end"
+								layout-align-gt-xs="start center">
+							<div style="white-space: nowrap">
+								<span ng-bind="::(page.textLength | numSuffix)"></span> characters
+							</div>
+							<div style="white-space: nowrap">
+								<md-icon>comment</md-icon>
+								<span ng-bind="::page.commentCount"></span>
+							</div>
+							<div style="white-space: nowrap">
+								<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
+							</div>
+							<div style="white-space: nowrap">
+								<span ng-bind="::feedRow.createdAt | smartDateTime"></span>
+							</div>
+							<div style="white-space: nowrap" ng-if="showTags">
+								<span ng-repeat="tag in page.tagIds">
+									<arb-tag tag-id="{{::tag}}"></arb-tag>
+								</span>
+							</div>
+						</div>
+					</div>
+					<div class="md-caption page-row-caption" flex>
+						{{::page.clickbait}}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
