@@ -39,9 +39,13 @@
 				<md-icon class="page-title-icon" ng-if="::page.isQuestion()">help</md-icon>
 				<span ng-bind="page.title"></span>
 			</div>
-
 			<hr class="page-title-hr"></hr>
 
+			<!-- Voting container -->
+			<arb-vote-bar page-id="{{::page.pageId}}" ng-if="::page.hasVote"></arb-vote-bar>
+			<hr class="page-title-hr" ng-if="::page.hasVote"></hr>
+
+			<!-- Requirements and subjects -->
 			<div layout="row" layout-align="space-between" class="page-subjects-and-requirements-div"
 					ng-if="page.requirements.length > 0 || page.subjects.length > 0">
 				<div>
@@ -49,14 +53,14 @@
 					<span ng-repeat="requirement in page.requirements | orderBy: ['-isStrong', '-level']">
 						<span class="comma" ng-if="::$index > 0 && $index < page.requirements.length">,</span>
 						<span class="md-caption" ng-if="!requirement.isStrong">(Optional)</span>
-						<arb-page-title page-id="{{::requirement.parentId}}" is-link="true""></arb-page-title>
+						<arb-page-title page-id="{{::requirement.parentId}}" is-link="true"></arb-page-title>
 					</span>
 				</div>
 				<div>
 					<span ng-if="page.subjects.length > 0">Teaches:</span>
 					<span ng-repeat="subject in page.subjects | orderBy: ['-isStrong', '-level']">
 						<span class="comma" ng-if="::$index > 0 && $index < page.subjects.length">,</span>
-						<arb-page-title page-id="{{::subject.parentId}}" is-link="true""></arb-page-title>
+						<arb-page-title page-id="{{::subject.parentId}}" is-link="true"></arb-page-title>
 					</span>
 				</div>
 			</div>

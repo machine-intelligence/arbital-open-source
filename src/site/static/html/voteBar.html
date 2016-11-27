@@ -1,8 +1,4 @@
-<div class="vote-bar"
-		ng-class="::{'lens-text-container': !isEmbedded}"
-		layout="column"
-		layout-margin
-		layout-fill>
+<div class="vote-bar">
 	<!-- Header -->
 	<div class="md-caption" layout="row">
 		<span flex ng-bind="::typeHelper.headerLabel"></span>
@@ -14,14 +10,13 @@
 
 	<!-- Body -->
 	<div layout="row">
-		<div class="vote-bar-body"
+		<div class="vote-bar-body full-width"
 				ng-mouseleave="voteMouseMove($event, true)"
 				ng-mousemove="voteMouseMove($event, false)"
 				ng-click="voteMouseClick($event)"
-				layout="column"
-				flex>
+				layout="column">
 			<!-- Top margin -->
-			<div class="vote-bar-margin" layout="row" flex>
+			<div class="vote-bar-margin full-width" layout="row">
 				<!-- Knob to show where user's vote is -->
 				<div class="my-vote-div"
 						ng-style="{left: valueToOffset(userVoteValue), visibility: userVoteValue ? 'visible' : 'hidden'}">
@@ -37,7 +32,7 @@
 			</div>
 
 			<!-- Buckets -->
-			<div class="vote-bucket-container" layout="row" layout-align="start center" flex>
+			<div class="vote-bucket-container full-width" layout="row" layout-align="start center">
 				<div class="vote-bucket-div md-whiteframe-1dp"
 						ng-repeat="bucket in ::voteBuckets"
 						ng-class="{selected: bucket === selectedVoteBucket}"
@@ -49,7 +44,7 @@
 			</div>
 
 			<!-- Bottom margin -->
-			<div layout="row" layout-align="start start" flex>
+			<div class="full-width" layout="row" layout-align="start start">
 				<div class="vote-bar-label left-text" flex="{{::(isTinyScreen ? 20 : 10)}}" ng-bind="::typeHelper.label1"></div>
 				<div flex="10"></div>
 				<div class="vote-bar-label center-text" flex="10" ng-bind="::typeHelper.label2" ng-if="::!isTinyScreen"></div>

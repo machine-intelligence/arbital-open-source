@@ -329,7 +329,7 @@ func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOption
 	// Update elastic search index.
 	if options.IsPublished {
 		doc := &elastic.Document{
-			PageID:    u.ID,
+			PageID:    options.PageID,
 			Type:      options.Type,
 			Title:     options.Title,
 			Clickbait: options.Clickbait,

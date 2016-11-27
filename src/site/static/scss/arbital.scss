@@ -426,6 +426,10 @@ md-toolbar {
 	}
 }
 
+arb-vote-bar, [arb-vote-bar] {
+	margin-bottom: 30px;
+}
+
 // Voting bar
 .vote-bar {
 	$vote-bar-height: 18px;

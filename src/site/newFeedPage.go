@@ -94,7 +94,7 @@ func newFeedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load data
-	core.AddPageIDToMap(newFeedRow.PageID, returnData.PageMap)
+	core.AddPageToMap(newFeedRow.PageID, returnData.PageMap, core.TitlePlusLoadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
