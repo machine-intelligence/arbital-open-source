@@ -20,6 +20,9 @@
 				layout-align="end center"
 				layout-wrap
 				class="horizontal-margin-between-children">
+			<arb-edit-button custom-text="Create new page"
+					analytics-desc="feed page, new page button"
+					hide-icon="true"></arb-edit-button>
 			<md-button class="md-raised"
 					ng-class="{'md-primary': !isSubmittingLink}"
 					ng-click="isSubmittingLink=true">
@@ -73,9 +76,8 @@
 								<span ng-bind="::page.commentCount"></span>
 							</div>
 							<div style="white-space: nowrap">
-								<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
-							</div>
-							<div style="white-space: nowrap">
+								submitted by
+								<arb-user-name user-id="{{::feedRow.submitterId}}"></arb-user-name>
 								<span ng-bind="::feedRow.createdAt | smartDateTime"></span>
 							</div>
 							<div style="white-space: nowrap" ng-if="showTags">

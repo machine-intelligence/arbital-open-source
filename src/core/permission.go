@@ -31,16 +31,21 @@ var _allDomainRoleTypes = []DomainRoleType{
 	ArbitratorDomainRole,
 }
 
-// Returns true if this role is at least as high as the given role.
-func (role *DomainRoleType) AtLeast(asHighAs DomainRoleType) bool {
+// Returns true if this role is at least as high as the given role. (>=)
+func (role DomainRoleType) AtLeast(asHighAs DomainRoleType) bool {
 	metThreshold := false
 	for _, domainRole := range _allDomainRoleTypes {
 		metThreshold = metThreshold || (domainRole == asHighAs)
-		if domainRole == *role {
+		if domainRole == role {
 			return metThreshold
 		}
 	}
 	return false
+}
+
+// Returns true if this role contains the given role. (<=)
+func (role DomainRoleType) Contains(subset DomainRoleType) bool {
+	return subset.AtLeast(role)
 }
 
 // Return true if the given DomainRoleType is a valid one.

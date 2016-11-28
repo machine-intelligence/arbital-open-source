@@ -38,15 +38,6 @@ app.service('stateService', function($http, $mdMedia, popupService) {
 	// The current path the user is on
 	this.path = undefined;
 
-	// Should we show editor comments for the currently selected lens.
-	var showEditorComments = false;
-	this.getShowEditorComments = function() {
-		return showEditorComments || !this.primaryPage;
-	};
-	this.setShowEditorComments = function(value) {
-		showEditorComments = value;
-	};
-
 	// Get the page from the pageMap
 	this.getPage = function(pageId) {
 		return that.pageMap[pageId];

@@ -4,7 +4,6 @@ package site
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"zanaduu3/src/core"
@@ -105,30 +104,24 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 	}
 
 	// Do it!
-	var pagePairID int64
+	var pagePairID string
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Create new page pair
-		hashmap := make(database.InsertMap)
-		hashmap["parentId"] = data.ParentID
-		hashmap["childId"] = data.ChildID
-		hashmap["type"] = data.Type
-		hashmap["level"] = data.Level
-		hashmap["isStrong"] = data.IsStrong
-		hashmap["creatorId"] = u.ID
-		hashmap["createdAt"] = database.Now()
-		statement := tx.DB.NewInsertStatement("pagePairs", hashmap).WithTx(tx)
-		resp, err := statement.Exec()
+		pagePairID, err := core.CreateNewPagePair(db, u, &core.CreateNewPagePairOptions{
+			ParentID: data.ParentID,
+			ChildID:  data.ChildID,
+			Type:     data.Type,
+			Level:    data.Level,
+			IsStrong: data.IsStrong,
+			Tx:       tx,
+		})
 		if err != nil {
 			return sessions.NewError("Couldn't insert pagePair", err)
-		}
-		pagePairID, err = resp.LastInsertId()
-		if err != nil {
-			return sessions.NewError("Couldn't get page pair id", err)
 		}
 
 		var task tasks.PublishPagePairTask
 		task.UserID = u.ID
-		task.PagePairID = fmt.Sprintf("%d", pagePairID)
+		task.PagePairID = pagePairID
 		err = tasks.Enqueue(c, &task, nil)
 		if err != nil {
 			return sessions.NewError("Couldn't enqueue the task", err)
@@ -139,7 +132,7 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 		return pages.FailWith(err2)
 	}
 
-	returnData.ResultMap["pagePair"], err = core.LoadPagePair(db, fmt.Sprintf("%d", pagePairID))
+	returnData.ResultMap["pagePair"], err = core.LoadPagePair(db, pagePairID)
 	if err != nil {
 		return pages.Fail("Error loading the page pair", err)
 	}

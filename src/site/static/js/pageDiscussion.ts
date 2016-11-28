@@ -14,12 +14,14 @@ app.directive('arbPageDiscussion', function($compile, $location, $timeout, arb) 
 			$scope.page = arb.stateService.pageMap[$scope.pageId];
 			$scope.page.subpageIds = $scope.page.commentIds || [];
 			$scope.page.subpageIds.sort(arb.pageService.getChildSortFunc('likes'));
+			$scope.showEditorComments = false;
 
 			// Process user clicking on New Comment button
 			$scope.newCommentClick = function() {
 				arb.signupService.wrapInSignupFlow('new comment', function() {
 					arb.pageService.newComment({
 						parentPageId: $scope.pageId,
+						isEditorComment: $scope.showEditorComments,
 						success: function(newCommentId) {
 							$scope.newCommentId = newCommentId;
 						},
@@ -36,20 +38,19 @@ app.directive('arbPageDiscussion', function($compile, $location, $timeout, arb) 
 			};
 
 			// Track (globally) whether or not to show editor comments.
-			arb.stateService.setShowEditorComments($scope.page.creatorIds.indexOf(arb.userService.user.id) >= 0);
-			if (!arb.stateService.getShowEditorComments() && $location.hash()) {
+			if (!$scope.showEditorComments && $location.hash()) {
 				// If hash points to a subpage for editors, show it
 				var matches = (new RegExp('^subpage-' + aliasMatch + '$')).exec($location.hash());
 				if (matches) {
 					var page = arb.stateService.pageMap[matches[1]];
 					if (page) {
-						arb.stateService.setShowEditorComments(page.isEditorComment);
+						$scope.showEditorComments = page.isEditorComment;
 					}
 				}
 			}
 
 			$scope.toggleEditorComments = function() {
-				arb.stateService.setShowEditorComments(!arb.stateService.getShowEditorComments());
+				$scope.showEditorComments = !$scope.showEditorComments;
 			};
 
 			// Compute how many visible comments there are.
@@ -59,9 +60,17 @@ app.directive('arbPageDiscussion', function($compile, $location, $timeout, arb) 
 					var commentId = $scope.page.commentIds[n];
 					var comment = arb.stateService.pageMap[commentId];
 					if (comment.isResolved || comment.isDeleted) continue;
-					count += (comment.isEditorComment && !arb.stateService.getShowEditorComments()) ? 0 : 1;
+					count += $scope.shouldShowSubpage(commentId) ? 1 : 0;
 				}
 				return count;
+			};
+
+			// Compute whether the given subpage should be shown
+			$scope.shouldShowSubpage = function(subpageId) {
+				let subpage = arb.stateService.pageMap[subpageId];
+				if ($scope.showEditorComments != subpage.isEditorComment) return false;
+				if (!subpage.isVisibleApprovedComment()) return false;
+				return true;
 			};
 		},
 	};

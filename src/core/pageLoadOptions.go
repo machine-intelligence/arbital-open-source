@@ -142,6 +142,7 @@ var (
 	}).Add(SubpageLoadOptions)
 	// Options for loading a subpage (like a comment)
 	SubpageLoadOptions = (&PageLoadOptions{
+		Parents:               true,
 		Comments:              true,
 		DomainsAndPermissions: true,
 		Links:           true,

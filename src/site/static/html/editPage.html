@@ -557,13 +557,6 @@
 								</div>
 							</div>
 
-							<!-- Is requisite -->
-							<div layout="row" layout-margin ng-if="::page.isWiki()">
-								<md-switch ng-model="page.isRequisite">
-									This page is used as a requisite
-								</md-switch>
-							</div>
-
 							<!-- Indirect teacher -->
 							<div layout="row" layout-margin ng-if="::page.isWiki()">
 								<md-switch ng-model="page.indirectTeacher">
@@ -646,17 +639,10 @@
 					<md-tooltip md-delay="500">Go to live view</md-tooltip>
 				</md-button>
 			</div>
-			<!-- NOTE: for now, all comments are editor only
-			<md-checkbox ng-model="page.isEditorCommentIntention"
-					aria-label="Is for editors only?"
-					ng-if="::page.isComment() && page.getTopLevelComment() === page">
-				<span ng-if="::!gtXSmallScreen">For editors</span>
-				<span ng-if="::gtXSmallScreen">Show comment to page editors only</span>
-			</md-checkbox>-->
-			<span ng-if="page.isComment() && !page.isEditorCommentIntention && !page.getCommentParentPage().permissions.comment.has">
+			<span ng-if="page.isComment() && !page.isApprovedComment">
 				<md-icon>info</md-icon>
 				<md-tooltip md-delay="500">
-					You are new to this domain. Your comment will become public after it's approved by a moderator.
+					You are new to this domain. Your comment will become publicly visible after it's approved by a moderator.
 				</md-tooltip>
 			</span>
 			<div class="no-margins" flex></div>

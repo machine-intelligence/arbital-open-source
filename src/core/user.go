@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"zanaduu3/src/database"
-	"zanaduu3/src/elastic"
 	"zanaduu3/src/sessions"
 )
 
@@ -132,6 +131,7 @@ func LoadUserDomainMembership(db *database.DB, u *User, domainMap map[string]*Do
 		if err != nil {
 			return fmt.Errorf("failed to scan for a member: %v", err)
 		}
+		dm.CanApproveComments = ReviewerDomainRole.Contains(DomainRoleType(dm.Role))
 		u.DomainMembershipMap[dm.DomainID] = &dm
 		if domainMap != nil {
 			domainMap[dm.DomainID] = &Domain{ID: dm.DomainID}
@@ -198,150 +198,4 @@ If you are the owner, click [here to edit](%s).`, fullName, url)
 	}
 
 	return nil
-}
-
-type CreateNewPageOptions struct {
-	// If PageID isn't given, one will be created
-	PageID          string
-	Alias           string
-	Type            string
-	EditDomainID    string
-	SeeDomainID     string
-	Title           string
-	Clickbait       string
-	Text            string
-	IsEditorComment bool
-	IsPublished     bool
-
-	// Additional options
-	ParentIDs []string
-	Tx        *database.Tx
-}
-
-func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOptions) (string, error) {
-	// Error checking
-	if options.Alias != "" && !IsAliasValid(options.Alias) {
-		return "", fmt.Errorf("Invalid alias")
-	}
-	if options.IsEditorComment && options.Type != CommentPageType {
-		return "", fmt.Errorf("Can't set isEditorComment for non-comment pages")
-	}
-
-	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		if options.Tx != nil {
-			tx = options.Tx
-		}
-
-		if options.PageID == "" {
-			var err error
-			options.PageID, err = GetNextAvailableID(tx)
-			if err != nil {
-				return sessions.NewError("Couldn't get next available id", err)
-			}
-		}
-
-		// Fill in the defaults
-		if options.Alias == "" {
-			options.Alias = options.PageID
-		}
-		if options.Type == "" {
-			options.Type = WikiPageType
-		}
-		if !IsIntIDValid(options.EditDomainID) {
-			options.EditDomainID = u.MyDomainID()
-		}
-
-		// Update pageInfos
-		hashmap := make(map[string]interface{})
-		hashmap["pageId"] = options.PageID
-		hashmap["alias"] = options.Alias
-		hashmap["type"] = options.Type
-		hashmap["maxEdit"] = 1
-		hashmap["createdBy"] = u.ID
-		hashmap["createdAt"] = database.Now()
-		hashmap["seeDomainId"] = options.SeeDomainID
-		hashmap["editDomainId"] = options.EditDomainID
-		hashmap["lockedBy"] = u.ID
-		hashmap["lockedUntil"] = GetPageQuickLockedUntilTime()
-		hashmap["sortChildrenBy"] = LikesChildSortingOption
-		if options.IsEditorComment {
-			hashmap["isEditorComment"] = true
-			hashmap["isEditorCommentIntention"] = true
-		}
-		if options.IsPublished {
-			hashmap["currentEdit"] = 1
-		}
-		statement := db.NewInsertStatement("pageInfos", hashmap).WithTx(tx)
-		if _, err := statement.Exec(); err != nil {
-			return sessions.NewError("Couldn't update pageInfos", err)
-		}
-
-		// Update pages
-		hashmap = make(map[string]interface{})
-		hashmap["pageId"] = options.PageID
-		hashmap["edit"] = 1
-		hashmap["title"] = options.Title
-		hashmap["clickbait"] = options.Clickbait
-		hashmap["text"] = options.Text
-		hashmap["creatorId"] = u.ID
-		hashmap["createdAt"] = database.Now()
-		if options.IsPublished {
-			hashmap["isLiveEdit"] = true
-		} else {
-			hashmap["isAutosave"] = true
-		}
-		statement = db.NewInsertStatement("pages", hashmap).WithTx(tx)
-		if _, err := statement.Exec(); err != nil {
-			return sessions.NewError("Couldn't update pages", err)
-		}
-
-		if options.IsPublished {
-			// Add a summary for the page
-			hashmap = make(database.InsertMap)
-			hashmap["pageId"] = options.PageID
-			hashmap["name"] = "Summary"
-			hashmap["text"] = options.Text
-			statement = tx.DB.NewInsertStatement("pageSummaries", hashmap).WithTx(tx)
-			if _, err := statement.Exec(); err != nil {
-				return sessions.NewError("Couldn't create a new page summary", err)
-			}
-		}
-
-		return nil
-	})
-	if err2 != nil {
-		return "", sessions.ToError(err2)
-	}
-
-	// Add parents
-	/*for _, parentIDStr := range options.ParentIDs {
-		handlerData := newPagePairData{
-			ParentID: parentIDStr,
-			ChildID:  options.PageID,
-			Type:     ParentPagePairType,
-		}
-		result := newPagePairHandlerInternal(params.DB, params.U, &handlerData)
-		if result.Err != nil {
-			return "", result
-		}
-	}*/
-
-	// Update elastic search index.
-	if options.IsPublished {
-		doc := &elastic.Document{
-			PageID:    options.PageID,
-			Type:      options.Type,
-			Title:     options.Title,
-			Clickbait: options.Clickbait,
-			Text:      options.Text,
-			Alias:     options.Alias,
-			CreatorID: u.ID,
-		}
-		err := elastic.AddPageToIndex(db.C, doc)
-		if err != nil {
-			return "", fmt.Errorf("Failed to update index: %v", err)
-		}
-	}
-
-	return options.PageID, nil
 }

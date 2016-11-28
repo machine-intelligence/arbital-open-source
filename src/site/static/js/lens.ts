@@ -90,16 +90,6 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				$scope.requestStage = 2;
 			};
 
-			// Compute how many visible comments there are.
-			$scope.visibleCommentCount = function() {
-				var count = 0;
-				for (var n = 0; n < $scope.page.commentIds.length; n++) {
-					var commentId = $scope.page.commentIds[n];
-					count += (!arb.stateService.pageMap[commentId].isEditorComment || arb.stateService.getShowEditorComments()) ? 1 : 0;
-				}
-				return count;
-			};
-
 			// Listen for shortcut keys
 			$(document).keyup(function(event) {
 				if (!event.ctrlKey || !event.altKey) return true;
@@ -431,7 +421,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					var params = scope.inlineComments[commentId];
 					var isVisible = element.closest('.reveal-after-render-parent').length <= 0;
 					var comment = arb.stateService.pageMap[commentId];
-					isVisible = isVisible && (!comment.isEditorComment || arb.stateService.getShowEditorComments());
+					isVisible = isVisible && (!comment.isEditorComment || scope.page.isSubscribedAsMaintainer);
 					isVisible = isVisible && !comment.isResolved;
 					return {
 						'left': $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,

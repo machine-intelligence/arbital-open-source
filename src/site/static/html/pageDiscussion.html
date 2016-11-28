@@ -3,7 +3,9 @@
 <div layout="column">
 	<md-toolbar class="md-hue-2">
 		<div class="md-toolbar-tools">
-			<h1>Discussion ({{visibleCommentCount()}})</h1>
+			<h1 ng-bind="showEditorComments ? 'Editor discussion' : 'Discussion'"></h1>
+			<h1>&nbsp;</h1>
+			<h1 ng-bind="'(' + visibleCommentCount() + ')'"></h1>
 
 			<div flex></div>
 			<!-- Menu with all the other stuff -->
@@ -15,7 +17,7 @@
 					<!-- Toggle seeing editor comments -->
 					<md-menu-item>
 						<md-button ng-click="toggleEditorComments()">
-							{{arb.stateService.getShowEditorComments() ? 'Hide' : 'Show'}} editor comments
+							{{showEditorComments ? 'Hide' : 'Show'}} editor discussion
 						</md-button>
 					</md-menu-item>
 				</md-menu-content>
@@ -24,17 +26,25 @@
 	</md-toolbar>
 
 	<div class="dynamic-hor-padding">
-		<div arb-subpage class="reveal-after-render"
-				lens-id="{{::page.pageId}}"
-				page-id="{{::subpageId}}"
-				ng-repeat="subpageId in page.subpageIds"></div>
+		<div ng-repeat="subpageId in page.subpageIds">
+			<div arb-subpage
+					lens-id="{{::page.pageId}}"
+					page-id="{{::subpageId}}"
+					class="reveal-after-render"
+					ng-if="shouldShowSubpage(subpageId)"></div>
+		</div>
 		<!-- New comment editor -->
 		<div>
 			<md-button class="new-comment-button md-primary"
 					ng-click="newCommentClick()"
+					aria-label="New comment"
 					ng-if="!newCommentId">
-				<md-icon class="md-raised">comment</md-icon>
-				<span ng-bind="visibleCommentCount() <= 0 ? 'Write first comment' : 'New Comment'"></span>
+				<md-icon class="md-raised" ng-if="showEditorComments">rate_review</md-icon>
+				<md-icon class="md-raised" ng-if="!showEditorComments">comment</md-icon>
+				<span ng-bind="visibleCommentCount() <= 0 ? 'Write first editor comment' : 'New editor comment'"
+						ng-if="showEditorComments"></span>
+				<span ng-bind="visibleCommentCount() <= 0 ? 'Write first comment' : 'New comment'"
+						ng-if="!showEditorComments"></span>
 			</md-button>
 			<div arb-edit-page
 					class="new-comment-edit-page edit-comment-embed"

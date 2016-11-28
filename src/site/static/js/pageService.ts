@@ -118,6 +118,12 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 			}
 			return this;
 		},
+		// Return true iff the current user shouldn't see this comment because it's unapproved.
+		isVisibleApprovedComment: function() {
+			if (this.isApprovedComment) return true;
+			if (this.pageCreatorId == userService.user.id) return true;
+			return userService.userCanApproveComments(this.getCommentParentPage().editDomainId);
+		},
 		// Get page's url
 		url: function() {
 			return urlService.getPageUrl(this.pageId);
@@ -137,9 +143,8 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 				hasVote: this.hasVote,
 				voteType: this.voteType,
 				sortChildrenBy: this.sortChildrenBy,
-				isRequisite: this.isRequisite,
 				indirectTeacher: this.indirectTeacher,
-				isEditorCommentIntention: this.isEditorCommentIntention,
+				isEditorComment: this.isEditorComment,
 			};
 		},
 		// Helper function for getBest...Id functions
@@ -535,8 +540,9 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		this.getNewPage({
 			type: 'comment',
 			parentIds: parentIds,
-			// For now, all comments are editor-only
-			isEditorComment: true,//!stateService.pageMap[options.parentPageId].permissions.comment.has,
+			isEditorComment: options.isEditorComment,
+			// TODO: Hack! We need to compute this server-side
+			isApprovedComment: userService.userCanApproveComments(stateService.pageMap[options.parentPageId].editDomainId),
 			success: function(newCommentId) {
 				if (options.success) {
 					options.success(newCommentId);

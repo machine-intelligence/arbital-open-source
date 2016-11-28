@@ -93,43 +93,42 @@ type corePageData struct {
 
 	// === Basic data. ===
 	// Any time we load a page, you can at least expect all this data.
-	PageID                   string `json:"pageId"`
-	Edit                     int    `json:"edit"`
-	EditSummary              string `json:"editSummary"`
-	PrevEdit                 int    `json:"prevEdit"`
-	CurrentEdit              int    `json:"currentEdit"`
-	WasPublished             bool   `json:"wasPublished"`
-	Type                     string `json:"type"`
-	Title                    string `json:"title"`
-	Clickbait                string `json:"clickbait"`
-	TextLength               int    `json:"textLength"` // number of characters
-	Alias                    string `json:"alias"`
-	SortChildrenBy           string `json:"sortChildrenBy"`
-	HasVote                  bool   `json:"hasVote"`
-	VoteType                 string `json:"voteType"`
-	EditCreatorID            string `json:"editCreatorId"`
-	EditCreatedAt            string `json:"editCreatedAt"`
-	PageCreatorID            string `json:"pageCreatorId"`
-	PageCreatedAt            string `json:"pageCreatedAt"`
-	SeeDomainID              string `json:"seeDomainId"`
-	EditDomainID             string `json:"editDomainId"`
-	IsAutosave               bool   `json:"isAutosave"`
-	IsSnapshot               bool   `json:"isSnapshot"`
-	IsLiveEdit               bool   `json:"isLiveEdit"`
-	IsMinorEdit              bool   `json:"isMinorEdit"`
-	IsRequisite              bool   `json:"isRequisite"`
-	IndirectTeacher          bool   `json:"indirectTeacher"`
-	TodoCount                int    `json:"todoCount"`
-	IsEditorComment          bool   `json:"isEditorComment"`
-	IsEditorCommentIntention bool   `json:"isEditorCommentIntention"`
-	IsResolved               bool   `json:"isResolved"`
-	SnapshotText             string `json:"snapshotText"`
-	AnchorContext            string `json:"anchorContext"`
-	AnchorText               string `json:"anchorText"`
-	AnchorOffset             int    `json:"anchorOffset"`
-	MergedInto               string `json:"mergedInto"`
-	IsDeleted                bool   `json:"isDeleted"`
-	ViewCount                int    `json:"viewCount"`
+	PageID            string `json:"pageId"`
+	Edit              int    `json:"edit"`
+	EditSummary       string `json:"editSummary"`
+	PrevEdit          int    `json:"prevEdit"`
+	CurrentEdit       int    `json:"currentEdit"`
+	WasPublished      bool   `json:"wasPublished"`
+	Type              string `json:"type"`
+	Title             string `json:"title"`
+	Clickbait         string `json:"clickbait"`
+	TextLength        int    `json:"textLength"` // number of characters
+	Alias             string `json:"alias"`
+	SortChildrenBy    string `json:"sortChildrenBy"`
+	HasVote           bool   `json:"hasVote"`
+	VoteType          string `json:"voteType"`
+	EditCreatorID     string `json:"editCreatorId"`
+	EditCreatedAt     string `json:"editCreatedAt"`
+	PageCreatorID     string `json:"pageCreatorId"`
+	PageCreatedAt     string `json:"pageCreatedAt"`
+	SeeDomainID       string `json:"seeDomainId"`
+	EditDomainID      string `json:"editDomainId"`
+	IsAutosave        bool   `json:"isAutosave"`
+	IsSnapshot        bool   `json:"isSnapshot"`
+	IsLiveEdit        bool   `json:"isLiveEdit"`
+	IsMinorEdit       bool   `json:"isMinorEdit"`
+	IndirectTeacher   bool   `json:"indirectTeacher"`
+	TodoCount         int    `json:"todoCount"`
+	IsEditorComment   bool   `json:"isEditorComment"`
+	IsApprovedComment bool   `json:"isApprovedComment"`
+	IsResolved        bool   `json:"isResolved"`
+	SnapshotText      string `json:"snapshotText"`
+	AnchorContext     string `json:"anchorContext"`
+	AnchorText        string `json:"anchorText"`
+	AnchorOffset      int    `json:"anchorOffset"`
+	MergedInto        string `json:"mergedInto"`
+	IsDeleted         bool   `json:"isDeleted"`
+	ViewCount         int    `json:"viewCount"`
 
 	// The following data is filled on demand.
 	Text     string `json:"text"`
@@ -1077,8 +1076,8 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 		SELECT p.pageId,p.edit,p.prevEdit,p.creatorId,p.createdAt,p.title,p.clickbait,`).AddPart(textSelect).Add(`,
 			length(p.text),p.metaText,pi.type,pi.hasVote,pi.voteType,
 			pi.alias,pi.createdAt,pi.createdBy,pi.sortChildrenBy,pi.seeDomainId,pi.editDomainId,
-			pi.isEditorComment,pi.isEditorCommentIntention,pi.isResolved,
-			pi.isRequisite,pi.indirectTeacher,pi.currentEdit,pi.likeableId,pi.viewCount,
+			pi.isEditorComment,pi.isApprovedComment,pi.isResolved,
+			pi.indirectTeacher,pi.currentEdit,pi.likeableId,pi.viewCount,
 			p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,p.editSummary,pi.isDeleted,pi.mergedInto,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset
 		FROM pages AS p
@@ -1091,8 +1090,8 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 			&p.PageID, &p.Edit, &p.PrevEdit, &p.EditCreatorID, &p.EditCreatedAt, &p.Title, &p.Clickbait,
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.HasVote,
 			&p.VoteType, &p.Alias, &p.PageCreatedAt, &p.PageCreatorID, &p.SortChildrenBy,
-			&p.SeeDomainID, &p.EditDomainID, &p.IsEditorComment, &p.IsEditorCommentIntention,
-			&p.IsResolved, &p.IsRequisite, &p.IndirectTeacher, &p.CurrentEdit, &p.LikeableID, &p.ViewCount,
+			&p.SeeDomainID, &p.EditDomainID, &p.IsEditorComment, &p.IsApprovedComment,
+			&p.IsResolved, &p.IndirectTeacher, &p.CurrentEdit, &p.LikeableID, &p.ViewCount,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.EditSummary, &p.IsDeleted, &p.MergedInto,
 			&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
@@ -1412,11 +1411,11 @@ func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, options *LoadE
 		SELECT p.pageId,p.edit,p.prevEdit,pi.type,p.title,p.clickbait,p.text,p.metaText,
 			pi.alias,p.creatorId,pi.sortChildrenBy,pi.hasVote,pi.voteType,
 			p.createdAt,pi.seeDomainId,pi.editDomainId,pi.createdAt,
-			pi.createdBy,pi.isEditorComment,pi.isEditorCommentIntention,
+			pi.createdBy,pi.isEditorComment,pi.isApprovedComment,
 			pi.isResolved,pi.likeableId,p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,p.editSummary,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset,
 			pi.currentEdit>0,pi.isDeleted,pi.mergedInto,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
-			pi.viewCount,pi.voteType,pi.isRequisite,pi.indirectTeacher
+			pi.viewCount,pi.voteType,pi.indirectTeacher
 		FROM pages AS p
 		JOIN`).AddPart(PageInfosTableAll(u)).Add(`AS pi
 		ON (p.pageId=pi.pageId AND p.pageId=?)`, pageID).Add(`
@@ -1426,11 +1425,11 @@ func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, options *LoadE
 		&p.Text, &p.MetaText, &p.Alias, &p.EditCreatorID, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.EditCreatedAt, &p.SeeDomainID,
 		&p.EditDomainID, &p.PageCreatedAt, &p.PageCreatorID,
-		&p.IsEditorComment, &p.IsEditorCommentIntention, &p.IsResolved, &p.LikeableID,
+		&p.IsEditorComment, &p.IsApprovedComment, &p.IsResolved, &p.LikeableID,
 		&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.EditSummary,
 		&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
 		&p.IsDeleted, &p.MergedInto, &p.CurrentEdit, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil,
-		&p.ViewCount, &p.LockedVoteType, &p.IsRequisite, &p.IndirectTeacher)
+		&p.ViewCount, &p.LockedVoteType, &p.IndirectTeacher)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if !exists {

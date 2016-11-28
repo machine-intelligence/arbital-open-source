@@ -28,8 +28,6 @@ CREATE TABLE pageInfos (
 	 But once voting is set, it can only be turned on/off, the type cannot be
 	 changed. */
 	voteType VARCHAR(32) NOT NULL,
-	/* If true, this page is used as a requisite somewhere. */
-	isRequisite BOOL NOT NULL,
 	/* If true, this page teaches its requisites indirectly (e.g. by providing links). */
 	indirectTeacher BOOL NOT NULL,
 	/* True iff this page is currently in a deleted state. */
@@ -61,11 +59,10 @@ CREATE TABLE pageInfos (
 	lensIndex INT NOT NULL,
 	/* If true, this comment is meant for editors only. */
 	isEditorComment BOOL NOT NULL,
+	/* If true, this comment has been approved by a reviewer. */
+	isApprovedComment BOOL NOT NULL,
 	/* If true, this comment thread is resolved and should be hidden. */
 	isResolved BOOL NOT NULL,
-	/* The value of isEditorComment the user wanted. We might have disallowed it
-		because the creator lacked the right permissions. */
-	isEditorCommentIntention BOOL NOT NULL,
 
 	PRIMARY KEY(pageId)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

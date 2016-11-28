@@ -18,17 +18,16 @@ import (
 
 // editPageInfoData contains parameters passed in.
 type editPageInfoData struct {
-	PageID                   string
-	Type                     string
-	HasVote                  bool
-	VoteType                 string
-	SeeDomainID              string
-	EditDomainID             string
-	Alias                    string // if empty, leave the current one
-	SortChildrenBy           string
-	IsRequisite              bool
-	IndirectTeacher          bool
-	IsEditorCommentIntention bool
+	PageID          string
+	Type            string
+	HasVote         bool
+	VoteType        string
+	SeeDomainID     string
+	EditDomainID    string
+	Alias           string // if empty, leave the current one
+	SortChildrenBy  string
+	IndirectTeacher bool
+	IsEditorComment bool
 }
 
 var editPageInfoHandler = siteHandler{
@@ -119,10 +118,6 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	} else if data.Type == core.QuestionPageType {
 		data.SortChildrenBy = core.LikesChildSortingOption
 	}
-	// Check IsEditorCommentIntention
-	if data.IsEditorCommentIntention && data.Type != core.CommentPageType {
-		data.IsEditorCommentIntention = false
-	}
 
 	// Make sure alias is valid
 	if strings.ToLower(data.Alias) == "www" {
@@ -160,14 +155,6 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	isEditorComment := oldPage.IsEditorComment
-	if oldPage.Type == core.CommentPageType {
-		// See if the user can affect isEditorComment's value
-		if oldPage.Permissions.Comment.Has {
-			isEditorComment = data.IsEditorCommentIntention
-		}
-	}
-
 	// Check if something is actually different from live edit
 	// NOTE: we do this as the last step before writing data, just so we can be sure
 	// exactly what date we'll be writing
@@ -179,10 +166,8 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			data.Type == oldPage.Type &&
 			data.SeeDomainID == oldPage.SeeDomainID &&
 			data.EditDomainID == oldPage.EditDomainID &&
-			data.IsRequisite == oldPage.IsRequisite &&
 			data.IndirectTeacher == oldPage.IndirectTeacher &&
-			isEditorComment == oldPage.IsEditorComment &&
-			data.IsEditorCommentIntention == oldPage.IsEditorCommentIntention {
+			data.IsEditorComment == oldPage.IsEditorComment {
 			return pages.Success(nil)
 		}
 	}
@@ -209,10 +194,8 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["type"] = data.Type
 		hashmap["seeDomainID"] = data.SeeDomainID
 		hashmap["editDomainID"] = data.EditDomainID
-		hashmap["isRequisite"] = data.IsRequisite
 		hashmap["indirectTeacher"] = data.IndirectTeacher
-		hashmap["isEditorComment"] = isEditorComment
-		hashmap["isEditorCommentIntention"] = data.IsEditorCommentIntention
+		hashmap["isEditorComment"] = data.IsEditorComment
 		statement := tx.DB.NewInsertStatement("pageInfos", hashmap, hashmap.GetKeys()...).WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't update pageInfos", err)
@@ -230,7 +213,6 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				hashmap["auxPageId"] = auxPageID
 				hashmap["oldSettingsValue"] = oldSettingsValue
 				hashmap["newSettingsValue"] = newSettingsValue
-
 				statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
 				result, err := statement.Exec()
 				if err != nil {

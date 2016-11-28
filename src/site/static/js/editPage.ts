@@ -607,8 +607,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// Save the page info.
 			// callback is called with a potential error message when the server replies
 			$scope.savePageInfo = function(callback) {
-				// NOTE: for now, all comments will be editor-only.
-				$scope.page.isEditorCommentIntention = true;
 				arb.pageService.savePageInfo($scope.page, callback);
 			};
 

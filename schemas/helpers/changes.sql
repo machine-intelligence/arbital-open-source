@@ -16,3 +16,6 @@ CREATE TABLE feedPages (
 	PRIMARY KEY(domainId, pageId)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
+alter table pageInfos add column isApprovedComment bool not null;
+alter table pageInfos drop column isRequisite;
+alter table pageInfos drop column isEditorCommentIntention;

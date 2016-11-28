@@ -373,3 +373,41 @@ func IsAncestor(db *database.DB, potentialAncestorID string, potentialDescendant
 	_, isAncestor := ancestors[potentialAncestorID]
 	return isAncestor, nil
 }
+
+type CreateNewPagePairOptions struct {
+	ParentID string
+	ChildID  string
+	Type     string
+
+	// Optional
+	Level    int
+	IsStrong bool
+
+	// Additional options
+	Tx *database.Tx
+}
+
+func CreateNewPagePair(db *database.DB, u *CurrentUser, options *CreateNewPagePairOptions) (string, error) {
+	// Create new page pair
+	hashmap := make(database.InsertMap)
+	hashmap["parentId"] = options.ParentID
+	hashmap["childId"] = options.ChildID
+	hashmap["type"] = options.Type
+	hashmap["level"] = options.Level
+	hashmap["isStrong"] = options.IsStrong
+	hashmap["creatorId"] = u.ID
+	hashmap["createdAt"] = database.Now()
+	statement := db.NewInsertStatement("pagePairs", hashmap)
+	if options.Tx != nil {
+		statement.WithTx(options.Tx)
+	}
+	resp, err := statement.Exec()
+	if err != nil {
+		return "", fmt.Errorf("Couldn't insert pagePair: %v", err)
+	}
+	pagePairID, err := resp.LastInsertId()
+	if err != nil {
+		return "", fmt.Errorf("Couldn't get page pair id: %v", err)
+	}
+	return fmt.Sprintf("%s", pagePairID), nil
+}

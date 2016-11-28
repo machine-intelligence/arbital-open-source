@@ -49,7 +49,19 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 			$scope.isSubpageVisible = function() {
 				if ($scope.isDeleted) return false;
 				if ($scope.page.isResolved && !$scope.isSelected() && !$scope.showEvenIfResolved) return false;
-				return !$scope.page.isEditorComment || arb.stateService.getShowEditorComments();
+				return true;
+			};
+
+			// Return true iff the user can approve this comment.
+			$scope.canApproveComment = function() {
+				return arb.userService.userCanApproveComments($scope.lens.editDomainId);
+			};
+
+			// Approve this comment.
+			$scope.approveComment = function() {
+				if (!$scope.canApproveComment()) return;
+				$scope.page.isApprovedComment = true;
+				arb.stateService.postDataWithoutProcessing('/approveComment/', {commentID: $scope.pageId});
 			};
 
 			// Called when the user collapses/expands this subpage
@@ -93,7 +105,6 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 				arb.pageService.newComment({
 					parentPageId: $scope.lensId,
 					replyToId: $scope.page.pageId,
-					isEditorComment: $scope.page.isEditorComment,
 					success: function(newCommentId) {
 						$scope.newReplyId = newCommentId;
 					},
@@ -110,8 +121,8 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 
 			// Called to set the comment's isEditorComment
 			$scope.showToEditorsOnly = function() {
+				// TODo: need to refactor the /approveComment/ end-point to accept more various changes
 				$scope.page.isEditorComment = true;
-				$scope.page.isEditorCommentIntention = true;
 				arb.pageService.savePageInfo($scope.page);
 			};
 

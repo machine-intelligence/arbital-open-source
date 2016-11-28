@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"zanaduu3/src/database"
+	"zanaduu3/src/elastic"
 	"zanaduu3/src/sessions"
 )
 
@@ -409,4 +410,181 @@ func IsStringInList(str string, list []string) bool {
 		}
 	}
 	return false
+}
+
+type CreateNewPageOptions struct {
+	// If PageID isn't given, one will be created
+	PageID          string
+	Alias           string
+	Type            string
+	EditDomainID    string
+	SeeDomainID     string
+	Title           string
+	Clickbait       string
+	Text            string
+	IsEditorComment bool
+	IsPublished     bool
+
+	// Additional options
+	ParentIDs []string
+	Tx        *database.Tx
+}
+
+func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOptions) (string, error) {
+	// Error checking
+	if options.Alias != "" && !IsAliasValid(options.Alias) {
+		return "", fmt.Errorf("Invalid alias")
+	}
+	if options.IsEditorComment && options.Type != CommentPageType {
+		return "", fmt.Errorf("Can't set isEditorComment for non-comment pages")
+	}
+	if options.Type == CommentPageType && len(options.ParentIDs) <= 0 {
+		return "", fmt.Errorf("Comments should have a page parent")
+	}
+
+	// For new comments, check if the user has the permissions to create an approved comment
+	isApprovedComment := false
+	if options.Type == CommentPageType {
+		var err error
+		isApprovedComment, err = CanUserApproveComment(db, u, options.ParentIDs)
+		if err != nil {
+			return "", fmt.Errorf("Couldn't check if user can approve the new comment: %v", err)
+		}
+	}
+
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
+		if options.Tx != nil {
+			tx = options.Tx
+		}
+
+		if options.PageID == "" {
+			var err error
+			options.PageID, err = GetNextAvailableID(tx)
+			if err != nil {
+				return sessions.NewError("Couldn't get next available id", err)
+			}
+		}
+
+		// Fill in the defaults
+		if options.Alias == "" {
+			options.Alias = options.PageID
+		}
+		if options.Type == "" {
+			options.Type = WikiPageType
+		}
+		if !IsIntIDValid(options.EditDomainID) {
+			options.EditDomainID = u.MyDomainID()
+		}
+
+		// Update pageInfos
+		hashmap := make(map[string]interface{})
+		hashmap["pageId"] = options.PageID
+		hashmap["alias"] = options.Alias
+		hashmap["type"] = options.Type
+		hashmap["maxEdit"] = 1
+		hashmap["createdBy"] = u.ID
+		hashmap["createdAt"] = database.Now()
+		hashmap["seeDomainId"] = options.SeeDomainID
+		hashmap["editDomainId"] = options.EditDomainID
+		hashmap["lockedBy"] = u.ID
+		hashmap["lockedUntil"] = GetPageQuickLockedUntilTime()
+		hashmap["sortChildrenBy"] = LikesChildSortingOption
+		hashmap["isEditorComment"] = options.IsEditorComment
+		hashmap["isApprovedComment"] = isApprovedComment
+		if options.IsPublished {
+			hashmap["currentEdit"] = 1
+		}
+		statement := db.NewInsertStatement("pageInfos", hashmap).WithTx(tx)
+		if _, err := statement.Exec(); err != nil {
+			return sessions.NewError("Couldn't update pageInfos", err)
+		}
+
+		// Update pages
+		hashmap = make(map[string]interface{})
+		hashmap["pageId"] = options.PageID
+		hashmap["edit"] = 1
+		hashmap["title"] = options.Title
+		hashmap["clickbait"] = options.Clickbait
+		hashmap["text"] = options.Text
+		hashmap["creatorId"] = u.ID
+		hashmap["createdAt"] = database.Now()
+		if options.IsPublished {
+			hashmap["isLiveEdit"] = true
+		} else {
+			hashmap["isAutosave"] = true
+		}
+		statement = db.NewInsertStatement("pages", hashmap).WithTx(tx)
+		if _, err := statement.Exec(); err != nil {
+			return sessions.NewError("Couldn't update pages", err)
+		}
+
+		if options.IsPublished {
+			// Add a summary for the page
+			hashmap = make(database.InsertMap)
+			hashmap["pageId"] = options.PageID
+			hashmap["name"] = "Summary"
+			hashmap["text"] = options.Text
+			statement = tx.DB.NewInsertStatement("pageSummaries", hashmap).WithTx(tx)
+			if _, err := statement.Exec(); err != nil {
+				return sessions.NewError("Couldn't create a new page summary", err)
+			}
+		}
+
+		return nil
+	})
+	if err2 != nil {
+		return "", sessions.ToError(err2)
+	}
+
+	// Add parents
+	for _, parentIDStr := range options.ParentIDs {
+		_, err := CreateNewPagePair(db, u, &CreateNewPagePairOptions{
+			ParentID: parentIDStr,
+			ChildID:  options.PageID,
+			Type:     ParentPagePairType,
+		})
+		if err != nil {
+			return "", fmt.Errorf("Couldn't create a new page pair: %v", err)
+		}
+	}
+
+	// Update elastic search index.
+	if options.IsPublished {
+		doc := &elastic.Document{
+			PageID:    options.PageID,
+			Type:      options.Type,
+			Title:     options.Title,
+			Clickbait: options.Clickbait,
+			Text:      options.Text,
+			Alias:     options.Alias,
+			CreatorID: u.ID,
+		}
+		err := elastic.AddPageToIndex(db.C, doc)
+		if err != nil {
+			return "", fmt.Errorf("Failed to update index: %v", err)
+		}
+	}
+
+	return options.PageID, nil
+}
+
+// Return true if the user can approve the given comment.
+func CanUserApproveComment(db *database.DB, u *CurrentUser, parentIDs []string) (bool, error) {
+	var domainID string
+	row := database.NewQuery(`
+		SELECT pi.editDomainId
+		FROM`).AddPart(PageInfosTable(u)).Add(`AS pi
+		WHERE pi.pageId IN`).AddArgsGroupStr(parentIDs).Add(`
+			AND pi.type!=?`, CommentPageType).ToStatement(db).QueryRow()
+	exists, err := row.Scan(&domainID)
+	if err != nil {
+		return false, err
+	} else if !exists {
+		return false, nil
+	}
+	if dm, ok := u.DomainMembershipMap[domainID]; !ok {
+		return false, nil
+	} else {
+		return dm.CanApproveComments, nil
+	}
 }

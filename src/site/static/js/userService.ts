@@ -13,6 +13,7 @@ app.service('userService', function($http, $location, $rootScope, analyticsServi
 	// Map of all user objects.
 	this.userMap = {};
 
+	// Add the given user to userMap, while doing a smart merge.
 	this.addUserToMap = function(newUser) {
 		var oldUser = that.userMap[newUser.id];
 		if (newUser === oldUser) return oldUser;
@@ -57,6 +58,13 @@ app.service('userService', function($http, $location, $rootScope, analyticsServi
 	// Check if the user has received any maintenance updates.
 	this.userHasReceivedMaintenanceUpdates = function() {
 		return this.user && this.user.hasReceivedMaintenanceUpdates;
+	};
+
+	// Check if the user can approve comments in the given domain
+	this.userCanApproveComments = function(domainId) {
+		if (!this.user) return false;
+		if (!(domainId in this.user.domainMembershipMap)) return false;
+		return this.user.domainMembershipMap[domainId].canApproveComments;
 	};
 
 	// Return a user's full name.

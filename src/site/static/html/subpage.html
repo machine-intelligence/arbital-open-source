@@ -5,15 +5,36 @@
 		ng-if="isSubpageVisible()">
 	<!-- Comment header -->
 	<div class="comment-header" layout="row" layout-align="start center">
-		<span ng-if="!parentSubpageId && !page.isEditorComment">
-			<md-icon>comment</md-icon>
-			<md-tooltip>Public comment</md-tooltip>
-		</span>
-		<span ng-if="!parentSubpageId && page.isEditorComment">
-			<md-icon>rate_review</md-icon>
-			<md-tooltip>Editor comment</md-tooltip>
-		</span>
-		<span class="separator" ng-if="::!parentSubpageId"></span>
+
+		<!-- Icon choices -->
+		<div layout="row" ng-if="::!parentSubpageId">
+			<span ng-if="page.isApprovedComment && !page.isEditorComment">
+				<md-icon>comment</md-icon>
+			</span>
+			<span ng-if="page.isApprovedComment && page.isEditorComment">
+				<md-icon>rate_review</md-icon>
+			</span>
+			<span ng-if="!page.isApprovedComment && !canApproveComment()">
+				<md-icon>warning</md-icon>
+				<md-tooltip>This comment isn't publicly visible because it hasn't been approved yet</md-tooltip>
+			</span>
+			<!-- Approve this comment menu for users that can -->
+			<md-menu class="no-padding" ng-if="!page.isApprovedComment && canApproveComment()">
+				<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="Approve menu">
+					<md-icon>warning</md-icon>
+					<md-tooltip>This comment isn't publicly visible because it hasn't been approved yet</md-tooltip>
+				</md-button>
+				<md-menu-content>
+					<md-menu-item>
+						<md-button ng-click="approveComment()">
+							Approve comment
+						</md-button>
+					</md-menu-item>
+				</md-menu-content>
+			</md-menu>
+	
+			<span class="separator"></span>
+		</div>
 
 		<!-- User name -->
 		<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
