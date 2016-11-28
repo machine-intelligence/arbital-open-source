@@ -645,14 +645,6 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 			$scope.searchTextToAlias = function(searchText) {
 				return searchText.split(' ').join('_');
 			};
-
-			$scope.requestPage = function(searchText) {
-				var data = {text: searchText};
-				arb.stateService.postDataWithoutProcessing('/json/sendProjectRequest/', data, function() {
-					$scope.searchText = '';
-					arb.popupService.showToast({text: 'Thanks! Your request has been submitted.'});
-				});
-			};
 		},
 		link: function(scope: any, element, attrs) {
 			$timeout(function() {
