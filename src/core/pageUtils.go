@@ -446,7 +446,7 @@ func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOption
 	isApprovedComment := false
 	if options.Type == CommentPageType {
 		var err error
-		isApprovedComment, err = CanUserApproveComment(db, u, options.ParentIDs)
+		isApprovedComment, _, err = CanUserApproveComment(db, u, options.ParentIDs)
 		if err != nil {
 			return "", fmt.Errorf("Couldn't check if user can approve the new comment: %v", err)
 		}
@@ -568,8 +568,8 @@ func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOption
 	return options.PageID, nil
 }
 
-// Return true if the user can approve the given comment.
-func CanUserApproveComment(db *database.DB, u *CurrentUser, parentIDs []string) (bool, error) {
+// Return true if the user (can create approved comments, can approve comments)
+func CanUserApproveComment(db *database.DB, u *CurrentUser, parentIDs []string) (bool, bool, error) {
 	var domainID string
 	row := database.NewQuery(`
 		SELECT pi.editDomainId
@@ -578,13 +578,13 @@ func CanUserApproveComment(db *database.DB, u *CurrentUser, parentIDs []string) 
 			AND pi.type!=?`, CommentPageType).ToStatement(db).QueryRow()
 	exists, err := row.Scan(&domainID)
 	if err != nil {
-		return false, err
+		return false, false, err
 	} else if !exists {
-		return false, nil
+		return false, false, nil
 	}
 	if dm, ok := u.DomainMembershipMap[domainID]; !ok {
-		return false, nil
+		return false, false, nil
 	} else {
-		return dm.CanApproveComments, nil
+		return dm.CanCreateApprovedComments, dm.CanApproveComments, nil
 	}
 }

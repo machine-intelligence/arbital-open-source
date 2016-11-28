@@ -31,7 +31,8 @@ type DomainMember struct {
 	CreatedAt    string `json:"createdAt"`
 	Role         string `json:"role"`
 
-	CanApproveComments bool `json:"canApproveComments"`
+	CanApproveComments        bool `json:"canApproveComments"`
+	CanCreateApprovedComments bool `json:"canApproveComments"`
 }
 
 // Returns true if this role is at least as high as the given role.
