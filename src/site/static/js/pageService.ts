@@ -541,8 +541,6 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 			type: 'comment',
 			parentIds: parentIds,
 			isEditorComment: options.isEditorComment,
-			// TODO: Hack! We need to compute this server-side
-			isApprovedComment: userService.userCanApproveComments(stateService.pageMap[options.parentPageId].editDomainId),
 			success: function(newCommentId) {
 				if (options.success) {
 					options.success(newCommentId);
@@ -554,9 +552,6 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 	// Called when the user created a new comment.
 	this.newCommentCreated = function(commentId) {
 		var comment = stateService.editMap[commentId];
-		if (comment.isEditorComment) {
-			stateService.setShowEditorComments(true);
-		}
 		comment = this.addPageToMap(comment);
 		// HACK: set the comment's data to make sure it's displayed correctly
 		// TODO: actually fetch the newly created comment from the server
