@@ -443,7 +443,6 @@ app.directive('arbSubscribe', function($http, arb) {
 			pageId: '@',
 			// If true, the button is not an icon button, but is a normal button with a label
 			isStretched: '=',
-			showSubscriberCount: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -453,25 +452,45 @@ app.directive('arbSubscribe', function($http, arb) {
 				return arb.stateService.pageMap[$scope.pageId].isSubscribed;
 			};
 
-			$scope.isSubscribedAsMaintainer = function() {
+			// User clicked on the subscribe button
+			$scope.subscribeClick = function() {
+				arb.stateService.pageMap[$scope.pageId].isSubscribed = !$scope.isSubscribed();
+				let postParams = {
+					toId: $scope.pageId,
+					isSubscribed: $scope.isSubscribed(),
+				};
+				arb.stateService.postDataWithoutProcessing('/updateSubscription/', postParams);
+			};
+		},
+	};
+});
+
+// subscribe directive displays the button for subscribing to a page as a maintainer.
+app.directive('arbSubscribeToMaintain', function($http, arb) {
+	return {
+		templateUrl: versionUrl('static/html/subscribeToMaintain.html'),
+		scope: {
+			pageId: '@',
+			// If true, the button is not an icon button, but is a normal button with a label
+			isStretched: '=',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+			$scope.page = arb.stateService.pageMap[$scope.pageId];
+
+			$scope.isSubscribed = function() {
 				return arb.stateService.pageMap[$scope.pageId].isSubscribedAsMaintainer;
 			};
 
 			// User clicked on the subscribe button
 			$scope.subscribeClick = function() {
-				arb.stateService.pageMap[$scope.pageId].isSubscribed = !$scope.isSubscribed();
-				arb.stateService.pageMap[$scope.pageId].isSubscribedAsMaintainer = false;
-				$http({
-					method: 'POST',
-					url: '/updateSubscription/',
-					data: JSON.stringify({
-						toId: $scope.pageId,
-						isSubscribed: $scope.isSubscribed(),
-						asMaintainer: false,
-					})
-				}).error(function(data, status) {
-					console.error('Error changing a subscription:'); console.log(data); console.log(status);
-				});
+				arb.stateService.pageMap[$scope.pageId].isSubscribedAsMaintainer  = !$scope.isSubscribed();
+				let postParams = {
+					toId: $scope.pageId,
+					isSubscribed: $scope.isSubscribed(),
+					asMaintainer: true,
+				};
+				arb.stateService.postDataWithoutProcessing('/updateSubscription/', postParams);
 			};
 		},
 	};
