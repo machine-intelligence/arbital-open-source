@@ -57,11 +57,10 @@
 				<!-- Page title and caption -->
 				<div layout="column" layout-align="center" flex>
 					<div layout="row" layout-align="start start" flex>
-						<arb-likes object-id="{{::page.pageId}}" ng-class="{'s18': isTinyScreen}"></arb-likes>
-
 						<div flex>
 							<!-- Title row row -->
 							<div class="feed-page-title-row">
+								&nbsp;
 								<arb-page-title page-id="{{::page.pageId}}"
 									is-link="true"
 									show-clickbait="false"
@@ -77,13 +76,12 @@
 								</span>
 							</div>
 							<!-- Second row -->
-							<div class="md-caption">
-								submitted
-								<span ng-if="feedRow.submitterId != page.pageCreatorId || page.externalUrl.length > 0">
-									by
-									<arb-user-name user-id="{{::feedRow.submitterId}}"></arb-user-name>
-								</span>
-								<span ng-bind="::feedRow.createdAt | smartDateTime"></span>
+							<div layout="row"? layout-align="start center">
+								<arb-likes object-id="{{::page.pageId}}" class="s16"></arb-likes>
+								<a ng-href="{{arb.urlService.getPageUrl(page.pageId, {discussionHash: true})}}" class="s16">
+		 							<md-icon>comment</md-icon>
+		 							<span ng-bind="::page.commentCount"></span>
+		 						</a>
 							</div>
 						</div>
 			
@@ -91,14 +89,13 @@
 						<div class="md-caption"
 								layout="column"
 								layout-align="end end">
-							<div ng-if="page.externalUrl.length <= 0">
-								<span ng-bind="::(page.textLength | readDuration)"></span>
-							</div>
-							<div>
-								<a ng-href="{{arb.urlService.getPageUrl(page.pageId, {discussionHash: true})}}">
-									<ng-pluralize count="page.commentCount"
-									when="{'one': '{} comment', 'other': '{} comments'}"></ng-pluralize>
-								</a>
+							<div class="md-caption">
+								submitted
+								<span ng-if="feedRow.submitterId != page.pageCreatorId || page.externalUrl.length > 0">
+									by
+									<arb-user-name user-id="{{::feedRow.submitterId}}"></arb-user-name>
+								</span>
+								<span ng-bind="::feedRow.createdAt | smartDateTime"></span>
 							</div>
 							<!--<div ng-if="showTags">
 								<span ng-repeat="tag in page.tagIds">
