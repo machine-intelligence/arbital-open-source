@@ -15,8 +15,9 @@ import (
 
 // updateSettingsData contains data given to us in the request.
 type newInviteData struct {
-	DomainIDs []string `json:"domainIds"`
-	ToEmail   string   `json:"toEmail"`
+	DomainID string `json:"domainId"`
+	ToEmail  string `json:"toEmail"`
+	Role     string `json:"role"`
 }
 
 var newInviteHandler = siteHandler{
@@ -39,21 +40,17 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
-	for _, domainID := range data.DomainIDs {
-		if !core.IsIDValid(domainID) {
-			return pages.Fail("One of the domainIds is invalid", nil).Status(http.StatusBadRequest)
-		}
+	if !core.IsIntIDValid(data.DomainID) {
+		return pages.Fail("DomainIds is invalid", nil).Status(http.StatusBadRequest)
 	}
 	if data.ToEmail == "" {
 		return pages.Fail("No invite email given", nil).Status(http.StatusBadRequest)
 	}
 
 	// Check to make sure user has permissions for all the domains
-	/*for _, domainID := range data.DomainIDs {
-		if u.TrustMap[domainID].Level < core.ArbiterTrustLevel {
-			return pages.Fail("Don't have permissions to invite to one of the domains", nil).Status(http.StatusBadRequest)
-		}
-	}*/
+	if !core.CanCurrentUserGiveRole(u, data.DomainID, data.Role) {
+		return pages.Fail("Don't have permissions to give this role in this domain", nil)
+	}
 
 	// Check to see if the invitee is already a user in our DB
 	var inviteeUserID string
@@ -64,88 +61,55 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	_, err = row.Scan(&inviteeUserID)
 	if err != nil {
 		return pages.Fail("Couldn't retrieve a user", err)
+	} else if inviteeUserID != "" {
+		return pages.Fail("This user is already on Arbital. Invite them direction via 'Add Member'", err).Status(http.StatusBadRequest)
 	}
 
-	// Create invite map
-	inviteMap := make(map[string]*core.Invite) // key: domainId
-	for _, domainID := range data.DomainIDs {
-		inviteMap[domainID] = &core.Invite{
-			FromUserID: u.ID,
-			DomainID:   domainID,
-			ToEmail:    data.ToEmail,
-			ToUserID:   inviteeUserID,
-			CreatedAt:  database.Now(),
-		}
+	invite := &core.Invite{
+		FromUserID: u.ID,
+		DomainID:   data.DomainID,
+		Role:       data.Role,
+		ToEmail:    data.ToEmail,
+		ToUserID:   inviteeUserID,
+		CreatedAt:  database.Now(),
 	}
-	returnData.ResultMap["inviteMap"] = inviteMap
+	returnData.ResultMap["newInvite"] = invite
 
 	// Check if this invite already exists
 	wherePart := database.NewQuery(`WHERE fromUserId=?`, u.ID).Add(`
-		AND domainId IN`).AddArgsGroupStr(data.DomainIDs).Add(`
+		AND domainId=?`, data.DomainID).Add(`
 		AND toEmail=?`, data.ToEmail)
 	existingInvites, err := core.LoadInvitesWhere(db, wherePart)
 	if err != nil {
 		return pages.Fail("Couldn't load sent invites", err)
-	}
-	for _, existingInvite := range existingInvites {
-		delete(inviteMap, existingInvite.DomainID)
-	}
-	if len(inviteMap) <= 0 {
-		return pages.Success(returnData)
+	} else if len(existingInvites) > 0 {
+		return pages.Fail("You already sent this invite.", nil).Status(http.StatusBadRequest)
 	}
 
 	// Begin the transaction.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 
-		inviteDomainIDs := make([]string, 0)
-		for domainID, invite := range inviteMap {
-			if domainID != "" {
-				inviteDomainIDs = append(inviteDomainIDs, domainID)
-			}
-
-			// Create new invite
-			hashmap := make(map[string]interface{})
-			hashmap["fromUserId"] = u.ID
-			hashmap["domainId"] = domainID
-			hashmap["toEmail"] = data.ToEmail
-			hashmap["createdAt"] = database.Now()
-			if inviteeUserID != "" {
-				hashmap["toUserId"] = inviteeUserID
-				hashmap["claimedAt"] = database.Now()
-				invite.ClaimedAt = database.Now()
-			}
-			statement := db.NewInsertStatement("invites", hashmap).WithTx(tx)
-			if _, err = statement.Exec(); err != nil {
-				return sessions.NewError("Couldn't add row to invites table", err)
-			}
-
-			// If the user already exists, send them an update
-			if inviteeUserID != "" {
-				hashmap := make(map[string]interface{})
-				hashmap["userId"] = invite.ToUserID
-				hashmap["type"] = core.InviteReceivedUpdateType
-				hashmap["createdAt"] = database.Now()
-				hashmap["subscribedToId"] = u.ID
-				hashmap["goToPageId"] = domainID
-				hashmap["byUserId"] = u.ID
-				statement := db.NewInsertStatement("updates", hashmap).WithTx(tx)
-				if _, err = statement.Exec(); err != nil {
-					return sessions.NewError("Couldn't add a new update for the invitee", err)
-				}
-
-				// TODO: Create/update user trust?
-			}
+		// Create new invite
+		hashmap := make(map[string]interface{})
+		hashmap["fromUserId"] = invite.FromUserID
+		hashmap["domainId"] = invite.DomainID
+		hashmap["role"] = invite.Role
+		hashmap["toEmail"] = invite.ToEmail
+		hashmap["createdAt"] = invite.CreatedAt
+		hashmap["toUserId"] = invite.ToUserID
+		hashmap["claimedAt"] = invite.ClaimedAt
+		statement := db.NewInsertStatement("invites", hashmap).WithTx(tx)
+		if _, err = statement.Exec(); err != nil {
+			return sessions.NewError("Couldn't add row to invites table", err)
 		}
 
 		// If the user doesn't exist, send them an invite
-		if inviteeUserID == "" {
-			var task tasks.SendInviteTask
-			task.FromUserID = u.ID
-			task.ToEmail = data.ToEmail
-			task.DomainIDs = inviteDomainIDs
-			if err := tasks.Enqueue(c, &task, nil); err != nil {
-				return sessions.NewError("Couldn't enqueue a task", err)
-			}
+		var task tasks.SendInviteTask
+		task.FromUserID = invite.FromUserID
+		task.ToEmail = invite.ToEmail
+		task.DomainID = invite.DomainID
+		if err := tasks.Enqueue(c, &task, nil); err != nil {
+			return sessions.NewError("Couldn't enqueue a task", err)
 		}
 		return nil
 	})

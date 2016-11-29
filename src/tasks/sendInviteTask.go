@@ -14,7 +14,7 @@ import (
 // SendInviteTask is the object that's put into the daemon queue.
 type SendInviteTask struct {
 	FromUserID string
-	DomainIDs  []string
+	DomainID   string
 	ToEmail    string
 }
 
@@ -27,10 +27,8 @@ func (task SendInviteTask) IsValid() error {
 	if !core.IsIDValid(task.FromUserID) {
 		return fmt.Errorf("Invalid FromUserId")
 	}
-	for _, domainID := range task.DomainIDs {
-		if !core.IsIDValid(domainID) {
-			return fmt.Errorf("Invalid domain id: %v", domainID)
-		}
+	if !core.IsIntIDValid(task.DomainID) {
+		return fmt.Errorf("Invalid domain id: %v", task.DomainID)
 	}
 	if task.ToEmail == "" {
 		return fmt.Errorf("Invalid ToEmail")
@@ -57,29 +55,9 @@ func (task SendInviteTask) Execute(db *database.DB) (delay int, err error) {
 		return -1, fmt.Errorf("Couldn't load sender user info: %v", err)
 	}
 
-	pageMap := make(map[string]*core.Page)
-	for _, domainID := range task.DomainIDs {
-		core.AddPageIDToMap(domainID, pageMap)
-	}
-	u := core.NewCurrentUser()
-	u.ID = task.FromUserID
-	err = core.LoadPages(db, u, pageMap)
+	domain, err := core.LoadDomainByID(db, task.DomainID)
 	if err != nil {
 		return -1, fmt.Errorf("Couldn't load domain info: %v", err)
-	}
-
-	domainsDesc := ""
-	if len(pageMap) > 0 {
-		for index, domainID := range task.DomainIDs {
-			if index > 0 {
-				if index == len(task.DomainIDs)-1 {
-					domainsDesc += " and "
-				} else {
-					domainsDesc += ", "
-				}
-			}
-			domainsDesc += pageMap[domainID].Title
-		}
 	}
 
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
@@ -88,13 +66,11 @@ Hello!
 
 %s just sent you an invite to Arbital, an ambitious effort to solve online discussion.
 
-This invite gives you the permission to create and edit %s pages.
-
 Visit https://arbital.com/signup to create your account.
 
 We're excited to have you with us!
 
-—Team Arbital`, senderUser.FullName(), domainsDesc)
+—Team Arbital`, senderUser.FullName(), domain.Alias)
 
 		if sessions.Live {
 			// Create mail message

@@ -85,7 +85,6 @@ require('js/signupPage.ts');
 require('js/requisitesPage.ts');
 require('js/learnPage.ts');
 require('js/settingsPage.ts');
-require('js/settingsInviteTab.ts');
 require('js/adminDashboardPage.ts');
 require('js/readMode.ts');
 require('js/recentChanges.ts');

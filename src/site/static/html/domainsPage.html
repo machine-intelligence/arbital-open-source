@@ -11,12 +11,6 @@
 		</md-toolbar>
 
 		<!-- Members table -->
-		<!-- Header row -->
-		<div layout="row" class="domain-user-list-row">
-			<h3 flex>Member name</h3>
-			<h3 flex>Role</h3>
-		</div>
-		<md-divider></md-divider>
 		<!-- Member rows -->
 		<div layout="row"
 				layout-align="start center"
@@ -30,18 +24,59 @@
 					flex></arb-domain-role-input>
 		</div>
 
-		<!-- New Member form -->
+		<!-- New member form -->
 		<div class="domain-user-list-row">
 			<form layout="row"
 					layout-align="start center"
-					ng-submit="newMemberFormSubmit($event, domainId, newMemberInput)">
+					ng-submit="newMemberFormSubmit(domainId, newMemberInput)">
 				<span><md-icon>person_add</md-icon></span>
-				<md-input-container>
-					<label>User's id, email, or alias</label>
+				<md-input-container class="aligned-input-container">
+					<label>User's email, id or alias</label>
 					<input name="newMemberInput" ng-model="newMemberInput">
 				</md-input-container>
 				<md-progress-circular md-mode="indeterminate" toggle-on-submit hide></md-progress-circular>
 				<md-button type="submit" toggle-on-submit>Add member</md-button>
+				<div class="submit-form-error md-warn" hidden></div>
+			</form>
+		</div>
+
+		<br>
+		<br>
+
+		<!-- Invites table -->
+		<!-- Header row -->
+		<div layout="row" class="domain-user-list-header domain-user-list-row">
+			Your invites
+		</div>
+		<!-- Invite rows -->
+		<div layout="row"
+				layout-align="start center"
+				class="domain-user-list-row"
+				ng-repeat="invite in invitesMap[domainId]">
+			<div flex>{{invite.toEmail}}</div>
+			<div flex>{{invite.role}}</div>
+			<div flex>{{getInviteStatus(invite)}}</div>
+		</div>
+		<div layout="row"
+				layout-align="start center"
+				class="domain-user-list-row"
+				ng-if="invitesMap[domainId].length <= 0">
+			None yet
+		</div>
+
+		<!-- New invite form -->
+		<div class="domain-user-list-row" ng-init="newInviteDomainMembership={role:'default'}">
+			<form layout="row"
+					layout-align="start center"
+					ng-submit="newInviteFormSubmit(domainId, newInviteInput,newInviteDomainMembership)">
+				<span><md-icon>person_add</md-icon></span>
+				<md-input-container class="aligned-input-container">
+					<label>User's email</label>
+					<input name="newInviteInput" ng-model="newInviteInput">
+				</md-input-container>
+				<arb-domain-role-input domain-id="{{::domainId}}" domain-membership="newInviteDomainMembership"></arb-domain-role-input>
+				<md-progress-circular md-mode="indeterminate" toggle-on-submit hide></md-progress-circular>
+				<md-button type="submit" toggle-on-submit>Send invite</md-button>
 				<div class="submit-form-error md-warn" hidden></div>
 			</form>
 		</div>

@@ -41,12 +41,11 @@ func updateDomainRoleHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if !core.IsIntIDValid(data.DomainID) {
 		return pages.Fail("DomainID is incorrect", nil).Status(http.StatusBadRequest)
 	}
-	role := core.DomainRoleType(data.Role)
-	if !core.IsDomainRoleTypeValid(role) {
+	if !core.IsDomainRoleValid(data.Role) {
 		return pages.Fail("Role is incorrect", nil).Status(http.StatusBadRequest)
 	}
 
-	if !core.CanCurrentUserGiveRole(u, data.DomainID, role) {
+	if !core.CanCurrentUserGiveRole(u, data.DomainID, data.Role) {
 		return pages.Fail("Don't have permissions to give this role in this domain", nil)
 	}
 
