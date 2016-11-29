@@ -1319,11 +1319,7 @@ textarea {
 }
 
 .subpage-content {
-	margin-top: 20px;
-
-	.inline-subpage > & {
-		margin-top: 0px;
-	}
+	border-bottom: 1px solid #eee;
 }
 
 // Header/footer sections for a comment

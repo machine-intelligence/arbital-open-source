@@ -1,18 +1,16 @@
 <div id="subpage-{{::page.pageId}}"
 		layout="column"
-		class="subpage-content full-width md-whiteframe-2dp"
+		class="subpage-content full-width"
 		ng-class="{'selected-subpage': isSelected()}"
 		ng-if="isSubpageVisible()">
 	<!-- Comment header -->
-	<div class="comment-header" layout="row" layout-align="start center">
+	<div layout="row" layout-align="start center">
 
 		<!-- Icon choices -->
 		<div layout="row" ng-if="::!parentSubpageId">
-			<span ng-if="page.isApprovedComment && !page.isEditorComment">
-				<md-icon>comment</md-icon>
-			</span>
 			<span ng-if="page.isApprovedComment && page.isEditorComment">
 				<md-icon>rate_review</md-icon>
+				<md-tooltip>Author-only comment</md-tooltip>
 			</span>
 			<span ng-if="!page.isApprovedComment && !canApproveComment()">
 				<md-icon>warning</md-icon>

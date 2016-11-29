@@ -1,37 +1,16 @@
 <!-- Discussion section for some page -->
 <a id="discussion"></a>
 <div layout="column">
-	<md-toolbar class="md-hue-2">
-		<div class="md-toolbar-tools">
-			<h1 ng-bind="showEditorComments ? 'Editor discussion' : 'Discussion'"></h1>
-			<h1>&nbsp;</h1>
-			<h1 ng-bind="'(' + visibleCommentCount() + ')'"></h1>
-
-			<div flex></div>
-			<!-- Menu with all the other stuff -->
-			<md-menu>
-				<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="Options">
-					<md-icon>more_vert</md-icon>
-				</md-button>
-				<md-menu-content>
-					<!-- Toggle seeing editor comments -->
-					<md-menu-item>
-						<md-button ng-click="toggleEditorComments()">
-							{{showEditorComments ? 'Hide' : 'Show'}} editor discussion
-						</md-button>
-					</md-menu-item>
-				</md-menu-content>
-			</md-menu>
-		</div>
-	</md-toolbar>
 
 	<div class="dynamic-hor-padding">
-		<div ng-repeat="subpageId in page.subpageIds">
-			<div arb-subpage
-					lens-id="{{::page.pageId}}"
-					page-id="{{::subpageId}}"
-					class="reveal-after-render"
-					ng-if="shouldShowSubpage(subpageId)"></div>
+		<div class="md-whiteframe-2dp">
+			<div ng-repeat="subpageId in page.subpageIds">
+				<div arb-subpage
+						lens-id="{{::page.pageId}}"
+						page-id="{{::subpageId}}"
+						class="reveal-after-render"
+						ng-if="shouldShowSubpage(subpageId)"></div>
+			</div>
 		</div>
 		<!-- New comment editor -->
 		<div>
