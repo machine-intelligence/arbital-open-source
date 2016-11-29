@@ -63,6 +63,8 @@ CREATE TABLE pageInfos (
 	isApprovedComment BOOL NOT NULL,
 	/* If true, this comment thread is resolved and should be hidden. */
 	isResolved BOOL NOT NULL,
+	/* If set, this page is a link to an external resource with this url. */
+	externalUrl VARCHAR(2048) NOT NULL,
 
 	PRIMARY KEY(pageId)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

@@ -20,3 +20,5 @@ CREATE TABLE invites (
 
 	PRIMARY KEY(fromUserId,domainId,toEmail)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+alter table pageInfos add column externalUrl varchar(2048) not null;

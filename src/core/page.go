@@ -104,6 +104,7 @@ type corePageData struct {
 	Clickbait         string `json:"clickbait"`
 	TextLength        int    `json:"textLength"` // number of characters
 	Alias             string `json:"alias"`
+	ExternalUrl       string `json:"externalUrl"`
 	SortChildrenBy    string `json:"sortChildrenBy"`
 	HasVote           bool   `json:"hasVote"`
 	VoteType          string `json:"voteType"`
@@ -1074,8 +1075,8 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 	// Load the page data
 	rows := database.NewQuery(`
 		SELECT p.pageId,p.edit,p.prevEdit,p.creatorId,p.createdAt,p.title,p.clickbait,`).AddPart(textSelect).Add(`,
-			length(p.text),p.metaText,pi.type,pi.hasVote,pi.voteType,
-			pi.alias,pi.createdAt,pi.createdBy,pi.sortChildrenBy,pi.seeDomainId,pi.editDomainId,
+			length(p.text),p.metaText,pi.type,pi.hasVote,pi.voteType,pi.alias,
+			pi.createdAt,pi.createdBy,pi.externalUrl,pi.sortChildrenBy,pi.seeDomainId,pi.editDomainId,
 			pi.isEditorComment,pi.isApprovedComment,pi.isResolved,
 			pi.indirectTeacher,pi.currentEdit,pi.likeableId,pi.viewCount,
 			p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,p.editSummary,pi.isDeleted,pi.mergedInto,
@@ -1089,7 +1090,7 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 		err := rows.Scan(
 			&p.PageID, &p.Edit, &p.PrevEdit, &p.EditCreatorID, &p.EditCreatedAt, &p.Title, &p.Clickbait,
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.HasVote,
-			&p.VoteType, &p.Alias, &p.PageCreatedAt, &p.PageCreatorID, &p.SortChildrenBy,
+			&p.VoteType, &p.Alias, &p.PageCreatedAt, &p.PageCreatorID, &p.ExternalUrl, &p.SortChildrenBy,
 			&p.SeeDomainID, &p.EditDomainID, &p.IsEditorComment, &p.IsApprovedComment,
 			&p.IsResolved, &p.IndirectTeacher, &p.CurrentEdit, &p.LikeableID, &p.ViewCount,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.EditSummary, &p.IsDeleted, &p.MergedInto,
@@ -1409,7 +1410,7 @@ func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, options *LoadE
 	}
 	statement := database.NewQuery(`
 		SELECT p.pageId,p.edit,p.prevEdit,pi.type,p.title,p.clickbait,p.text,p.metaText,
-			pi.alias,p.creatorId,pi.sortChildrenBy,pi.hasVote,pi.voteType,
+			pi.alias,p.creatorId,pi.externalUrl,pi.sortChildrenBy,pi.hasVote,pi.voteType,
 			p.createdAt,pi.seeDomainId,pi.editDomainId,pi.createdAt,
 			pi.createdBy,pi.isEditorComment,pi.isApprovedComment,
 			pi.isResolved,pi.likeableId,p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,p.editSummary,
@@ -1422,7 +1423,7 @@ func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, options *LoadE
 		WHERE`).AddPart(whereClause).ToStatement(db)
 	row := statement.QueryRow()
 	exists, err := row.Scan(&p.PageID, &p.Edit, &p.PrevEdit, &p.Type, &p.Title, &p.Clickbait,
-		&p.Text, &p.MetaText, &p.Alias, &p.EditCreatorID, &p.SortChildrenBy,
+		&p.Text, &p.MetaText, &p.Alias, &p.EditCreatorID, &p.ExternalUrl, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.EditCreatedAt, &p.SeeDomainID,
 		&p.EditDomainID, &p.PageCreatedAt, &p.PageCreatorID,
 		&p.IsEditorComment, &p.IsApprovedComment, &p.IsResolved, &p.LikeableID,

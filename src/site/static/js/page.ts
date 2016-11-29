@@ -127,6 +127,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 			// Check if the quality of the page bar should be displayed
 			$scope.isQualityBarVisible = function() {
 				if ($scope.selectedLens.isConcept()) return false;
+				if ($scope.selectedLens.externalUrl.length > 0) return false;
 				let qualityTag = arb.pageService.getQualityTag($scope.selectedLens.tagIds);
 				return ['b-class', 'a-class', 'featured'].indexOf(qualityTag) < 0;
 			};

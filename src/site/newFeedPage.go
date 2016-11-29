@@ -70,6 +70,7 @@ func newFeedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				EditDomainID: newFeedRow.DomainID,
 				Title:        data.Title,
 				Text:         fmt.Sprintf("Automatically generated page for an external resource: %s", data.Url),
+				ExternalUrl:  data.Url,
 				IsPublished:  true,
 				Tx:           tx,
 			})

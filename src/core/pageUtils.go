@@ -422,6 +422,7 @@ type CreateNewPageOptions struct {
 	Title           string
 	Clickbait       string
 	Text            string
+	ExternalUrl     string
 	IsEditorComment bool
 	IsPublished     bool
 
@@ -488,6 +489,7 @@ func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOption
 		hashmap["editDomainId"] = options.EditDomainID
 		hashmap["lockedBy"] = u.ID
 		hashmap["lockedUntil"] = GetPageQuickLockedUntilTime()
+		hashmap["externalUrl"] = options.ExternalUrl
 		hashmap["sortChildrenBy"] = LikesChildSortingOption
 		hashmap["isEditorComment"] = options.IsEditorComment
 		hashmap["isApprovedComment"] = isApprovedComment
