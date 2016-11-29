@@ -48,18 +48,16 @@
 	</div>
 
 	<!-- Feed rows -->
-	<div class="full-page-panel" layout="column">
-		<div ng-repeat="feedRow in feedRows" ng-init="page=arb.stateService.pageMap[feedRow.pageId]">
-			<div class="page-row" layout="row" layout-align="start center" flex>
-				<arb-likes object-id="{{::page.pageId}}"
-						ng-class="{'s18': isTinyScreen}"
-						ng-if="::!hideLikes"></arb-likes>
+	<div layout="column" layout-align="center center">
+		<div ng-repeat="feedRow in feedRows" ng-init="page=arb.stateService.pageMap[feedRow.pageId]" class="md-whiteframe-1dp feed-row">
+			<div class="page-row" flex>
 			
 				<!-- Page title and caption -->
 				<div layout="column" layout-align="center" flex>
 					<div layout="row" layout-align="space between" flex>
 						<arb-page-title page-id="{{::page.pageId}}"
 								is-link="true"
+								show-clickbait="false"
 								flex></arb-page-title>
 			
 						<!-- Metadata and quick edit button -->
@@ -71,15 +69,6 @@
 							<div style="white-space: nowrap">
 								<span ng-bind="::(page.textLength | numSuffix)"></span> characters
 							</div>
-							<div style="white-space: nowrap">
-								<md-icon>comment</md-icon>
-								<span ng-bind="::page.commentCount"></span>
-							</div>
-							<div style="white-space: nowrap">
-								submitted by
-								<arb-user-name user-id="{{::feedRow.submitterId}}"></arb-user-name>
-								<span ng-bind="::feedRow.createdAt | smartDateTime"></span>
-							</div>
 							<div style="white-space: nowrap" ng-if="showTags">
 								<span ng-repeat="tag in page.tagIds">
 									<arb-tag tag-id="{{::tag}}"></arb-tag>
@@ -87,8 +76,22 @@
 							</div>
 						</div>
 					</div>
-					<div class="md-caption page-row-caption" flex>
-						{{::page.clickbait}}
+				</div>
+
+				<div layout="row" layout-align="center center" flex>
+					<div layout="row" layout-align="start center" flex>
+						<arb-likes object-id="{{::page.pageId}}"
+								ng-class="{'s18': isTinyScreen}"
+								ng-if="::!hideLikes"></arb-likes>
+						<div style="white-space: nowrap">
+							<md-icon>comment</md-icon>
+							<span ng-bind="::page.commentCount"></span>
+						</div>
+					</div>
+					<div class="md-caption">
+						submitted by
+						<arb-user-name user-id="{{::feedRow.submitterId}}"></arb-user-name>
+						<span ng-bind="::feedRow.createdAt | smartDateTime"></span>
 					</div>
 				</div>
 			</div>
