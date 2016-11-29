@@ -674,6 +674,7 @@ app.directive('arbConfirmButton', function(arb) {
 			disabled: '=',
 			tooltipText: '@',
 			confirmed: '&',
+			checkerFn: '&',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -681,6 +682,14 @@ app.directive('arbConfirmButton', function(arb) {
 			$scope.buttonFlexOrder = $scope.buttonBeforeConfirm ? -1 : 1;
 
 			$scope.toggleConfirming = function(confirming) {
+				if (!$scope.confirming) {
+					// Check if we need to confirm
+					if ($scope.checkerFn) {
+						if (!$scope.checkerFn()) {
+							$scope.confirmed();
+						}
+					}
+				}
 				$scope.confirming = confirming;
 			};
 		},
