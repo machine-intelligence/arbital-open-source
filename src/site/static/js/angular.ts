@@ -695,6 +695,22 @@ app.filter('numSuffix', function() {
 	};
 });
 
+// readDuration filter converts a number string (corresponding to characters) to a duration in minutes
+app.filter('readDuration', function() {
+	return function(input) {
+		var minutes = Math.round(+input / 1000);
+		return minutes + ' minute' + (minutes == 1 ? '' : 's');
+	};
+});
+
+// urlDomain filter converts a url into just the domain part
+app.filter('urlDomain', function() {
+	return function(input) {
+		var re = new RegExp('^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/\n]+)', 'g');
+		return re.exec(input)[1];
+	};
+});
+
 // shorten filter shortens a string to the given number of characters
 app.filter('shorten', function() {
 	return function(input, charCount) {

@@ -2056,6 +2056,14 @@ arb-path-nav, [arb-path-nav] {
 	padding: 10px;
 	border-radius: 2px;
 	width: 900px;
+
+	.feed-page-title-row {
+		margin-bottom: 5px;
+
+		a.external-link {
+			color: $link-color;
+		}
+	}
 }
 
 .aligned-input-container {

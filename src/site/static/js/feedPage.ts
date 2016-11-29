@@ -29,7 +29,7 @@ app.directive('arbFeedPage', function($timeout, $http, arb) {
 			// Called when the url input changes
 			$scope.submissionUrlChanged = function() {
 				// Figure out if the url is to an Arbital page
-				let arbitalUrlRegexp = new RegExp('arbital\.com/p/' + aliasMatch, 'g');
+				let arbitalUrlRegexp = new RegExp(arb.urlService.getTopLevelDomain() + '/p/' + aliasMatch, 'g');
 				let lensUrlRegexp = new RegExp('[&?]l=' + aliasMatch, 'g');
 				$scope.submission.pageId = '';
 				let matches = arbitalUrlRegexp.exec($scope.submission.url);
