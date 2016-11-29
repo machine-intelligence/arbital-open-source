@@ -155,7 +155,7 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 		// If set, the user is doing an arc starting from this hub page
 		hubId?: string,
 		// If true, jump to the discussion part of the page
-		discussionHash?: string,
+		discussionHash?: boolean,
 		// If true, immediately start the path if the current page is an arc
 		startPath?: boolean,
 	};

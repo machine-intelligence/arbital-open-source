@@ -58,7 +58,7 @@ func newFeedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		CreatedAt:   database.Now(),
 	}
 
-	if !u.GetDomainMembershipRole(newFeedRow.DomainID).AtLeast(core.TrustedDomainRole) {
+	if !core.RoleAtLeast(u.GetDomainMembershipRole(newFeedRow.DomainID), core.TrustedDomainRole) {
 		return pages.Fail("You don't have permissions to submit a link to this domain", nil).Status(http.StatusBadRequest)
 	}
 

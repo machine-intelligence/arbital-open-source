@@ -2039,8 +2039,15 @@ arb-path-nav, [arb-path-nav] {
 .domain-user-list {
 	margin-top: 15px;
 
+	.domain-user-list-header {
+		@extend .md-headline;
+		margin-top: 15px;
+		margin-bottom: 5px;
+	}
+
 	.domain-user-list-row {
-		margin: 0px 20px;
+		margin-right: 20px;
+		margin-left: 20px;
 	}
 }
 
@@ -2051,3 +2058,6 @@ arb-path-nav, [arb-path-nav] {
 	width: 900px;
 }
 
+.aligned-input-container {
+	margin-bottom: 0;
+}

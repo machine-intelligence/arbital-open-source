@@ -45,6 +45,13 @@ func domainsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error while loading domain members", err)
 	}
 
+	// Get all of the invites a user has SENT
+	wherePart := database.NewQuery(`WHERE toUserId="" AND fromUserId=?`, u.ID)
+	returnData.ResultMap["invitesSent"], err = core.LoadInvitesWhere(db, wherePart)
+	if err != nil {
+		return pages.Fail("Couldn't load sent invites", err)
+	}
+
 	// Load pages.
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {

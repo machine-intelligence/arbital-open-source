@@ -68,6 +68,7 @@ type CurrentUser struct {
 type Invite struct {
 	FromUserID  string `json:"fromUserId"`
 	DomainID    string `json:"domainId"`
+	Role        string `json:"role"`
 	ToEmail     string `json:"toEmail"`
 	CreatedAt   string `json:"createdAt"`
 	ToUserID    string `json:"toUserId"`
@@ -320,11 +321,11 @@ func loadUpdateCountInternal(db *database.DB, userID string, updateTypes []strin
 func LoadInvitesWhere(db *database.DB, wherePart *database.QueryPart) ([]*Invite, error) {
 	invites := make([]*Invite, 0)
 	rows := database.NewQuery(`
-		SELECT fromUserId,domainId,toEmail,createdAt,toUserId,claimedAt,emailSentAt
+		SELECT fromUserId,domainId,role,toEmail,createdAt,toUserId,claimedAt,emailSentAt
 		FROM invites`).AddPart(wherePart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		invite := &Invite{}
-		err := rows.Scan(&invite.FromUserID, &invite.DomainID, &invite.ToEmail,
+		err := rows.Scan(&invite.FromUserID, &invite.DomainID, &invite.Role, &invite.ToEmail,
 			&invite.CreatedAt, &invite.ToUserID, &invite.ClaimedAt, &invite.EmailSentAt)
 		if err != nil {
 			return fmt.Errorf("failed to scan an invite: %v", err)

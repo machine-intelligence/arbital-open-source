@@ -443,6 +443,11 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				arb.pageService.discardPage($scope.page.pageId, cont, cont);
 			};
 
+			// Return true iff we should ask whether the user wants to discard the page.
+			$scope.shouldAskToDiscard = function() {
+				return $scope.page.title.length > 0 || $scope.page.clickbait.length > 0 || $scope.page.text.length > 0;
+			};
+
 			// Process Delete button click.
 			$scope.deletePage = function() {
 				arb.pageService.deletePage($scope.page.pageId, function() {

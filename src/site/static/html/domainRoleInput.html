@@ -1,8 +1,8 @@
 <md-input-container class="no-margins" flex>
 	<label ng-if="::showLabel">{{arb.stateService.domainMap[domainId].alias}}</label>
-	<md-select ng-model="arb.userService.userMap[userId].domainMembershipMap[domainId].role"
+	<md-select ng-model="domainMembership.role"
 			md-on-close="updateDomainRole()"
-			aria-label="{{::arb.stateService.domainMap[domainId].alias}}">
+			aria-label="Domain role">
 		<md-option value="banned">Banned</md-option>
 		<md-option value="">None</md-option>
 		<md-option value="default">Default</md-option>

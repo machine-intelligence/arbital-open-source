@@ -36,9 +36,8 @@ type DomainMember struct {
 }
 
 // Returns true if this role is at least as high as the given role.
-func (dm *DomainMember) AtLeast(asHighAs DomainRoleType) bool {
-	userRole := DomainRoleType(dm.Role)
-	return userRole.AtLeast(asHighAs)
+func (dm *DomainMember) AtLeast(asHighAs string) bool {
+	return RoleAtLeast(dm.Role, asHighAs)
 }
 
 type ProcessDomainCallback func(db *database.DB, domain *Domain) error

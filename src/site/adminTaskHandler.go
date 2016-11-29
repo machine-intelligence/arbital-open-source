@@ -43,7 +43,7 @@ func adminTaskHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		var task tasks.SendInviteTask
 		task.FromUserID = "1"
 		task.ToEmail = "alexei.andreev@gmail.com"
-		task.DomainIDs = []string{"1lw", "2v", "3d"}
+		task.DomainID = "1"
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			return pages.Fail("Couldn't enqueue a task", err)
 		}

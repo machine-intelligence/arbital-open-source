@@ -53,7 +53,7 @@ func approvePageToDomainHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check permissions
-	if !u.GetDomainMembershipRole(data.DomainID).AtLeast(core.ReviewerDomainRole) {
+	if !core.RoleAtLeast(u.GetDomainMembershipRole(data.DomainID), core.ReviewerDomainRole) {
 		return pages.Fail("You don't have permission to do this", nil)
 	}
 

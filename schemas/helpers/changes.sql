@@ -1,21 +1,22 @@
 /* This file contains the recent changes to schemas, sorted from oldest to newest. */
-CREATE TABLE feedPages (
-
-	/* Id of the domain feed. FK into domains. */
+drop table invites;
+CREATE TABLE invites (
+	/* Id of user sending invite. FK into users. */
+	fromUserId VARCHAR(32) NOT NULL,
+	/* Id of domain that this invite is for. FK into domains. */
 	domainId BIGINT NOT NULL,
-
-	/* Id of the page in the feed. FK into pageInfos. */
-	pageId VARCHAR(32) NOT NULL,
-
-	/* Id of the user who submitted it to the feed. FK into users. */
-	submitterId VARCHAR(32) NOT NULL,
-
-	/* When this submission was made. */
+	/* Role the invited user will receive. */
+	role VARCHAR(32) NOT NULL,
+	/* Email address to send invite to. */
+	toEmail VARCHAR(100) NOT NULL,
+	/* Date this invite was created. */
 	createdAt DATETIME NOT NULL,
+	/* If a user claimed this invite, this is their id. FK into users. */
+	toUserId VARCHAR(32) NOT NULL,
+	/* Date this invite was claimed */
+	claimedAt DATETIME NOT NULL,
+	/* When the invite email was sent. */
+	emailSentAt DATETIME NOT NULL,
 
-	PRIMARY KEY(domainId, pageId)
+	PRIMARY KEY(fromUserId,domainId,toEmail)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-
-alter table pageInfos add column isApprovedComment bool not null;
-alter table pageInfos drop column isRequisite;
-alter table pageInfos drop column isEditorCommentIntention;

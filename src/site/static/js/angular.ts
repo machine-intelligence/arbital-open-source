@@ -192,9 +192,10 @@ app.run(function($http, $location, arb) {
 		handler: function(args, $scope) {
 			$http({method: 'POST', url: '/json/domains/'})
 			.success($scope.getSuccessFunc(function(data) {
+				$scope.invitesSent = data.result.invitesSent;
 				return {
 					title: 'Domains',
-					content: $scope.newElement('<arb-domains-page></arb-domains-page>'),
+					content: $scope.newElement('<arb-domains-page invites-sent=\'invitesSent\'></arb-domains-page>'),
 					analytics: {page: 'domains'},
 				};
 			}))

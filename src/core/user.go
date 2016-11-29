@@ -108,12 +108,11 @@ func LoadUser(db *database.DB, userID string, currentUserID string) (*User, erro
 
 // GetDomainMembershipRole returns the role the user has in the given domain.
 // NOTE: we are assuming DomainMembershipMap has been loaded.
-func (u *User) GetDomainMembershipRole(domainID string) *DomainRoleType {
-	role := NoDomainRole
+func (u *User) GetDomainMembershipRole(domainID string) string {
 	if domainMember, ok := u.DomainMembershipMap[domainID]; ok {
-		role = DomainRoleType(domainMember.Role)
+		return domainMember.Role
 	}
-	return &role
+	return NoDomainRole
 }
 
 // LoadUserDomainMembership loads all the group names this user belongs to.
@@ -131,8 +130,8 @@ func LoadUserDomainMembership(db *database.DB, u *User, domainMap map[string]*Do
 		if err != nil {
 			return fmt.Errorf("failed to scan for a member: %v", err)
 		}
-		dm.CanCreateApprovedComments = DefaultDomainRole.Contains(DomainRoleType(dm.Role))
-		dm.CanApproveComments = ReviewerDomainRole.Contains(DomainRoleType(dm.Role))
+		dm.CanCreateApprovedComments = RoleAtLeast(dm.Role, DefaultDomainRole)
+		dm.CanApproveComments = RoleAtLeast(dm.Role, ReviewerDomainRole)
 		u.DomainMembershipMap[dm.DomainID] = &dm
 		if domainMap != nil {
 			domainMap[dm.DomainID] = &Domain{ID: dm.DomainID}

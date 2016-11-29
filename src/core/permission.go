@@ -8,20 +8,18 @@ import (
 	"zanaduu3/src/sessions"
 )
 
-type DomainRoleType string
-
 const (
-	BannedDomainRole     DomainRoleType = "banned"
-	NoDomainRole         DomainRoleType = ""        // aka, not a member
-	DefaultDomainRole    DomainRoleType = "default" // aka, is a member, can comment, vote, and propose edits
-	TrustedDomainRole    DomainRoleType = "trusted"
-	ReviewerDomainRole   DomainRoleType = "reviewer"
-	ArbiterDomainRole    DomainRoleType = "arbiter"
-	ArbitratorDomainRole DomainRoleType = "arbitrator"
+	BannedDomainRole     string = "banned"
+	NoDomainRole         string = ""        // aka, not a member
+	DefaultDomainRole    string = "default" // aka, is a member, can comment, vote, and propose edits
+	TrustedDomainRole    string = "trusted"
+	ReviewerDomainRole   string = "reviewer"
+	ArbiterDomainRole    string = "arbiter"
+	ArbitratorDomainRole string = "arbitrator"
 )
 
 // List of roles ordered from least to most priveledged
-var _allDomainRoleTypes = []DomainRoleType{
+var _allDomainRoles = []string{
 	BannedDomainRole,
 	NoDomainRole,
 	DefaultDomainRole,
@@ -32,10 +30,10 @@ var _allDomainRoleTypes = []DomainRoleType{
 }
 
 // Returns true if this role is at least as high as the given role. (>=)
-func (role DomainRoleType) AtLeast(asHighAs DomainRoleType) bool {
+func RoleAtLeast(role, atLeast string) bool {
 	metThreshold := false
-	for _, domainRole := range _allDomainRoleTypes {
-		metThreshold = metThreshold || (domainRole == asHighAs)
+	for _, domainRole := range _allDomainRoles {
+		metThreshold = metThreshold || (domainRole == atLeast)
 		if domainRole == role {
 			return metThreshold
 		}
@@ -43,15 +41,10 @@ func (role DomainRoleType) AtLeast(asHighAs DomainRoleType) bool {
 	return false
 }
 
-// Returns true if this role contains the given role. (<=)
-func (role DomainRoleType) Contains(subset DomainRoleType) bool {
-	return subset.AtLeast(role)
-}
-
-// Return true if the given DomainRoleType is a valid one.
-func IsDomainRoleTypeValid(t DomainRoleType) bool {
-	for _, v := range _allDomainRoleTypes {
-		if t == v {
+// Return true if the given domain role is a valid one.
+func IsDomainRoleValid(role string) bool {
+	for _, v := range _allDomainRoles {
+		if role == v {
 			return true
 		}
 	}
@@ -60,17 +53,17 @@ func IsDomainRoleTypeValid(t DomainRoleType) bool {
 
 // Return true iff current user has permission to given the given role to another user
 // in the given domain.
-func CanCurrentUserGiveRole(u *CurrentUser, domainID string, role DomainRoleType) bool {
+func CanCurrentUserGiveRole(u *CurrentUser, domainID string, role string) bool {
 	// TODO: check the current role of the user we are changing, since they might have a higher role than us
 	currentUserRole := u.GetDomainMembershipRole(domainID)
-	if !currentUserRole.AtLeast(ArbiterDomainRole) {
+	if !RoleAtLeast(currentUserRole, ArbiterDomainRole) {
 		return false
 	}
 	// User can give any role up to, but not including Arbiter
-	if !role.AtLeast(ArbiterDomainRole) {
+	if !RoleAtLeast(role, ArbiterDomainRole) {
 		return true
 	}
-	if !currentUserRole.AtLeast(ArbitratorDomainRole) {
+	if !RoleAtLeast(currentUserRole, ArbitratorDomainRole) {
 		return false
 	}
 	// User can give any role up to and including Arbiter
@@ -98,7 +91,7 @@ type Permission struct {
 
 // Return true iff the user has the permission to view the given domain
 func CanUserSeeDomain(u *CurrentUser, domainID string) bool {
-	return u.GetDomainMembershipRole(domainID).AtLeast(DefaultDomainRole) || u.IsAdmin
+	return RoleAtLeast(u.GetDomainMembershipRole(domainID), DefaultDomainRole) || u.IsAdmin
 }
 
 func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
@@ -128,13 +121,13 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 		return
 	}
 
-	if !u.GetDomainMembershipRole(p.EditDomainID).AtLeast(DefaultDomainRole) {
+	if !RoleAtLeast(u.GetDomainMembershipRole(p.EditDomainID), DefaultDomainRole) {
 		// TODO: check if domain allows for people to propose edits anyway
 		p.Permissions.Edit.Reason = "You don't have domain permission to edit this page"
 		return
 	}
 
-	if !u.GetDomainMembershipRole(p.EditDomainID).AtLeast(TrustedDomainRole) {
+	if !RoleAtLeast(u.GetDomainMembershipRole(p.EditDomainID), TrustedDomainRole) {
 		p.Permissions.Edit.Reason = "You don't have domain permission to edit this page, but you can propose edits"
 		p.Permissions.ProposeEdit.Has = true
 		return
@@ -152,7 +145,7 @@ func (p *Page) computeDeletePermissions(c sessions.Context, u *CurrentUser) {
 		p.Permissions.Delete.Reason = "Can't delete an unpublished page"
 		return
 	}
-	if !u.GetDomainMembershipRole(p.EditDomainID).AtLeast(TrustedDomainRole) {
+	if !RoleAtLeast(u.GetDomainMembershipRole(p.EditDomainID), TrustedDomainRole) {
 		p.Permissions.Delete.Reason = "You don't have domain permission to delete this page"
 		return
 	}
@@ -165,11 +158,11 @@ func (p *Page) computeCommentPermissions(c sessions.Context, u *CurrentUser) {
 		p.Permissions.Comment.Reason = "Can't comment on an unpublished page"
 		return
 	}
-	if !u.GetDomainMembershipRole(p.EditDomainID).AtLeast(NoDomainRole) {
+	if !RoleAtLeast(u.GetDomainMembershipRole(p.EditDomainID), NoDomainRole) {
 		p.Permissions.Comment.Reason = "You don't have domain permission to comment on this page"
 		return
 	}
-	if *u.GetDomainMembershipRole(p.EditDomainID) == NoDomainRole {
+	if u.GetDomainMembershipRole(p.EditDomainID) == NoDomainRole {
 		// TODO: check if domain allows for people to comment
 		p.Permissions.Comment.Reason = "You don't have domain permission to comment on this page"
 		return

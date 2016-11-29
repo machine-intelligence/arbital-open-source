@@ -674,6 +674,7 @@ app.directive('arbConfirmButton', function(arb) {
 			disabled: '=',
 			tooltipText: '@',
 			confirmed: '&',
+			checkerFn: '&',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -681,6 +682,14 @@ app.directive('arbConfirmButton', function(arb) {
 			$scope.buttonFlexOrder = $scope.buttonBeforeConfirm ? -1 : 1;
 
 			$scope.toggleConfirming = function(confirming) {
+				if (!$scope.confirming) {
+					// Check if we need to confirm
+					if ($scope.checkerFn) {
+						if (!$scope.checkerFn()) {
+							$scope.confirmed();
+						}
+					}
+				}
 				$scope.confirming = confirming;
 			};
 		},
@@ -1011,22 +1020,30 @@ app.directive('arbSlackButton', function(arb) {
 	};
 });
 
+// Dropdown for selecting various domain roles.
 app.directive('arbDomainRoleInput', function(arb) {
 	return {
 		templateUrl: versionUrl('static/html/domainRoleInput.html'),
 		scope: {
 			domainId: '@',
+			// Option 1. If given, this user's role will be shown and changed.
 			userId: '@',
+			// Option 2. If given, the role input will be stored here.
+			domainMembership: '=',
 			showLabel: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
+			if ($scope.userId) {
+				$scope.domainMembership = arb.userService.userMap[$scope.userId].domainMembershipMap[$scope.domainId];
+			}
 
 			$scope.updateDomainRole = function() {
+				if (!$scope.userId) return;
 				let data = {
 					userId: $scope.userId,
 					domainId: $scope.domainId,
-					role: arb.userService.userMap[$scope.userId].domainMembershipMap[$scope.domainId].role,
+					role: $scope.domainMembership.role,
 				};
 				arb.stateService.postDataWithoutProcessing('/updateDomainRole/', data);
 			};

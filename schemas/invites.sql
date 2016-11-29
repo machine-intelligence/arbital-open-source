@@ -2,8 +2,10 @@
 CREATE TABLE invites (
 	/* Id of user sending invite. FK into users. */
 	fromUserId VARCHAR(32) NOT NULL,
-	/* Id of domain that this invite is for. FK into pageInfos. */
-	domainId VARCHAR(32) NOT NULL,
+	/* Id of domain that this invite is for. FK into domains. */
+	domainId BIGINT NOT NULL,
+	/* Role the invited user will receive. */
+	role VARCHAR(32) NOT NULL,
 	/* Email address to send invite to. */
 	toEmail VARCHAR(100) NOT NULL,
 	/* Date this invite was created. */
