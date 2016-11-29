@@ -56,7 +56,7 @@ func feedHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err != nil {
 			return fmt.Errorf("failed to scan a FeedRow: %v", err)
 		}
-		core.AddPageToMap(row.PageID, returnData.PageMap, core.TitlePlusLoadOptions)
+		core.AddPageToMap(row.PageID, returnData.PageMap, core.IntrasitePopoverLoadOptions)
 		feedRows = append(feedRows, &row)
 		return nil
 	})
