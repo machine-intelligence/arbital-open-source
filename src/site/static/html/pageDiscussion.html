@@ -3,18 +3,16 @@
 <div layout="column">
 
 	<div class="dynamic-hor-padding">
-		<div class="md-whiteframe-2dp">
 			<div ng-repeat="subpageId in page.subpageIds">
 				<div arb-subpage
 						lens-id="{{::page.pageId}}"
 						page-id="{{::subpageId}}"
 						class="reveal-after-render"
 						ng-if="shouldShowSubpage(subpageId)"></div>
-			</div>
-		</div>
+			</div>	
 		<!-- New comment editor -->
-		<div>
-			<md-button class="new-comment-button md-primary"
+		<div layout="row" layout-align="end start">
+			<md-button class="new-comment-button md-primary md-raised"
 					ng-click="newCommentClick()"
 					aria-label="New comment"
 					ng-if="!newCommentId">
@@ -25,6 +23,8 @@
 				<span ng-bind="visibleCommentCount() <= 0 ? 'Write first comment' : 'New comment'"
 						ng-if="!showEditorComments"></span>
 			</md-button>
+		</div>
+		<div>
 			<div arb-edit-page
 					class="new-comment-edit-page edit-comment-embed"
 					is-embedded="true"

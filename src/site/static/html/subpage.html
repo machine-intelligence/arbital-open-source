@@ -1,6 +1,6 @@
 <div id="subpage-{{::page.pageId}}"
 		layout="column"
-		class="subpage-content full-width"
+		class="subpage-content full-width md-whiteframe-1dp"
 		ng-class="{'selected-subpage': isSelected()}"
 		ng-if="isSubpageVisible()">
 	<!-- Comment header -->
@@ -11,10 +11,12 @@
 			<span ng-if="page.isApprovedComment && page.isEditorComment">
 				<md-icon>rate_review</md-icon>
 				<md-tooltip>Author-only comment</md-tooltip>
+				<span class="separator"></span>
 			</span>
 			<span ng-if="!page.isApprovedComment && !canApproveComment()">
 				<md-icon>warning</md-icon>
 				<md-tooltip>This comment isn't publicly visible because it hasn't been approved yet</md-tooltip>
+				<span class="separator"></span>
 			</span>
 			<!-- Approve this comment menu for users that can -->
 			<md-menu class="no-padding" ng-if="!page.isApprovedComment && canApproveComment()">
@@ -29,16 +31,36 @@
 						</md-button>
 					</md-menu-item>
 				</md-menu-content>
+				<span class="separator"></span>
 			</md-menu>
-	
-			<span class="separator"></span>
 		</div>
 
-		<!-- User name -->
-		<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
+		<div flex>
+			<!-- User name -->
+			<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
+
+			<!-- How long ago it was created -->
+			<span ng-bind="::(page.pageCreatedAt | smartDateTime)"></span>
+		</div>
+
+		<arb-likes object-id="{{::page.pageId}}" is-button="true" is-stretched="true"></arb-likes>
+
+		<arb-subscribe page-id="{{::page.pageId}}"
+				show-subscriber-count="::!isTinyScreen"
+				is-stretched="true"
+				ng-if="::!parentSubpageId"></arb-subscribe>
+
+		<md-button aria-label="Reply to comment"
+				ng-click="newReply()"
+				ng-disabled="newReplyId"
+				arb-user-check=""
+				ng-if="canReply() && !parentSubpageId && page.subpageIds.length <= 0">
+			<md-icon>reply</md-icon>
+			Reply
+		</md-button>
 
 		<!-- Collapse button -->
-		<div layout="column" flex>
+		<div layout="column">
 			<md-button aria-label="Collapse comment" ng-click="collapseToggle()">
 				<md-icon ng-if="!isCollapsed">expand_less</md-icon>
 				<md-icon ng-if="isCollapsed">expand_more</md-icon>
@@ -111,29 +133,10 @@
 				done-fn="editDone(result)"
 				ng-if="editing"></div>
 
-		<!-- Footer -->
-		<div class="comment-footer" layout="row" layout-align="start start" ng-if="!editing">
-			<arb-likes object-id="{{::page.pageId}}" is-button="true" is-stretched="true"></arb-likes>
-			<arb-subscribe page-id="{{::page.pageId}}"
-					show-subscriber-count="::!isTinyScreen"
-					is-stretched="true"
-					ng-if="::!parentSubpageId"></arb-subscribe>
-			<md-button aria-label="Reply to comment"
-					ng-click="newReply()"
-					ng-disabled="newReplyId"
-					arb-user-check=""
-					ng-if="canReply() && !parentSubpageId && page.subpageIds.length <= 0">
-				<md-icon>reply</md-icon>
-				Reply
-			</md-button>
-			<span flex></span>
-			<span class="md-caption" ng-bind="::(page.pageCreatedAt | smartDateTime)"></span>
-		</div>
-
 		<!-- Indented reply section -->
-		<div layout="row">
-			<div flex="10"></div>
-			<div flex="90" layout="column">
+		<div layout="row" class="expand-tray">
+			<div flex="5"></div>
+			<div flex="95" layout="column">
 				<!-- Replies -->
 				<div arb-subpage lens-id="{{::lensId}}"
 						page-id="{{::subpageId}}"
