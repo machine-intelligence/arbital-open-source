@@ -55,10 +55,10 @@ func (task SendInviteTask) Execute(db *database.DB) (delay int, err error) {
 		return -1, fmt.Errorf("Couldn't load sender user info: %v", err)
 	}
 
-	domain, err := core.LoadDomainByID(db, task.DomainID)
+	/*domain, err := core.LoadDomainByID(db, task.DomainID)
 	if err != nil {
 		return -1, fmt.Errorf("Couldn't load domain info: %v", err)
-	}
+	}*/
 
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		bodyText := fmt.Sprintf(`
@@ -70,7 +70,7 @@ Visit https://arbital.com/signup to create your account.
 
 We're excited to have you with us!
 
-—Team Arbital`, senderUser.FullName(), domain.Alias)
+—Team Arbital`, senderUser.FullName())
 
 		if sessions.Live {
 			// Create mail message
