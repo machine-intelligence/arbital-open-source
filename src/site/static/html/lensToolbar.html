@@ -10,13 +10,9 @@
 			is-stretched="!isTinyScreen"
 			is-button="true"></arb-likes>
 
-	<!-- Edit -->
-	<arb-edit-button page-id="{{page.pageId}}" analytics-desc="lens toolbar"></arb-edit-button>
-
 	<!-- Subscribe -->
 	<arb-subscribe page-id="{{page.pageId}}"
-			is-stretched="::!isTinyScreen"
-			ng-if="page.isSubscribedAsMaintainer"></arb-subscribe>
+			is-stretched="::!isTinyScreen"></arb-subscribe>
 
 	<!-- Link -->
 	<div>
@@ -28,6 +24,14 @@
 	</div>
 
 	<div flex></div>
+
+	<!-- Subscribe as maintainer -->
+	<arb-subscribe-to-maintain page-id="{{page.pageId}}"
+			is-stretched="::!isTinyScreen"
+			ng-if="page.isSubscribedAsMaintainer"></arb-subscribe-to-maintain>
+
+	<!-- Edit -->
+	<arb-edit-button page-id="{{page.pageId}}" analytics-desc="lens toolbar"></arb-edit-button>
 
 	<!-- Menu with all the other stuff -->
 	<!-- TODO(alexei): figure out a better way than hardcoding these numbers -->
