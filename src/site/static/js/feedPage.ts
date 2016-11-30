@@ -28,31 +28,45 @@ app.directive('arbFeedPage', function($timeout, $http, arb) {
 			let attemptedPageIds = {};
 			// Called when the url input changes
 			$scope.submissionUrlChanged = function() {
+				$scope.externalUrlIsDupe = false;
+				$scope.externalUrlOriginalPageID = "";
+
+				if (!$scope.submission.url) {
+					return;
+				}
+
 				// Figure out if the url is to an Arbital page
 				let arbitalUrlRegexp = new RegExp(arb.urlService.getTopLevelDomain() + '/p/' + aliasMatch, 'g');
 				let lensUrlRegexp = new RegExp('[&?]l=' + aliasMatch, 'g');
 				$scope.submission.pageId = '';
 				let matches = arbitalUrlRegexp.exec($scope.submission.url);
-				if (!matches) return;
-				$scope.submission.pageId = matches[1];
-				matches = lensUrlRegexp.exec($scope.submission.url);
-				if (matches) {
+				if (!!matches) {
 					$scope.submission.pageId = matches[1];
+					matches = lensUrlRegexp.exec($scope.submission.url);
+					if (matches) {
+						$scope.submission.pageId = matches[1];
+					}
+
+					// Get the title for the page
+					if ($scope.submission.pageId in arb.stateService.pageMap) {
+						$scope.submission.title = arb.stateService.pageMap[$scope.submission.pageId].title;
+						$scope.submission.pageId = arb.stateService.pageMap[$scope.submission.pageId].pageId;
+					} else if (!($scope.submission.pageId in attemptedPageIds)) {
+						attemptedPageIds[$scope.submission.pageId] = true;
+						arb.pageService.loadTitle($scope.submission.pageId, {
+							silentFail: true,
+							success: function() {
+								$scope.submissionUrlChanged();
+							}
+						});
+					}
 				}
 
-				// Get the title for the page
-				if ($scope.submission.pageId in arb.stateService.pageMap) {
-					$scope.submission.title = arb.stateService.pageMap[$scope.submission.pageId].title;
-					$scope.submission.pageId = arb.stateService.pageMap[$scope.submission.pageId].pageId;
-				} else if (!($scope.submission.pageId in attemptedPageIds)) {
-					attemptedPageIds[$scope.submission.pageId] = true;
-					arb.pageService.loadTitle($scope.submission.pageId, {
-						silentFail: true,
-						success: function() {
-							$scope.submissionUrlChanged();
-						}
-					});
-				}
+				// Check whether the external url is a dupe.
+				arb.stateService.postData('/isDuplicateExternalUrl/', {externalUrl: $scope.submission.url}, function(data) {
+					$scope.externalUrlIsDupe = data.result.isDupe;
+					$scope.externalUrlOriginalPageID = data.result.originalPageID;
+				});
 			};
 
 			// Submit a new link to the feed.
