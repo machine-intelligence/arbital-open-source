@@ -1,12 +1,6 @@
 <div class="vote-bar">
 	<!-- Header -->
-	<div class="md-caption" layout="row">
-		<span flex ng-bind="::typeHelper.headerLabel"></span>
-		<span>
-			<ng-pluralize count="page.votes.length"
-					when="{'0': 'No votes', 'one': 'One vote', 'other': '{} votes'}"></ng-pluralize>
-		</span>
-	</div>
+	<div class="md-caption" layout="row"></div>
 
 	<!-- Body -->
 	<div layout="row">
@@ -15,6 +9,12 @@
 				ng-mousemove="voteMouseMove($event, false)"
 				ng-click="voteMouseClick($event)"
 				layout="column">
+
+			<div flex layout="row" layout-align="end end">
+				<ng-pluralize count="page.votes.length"
+						when="{'0': 'No votes', 'one': 'One vote', 'other': '{} votes'}"></ng-pluralize>
+			</div>
+
 			<!-- Top margin -->
 			<div class="vote-bar-margin full-width" layout="row">
 				<!-- Knob to show where user's vote is -->
