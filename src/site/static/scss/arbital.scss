@@ -805,7 +805,7 @@ md-toast {
 	}
 	.comment-text-container {
 		padding: 5px 5px;
-		font-size: 16px;
+		font-size: 14px;
 		line-height: 18px;
 	}
 	.dynamic-hor-padding {
@@ -832,7 +832,7 @@ md-toast {
 	}
 	.comment-text-container {
 		padding: 5px 10px;
-		font-size: 16px;
+		font-size: 14px;
 		line-height: 20px;
 	}
 	.dynamic-hor-padding {
@@ -859,7 +859,7 @@ md-toast {
 	}
 	.comment-text-container {
 		padding: 5px 15px;
-		font-size: 17px;
+		font-size: 15px;
 		line-height: 22px;
 	}
 	.dynamic-hor-padding {
@@ -887,7 +887,7 @@ md-toast {
 	}
 	.comment-text-container {
 		padding: 5px 20px;
-		font-size: 18px;
+		font-size: 16px;
 		line-height: 24px;
 	}
 	.dynamic-hor-padding {
@@ -1318,7 +1318,7 @@ textarea {
 	border: $accent-color 1px solid;
 }
 
-.subpage-content {
+.subpage-content .comment {
 	border-bottom: 1px solid #eee;
 }
 
@@ -1326,10 +1326,9 @@ textarea {
 	margin-bottom: 24px;
 }
 
-.comment-replies {
-	.subpage-content {
-		background: #efefef;
-	}
+.comment-reply-indenter {
+	background-color: #efefef;
+	width: 16px;
 }
 
 // Header/footer sections for a comment
@@ -1677,7 +1676,8 @@ arb-likes.s16 {
 	}
 }
 
-.s16 {
+.s16,
+arb-subscribe.s16 {
 	md-icon {
 		width: 16px;
 		height: 16px;

@@ -4,7 +4,7 @@
 		ng-class="{'selected-subpage': isSelected(), 'top-level-comment': isTopLevelComment, 'md-whiteframe-1dp': isTopLevelComment}"
 		ng-if="isSubpageVisible()">
 	<!-- the top-level comment -->
-	<div ng-class="{'md-whiteframe-1dp': isTopLevelComment}">
+	<div class="comment">
 		<!-- Comment header -->
 		<div layout="row" layout-align="start center">
 
@@ -45,11 +45,11 @@
 				<span ng-bind="::(page.pageCreatedAt | smartDateTime)"></span>
 			</div>
 
-			<arb-likes object-id="{{::page.pageId}}" is-button="true" is-stretched="true"></arb-likes>
+			<arb-likes object-id="{{::page.pageId}}" is-button="true" is-stretched="false" class="s16"></arb-likes>
 
 			<arb-subscribe page-id="{{::page.pageId}}"
 					show-subscriber-count="::!isTinyScreen"
-					is-stretched="true"
+					is-stretched="false"
 					ng-if="::!parentSubpageId"></arb-subscribe>
 
 			<md-button aria-label="Reply to comment"
@@ -137,29 +137,32 @@
 	</div>
 
 	<!-- Indented reply section -->
-	<div layout="column" ng-if="isTopLevelComment" class="comment-replies">
-		<!-- Replies -->
-		<div arb-subpage lens-id="{{::lensId}}"
-				page-id="{{::subpageId}}"
-				parent-subpage-id="{{::page.pageId}}"
-				show-even-if-resolved="showEvenIfResolved"
-				ng-repeat="subpageId in page.subpageIds"></div>
+	<div layout="row" ng-if="isTopLevelComment" flex>
+		<div class="comment-reply-indenter"></div>
+		<div layout="column" class="comment-replies" flex>
+			<!-- Replies -->
+			<div arb-subpage lens-id="{{::lensId}}"
+					page-id="{{::subpageId}}"
+					parent-subpage-id="{{::page.pageId}}"
+					show-even-if-resolved="showEvenIfResolved"
+					ng-repeat="subpageId in page.subpageIds"></div>
 
-		<!-- Reply to thread button -->
-		<md-button aria-label="Reply to thread"
-				ng-click="newReply()"
-				arb-user-check=""
-				ng-if="canReply() && !newReplyId && page.subpageIds.length > 0">
-			<md-icon>reply</md-icon>
-			New Reply
-		</md-button>
+			<!-- Reply to thread button -->
+			<md-button aria-label="Reply to thread"
+					ng-click="newReply()"
+					arb-user-check=""
+					ng-if="canReply() && !newReplyId && page.subpageIds.length > 0">
+				<md-icon>reply</md-icon>
+				New Reply
+			</md-button>
 
-		<!-- Write a new reply -->
-		<div arb-edit-page
-				class="new-comment-edit-page edit-comment-embed"
-				is-embedded="true"
-				page-id="{{newReplyId}}"
-				done-fn="newReplyDone(result)"
-				ng-if="newReplyId"></div>
+			<!-- Write a new reply -->
+			<div arb-edit-page
+					class="new-comment-edit-page edit-comment-embed"
+					is-embedded="true"
+					page-id="{{newReplyId}}"
+					done-fn="newReplyDone(result)"
+					ng-if="newReplyId"></div>
+		</div>
 	</div>
 </div>
