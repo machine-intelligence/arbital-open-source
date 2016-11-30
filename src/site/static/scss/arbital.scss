@@ -569,6 +569,10 @@ a:not(.md-button) {
 			}
 		}
 	}
+
+	&.no-blue {
+		color: inherit;
+	}
 }
 
 .black-link {
@@ -954,7 +958,7 @@ arb-intrasite-popover, arb-user-popover, arb-text-popover, arb-red-link-popover 
 	background: white;
 	z-index: $popoverZ;
 
-	.intrasite-popover-title {
+	.popover-title {
 		font-size: 18px;
 		padding-bottom: 10px;
 		padding-top: 12px;
@@ -974,7 +978,7 @@ arb-text-popover {
 	@extend .shadow-primary-hue-1;
 }
 
-arb-intrasite-popover{
+arb-intrasite-popover, arb-user-popover {
 	border: 3px solid $primary-hue-2;
 
 	box-shadow: 0 6px 6px -3px rgba(0,96,88,0.25),

@@ -1,16 +1,7 @@
-<div class="intrasite-popover"
-		ng-class="::{
-			'touch-device': arb.isTouchDevice,
-		}"
+<div ng-class="::{'touch-device': arb.isTouchDevice}"
 		md-swipe-left="onSwipe()"
 		md-swipe-right="onSwipe()">
 	<div class="popover-close-note md-caption" ng-if="arb.isTouchDevice">Swipe to close</div>
-
-	<!-- Vote bar -->
-	<div arb-vote-bar class="white-background md-padding"
-			page-id="{{::page.pageId}}"
-			is-embedded="true"
-			ng-if="::(page.hasVote && isLoaded)"></div>
 
 	<!-- Loading spinner -->
 	<div layout="column"
@@ -29,7 +20,7 @@
 				<div layout="column">
 					<md-content class="prevent-scroll-leak popover-tab-body" layout-padding>
 						<!-- Title row -->
-						<div class="intrasite-popover-title" layout="row" layout-align="start center">
+						<div class="popover-title" layout="row" layout-align="start center">
 							<div flex>
 								<!-- Title -->
 								<arb-page-title page-id="{{::page.pageId}}"
@@ -40,9 +31,21 @@
 										ng-if="::page"></arb-page-title>
 							</div>
 
-							<!-- Likes -->
-							<arb-likes class="s20" object-id="{{::pageId}}" is-button="true"></arb-likes>
+							<!-- Likes and comment count -->
+							<div>
+								<arb-likes class="s16" object-id="{{::pageId}}" is-button="true"></arb-likes>
+								<a ng-href="{{arb.urlService.getPageUrl(pageId, {discussionHash: true})}}" class="s16 no-blue">
+									<md-icon>comment</md-icon>
+									<span ng-bind="::page.commentCount"></span>
+								</a>
+							</div>
 						</div>
+
+						<!-- Vote bar -->
+						<div arb-vote-bar class="white-background md-padding"
+								page-id="{{::page.pageId}}"
+								is-embedded="true"
+								ng-if="::(page.hasVote && isLoaded)"></div>
 
 						<!-- Summary content -->
 						<div arb-markdown
