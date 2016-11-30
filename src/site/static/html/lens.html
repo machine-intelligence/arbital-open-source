@@ -31,15 +31,20 @@
 		<!--<arb-change-speed-button page-id="{{::page.pageId}}"
 				go-slow="::true"
 				ng-if="::!isHub() && !page.isConcept() && !page.isUser()"></arb-change-speed-button>-->
-		<div class="lens-text-container">
+		<div class="lens-text-container" ng-class="{shortened: page.text.length <= 1}">
 
 			<!-- Page title -->
 			<div class="page-title md-display-3" ng-class="::{'center-text': isTinyScreen}">
 				<md-icon class="page-title-icon" ng-if="::isUser">person</md-icon>
 				<md-icon class="page-title-icon" ng-if="::page.isQuestion()">help</md-icon>
-				<span ng-bind="page.title"></span>
+				<md-icon ng-if="::page.isExternalLink()">link</md-icon>
+				<span ng-bind="page.title" ng-if="::!page.isExternalLink()"></span>
+				<a ng-href="{{::page.externalUrl}}" ng-bind="page.title" ng-if="::page.isExternalLink()"></a>
+				<span class="md-caption" ng-if="page.externalUrl.length > 0">
+					(<span ng-bind="::page.externalUrl | urlDomain"></span>)
+				</span>
 			</div>
-			<hr class="page-title-hr"></hr>
+			<hr class="page-title-hr" ng-if="::page.text.length > 1"></hr>
 
 			<!-- Voting container -->
 			<arb-vote-bar page-id="{{::page.pageId}}" ng-if="::page.hasVote"></arb-vote-bar>
@@ -73,8 +78,7 @@
 			</div>
 
 			<!-- Body text -->
-			<arb-markdown class="lens-text"
-					page-id="{{::page.pageId}}"></arb-markdown>
+			<arb-markdown class="lens-text" page-id="{{::page.pageId}}" ng-if="::page.text.length > 1"></arb-markdown>
 
 			<!-- HUB page GUI -->
 			<div arb-hub-page-gui page-id="{{::pageId}}" ng-if="::isHub()"></div>

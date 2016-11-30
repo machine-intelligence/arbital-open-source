@@ -93,6 +93,9 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		isConcept: function() {
 			return this.tagIds.indexOf('6cc') >= 0;
 		},
+		isExternalLink: function() {
+			return this.externalUrl.length > 0;
+		},
 		// Return number of domainSubmissions values
 		domainSubmissionsCount: function() {
 			return Object.keys(this.domainSubmissions).length;
