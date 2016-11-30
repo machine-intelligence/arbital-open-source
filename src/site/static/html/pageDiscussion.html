@@ -1,37 +1,33 @@
 <!-- Discussion section for some page -->
 <a id="discussion"></a>
-<div layout="column">
+<div>
+	<div ng-repeat="subpageId in page.subpageIds">
+		<div arb-subpage
+				lens-id="{{::page.pageId}}"
+				page-id="{{::subpageId}}"
+				is-top-level-comment="true"
+				class="reveal-after-render"
+				ng-if="shouldShowSubpage(subpageId)"></div>
+	</div>	
 
-	<div class="dynamic-hor-padding">
-			<div ng-repeat="subpageId in page.subpageIds">
-				<div arb-subpage
-						lens-id="{{::page.pageId}}"
-						page-id="{{::subpageId}}"
-						is-top-level-comment="true"
-						class="reveal-after-render"
-						ng-if="shouldShowSubpage(subpageId)"></div>
-			</div>	
-		<!-- New comment editor -->
-		<div layout="row" layout-align="end start">
-			<md-button class="new-comment-button md-primary md-raised"
-					ng-click="newCommentClick()"
-					aria-label="New comment"
-					ng-if="!newCommentId">
-				<md-icon class="md-raised" ng-if="showEditorComments">rate_review</md-icon>
-				<md-icon class="md-raised" ng-if="!showEditorComments">comment</md-icon>
-				<span ng-bind="visibleCommentCount() <= 0 ? 'Write first editor comment' : 'New editor comment'"
-						ng-if="showEditorComments"></span>
-				<span ng-bind="visibleCommentCount() <= 0 ? 'Write first comment' : 'New comment'"
-						ng-if="!showEditorComments"></span>
-			</md-button>
-		</div>
-		<div>
-			<div arb-edit-page
-					class="new-comment-edit-page edit-comment-embed"
-					is-embedded="true"
-					page-id="{{newCommentId}}"
-					done-fn="newCommentDone(result)"
-					ng-if="newCommentId"></div>
-		</div>
+	<!-- New comment editor -->
+	<div layout="row" layout-align="end start">
+		<md-button class="new-comment-button md-primary md-raised"
+				ng-click="newCommentClick()"
+				aria-label="New comment"
+				ng-if="!newCommentId">
+			<md-icon class="md-raised" ng-if="showEditorComments">rate_review</md-icon>
+			<md-icon class="md-raised" ng-if="!showEditorComments">comment</md-icon>
+			<span ng-bind="visibleCommentCount() <= 0 ? 'Write first editor comment' : 'New editor comment'"
+					ng-if="showEditorComments"></span>
+			<span ng-bind="visibleCommentCount() <= 0 ? 'Write first comment' : 'New comment'"
+					ng-if="!showEditorComments"></span>
+		</md-button>
 	</div>
+	<div arb-edit-page
+			class="new-comment-edit-page edit-comment-embed"
+			is-embedded="true"
+			page-id="{{newCommentId}}"
+			done-fn="newCommentDone(result)"
+			ng-if="newCommentId"></div>
 </div>

@@ -13,14 +13,12 @@
 				<span ng-if="page.isApprovedComment && page.isEditorComment">
 					<md-icon>rate_review</md-icon>
 					<md-tooltip>Author-only comment</md-tooltip>
-					<span class="separator"></span>
 				</span>
 				<span ng-if="!page.isApprovedComment && !canApproveComment()">
 					<md-icon>warning</md-icon>
 					<md-tooltip>This comment isn't publicly visible because it hasn't been approved yet</md-tooltip>
-					<span class="separator"></span>
 				</span>
-				<!-- Approve this comment menu for users that can -->
+				<!-- Approve this comment menu (shown to users that can) -->
 				<md-menu class="no-padding" ng-if="!page.isApprovedComment && canApproveComment()">
 					<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="Approve menu">
 						<md-icon>warning</md-icon>
@@ -33,7 +31,6 @@
 							</md-button>
 						</md-menu-item>
 					</md-menu-content>
-					<span class="separator"></span>
 				</md-menu>
 			</div>
 
@@ -154,7 +151,7 @@
 					arb-user-check=""
 					ng-if="canReply() && !newReplyId && page.subpageIds.length > 0">
 				<md-icon>reply</md-icon>
-				New Reply
+				Reply
 			</md-button>
 
 			<!-- Write a new reply -->

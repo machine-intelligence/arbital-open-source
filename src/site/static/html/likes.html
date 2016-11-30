@@ -8,13 +8,8 @@
 			md-svg-icon="thumb_up_outline"
 			ng-if="!isPlusOne && likeable.myLikeValue <= 0"></md-icon>
 	<md-icon class="like-icon" ng-if="isPlusOne">plus_one</md-icon>
-	<span class="like-count" ng-if="likeable.myLikeValue == 0 && !isPlusOne">
+	<span class="like-count" ng-if="!isPlusOne">
 		<span ng-if="isPlusOne && (likeable.likeCount + likeable.myLikeValue) >= 0">+</span>{{likeable.likeCount + likeable.myLikeValue}}
-	</span>
-	<span class="like-count" ng-if="likeable.myLikeValue == 1 && !isPlusOne">
-		<b>
-			<span ng-if="isPlusOne && (likeable.likeCount + likeable.myLikeValue) >= 0">+</span>{{likeable.likeCount + likeable.myLikeValue}}
-		</b>
 	</span>
 	<md-tooltip class="unlimited"
 			md-direction="top"
@@ -34,7 +29,7 @@
 		ng-if="::isNotSquare">
 	<md-icon class="like-icon fill-icon">thumb_up</md-icon>
 	<md-icon class="like-icon outline-icon" md-svg-icon="thumb_up_outline"></md-icon>
-	<span class="like-count" ng-class="{bold: likeable.myLikeValue > 0}">
+	<span class="like-count">
 		{{likeable.likeCount + likeable.myLikeValue}}
 	</span>
 	<md-tooltip class="unlimited"
