@@ -11,6 +11,7 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 			lensId: '@',  // id of the lens this subpage belongs to
 			parentSubpageId: '@',  // id of the parent subpage, if there is one
 			showEvenIfResolved: '=',
+			isTopLevelComment: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;

@@ -86,7 +86,8 @@ arb-signup {
 	min-height: 100vh;
 }
 
-.short-button {
+.short-button,
+.short-button button {
 	min-width: 0 !important;
 }
 
@@ -526,6 +527,8 @@ arb-vote-bar, [arb-vote-bar] {
 			height: $vote-bar-height + $vote-bar-margin;
 		}
 	}
+
+	margin-bottom: 32px;
 }
 
 // Div containing the entire voting bar
@@ -865,7 +868,7 @@ md-toast {
 	}
 	.comment-text-container {
 		padding: 5px 5px;
-		font-size: 16px;
+		font-size: 14px;
 		line-height: 18px;
 	}
 	.dynamic-hor-padding {
@@ -892,7 +895,7 @@ md-toast {
 	}
 	.comment-text-container {
 		padding: 5px 10px;
-		font-size: 16px;
+		font-size: 14px;
 		line-height: 20px;
 	}
 	.dynamic-hor-padding {
@@ -922,7 +925,7 @@ md-toast {
 	}
 	.comment-text-container {
 		padding: 5px 15px;
-		font-size: 17px;
+		font-size: 15px;
 		line-height: 22px;
 	}
 	.dynamic-hor-padding {
@@ -952,8 +955,8 @@ md-toast {
 		top: 30px;
 	}
 	.comment-text-container {
-		padding: 5px 20px;
-		font-size: 18px;
+		padding: 5px 16px;
+		font-size: 16px;
 		line-height: 24px;
 	}
 	.dynamic-hor-padding {
@@ -1384,19 +1387,23 @@ textarea {
 	border: $accent-color 1px solid;
 }
 
-.subpage-content {
-	margin-top: 20px;
-
-	.inline-subpage > & {
-		margin-top: 0px;
-	}
+.subpage-content .comment {
+	border-bottom: 1px solid #eee;
+	padding-bottom: 6px;
+    padding-top: 2px;
 }
 
-// Header/footer sections for a comment
+.subpage-content.top-level-comment {
+	margin-bottom: 24px;
+}
+
+.comment-reply-indenter {
+	background-color: #efefef;
+	width: 5%;
+}
+
 .comment-header {
-	background-color: $primary-hue-1;
-	padding: 0 5px;
-	border-bottom: silver 1px solid;
+	padding-left: 16px;
 }
 .comment-footer {
 	padding: 0 5px;
@@ -1724,7 +1731,7 @@ arb-likes.s18 {
 }
 
 arb-likes.s16 {
-	margin-right: 6px;
+	margin-right: 0px;
 
 	.like-icon {
 		min-width: 16px;
@@ -1737,7 +1744,10 @@ arb-likes.s16 {
 	}
 }
 
-.s16 {
+.s16,
+arb-subscribe.s16 {
+	color: #666;
+
 	md-icon {
 		width: 16px;
 		height: 16px;
@@ -1745,6 +1755,10 @@ arb-likes.s16 {
 	}
 
 	font-size: 14px;
+}
+
+arb-subscribe.s16 {
+	margin-right: 6px;
 }
 
 arb-likes.tiny {
