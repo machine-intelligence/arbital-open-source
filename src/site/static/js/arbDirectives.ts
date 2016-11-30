@@ -405,6 +405,8 @@ app.directive('arbLikes', function($http, arb) {
 			isPlusOne: '=',
 			// Optional function to call when the user clicks the like button.
 			onLikeClicked: '&',
+			// If true, then we are using custom button class instead of md-button
+			isNotSquare: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;

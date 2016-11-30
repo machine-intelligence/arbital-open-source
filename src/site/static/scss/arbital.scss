@@ -696,6 +696,54 @@ arb-likes, .likes-in-autocomplete {
 			min-width: 16px;
 		}
 	}
+
+	button.not-square {
+		background-color: transparent;
+		border: none;
+		outline: none;
+
+		.fill-icon {
+			visibility: hidden;
+		}
+
+		.outline-icon {
+			position: relative;
+			left: -20px;
+			margin-right: -20px !important;
+			z-index: 1;
+			visibility: visible;
+		}
+
+		&.is-liked {
+			.fill-icon {
+				visibility: visible;
+			}
+			.outline-icon {
+				visibility: hidden;
+			}
+		}
+
+		&:hover {
+			.fill-icon {
+				visibility: visible;
+				opacity: 0.5;
+			}
+
+			.outline-icon {
+				visibility: visible;
+			}
+		}
+
+		&.is-liked:hover {
+			.fill-icon {
+				opacity: 0.8;
+			}
+
+			.outline-icon {
+				visibility: hidden;
+			}
+		}
+	}
 }
 
 .plus-one-button {

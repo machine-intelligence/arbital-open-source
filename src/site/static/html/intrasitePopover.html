@@ -33,7 +33,7 @@
 
 							<!-- Likes and comment count -->
 							<div>
-								<arb-likes class="s16" object-id="{{::pageId}}" is-button="true"></arb-likes>
+								<arb-likes class="s16" object-id="{{::pageId}}" is-not-square="true"></arb-likes>
 								<a ng-href="{{arb.urlService.getPageUrl(pageId, {discussionHash: true})}}" class="s16 no-blue">
 									<md-icon>comment</md-icon>
 									<span ng-bind="::page.commentCount"></span>
