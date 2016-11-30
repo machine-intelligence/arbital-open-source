@@ -4,7 +4,6 @@ package site
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"zanaduu3/src/core"
@@ -69,7 +68,7 @@ func newFeedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			newFeedRow.PageID, err = core.CreateNewPage(db, u, &core.CreateNewPageOptions{
 				EditDomainID: newFeedRow.DomainID,
 				Title:        data.Title,
-				Text:         fmt.Sprintf("Automatically generated page for an external resource: %s", data.Url),
+				Text:         " ",
 				ExternalUrl:  data.Url,
 				IsPublished:  true,
 				Tx:           tx,

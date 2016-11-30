@@ -34,11 +34,11 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 				},
 				approval: {
 					headerLabel: 'Approval ratings',
-					label1: 'Strongly\nDisapprove',
-					label2: 'Disapprove',
+					label1: 'Strongly\ndisagree',
+					label2: 'Disagree',
 					label3: 'Neutral',
-					label4: 'Approve',
-					label5: 'Strongly\nApprove',
+					label4: 'Agree',
+					label5: 'Strongly\nagree',
 					toString: function(value) {
 						return '';
 					},

@@ -34,15 +34,25 @@
 	<!-- Submit link -->
 	<div class="md-whiteframe-1dp" layout="column" ng-if="isSubmittingLink">
 		<h2>Submit link</h2>
-		<md-input-container flex>
+		<md-input-container md-is-error="externalUrlIsDupe" flex>
 			<label>URL</label>
 			<input ng-model="submission.url" ng-change="submissionUrlChanged()" autofocus>
+			<div class="submit-link-message" ng-if="externalUrlIsDupe">
+				<span class="md-caption">This url has already been submitted.</span>
+				<span ng-if="externalUrlOriginalPageID">
+					<span class="md-caption">See:</span>
+					<arb-page-title page-id="{{externalUrlOriginalPageID}}"
+						is-link="true"
+						show-clickbait="false">
+					</arb-page-title>
+				</span>
+			</div>
 		</md-input-container>
 		<md-input-container flex>
 			<label>Title</label>
 			<input ng-model="submission.title" ng-disabled="submission.pageId">
 		</md-input-container>
-		<md-button class="md-primary md-raised" ng-click="submitLink()">
+		<md-button class="md-primary md-raised" ng-click="submitLink()" ng-disabled="externalUrlIsDupe">
 			Submit
 		</md-button>
 	</div>
@@ -60,7 +70,6 @@
 						<div flex>
 							<!-- Title row row -->
 							<div class="feed-page-title-row">
-								&nbsp;
 								<arb-page-title page-id="{{::page.pageId}}"
 									is-link="true"
 									show-clickbait="false"

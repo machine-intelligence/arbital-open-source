@@ -526,6 +526,8 @@ arb-vote-bar, [arb-vote-bar] {
 			height: $vote-bar-height + $vote-bar-margin;
 		}
 	}
+
+	margin-bottom: 32px;
 }
 
 // Div containing the entire voting bar
@@ -779,6 +781,14 @@ md-toast {
 
 .page-title {
 	margin: 0px 0px 20px;
+
+	a {
+		color: $link-color;
+	}
+
+	.md-caption {
+		font-size: 20px;
+	}
 }
 
 .lens-text-container {
@@ -853,6 +863,9 @@ md-toast {
 		padding: 30px $lens-padding 60px;
 		font-size: 18px;
 		line-height: 26px;
+		&.shortened {
+			padding-bottom: 30px;
+		}
 	}
 	.change-speed-top-offset {
 		top: 30px;
@@ -881,6 +894,9 @@ md-toast {
 		padding: 30px $lens-padding 80px;
 		font-size: 18px;
 		line-height: 30px;
+		&.shortened {
+			padding-bottom: 30px;
+		}
 	}
 	.change-speed-top-offset {
 		top: 30px;
@@ -2105,10 +2121,16 @@ arb-path-nav, [arb-path-nav] {
 	}
 
 	.feed-page-title-row {
-		font-weight: 500;
+		font-size: 18px;
+		padding-left: 5px;
 	}
 }
 
 .aligned-input-container {
 	margin-bottom: 0;
+}
+
+.submit-link-message {
+	margin-top: 35px;
+	font-size: 12px;
 }

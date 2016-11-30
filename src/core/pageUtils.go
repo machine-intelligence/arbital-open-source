@@ -453,6 +453,20 @@ func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOption
 		}
 	}
 
+	// Check that the external url is unique
+	if len(options.ExternalUrl) > 0 {
+		isDupe, originalPageID, err := IsDuplicateExternalUrl(db, u, options.ExternalUrl)
+		if err != nil {
+			return "", fmt.Errorf("Couldn't check if external url is already in use: %v", err)
+		}
+		if isDupe {
+			if len(originalPageID) == 0 {
+				return "", fmt.Errorf("This external url is already in use.")
+			}
+			return "", fmt.Errorf("This external url is already in use. See: %v", GetPageFullURL("", originalPageID))
+		}
+	}
+
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		if options.Tx != nil {
 			tx = options.Tx

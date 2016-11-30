@@ -158,3 +158,25 @@ func GetNextAvailableID(tx *database.Tx) (string, error) {
 	}
 	return IncrementBase31Id(tx.DB.C, highestUsedID)
 }
+
+// Return whether the external url is already used, and the pageID of the original entry.
+func IsDuplicateExternalUrl(db *database.DB, u *CurrentUser, externalUrl string) (bool, string, error) {
+	var pageID, domainID string
+	row := database.NewQuery(`
+		SELECT pi.pageId, pi.seeDomainId
+		FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
+		WHERE pi.externalUrl = ?`, externalUrl).ToStatement(db).QueryRow()
+	exists, err := row.Scan(&pageID, &domainID)
+
+	if err != nil {
+		return false, "", err
+	}
+	if !exists {
+		return false, "", nil
+	}
+
+	if !CanUserSeeDomain(u, domainID) {
+		return true, "", nil
+	}
+	return true, pageID, nil
+}
