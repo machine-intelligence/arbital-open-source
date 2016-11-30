@@ -1,166 +1,165 @@
 <div id="subpage-{{::page.pageId}}"
 		layout="column"
-		class="subpage-content full-width md-whiteframe-1dp"
-		ng-class="{'selected-subpage': isSelected()}"
+		class="subpage-content full-width"
+		ng-class="{'selected-subpage': isSelected(), 'top-level-comment': isTopLevelComment, 'md-whiteframe-1dp': isTopLevelComment}"
 		ng-if="isSubpageVisible()">
-	<!-- Comment header -->
-	<div layout="row" layout-align="start center">
+	<!-- the top-level comment -->
+	<div ng-class="{'md-whiteframe-1dp': isTopLevelComment}">
+		<!-- Comment header -->
+		<div layout="row" layout-align="start center">
 
-		<!-- Icon choices -->
-		<div layout="row" ng-if="::!parentSubpageId">
-			<span ng-if="page.isApprovedComment && page.isEditorComment">
-				<md-icon>rate_review</md-icon>
-				<md-tooltip>Author-only comment</md-tooltip>
-				<span class="separator"></span>
-			</span>
-			<span ng-if="!page.isApprovedComment && !canApproveComment()">
-				<md-icon>warning</md-icon>
-				<md-tooltip>This comment isn't publicly visible because it hasn't been approved yet</md-tooltip>
-				<span class="separator"></span>
-			</span>
-			<!-- Approve this comment menu for users that can -->
-			<md-menu class="no-padding" ng-if="!page.isApprovedComment && canApproveComment()">
-				<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="Approve menu">
+			<!-- Icon choices -->
+			<div layout="row" ng-if="::!parentSubpageId">
+				<span ng-if="page.isApprovedComment && page.isEditorComment">
+					<md-icon>rate_review</md-icon>
+					<md-tooltip>Author-only comment</md-tooltip>
+					<span class="separator"></span>
+				</span>
+				<span ng-if="!page.isApprovedComment && !canApproveComment()">
 					<md-icon>warning</md-icon>
 					<md-tooltip>This comment isn't publicly visible because it hasn't been approved yet</md-tooltip>
+					<span class="separator"></span>
+				</span>
+				<!-- Approve this comment menu for users that can -->
+				<md-menu class="no-padding" ng-if="!page.isApprovedComment && canApproveComment()">
+					<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="Approve menu">
+						<md-icon>warning</md-icon>
+						<md-tooltip>This comment isn't publicly visible because it hasn't been approved yet</md-tooltip>
+					</md-button>
+					<md-menu-content>
+						<md-menu-item>
+							<md-button ng-click="approveComment()">
+								Approve comment
+							</md-button>
+						</md-menu-item>
+					</md-menu-content>
+					<span class="separator"></span>
+				</md-menu>
+			</div>
+
+			<div flex>
+				<!-- User name -->
+				<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
+
+				<!-- How long ago it was created -->
+				<span ng-bind="::(page.pageCreatedAt | smartDateTime)"></span>
+			</div>
+
+			<arb-likes object-id="{{::page.pageId}}" is-button="true" is-stretched="true"></arb-likes>
+
+			<arb-subscribe page-id="{{::page.pageId}}"
+					show-subscriber-count="::!isTinyScreen"
+					is-stretched="true"
+					ng-if="::!parentSubpageId"></arb-subscribe>
+
+			<md-button aria-label="Reply to comment"
+					ng-click="newReply()"
+					ng-disabled="newReplyId"
+					arb-user-check=""
+					ng-if="canReply() && !parentSubpageId && page.subpageIds.length <= 0">
+				<md-icon>reply</md-icon>
+				Reply
+			</md-button>
+
+			<!-- Collapse button -->
+			<div layout="column">
+				<md-button aria-label="Collapse comment" ng-click="collapseToggle()">
+					<md-icon ng-if="!isCollapsed">expand_less</md-icon>
+					<md-icon ng-if="isCollapsed">expand_more</md-icon>
+				</md-button>
+			</div>
+
+			<!-- RHS menu -->
+			<md-menu class="no-padding">
+				<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="Options">
+					<md-icon>more_vert</md-icon>
 				</md-button>
 				<md-menu-content>
+
+					<!-- Permalink -->
 					<md-menu-item>
-						<md-button ng-click="approveComment()">
-							Approve comment
+						<md-button ng-href="{{::myUrl}}" aria-label="Permalink">
+							Permalink
 						</md-button>
 					</md-menu-item>
+
+					<!-- Edit comment -->
+					<md-menu-item ng-if="::(page.pageCreatorId === arb.userService.user.id)">
+						<md-button ng-href="{{::arb.urlService.getEditPageUrl(page.pageId)}}"
+								aria-label="Edit comment"
+								ng-disabled="editing"
+								ng-click="editSubpage($event)">
+							Edit
+						</md-button>
+					</md-menu-item>
+
+					<!-- Mark comment as for editors only -->
+					<md-menu-item ng-if="(page.permissions.edit.has || lens.permissions.edit.has) && !page.isEditorComment">
+						<md-button ng-click="showToEditorsOnly()"
+								ng-disabled="editing"
+								aria-label="Show to editors only">
+							Show to editors only
+						</md-button>
+					</md-menu-item>
+
+					<!-- Resolve comment thread -->
+					<md-menu-item ng-if="(page.isEditorComment && !parentSubpageId && lens.permissions.edit.has)">
+						<md-button aria-label="Resolve comment thread"
+								ng-disabled="editing"
+								ng-click="resolveThread($event)">
+							Resolve thread
+						</md-button>
+					</md-menu-item>
+
+					<!-- Delete comment -->
+					<md-menu-item ng-if="page.permissions.delete.has">
+						<md-button ng-click="deleteSubpage()"
+								ng-disabled="editing"
+								aria-label="Delete comment">
+							Delete
+						</md-button>
+					</md-menu-item>
+
 				</md-menu-content>
-				<span class="separator"></span>
 			</md-menu>
 		</div>
-
-		<div flex>
-			<!-- User name -->
-			<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
-
-			<!-- How long ago it was created -->
-			<span ng-bind="::(page.pageCreatedAt | smartDateTime)"></span>
+		<!-- Collapsable body -->
+		<div layout="column" ng-if="!isCollapsed" layout-margin>
+			<arb-markdown class="comment-text-container" page-id="{{::page.pageId}}" ng-if="!editing"></arb-markdown>
+			<!-- Edit this subpage -->
+			<div arb-edit-page
+					class="edit-comment-embed"
+					is-embedded="true"
+					page-id="{{::page.pageId}}"
+					done-fn="editDone(result)"
+					ng-if="editing"></div>
 		</div>
-
-		<arb-likes object-id="{{::page.pageId}}" is-button="true" is-stretched="true"></arb-likes>
-
-		<arb-subscribe page-id="{{::page.pageId}}"
-				show-subscriber-count="::!isTinyScreen"
-				is-stretched="true"
-				ng-if="::!parentSubpageId"></arb-subscribe>
-
-		<md-button aria-label="Reply to comment"
-				ng-click="newReply()"
-				ng-disabled="newReplyId"
-				arb-user-check=""
-				ng-if="canReply() && !parentSubpageId && page.subpageIds.length <= 0">
-			<md-icon>reply</md-icon>
-			Reply
-		</md-button>
-
-		<!-- Collapse button -->
-		<div layout="column">
-			<md-button aria-label="Collapse comment" ng-click="collapseToggle()">
-				<md-icon ng-if="!isCollapsed">expand_less</md-icon>
-				<md-icon ng-if="isCollapsed">expand_more</md-icon>
-			</md-button>
-		</div>
-
-		<!-- RHS menu -->
-		<md-menu class="no-padding">
-			<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="Options">
-				<md-icon>more_vert</md-icon>
-			</md-button>
-			<md-menu-content>
-
-				<!-- Permalink -->
-				<md-menu-item>
-					<md-button ng-href="{{::myUrl}}" aria-label="Permalink">
-						Permalink
-					</md-button>
-				</md-menu-item>
-
-				<!-- Edit comment -->
-				<md-menu-item ng-if="::(page.pageCreatorId === arb.userService.user.id)">
-					<md-button ng-href="{{::arb.urlService.getEditPageUrl(page.pageId)}}"
-							aria-label="Edit comment"
-							ng-disabled="editing"
-							ng-click="editSubpage($event)">
-						Edit
-					</md-button>
-				</md-menu-item>
-
-				<!-- Mark comment as for editors only -->
-				<md-menu-item ng-if="(page.permissions.edit.has || lens.permissions.edit.has) && !page.isEditorComment">
-					<md-button ng-click="showToEditorsOnly()"
-							ng-disabled="editing"
-							aria-label="Show to editors only">
-						Show to editors only
-					</md-button>
-				</md-menu-item>
-
-				<!-- Resolve comment thread -->
-				<md-menu-item ng-if="(page.isEditorComment && !parentSubpageId && lens.permissions.edit.has)">
-					<md-button aria-label="Resolve comment thread"
-							ng-disabled="editing"
-							ng-click="resolveThread($event)">
-						Resolve thread
-					</md-button>
-				</md-menu-item>
-
-				<!-- Delete comment -->
-				<md-menu-item ng-if="page.permissions.delete.has">
-					<md-button ng-click="deleteSubpage()"
-							ng-disabled="editing"
-							aria-label="Delete comment">
-						Delete
-					</md-button>
-				</md-menu-item>
-
-			</md-menu-content>
-		</md-menu>
 	</div>
 
-	<!-- Collapsable body -->
-	<div layout="column" ng-if="!isCollapsed" layout-margin>
-		<arb-markdown class="comment-text-container" page-id="{{::page.pageId}}" ng-if="!editing"></arb-markdown>
-		<!-- Edit this subpage -->
+	<!-- Indented reply section -->
+	<div layout="column" ng-if="isTopLevelComment" class="comment-replies">
+		<!-- Replies -->
+		<div arb-subpage lens-id="{{::lensId}}"
+				page-id="{{::subpageId}}"
+				parent-subpage-id="{{::page.pageId}}"
+				show-even-if-resolved="showEvenIfResolved"
+				ng-repeat="subpageId in page.subpageIds"></div>
+
+		<!-- Reply to thread button -->
+		<md-button aria-label="Reply to thread"
+				ng-click="newReply()"
+				arb-user-check=""
+				ng-if="canReply() && !newReplyId && page.subpageIds.length > 0">
+			<md-icon>reply</md-icon>
+			New Reply
+		</md-button>
+
+		<!-- Write a new reply -->
 		<div arb-edit-page
-				class="edit-comment-embed"
+				class="new-comment-edit-page edit-comment-embed"
 				is-embedded="true"
-				page-id="{{::page.pageId}}"
-				done-fn="editDone(result)"
-				ng-if="editing"></div>
-
-		<!-- Indented reply section -->
-		<div layout="row" class="expand-tray">
-			<div flex="5"></div>
-			<div flex="95" layout="column">
-				<!-- Replies -->
-				<div arb-subpage lens-id="{{::lensId}}"
-						page-id="{{::subpageId}}"
-						parent-subpage-id="{{::page.pageId}}"
-						show-even-if-resolved="showEvenIfResolved"
-						ng-repeat="subpageId in page.subpageIds"></div>
-
-				<!-- Reply to thread button -->
-				<md-button aria-label="Reply to thread"
-						ng-click="newReply()"
-						arb-user-check=""
-						ng-if="canReply() && !newReplyId && page.subpageIds.length > 0">
-					<md-icon>reply</md-icon>
-					New Reply
-				</md-button>
-
-				<!-- Write a new reply -->
-				<div arb-edit-page
-						class="new-comment-edit-page edit-comment-embed"
-						is-embedded="true"
-						page-id="{{newReplyId}}"
-						done-fn="newReplyDone(result)"
-						ng-if="newReplyId"></div>
-			</div>
-		</div>
+				page-id="{{newReplyId}}"
+				done-fn="newReplyDone(result)"
+				ng-if="newReplyId"></div>
 	</div>
 </div>
