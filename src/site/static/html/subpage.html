@@ -6,7 +6,7 @@
 	<!-- the top-level comment -->
 	<div class="comment">
 		<!-- Comment header -->
-		<div layout="row" layout-align="start center">
+		<div layout="row" layout-align="start center" class="comment-header">
 
 			<!-- Icon choices -->
 			<div layout="row" ng-if="::!parentSubpageId">
@@ -42,15 +42,16 @@
 				<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
 
 				<!-- How long ago it was created -->
-				<span ng-bind="::(page.pageCreatedAt | smartDateTime)"></span>
+				<span class="md-caption" ng-bind="::(page.pageCreatedAt | smartDateTime)"></span>
 			</div>
-
-			<arb-likes object-id="{{::page.pageId}}" is-button="true" is-stretched="false" class="s16"></arb-likes>
 
 			<arb-subscribe page-id="{{::page.pageId}}"
 					show-subscriber-count="::!isTinyScreen"
-					is-stretched="false"
+					is-stretched="true"
+					class="short-button s16"
 					ng-if="::!parentSubpageId"></arb-subscribe>
+
+			<arb-likes object-id="{{::page.pageId}}" is-button="true" is-stretched="false" class="s16"></arb-likes>
 
 			<md-button aria-label="Reply to comment"
 					ng-click="newReply()"
@@ -63,7 +64,7 @@
 
 			<!-- Collapse button -->
 			<div layout="column">
-				<md-button aria-label="Collapse comment" ng-click="collapseToggle()">
+				<md-button aria-label="Collapse comment" ng-click="collapseToggle()" class="short-button">
 					<md-icon ng-if="!isCollapsed">expand_less</md-icon>
 					<md-icon ng-if="isCollapsed">expand_more</md-icon>
 				</md-button>
@@ -124,7 +125,7 @@
 			</md-menu>
 		</div>
 		<!-- Collapsable body -->
-		<div layout="column" ng-if="!isCollapsed" layout-margin>
+		<div layout="column" ng-if="!isCollapsed">
 			<arb-markdown class="comment-text-container" page-id="{{::page.pageId}}" ng-if="!editing"></arb-markdown>
 			<!-- Edit this subpage -->
 			<div arb-edit-page

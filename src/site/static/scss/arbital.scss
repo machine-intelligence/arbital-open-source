@@ -86,7 +86,8 @@ arb-signup {
 	min-height: 100vh;
 }
 
-.short-button {
+.short-button,
+.short-button button {
 	min-width: 0 !important;
 }
 
@@ -902,7 +903,7 @@ md-toast {
 		top: 30px;
 	}
 	.comment-text-container {
-		padding: 5px 20px;
+		padding: 5px 16px;
 		font-size: 16px;
 		line-height: 24px;
 	}
@@ -1336,6 +1337,8 @@ textarea {
 
 .subpage-content .comment {
 	border-bottom: 1px solid #eee;
+	padding-bottom: 6px;
+    padding-top: 2px;
 }
 
 .subpage-content.top-level-comment {
@@ -1344,14 +1347,11 @@ textarea {
 
 .comment-reply-indenter {
 	background-color: #efefef;
-	width: 16px;
+	width: 5%;
 }
 
-// Header/footer sections for a comment
 .comment-header {
-	background-color: $primary-hue-1;
-	padding: 0 5px;
-	border-bottom: silver 1px solid;
+	padding-left: 16px;
 }
 .comment-footer {
 	padding: 0 5px;
@@ -1679,7 +1679,7 @@ arb-likes.s18 {
 }
 
 arb-likes.s16 {
-	margin-right: 6px;
+	margin-right: 0px;
 
 	.like-icon {
 		min-width: 16px;
@@ -1694,6 +1694,8 @@ arb-likes.s16 {
 
 .s16,
 arb-subscribe.s16 {
+	color: #666;
+
 	md-icon {
 		width: 16px;
 		height: 16px;
@@ -1701,6 +1703,10 @@ arb-subscribe.s16 {
 	}
 
 	font-size: 14px;
+}
+
+arb-subscribe.s16 {
+	margin-right: 6px;
 }
 
 arb-likes.tiny {
