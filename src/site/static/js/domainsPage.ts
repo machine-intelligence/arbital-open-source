@@ -75,7 +75,7 @@ app.directive('arbDomainsPage', function($timeout, $http, $filter, arb) {
 			};
 
 			// Process new member form submission.
-			$scope.newMemberFormSubmit = function(event, domainId, userInput) {
+			$scope.newMemberFormSubmit = function(domainId, userInput) {
 				var data = {
 					domainId: domainId,
 					userInput: userInput,

@@ -15,7 +15,7 @@
 		<md-button class="new-comment-button md-primary md-raised"
 				ng-click="newCommentClick()"
 				aria-label="New comment"
-				ng-if="!newCommentId">
+				ng-if="!newCommentId && page.permissions.comment.has">
 			<md-icon class="md-raised" ng-if="showEditorComments">rate_review</md-icon>
 			<md-icon class="md-raised" ng-if="!showEditorComments">comment</md-icon>
 			<span ng-bind="visibleCommentCount() <= 0 ? 'Write first editor comment' : 'New editor comment'"
@@ -23,6 +23,9 @@
 			<span ng-bind="visibleCommentCount() <= 0 ? 'Write first comment' : 'New comment'"
 					ng-if="!showEditorComments"></span>
 		</md-button>
+		<div ng-if="!page.permissions.comment.has">
+			Sorry, currently commenting is only enabled for certain users.
+		</div>
 	</div>
 	<div arb-edit-page
 			class="new-comment-edit-page edit-comment-embed"

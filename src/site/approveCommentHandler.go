@@ -10,6 +10,7 @@ import (
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
+	"zanaduu3/src/tasks"
 )
 
 // approveCommentData contains parameters passed in.
@@ -41,7 +42,7 @@ func approveCommentHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Invalid comment id", nil).Status(http.StatusBadRequest)
 	}
 
-	_, pageID, err := core.GetCommentParents(db, data.CommentID)
+	commentParentID, pageID, err := core.GetCommentParents(db, data.CommentID)
 	if err != nil {
 		return pages.Fail("Couldn't load comment parent page id", err)
 	}
@@ -61,6 +62,22 @@ func approveCommentHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		statement := tx.DB.NewInsertStatement("pageInfos", hashmap, "isApprovedComment").WithTx(tx)
 		if _, err := statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't update pageInfos: %v", err)
+		}
+
+		var task tasks.NewUpdateTask
+		task.UserID = u.ID
+		task.GoToPageID = data.CommentID
+		if core.IsIDValid(commentParentID) {
+			// This is a new reply
+			task.UpdateType = core.ReplyUpdateType
+			task.SubscribedToID = commentParentID
+		} else {
+			// This is a new top level comment
+			task.UpdateType = core.TopLevelCommentUpdateType
+			task.SubscribedToID = pageID
+		}
+		if err := tasks.Enqueue(params.C, &task, nil); err != nil {
+			return sessions.NewError("Couldn't enqueue a task", err)
 		}
 
 		return nil

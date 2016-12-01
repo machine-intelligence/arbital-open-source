@@ -507,7 +507,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				var task tasks.NewUpdateTask
 				task.UserID = u.ID
 				task.GoToPageID = data.PageID
-				task.ForceMaintainersOnly = oldPage.IsEditorComment
+				task.ForceMaintainersOnly = oldPage.IsEditorComment || !oldPage.IsApprovedComment
 				if createEditChangeLog {
 					task.ChangeLogID = editChangeLogID
 				}
