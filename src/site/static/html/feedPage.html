@@ -48,8 +48,8 @@
 						</arb-page-title>
 					</span>
 				</div>
+				<md-progress-linear class="submit-link-message" md-mode="indeterminate" ng-if="showExternalUrlProgressBar" flex></md-progress-linear>
 			</md-input-container>
-			<md-progress-linear md-mode="indeterminate" ng-if="loadingExternalUrlData" flex></md-progress-linear>
 			<md-input-container flex>
 				<label>Title</label>
 				<input ng-model="submission.title" ng-disabled="submission.pageId">

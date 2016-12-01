@@ -61,14 +61,23 @@ app.directive('arbFeedPage', function($timeout, $http, arb) {
 						});
 					}
 				} else {
-					handleNewExternalUrl($scope.submission.url);
+					let matches = anyUrlMatch.exec($scope.submission.url);
+					if (!!matches) {
+						handleNewExternalUrl(matches[0]);
+					}
 				}
 			};
 
-			let handleNewExternalUrl = function(externalUrl) {
+			let handleNewExternalUrl = function(rawExternalUrlString: string) {
 				$scope.loadingExternalUrlData = true;
 
-				arb.stateService.postData('/getExternalUrlData/', {externalUrl: externalUrl}, function(data) {
+				$timeout(function() {
+					if ($scope.loadingExternalUrlData) {
+						$scope.showExternalUrlProgressBar = true;
+					}
+				}, 1000);
+
+				let successFunc = function(data) {
 					$scope.externalUrlIsDupe = data.result.isDupe;
 					$scope.externalUrlOriginalPageID = data.result.originalPageID;
 
@@ -76,8 +85,16 @@ app.directive('arbFeedPage', function($timeout, $http, arb) {
 						$scope.submission.title = data.result.title;
 					}
 
+					$scope.showExternalUrlProgressBar = false;
 					$scope.loadingExternalUrlData = false;
-				});
+				};
+
+				let failureFunc = function(data) {
+					$scope.showExternalUrlProgressBar = false;
+					$scope.loadingExternalUrlData = false;
+				};
+
+				arb.stateService.postData('/getExternalUrlData/', {rawExternalUrlString: rawExternalUrlString}, successFunc, failureFunc);
 			};
 
 			// Submit a new link to the feed.
