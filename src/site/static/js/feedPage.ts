@@ -24,6 +24,11 @@ app.directive('arbFeedPage', function($timeout, $http, arb) {
 			}
 			$scope.resetSubmission();
 
+			$scope.showSubmissionForm = function() {
+				$scope.isSubmittingLink = true;
+				$timeout(function() {$('.submit-link-url-input').focus();});
+			};
+
 			// Track page ids we tried fetching from the server.
 			let attemptedPageIds = {};
 			// Called when the url input changes
