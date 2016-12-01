@@ -43,6 +43,9 @@
 				<span class="md-caption" ng-if="page.externalUrl.length > 0">
 					(<span ng-bind="::page.externalUrl | urlDomain"></span>)
 				</span>
+				<div class="md-caption" ng-if="page.isBlogPage()">
+					by <arb-user-name user-id="{{::arb.stateService.domainMap[page.editDomainId].pageId}}"></arb-user-name>
+				</div>
 			</div>
 			<hr class="page-title-hr" ng-if="::page.text.length > 1"></hr>
 
@@ -67,13 +70,6 @@
 						<arb-page-title page-id="{{::subject.parentId}}" is-link="true"></arb-page-title>
 					</span>
 				</div>
-			</div>
-
-			<!-- Owner -->
-			<div class="author-list md-caption page-list-span"
-					ng-if="::arb.userService.userMap[arb.stateService.domainMap[page.editDomainId]]">
-				by
-				<arb-user-name user-id="{{::arb.stateService.domainMap[page.editDomainId].pageId}}"></arb-user-name>
 			</div>
 
 			<!-- Body text -->

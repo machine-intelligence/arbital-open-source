@@ -575,6 +575,10 @@ a:not(.md-button) {
 
 	&.no-blue {
 		color: inherit;
+		//a {
+		//	color: initial !important;
+		//	font-weight: 500;
+		//}
 	}
 }
 
