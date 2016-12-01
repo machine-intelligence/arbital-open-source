@@ -53,14 +53,14 @@
 
 			<arb-likes object-id="{{::page.pageId}}" is-button="true" is-stretched="false" class="s16"></arb-likes>
 
-			<md-button aria-label="Reply to comment"
+			<!--<md-button aria-label="Reply to comment"
 					ng-click="newReply()"
 					ng-disabled="newReplyId"
 					arb-user-check=""
-					ng-if="canReply() && !parentSubpageId && page.subpageIds.length <= 0">
+					ng-if="canReply() && showQuickReply">
 				<md-icon>reply</md-icon>
 				Reply
-			</md-button>
+			</md-button>-->
 
 			<!-- Collapse button -->
 			<div layout="column">
@@ -152,7 +152,7 @@
 			<md-button aria-label="Reply to thread"
 					ng-click="newReply()"
 					arb-user-check=""
-					ng-if="canReply() && !newReplyId && page.subpageIds.length > 0">
+					ng-if="canReply() && !newReplyId">
 				<md-icon>reply</md-icon>
 				Reply
 			</md-button>
@@ -166,4 +166,12 @@
 					ng-if="newReplyId"></div>
 		</div>
 	</div>
+
+	<!-- Write a quick reply -->
+	<!--<div arb-edit-page
+			class="new-comment-edit-page edit-comment-embed"
+			is-embedded="true"
+			page-id="{{newReplyId}}"
+			done-fn="newReplyDone(result)"
+			ng-if="newReplyId && showQuickReply"></div>-->
 </div>

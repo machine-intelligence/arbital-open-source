@@ -12,6 +12,8 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 			parentSubpageId: '@',  // id of the parent subpage, if there is one
 			showEvenIfResolved: '=',
 			isTopLevelComment: '=',
+			// If true, show a reply button (used when showing the subpage in the updates panel)
+			showQuickReply: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
