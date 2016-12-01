@@ -150,6 +150,14 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 				isEditorComment: this.isEditorComment,
 			};
 		},
+		// Returns true iff the page is owned by a single user
+		isBlogPage: function() {
+			return stateService.domainMap[this.editDomainId].pageId in userService.userMap;
+		},
+		// Returns true iff the page is a link to an external resource.
+		isLinkPage: function() {
+			return this.externalUrl.length > 0;
+		},
 		// Helper function for getBest...Id functions
 		_getBestPageId: function(pageIds, excludePageId) {
 			var pageId = undefined;
