@@ -2025,7 +2025,7 @@ func LoadSubpageCounts(db *database.DB, u *CurrentUser, pageMap map[string]*Page
 			AND pi.isApprovedComment AND NOT isEditorComment`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentID, childID, createdAt, createdBy string
-		err := rows.Scan(&parentID, &childID, &createdAt)
+		err := rows.Scan(&parentID, &childID, &createdAt, &createdBy)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
@@ -2154,12 +2154,12 @@ func LoadLastVisits(db *database.DB, u *CurrentUser, pageMap map[string]*Page) e
 			AND pageId IN`).AddArgsGroup(pageIDs).Add(`
 		GROUP BY 1`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId, updatedAt string
-		err := rows.Scan(&pageId, &updatedAt)
+		var pageID, updatedAt string
+		err := rows.Scan(&pageID, &updatedAt)
 		if err != nil {
 			return fmt.Errorf("Failed to scan for a comment like: %v", err)
 		}
-		pageMap[pageId].LastVisit = updatedAt
+		pageMap[pageID].LastVisit = updatedAt
 		return nil
 	})
 	return err

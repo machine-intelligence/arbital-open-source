@@ -10,10 +10,6 @@
 
 			<!-- Icon choices -->
 			<div layout="row" ng-if="::!parentSubpageId">
-				<span ng-if="page.isApprovedComment && page.isEditorComment">
-					<md-icon>rate_review</md-icon>
-					<md-tooltip>Author-only comment</md-tooltip>
-				</span>
 				<span ng-if="!page.isApprovedComment && !canApproveComment()">
 					<md-icon>warning</md-icon>
 					<md-tooltip>This comment isn't publicly visible because it hasn't been approved yet</md-tooltip>
@@ -35,6 +31,13 @@
 			</div>
 
 			<div flex>
+				<!-- New comment dot -->
+				<span ng-if="page.pageCreatedAt > lens.lastVisit && lens.lastVisit != ''">
+					<span class="new-dot">
+						<md-tooltip>This comment is new since your last visit</md-tooltip>
+					</span>
+				</span>
+
 				<!-- User name -->
 				<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
 

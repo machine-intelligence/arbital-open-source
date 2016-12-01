@@ -100,6 +100,7 @@ var (
 		Creators:        true,
 		ProposalEditNum: true,
 		ContentRequests: true,
+		LastVisit:       true,
 	}).Add(SubpageLoadOptions)
 	// Options for full page edit
 	PrimaryEditLoadOptions = (&PageLoadOptions{
