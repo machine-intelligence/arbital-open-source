@@ -28,7 +28,7 @@
 	<!-- Subscribe as maintainer -->
 	<arb-subscribe-to-maintain page-id="{{page.pageId}}"
 			is-stretched="::!isTinyScreen"
-			ng-if="page.isSubscribedAsMaintainer"></arb-subscribe-to-maintain>
+			ng-if="page.isSubscribedAsMaintainer && !page.isBlogPage()"></arb-subscribe-to-maintain>
 
 	<!-- Edit -->
 	<arb-edit-button page-id="{{page.pageId}}" analytics-desc="lens toolbar"></arb-edit-button>
@@ -61,12 +61,16 @@
 			<md-menu-item>
 				<md-button ng-click="toggleMaintainerSub()"
 						aria-label="Toggle subscribe as maintainer"
-						arb-user-check="cool">
+						arb-user-check="cool"
+						ng-if="!page.isBlogPage()">
 					{{page.isSubscribedAsMaintainer ? 'Unsubscribe' : 'Subscribe'}} as maintainer
 					<md-tooltip md-delay="500">
 						Get updates for edits and marks on this page
 					</md-tooltip>
 				</md-button>
+				<div ng-if="page.isBlogPage()">
+					Maintaining as owner
+				</div>
 			</md-menu-item>
 
 			<!-- Show requirements -->
