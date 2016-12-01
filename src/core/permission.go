@@ -76,7 +76,6 @@ type Permissions struct {
 	Delete      Permission `json:"delete"`
 
 	// Note that for comments, this means "can reply to this comment"
-	// Note that all users can always leave an editor-only comment
 	Comment Permission `json:"comment"`
 }
 
@@ -105,6 +104,8 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 		if p.Permissions.Edit.Has {
 			p.Permissions.ProposeEdit.Has = true
 		}
+		// TODO: we should read in domain's setting, but for now anyone can propose edits
+		p.Permissions.ProposeEdit.Has = true
 		if !p.Permissions.ProposeEdit.Has {
 			p.Permissions.ProposeEdit.Reason = p.Permissions.Edit.Reason
 		}
@@ -122,7 +123,6 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 	}
 
 	if !RoleAtLeast(u.GetDomainMembershipRole(p.EditDomainID), DefaultDomainRole) {
-		// TODO: check if domain allows for people to propose edits anyway
 		p.Permissions.Edit.Reason = "You don't have domain permission to edit this page"
 		return
 	}
