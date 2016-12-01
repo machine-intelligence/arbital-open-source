@@ -14,7 +14,7 @@ app.directive('arbFeedPage', function($timeout, $http, arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 
-			let resetSubmission = function() {
+			$scope.resetSubmission = function() {
 				$scope.isSubmittingLink = false;
 				$scope.submission = {
 					url: '',
@@ -22,7 +22,12 @@ app.directive('arbFeedPage', function($timeout, $http, arb) {
 					pageId: '',
 				};
 			}
-			resetSubmission();
+			$scope.resetSubmission();
+
+			$scope.showSubmissionForm = function() {
+				$scope.isSubmittingLink = true;
+				$timeout(function() {$('.submit-link-url-input').focus();});
+			};
 
 			// Track page ids we tried fetching from the server.
 			let attemptedPageIds = {};
@@ -61,14 +66,23 @@ app.directive('arbFeedPage', function($timeout, $http, arb) {
 						});
 					}
 				} else {
-					handleNewExternalUrl($scope.submission.url);
+					let matches = anyUrlMatch.exec($scope.submission.url);
+					if (!!matches) {
+						handleNewExternalUrl(matches[0]);
+					}
 				}
 			};
 
-			let handleNewExternalUrl = function(externalUrl) {
+			let handleNewExternalUrl = function(rawExternalUrlString: string) {
 				$scope.loadingExternalUrlData = true;
 
-				arb.stateService.postData('/getExternalUrlData/', {externalUrl: externalUrl}, function(data) {
+				$timeout(function() {
+					if ($scope.loadingExternalUrlData) {
+						$scope.showExternalUrlProgressBar = true;
+					}
+				}, 1000);
+
+				let successFunc = function(data) {
 					$scope.externalUrlIsDupe = data.result.isDupe;
 					$scope.externalUrlOriginalPageID = data.result.originalPageID;
 
@@ -76,8 +90,16 @@ app.directive('arbFeedPage', function($timeout, $http, arb) {
 						$scope.submission.title = data.result.title;
 					}
 
+					$scope.showExternalUrlProgressBar = false;
 					$scope.loadingExternalUrlData = false;
-				});
+				};
+
+				let failureFunc = function(data) {
+					$scope.showExternalUrlProgressBar = false;
+					$scope.loadingExternalUrlData = false;
+				};
+
+				arb.stateService.postData('/getExternalUrlData/', {rawExternalUrlString: rawExternalUrlString}, successFunc, failureFunc);
 			};
 
 			// Submit a new link to the feed.
@@ -85,7 +107,7 @@ app.directive('arbFeedPage', function($timeout, $http, arb) {
 				arb.stateService.postData('/newFeedPage/', $scope.submission, function(data) {
 					$scope.feedRows.unshift(data.result.newFeedRow);
 				});
-				resetSubmission();
+				$scope.resetSubmission();
 			};
 		},
 	};

@@ -14,6 +14,7 @@ export var escapeHtml = function(s) {
 	});
 };
 
+// TODO: replace the regex with the official URL object once lib.d.ts is updated to a version from after May 2016 (see: https://github.com/Microsoft/TypeScript/issues/2583)
 export var anyUrlMatch = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i;
 
 export var subdomainRegexpStr = '[A-Za-z0-9]+\\.';

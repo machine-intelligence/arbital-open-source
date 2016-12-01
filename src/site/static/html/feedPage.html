@@ -25,7 +25,7 @@
 					hide-icon="true"></arb-edit-button>
 			<md-button class="md-raised"
 					ng-class="{'md-primary': !isSubmittingLink}"
-					ng-click="isSubmittingLink=true">
+					ng-click="showSubmissionForm()">
 				Submit new link
 			</md-button>
 		</div>
@@ -34,10 +34,13 @@
 	<!-- Submit link -->
 	<div layout="column" layout-align="center center">
 		<div class="submit-link-form md-whiteframe-1dp" layout="column" ng-if="isSubmittingLink">
+			<md-button class="md-icon-button submit-link-close-button" ng-click="resetSubmission()">
+				<md-icon>close</md-icon>
+			</md-button>
 			<h2>Submit link</h2>
 			<md-input-container md-is-error="externalUrlIsDupe" flex>
 				<label>URL</label>
-				<input ng-model="submission.url" ng-change="submissionUrlChanged()" autofocus>
+				<input class="submit-link-url-input" ng-model="submission.url" ng-change="submissionUrlChanged()" autofocus>
 				<div class="submit-link-message" ng-if="externalUrlIsDupe">
 					<span class="md-caption">This url has already been submitted.</span>
 					<span ng-if="externalUrlOriginalPageID">
@@ -48,8 +51,8 @@
 						</arb-page-title>
 					</span>
 				</div>
+				<md-progress-linear class="submit-link-message" md-mode="indeterminate" ng-if="showExternalUrlProgressBar" flex></md-progress-linear>
 			</md-input-container>
-			<md-progress-linear md-mode="indeterminate" ng-if="loadingExternalUrlData" flex></md-progress-linear>
 			<md-input-container flex>
 				<label>Title</label>
 				<input ng-model="submission.title" ng-disabled="submission.pageId">

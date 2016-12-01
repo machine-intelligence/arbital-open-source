@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
@@ -26,7 +27,7 @@ var externalUrlHandler = siteHandler{
 
 // externalUrlData contains parameters passed in via the request.
 type externalUrlData struct {
-	ExternalUrl string
+	RawExternalUrlString string
 }
 
 // externalUrlHandlerFunc handles the request.
@@ -42,7 +43,14 @@ func externalUrlHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 
-	isDupe, originalPageID, err := core.IsDuplicateExternalUrl(db, u, data.ExternalUrl)
+	externalUrl, err := url.Parse(data.RawExternalUrlString)
+	if err != nil {
+		// If not a valid url, just return.
+		return pages.Success(returnData)
+	}
+	externalUrlString := externalUrl.String()
+
+	isDupe, originalPageID, err := core.IsDuplicateExternalUrl(db, u, externalUrlString)
 	if err != nil {
 		return pages.Fail("Couldn't check if external url is already in use.", err)
 	}
@@ -58,9 +66,10 @@ func externalUrlHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return pages.Fail("Pipeline error", err)
 		}
 	} else {
-		resp, err := urlfetch.Client(db.C).Get(data.ExternalUrl)
+		resp, err := urlfetch.Client(db.C).Get(externalUrlString)
 		if err != nil {
-			return pages.Fail("Couldn't make get request.", err)
+			// If can't find the page, just return.
+			return pages.Success(returnData)
 		}
 
 		defer resp.Body.Close()
@@ -69,7 +78,7 @@ func externalUrlHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return pages.Fail("Couldn't read request response.", err)
 		}
 
-		title, err := getTitle(data.ExternalUrl, string(htmlBytes))
+		title, err := getTitle(externalUrlString, string(htmlBytes))
 		if err != nil {
 			return pages.Fail("Couldn't get title from html.", err)
 		}
