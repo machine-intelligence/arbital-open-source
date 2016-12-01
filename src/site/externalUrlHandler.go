@@ -13,7 +13,6 @@ import (
 	"google.golang.org/appengine/urlfetch"
 
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
@@ -70,7 +69,7 @@ func externalUrlHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return pages.Fail("Couldn't read request response.", err)
 		}
 
-		title, err := getTitle(db, data.ExternalUrl, string(htmlBytes))
+		title, err := getTitle(data.ExternalUrl, string(htmlBytes))
 		if err != nil {
 			return pages.Fail("Couldn't get title from html.", err)
 		}
@@ -80,7 +79,7 @@ func externalUrlHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	return pages.Success(returnData)
 }
 
-func getTitle(db *database.DB, url string, htmlString string) (string, error) {
+func getTitle(url string, htmlString string) (string, error) {
 	og := opengraph.NewOpenGraph()
 	err := og.ProcessHTML(strings.NewReader(htmlString))
 	if err != nil {
