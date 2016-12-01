@@ -2192,7 +2192,12 @@ arb-path-nav, [arb-path-nav] {
 	margin-bottom: 0;
 }
 
-.submit-link-message {
-	margin-top: 35px;
-	font-size: 12px;
+.submit-link-form {
+	padding: 10px;
+	width: 900px;
+
+	.submit-link-message {
+		margin-top: 35px;
+		font-size: 12px;
+	}
 }
