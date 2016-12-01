@@ -14,7 +14,7 @@ app.directive('arbFeedPage', function($timeout, $http, arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 
-			let resetSubmission = function() {
+			$scope.resetSubmission = function() {
 				$scope.isSubmittingLink = false;
 				$scope.submission = {
 					url: '',
@@ -22,7 +22,7 @@ app.directive('arbFeedPage', function($timeout, $http, arb) {
 					pageId: '',
 				};
 			}
-			resetSubmission();
+			$scope.resetSubmission();
 
 			// Track page ids we tried fetching from the server.
 			let attemptedPageIds = {};
@@ -102,7 +102,7 @@ app.directive('arbFeedPage', function($timeout, $http, arb) {
 				arb.stateService.postData('/newFeedPage/', $scope.submission, function(data) {
 					$scope.feedRows.unshift(data.result.newFeedRow);
 				});
-				resetSubmission();
+				$scope.resetSubmission();
 			};
 		},
 	};
