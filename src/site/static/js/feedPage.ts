@@ -66,7 +66,8 @@ app.directive('arbFeedPage', function($timeout, $http, arb) {
 			};
 
 			let handleNewExternalUrl = function(externalUrl) {
-				// Get info about the external url.
+				$scope.loadingExternalUrlData = true;
+
 				arb.stateService.postData('/getExternalUrlData/', {externalUrl: externalUrl}, function(data) {
 					$scope.externalUrlIsDupe = data.result.isDupe;
 					$scope.externalUrlOriginalPageID = data.result.originalPageID;
@@ -74,6 +75,8 @@ app.directive('arbFeedPage', function($timeout, $http, arb) {
 					if (!!data.result.title) {
 						$scope.submission.title = data.result.title;
 					}
+
+					$scope.loadingExternalUrlData = false;
 				});
 			};
 

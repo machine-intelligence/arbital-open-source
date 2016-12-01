@@ -49,6 +49,7 @@
 					</span>
 				</div>
 			</md-input-container>
+			<md-progress-linear md-mode="indeterminate" ng-if="loadingExternalUrlData" flex></md-progress-linear>
 			<md-input-container flex>
 				<label>Title</label>
 				<input ng-model="submission.title" ng-disabled="submission.pageId">
