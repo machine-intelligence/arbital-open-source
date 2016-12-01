@@ -232,6 +232,7 @@ type Page struct {
 	// Various counts (these might be zeroes if not loaded explicitly)
 	AnswerCount     int `json:"answerCount"`
 	CommentCount    int `json:"commentCount"`
+	NewCommentCount int `json:"newCommentCount"`
 	LinkedMarkCount int `json:"linkedMarkCount"`
 
 	// List of changes to this page
@@ -800,8 +801,8 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	}
 
 	// Load last visit dates
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.LastVisit })
-	err = LoadLastVisits(db, u.ID, filteredPageMap)
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.LastVisit || p.LoadOptions.SubpageCounts })
+	err = LoadLastVisits(db, u, filteredPageMap)
 	if err != nil {
 		return fmt.Errorf("LoadLastVisits failed: %v", err)
 	}
@@ -991,6 +992,27 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 			VALUES ` + database.ArgsPlaceholder(len(visitedValues), 6))
 		if _, err = statement.Exec(visitedValues...); err != nil {
 			return fmt.Errorf("Couldn't update visits", err)
+		}
+	}
+
+	// Update lastVisits table
+	if IsIDValid(u.ID) {
+		hashmaps := make(database.InsertMaps, 0)
+		for pageID, p := range pageMap {
+			if p.Text != "" {
+				hashmap := make(database.InsertMap)
+				hashmap["userId"] = u.ID
+				hashmap["pageId"] = pageID
+				hashmap["createdAt"] = database.Now()
+				hashmap["updatedAt"] = database.Now()
+				hashmaps = append(hashmaps, hashmap)
+			}
+		}
+		if len(hashmaps) > 0 {
+			statement := db.NewMultipleInsertStatement("lastVisits", hashmaps, "updatedAt")
+			if _, err := statement.Exec(); err != nil {
+				return fmt.Errorf("Couldn't insert into lastVisits: %v", err)
+			}
 		}
 	}
 
@@ -1993,25 +2015,23 @@ func LoadSubpageCounts(db *database.DB, u *CurrentUser, pageMap map[string]*Page
 	}
 	pageIDs := PageIDsListFromMap(pageMap)
 	rows := database.NewQuery(`
-		SELECT pp.parentId,pi.type,sum(1)
-		FROM (
-			SELECT parentId,childId
-			FROM pagePairs
-			WHERE type=?`, ParentPagePairType).Add(`AND parentId IN`).AddArgsGroup(pageIDs).Add(`
-		) AS pp
+		SELECT pp.parentId,pp.childId,pi.createdAt,pi.createdBy
+		FROM pagePairs AS pp
 		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
 		ON (pi.pageId=pp.childId)
-		GROUP BY 1,2`).ToStatement(db).Query()
+		WHERE pp.type=?`, ParentPagePairType).Add(`
+			AND pp.parentId IN`).AddArgsGroup(pageIDs).Add(`
+			AND pi.type=?`, CommentPageType).Add(`
+			AND pi.isApprovedComment AND NOT isEditorComment`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageID string
-		var childType string
-		var count int
-		err := rows.Scan(&pageID, &childType, &count)
+		var parentID, childID, createdAt, createdBy string
+		err := rows.Scan(&parentID, &childID, &createdAt)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
-		if childType == CommentPageType {
-			pageMap[pageID].CommentCount = count
+		pageMap[parentID].CommentCount++
+		if createdAt > pageMap[parentID].LastVisit && createdBy != u.ID {
+			pageMap[parentID].NewCommentCount++
 		}
 		return nil
 	})
@@ -2122,29 +2142,27 @@ func LoadDraftExistence(db *database.DB, userID string, options *LoadDataOptions
 }
 
 // LoadLastVisits loads lastVisit variable for each page.
-func LoadLastVisits(db *database.DB, currentUserID string, pageMap map[string]*Page) error {
-	// NOTE: Loading last visits is expensive; let's try to avoid it
-	return nil
-	/*if len(pageMap) <= 0 {
+func LoadLastVisits(db *database.DB, u *CurrentUser, pageMap map[string]*Page) error {
+	if len(pageMap) <= 0 {
 		return nil
 	}
-	pageIds := PageIdsListFromMap(pageMap)
+	pageIDs := PageIDsListFromMap(pageMap)
 	rows := database.NewQuery(`
-		SELECT pageId,max(createdAt)
-		FROM visits
-		WHERE userId=?`, currentUserId).Add(`AND pageId IN`).AddArgsGroup(pageIds).Add(`
+		SELECT pageId,updatedAt
+		FROM lastVisits
+		WHERE userId=?`, u.ID).Add(`
+			AND pageId IN`).AddArgsGroup(pageIDs).Add(`
 		GROUP BY 1`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId string
-		var createdAt string
-		err := rows.Scan(&pageId, &createdAt)
+		var pageId, updatedAt string
+		err := rows.Scan(&pageId, &updatedAt)
 		if err != nil {
 			return fmt.Errorf("Failed to scan for a comment like: %v", err)
 		}
-		pageMap[pageId].LastVisit = createdAt
+		pageMap[pageId].LastVisit = updatedAt
 		return nil
 	})
-	return err*/
+	return err
 }
 
 // LoadSubscriptions loads subscription statuses corresponding to the given

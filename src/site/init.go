@@ -33,7 +33,6 @@ func init() {
 	// Pages
 	s.HandleFunc("/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/achievements/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	s.HandleFunc("/adminDashboard/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/dashboard/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/discussion/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/domains/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
@@ -74,7 +73,6 @@ func init() {
 	s.HandleFunc("/verifyEmail/", pageHandlerWrapper(&verifyEmailPage)).Methods("GET", "HEAD")
 
 	// JSON handlers (API)
-	s.HandleFunc(adminDashboardPageHandler.URI, handlerWrapper(adminDashboardPageHandler)).Methods("POST")
 	s.HandleFunc(approveCommentHandler.URI, handlerWrapper(approveCommentHandler)).Methods("POST")
 	s.HandleFunc(approvePageToDomainHandler.URI, handlerWrapper(approvePageToDomainHandler)).Methods("POST")
 	s.HandleFunc(approvePageEditProposalHandler.URI, handlerWrapper(approvePageEditProposalHandler)).Methods("POST")

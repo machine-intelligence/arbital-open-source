@@ -1071,3 +1071,17 @@ app.directive('arbDomainRoleInput', function(arb) {
 		},
 	};
 });
+
+// Showing a link to comment section along with comment count
+app.directive('arbCommentCount', function(arb) {
+	return {
+		templateUrl: versionUrl('static/html/commentCount.html'),
+		scope: {
+			pageId: '@',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+			$scope.page = arb.stateService.pageMap[$scope.pageId];
+		},
+	};
+});

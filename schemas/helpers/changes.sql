@@ -22,3 +22,23 @@ CREATE TABLE invites (
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 alter table pageInfos add column externalUrl varchar(2048) not null;
+
+
+CREATE TABLE lastVisits (
+
+	/* FK into users. */
+	userId VARCHAR(64) NOT NULL,
+
+	/* Page id. FK into pages. */
+	pageId VARCHAR(32) NOT NULL,
+
+	/* Date of the first visit. */
+	createdAt DATETIME NOT NULL,
+
+	/* Date of the last visit. */
+	updatedAt DATETIME NOT NULL,
+
+	UNIQUE(userId,pageId)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+insert into lastVisits (userId,pageId,createdAt,updatedAt) (select userId,pageId,min(createdAt),max(createdAt) from visits where userId in (select id from users) and pageId in (select pageId from pageInfos) group by 1,2);

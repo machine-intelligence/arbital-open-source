@@ -1,0 +1,5 @@
+<a ng-href="{{arb.urlService.getPageUrl(pageId, {discussionHash: true})}}" class="s16 no-blue">
+	<md-icon>comment</md-icon>
+	<span ng-bind="::page.commentCount"></span>
+	<strong ng-if="::page.newCommentCount > 0">({{::page.newCommentCount}} new)</strong>
+</a>

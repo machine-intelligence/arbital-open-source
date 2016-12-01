@@ -139,6 +139,7 @@ var (
 		UsedAsMastery:   true,
 		ProposalEditNum: true,
 		ContentRequests: true,
+		LastVisit:       true,
 	}).Add(SubpageLoadOptions)
 	// Options for loading a subpage (like a comment)
 	SubpageLoadOptions = (&PageLoadOptions{
@@ -162,6 +163,7 @@ var (
 		SubpageCounts: true,
 		AnswerCounts:  true,
 		Summaries:     true,
+		LastVisit:     true,
 	}).Add(TitlePlusLoadOptions)
 	// Options for loading info about a lens
 	LensInfoLoadOptions = (&PageLoadOptions{}).Add(TitlePlusLoadOptions)
@@ -175,8 +177,7 @@ var (
 	}).Add(TitlePlusLoadOptions)
 	// Options for loading a page to display the title + some additional info.
 	TitlePlusLoadOptions = &PageLoadOptions{
-		Likes:     true,
-		LastVisit: true,
+		Likes: true,
 	}
 	EmptyLoadOptions = &PageLoadOptions{}
 )

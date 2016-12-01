@@ -55,8 +55,6 @@ func unassessedPagesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 					WHERE pp2.type=? AND pp2.parentId=?`, core.ParentPagePairType, core.QualityMetaTagsPageID).Add(`
 				)) <= 0
 		) AS t
-		JOIN visits AS v
-		ON (t.pageId=v.pageId)
 		GROUP BY 1
 		ORDER BY SUM(1) DESC
 		LIMIT ?`, numPagesToLoad).ToStatement(db).Query()

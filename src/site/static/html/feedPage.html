@@ -89,10 +89,7 @@
 							<!-- Second row -->
 							<div layout="row" layout-align="start center">
 								<arb-likes object-id="{{::page.pageId}}" is-not-square="true" class="s16"></arb-likes>
-								<a ng-href="{{arb.urlService.getPageUrl(page.pageId, {discussionHash: true})}}" class="s16">
-		 							<md-icon>comment</md-icon>
-		 							<span ng-bind="::page.commentCount"></span>
-		 						</a>
+								<arb-comment-count page-id="{{::page.pageId}}"></arb-comment-count>
 							</div>
 						</div>
 			
