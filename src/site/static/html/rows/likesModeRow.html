@@ -8,7 +8,8 @@
 
 			<span>
 				<span ng-if="::arb.stateService.pageMap[modeRow.pageId].isComment()">
-					your comment on
+					<arb-page-title page-id="{{::modeRow.pageId}}" is-link="true"></arb-page-title>
+					comment on
 				</span>
 				<span ng-if="::modeRow.changeLog.id">
 					your edit to
