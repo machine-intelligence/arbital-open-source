@@ -57,7 +57,8 @@
 					</div>
 				</div>
 				<div class="md-caption" ng-if="page.isBlogPage() && !page.isUser()">
-					by <arb-user-name user-id="{{::arb.stateService.domainMap[page.editDomainId].pageId}}"></arb-user-name>
+					writen by <arb-user-name user-id="{{::arb.stateService.domainMap[page.editDomainId].pageId}}"></arb-user-name>
+					({{page.pageCreatedAt | smartDateTime}})
 				</div>
 			</div>
 			<hr class="page-title-hr" ng-if="::page.text.length > 1"></hr>
