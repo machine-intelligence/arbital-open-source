@@ -1401,6 +1401,7 @@ textarea {
 .comment-reply-indenter {
 	background-color: #efefef;
 	width: 5%;
+	box-shadow: inset -3px 0 3px -3px rgba(0,0,0,.2), inset -1px 0 1px -1px rgba(0,0,0,.12);
 }
 
 .comment-header {

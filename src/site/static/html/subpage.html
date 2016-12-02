@@ -125,7 +125,7 @@
 			</md-menu>
 		</div>
 		<!-- Collapsable body -->
-		<div layout="column" ng-if="!isCollapsed">
+		<div layout="column" ng-show="!isCollapsed">
 			<arb-markdown class="comment-text-container" page-id="{{::page.pageId}}" ng-if="!editing"></arb-markdown>
 			<!-- Edit this subpage -->
 			<div arb-edit-page
@@ -138,8 +138,8 @@
 	</div>
 
 	<!-- Indented reply section -->
-	<div layout="row" ng-if="isTopLevelComment" flex>
-		<div class="comment-reply-indenter"></div>
+	<div layout="row" ng-if="isTopLevelComment" ng-show="!isCollapsed" flex>
+		<div class="comment-reply-indenter" ng-if="page.subpageIds.length > 0 || newReplyId"></div>
 		<div layout="column" class="comment-replies" flex>
 			<!-- Replies -->
 			<div arb-subpage lens-id="{{::lensId}}"
