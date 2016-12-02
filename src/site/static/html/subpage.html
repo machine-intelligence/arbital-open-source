@@ -139,7 +139,7 @@
 
 	<!-- Indented reply section -->
 	<div layout="row" ng-if="isTopLevelComment" ng-show="!isCollapsed" flex>
-		<div class="comment-reply-indenter"></div>
+		<div class="comment-reply-indenter" ng-if="page.subpageIds.length > 0 || newReplyId"></div>
 		<div layout="column" class="comment-replies" flex>
 			<!-- Replies -->
 			<div arb-subpage lens-id="{{::lensId}}"
