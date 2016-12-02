@@ -50,14 +50,14 @@ func newFeedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Url & title have to be set if pageId isn't given", nil).Status(http.StatusBadRequest)
 	}
 
-	newFeedRow := &FeedRow{
+	newFeedSubmission := &core.FeedSubmission{
 		DomainID:    AssumedFeedPageDomainID,
 		PageID:      data.PageID,
 		SubmitterID: u.ID,
 		CreatedAt:   database.Now(),
 	}
 
-	if !core.RoleAtLeast(u.GetDomainMembershipRole(newFeedRow.DomainID), core.TrustedDomainRole) {
+	if !core.RoleAtLeast(u.GetDomainMembershipRole(newFeedSubmission.DomainID), core.TrustedDomainRole) {
 		return pages.Fail("You don't have permissions to submit a link to this domain", nil).Status(http.StatusBadRequest)
 	}
 
@@ -65,8 +65,8 @@ func newFeedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Create a new page for the external resource
 		if !core.IsIDValid(data.PageID) {
-			newFeedRow.PageID, err = core.CreateNewPage(db, u, &core.CreateNewPageOptions{
-				EditDomainID: newFeedRow.DomainID,
+			newFeedSubmission.PageID, err = core.CreateNewPage(db, u, &core.CreateNewPageOptions{
+				EditDomainID: newFeedSubmission.DomainID,
 				Title:        data.Title,
 				Text:         " ",
 				ExternalUrl:  data.Url,
@@ -79,10 +79,10 @@ func newFeedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		hashmap := make(map[string]interface{})
-		hashmap["domainId"] = newFeedRow.DomainID
-		hashmap["pageId"] = newFeedRow.PageID
-		hashmap["submitterId"] = newFeedRow.SubmitterID
-		hashmap["createdAt"] = newFeedRow.CreatedAt
+		hashmap["domainId"] = newFeedSubmission.DomainID
+		hashmap["pageId"] = newFeedSubmission.PageID
+		hashmap["submitterId"] = newFeedSubmission.SubmitterID
+		hashmap["createdAt"] = newFeedSubmission.CreatedAt
 		statement := db.NewInsertStatement("feedPages", hashmap)
 		if _, err := statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't insert into feedPages", err)
@@ -94,12 +94,12 @@ func newFeedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load data
-	core.AddPageToMap(newFeedRow.PageID, returnData.PageMap, core.TitlePlusLoadOptions)
+	core.AddPageToMap(newFeedSubmission.PageID, returnData.PageMap, core.TitlePlusLoadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
 	}
 
-	returnData.ResultMap["newFeedRow"] = newFeedRow
+	returnData.ResultMap["newFeedRow"] = newFeedSubmission
 	return pages.Success(returnData)
 }

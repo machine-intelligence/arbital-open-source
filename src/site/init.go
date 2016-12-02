@@ -101,7 +101,7 @@ func init() {
 	s.HandleFunc(exploreHandler.URI, handlerWrapper(exploreHandler)).Methods("POST")
 	s.HandleFunc(externalUrlHandler.URI, handlerWrapper(externalUrlHandler)).Methods("POST")
 	s.HandleFunc(feedbackHandler.URI, handlerWrapper(feedbackHandler)).Methods("POST")
-	s.HandleFunc(feedHandler.URI, handlerWrapper(feedHandler)).Methods("POST")
+	s.HandleFunc(feedPageHandler.URI, handlerWrapper(feedPageHandler)).Methods("POST")
 	s.HandleFunc(forgotPasswordHandler.URI, handlerWrapper(forgotPasswordHandler)).Methods("POST")
 	s.HandleFunc(hedonsModeHandler.URI, handlerWrapper(hedonsModeHandler)).Methods("POST")
 	s.HandleFunc(indexHandler.URI, handlerWrapper(indexHandler)).Methods("POST")
