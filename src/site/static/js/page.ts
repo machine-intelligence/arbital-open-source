@@ -114,16 +114,6 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 				});
 			};
 
-			// If this is a user page, add current user's domains to the membership map.
-			if ($scope.page.isUser()) {
-				$scope.userDomainMembershipMap = arb.userService.userMap[$scope.pageId].domainMembershipMap;
-				for (let domainId in arb.userService.user.domainMembershipMap) {
-					if (!(domainId in $scope.userDomainMembershipMap)) {
-						$scope.userDomainMembershipMap[domainId] = {role: ''};
-					}
-				}
-			}
-
 			// Check if the quality of the page bar should be displayed
 			$scope.isQualityBarVisible = function() {
 				if ($scope.selectedLens.isConcept()) return false;

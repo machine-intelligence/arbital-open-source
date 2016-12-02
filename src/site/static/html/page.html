@@ -151,27 +151,6 @@
 			</div>
 		</div>
 
-		<!-- For user page display some additional info -->
-		<div ng-if="::page.isUser()">
-			<h2>User domain roles</h2>
-			<div ng-repeat="(domainId, membership) in ::userDomainMembershipMap">
-				<!-- Admins can edit the level of the user -->
-				<div layout="row" layout-margin ng-if="::arb.userService.user.isAdmin">
-					<arb-domain-role-input
-							domain-id="{{::domainId}}"
-							user-id="{{::pageId}}"
-							show-label="true"
-							layout="row"
-							flex></arb-domain-role-input>
-				</div>
-				<div ng-if="::!arb.userService.user.isAdmin">
-					This user's role in
-					<arb-page-title page-id="{{::membership.domainPageId}}" is-link="true"></arb-page-title>
-					domain is {{membership.role}}.
-				</div>
-			</div>
-		</div>
-
 		<!-- Answers section -->
 		<a id="answers"></a>
 		<div class="after-page-container" ng-if="::page.isQuestion()">

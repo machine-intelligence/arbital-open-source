@@ -12,6 +12,13 @@ app.directive('arbUserPage', function(arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
+
+			$scope.userDomainMembershipMap = arb.userService.userMap[$scope.userId].domainMembershipMap;
+			for (let domainId in arb.userService.user.domainMembershipMap) {
+				if (!(domainId in $scope.userDomainMembershipMap)) {
+					$scope.userDomainMembershipMap[domainId] = {role: ''};
+				}
+			}
 		},
 	};
 });
