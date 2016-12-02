@@ -35,6 +35,7 @@ type Document struct {
 	Text          string   `json:"text"`
 	SeeDomainID   string   `json:"seeDomainId"`
 	CreatorID     string   `json:"creatorId"`
+	ExternalUrl   string   `json:"externalUrl"`
 	SearchStrings []string `json:"searchStrings"`
 }
 
@@ -162,6 +163,7 @@ func CreatePageIndex(c sessions.Context) error {
 	mapping.Properties["alias"] = &Property{Type: "string"}
 	mapping.Properties["seeDomainId"] = &Property{Type: "string", Index: "not_analyzed"}
 	mapping.Properties["creatorId"] = &Property{Type: "string", Index: "not_analyzed"}
+	mapping.Properties["externalUrl"] = &Property{Type: "string"}
 	mapping.Properties["searchStrings"] = &Property{Type: "string", IndexName: "searchString", Analyzer: "english"}
 
 	var schema IndexSchema

@@ -26,6 +26,10 @@
 			<!--<arb-page-title page-id="{{result.pageId}}" show-clickbait="true"></arb-page-title>-->
 			<div layout="column" flex>
 				<div layout="row" layout-align="start center">
+					<md-icon class="no-margins" ng-if="result.page.isLinkPage()">
+						<md-tooltip>This page corresponds to an external resource</md-tooltip>
+						link
+					</md-icon>
 					<md-icon class="no-margins" ng-if="arb.pageService.showPrivate(result.page.pageId)">
 						<md-tooltip>This page belongs to a private domain</md-tooltip>
 						lock
