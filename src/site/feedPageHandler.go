@@ -1,4 +1,4 @@
-// feedHandler.go serves the feed data for current user.
+// feedPageHandler.go serves the feed data for current user.
 
 package site
 
@@ -16,23 +16,16 @@ const (
 	FeedPageID = "6rl"
 )
 
-type FeedRow struct {
-	DomainID    string `json:"domainId"`
-	PageID      string `json:"pageId"`
-	SubmitterID string `json:"submitterId"`
-	CreatedAt   string `json:"createdAt"`
-}
-
 type feedData struct {
 }
 
-var feedHandler = siteHandler{
+var feedPageHandler = siteHandler{
 	URI:         "/json/feed/",
-	HandlerFunc: feedHandlerFunc,
+	HandlerFunc: feedPageHandlerFunc,
 	Options:     pages.PageOptions{},
 }
 
-func feedHandlerFunc(params *pages.HandlerParams) *pages.Result {
+func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(u).SetResetEverything()
@@ -44,17 +37,17 @@ func feedHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 
-	feedRows := make([]*FeedRow, 0)
+	feedRows := make([]*core.FeedSubmission, 0)
 	rows := database.NewQuery(`
 		SELECT domainId,pageId,submitterId,createdAt
 		FROM feedPages
 		ORDER BY createdAt DESC
 		LIMIT 25`).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var row FeedRow
+		var row core.FeedSubmission
 		err := rows.Scan(&row.DomainID, &row.PageID, &row.SubmitterID, &row.CreatedAt)
 		if err != nil {
-			return fmt.Errorf("failed to scan a FeedRow: %v", err)
+			return fmt.Errorf("failed to scan a FeedSubmission: %v", err)
 		}
 		core.AddPageToMap(row.PageID, returnData.PageMap, core.IntrasitePopoverLoadOptions)
 		feedRows = append(feedRows, &row)

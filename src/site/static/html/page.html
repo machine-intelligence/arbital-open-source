@@ -138,53 +138,6 @@
 								ng-if="isLoaded(lens.lensId)"></arb-lens>
 					</div>
 
-					<!-- Parents and tags -->
-					<div layout="column" layout-padding>
-						<div layout="column"
-								layout-gt-sm="row"
-								layout-align="start start"
-								ng-if="selectedLens.parentIds.length > 0 || selectedLens.nonMetaTagIds.length > 0">
-							<!-- Parents and children -->
-							<div flex>
-								<div layout-align="start center">
-									<span>Parents:</span>
-									<span ng-if="selectedLens.parentIds.length == 0">none</span>
-									<span ng-repeat="(index, parentId) in selectedLens.parentIds">
-										<span class="comma" ng-if="index > 0">,</span>
-										<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
-									</span>
-								</div>
-								<div layout-align="start center">
-									<span>Children:</span>
-									<a ng-href="{{arb.urlService.getExplorePageUrl(selectedLens.pageId)}}">
-										<ng-pluralize count="selectedLens.childIds.length"
-												when="{'0': 'none', 'one': 'one page', 'other': '{} pages'}"></ng-pluralize>
-									</a>
-								</div>
-							</div>
-
-							<!-- Tags -->
-							<div layout-align="start center"
-					 				ng-if="selectedLens.nonMetaTagIds.length > 0">
-					 			<span>Tags:</span>
-					 			<span ng-repeat="(index, tagId) in selectedLens.nonMetaTagIds">
-					 				<span class="comma" ng-if="::(index > 0)">,</span>
-					 				<arb-page-title page-id="{{::tagId}}" is-link="true"></arb-page-title>
-					 			</span>
-					 		</div>
-					 	</div>
-						<div class="md-caption" layout="column" layout-gt-sm="row">
-							<a ng-href="{{arb.urlService.getEditPageUrl(selectedLens.pageId, {tabId: 4})}}" flex>
-								<span ng-bind="selectedLens.changeLogs.length"></span>
-								changes by
-								<ng-pluralize count="selectedLens.computeAuthors().length"
-										when="{'one': '{} author', 'other': '{} authors'}"></ng-pluralize>
-							</a>
-							<span ng-bind="selectedLens.viewCount"></span>
-							&nbsp;views
-						</div>
-					</div>
-
 					<!-- Add tags panel -->
 					<div layout-padding ng-if="isTagsPanelVisible">
 						<div arb-relationships
