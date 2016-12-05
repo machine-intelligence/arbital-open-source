@@ -63,7 +63,7 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check permissions
-	permissionError, err := core.VerifyEditPermissionsForMap(db, pageMap, u)
+	permissionError, err := core.VerifyEditPermissionsForMap(db, u, pageMap)
 	if err != nil {
 		return pages.Fail("Error verifying permissions", err).Status(http.StatusForbidden)
 	} else if permissionError != "" {

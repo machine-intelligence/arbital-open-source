@@ -428,7 +428,9 @@ type CreateNewPageOptions struct {
 
 	// Additional options
 	ParentIDs []string
-	Tx        *database.Tx
+	// If creating a new comment, this is the id of the page to which the comment belongs
+	CommentPrimaryPageID string
+	Tx                   *database.Tx
 }
 
 func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOptions) (string, error) {
@@ -446,11 +448,15 @@ func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOption
 	// For new comments, check if the user has the permissions to create an approved comment
 	isApprovedComment := false
 	if options.Type == CommentPageType {
-		var err error
-		isApprovedComment, _, err = CanUserApproveComment(db, u, options.ParentIDs)
-		if err != nil {
-			return "", fmt.Errorf("Couldn't check if user can approve the new comment: %v", err)
+		if !IsIDValid(options.CommentPrimaryPageID) {
+			return "", fmt.Errorf("Creating a new comment without a primary page parent id")
 		}
+		domainMap := make(map[string]*Domain)
+		p, err := LoadFullEdit(db, options.CommentPrimaryPageID, u, domainMap, nil)
+		if err != nil {
+			return "", fmt.Errorf("Error while loading full edit", err)
+		}
+		isApprovedComment = p.Permissions.Comment.Has
 	}
 
 	// Check that the external url is unique
@@ -585,7 +591,7 @@ func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOption
 }
 
 // Return true if the user (can create approved comments, can approve comments)
-func CanUserApproveComment(db *database.DB, u *CurrentUser, parentIDs []string) (bool, bool, error) {
+func CanUserApproveComment(db *database.DB, u *CurrentUser, parentIDs []string) (bool, error) {
 	var domainID string
 	row := database.NewQuery(`
 		SELECT pi.editDomainId
@@ -594,13 +600,13 @@ func CanUserApproveComment(db *database.DB, u *CurrentUser, parentIDs []string) 
 			AND pi.type!=?`, CommentPageType).ToStatement(db).QueryRow()
 	exists, err := row.Scan(&domainID)
 	if err != nil {
-		return false, false, err
+		return false, err
 	} else if !exists {
-		return false, false, nil
+		return false, nil
 	}
 	if dm, ok := u.DomainMembershipMap[domainID]; !ok {
-		return false, false, nil
+		return false, nil
 	} else {
-		return dm.CanCreateApprovedComments, dm.CanApproveComments, nil
+		return dm.CanApproveComments, nil
 	}
 }

@@ -40,6 +40,34 @@
 			</form>
 		</div>
 
+
+		<!-- Friends table -->
+		<div ng-if="arb.userService.user.domainMembershipMap[domainId].role == 'arbitrator'">
+			<br>
+			<br>
+			<!-- Header row -->
+			<div layout="row" class="domain-user-list-header domain-user-list-row">
+				Friendly domains
+				<span>
+					<md-icon>help</md-icon>
+					<md-tooltip>Members of these domains will be granted Default status in this domain.</md-tootlip>
+				</span>
+			</div>
+			<!-- Invite rows -->
+			<div layout="row"
+					layout-align="start center"
+					class="domain-user-list-row"
+					ng-repeat="friendId in domain.friendDomainIds">
+				<div flex>{{arb.stateService.domainMap[friendId].alias}}</div>
+			</div>
+			<div layout="row"
+					layout-align="start center"
+					class="domain-user-list-row"
+					ng-if="domain.friendDomainIds.length <= 0">
+				None yet
+			</div>
+		</div>
+
 		<br>
 		<br>
 

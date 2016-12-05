@@ -45,6 +45,7 @@ app.directive('arbDomainsPage', function($timeout, $http, $filter, arb) {
 				$scope.domainUsersMap[domainId].sort(arraysSortFn(function(userId) {
 					var user = arb.userService.userMap[userId];
 					return [
+						userId == arb.userService.user.id ? 0 : 1,
 						-roleToInt(user.domainMembershipMap[domainId].role),
 						user.firstName,
 					];

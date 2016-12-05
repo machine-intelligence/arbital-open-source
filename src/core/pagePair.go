@@ -259,18 +259,18 @@ func LoadRequisites(db *database.DB, pageMap map[string]*Page, u *CurrentUser, o
 }
 
 // Load full edit for both the parent and the child of the given page pair.
-func LoadFullEditsForPagePair(db *database.DB, pagePair *PagePair, u *CurrentUser) (*Page, *Page, error) {
+func LoadFullEditsForPagePair(db *database.DB, pagePair *PagePair, u *CurrentUser, domainMap map[string]*Domain) (*Page, *Page, error) {
 	editLoadOptions := &LoadEditOptions{
 		LoadNonliveEdit: true,
 		PreferLiveEdit:  true,
 	}
-	parent, err := LoadFullEdit(db, pagePair.ParentID, u, editLoadOptions)
+	parent, err := LoadFullEdit(db, pagePair.ParentID, u, domainMap, editLoadOptions)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error while loading parent page: %v", err)
 	} else if parent == nil {
 		return nil, nil, fmt.Errorf("Parent page doesn't exist", nil)
 	}
-	child, err := LoadFullEdit(db, pagePair.ChildID, u, editLoadOptions)
+	child, err := LoadFullEdit(db, pagePair.ChildID, u, domainMap, editLoadOptions)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error while loading child page: %v", err)
 	} else if child == nil {

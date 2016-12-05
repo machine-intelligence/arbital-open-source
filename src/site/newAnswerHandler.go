@@ -34,7 +34,6 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	c := params.C
 	returnData := core.NewHandlerData(u)
-	now := database.Now()
 
 	var data newAnswerData
 	decoder := json.NewDecoder(params.R.Body)
@@ -46,7 +45,7 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("One of the passed page ids is invalid", nil).Status(http.StatusBadRequest)
 	}
 
-	page, err := core.LoadFullEdit(db, data.QuestionID, u, nil)
+	page, err := core.LoadFullEdit(db, data.QuestionID, u, returnData.DomainMap, nil)
 	if err != nil {
 		return pages.Fail("Couldn't load page", err)
 	}
@@ -64,7 +63,7 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["questionId"] = data.QuestionID
 		hashmap["answerPageId"] = data.AnswerPageID
 		hashmap["userId"] = u.ID
-		hashmap["createdAt"] = now
+		hashmap["createdAt"] = database.Now()
 		statement := db.NewInsertStatement("answers", hashmap).WithTx(tx)
 		resp, err := statement.Exec()
 		if err != nil {

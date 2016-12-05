@@ -32,6 +32,7 @@ var revertPageHandler = siteHandler{
 func revertPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
+	handlerData := core.NewHandlerData(u)
 
 	decoder := json.NewDecoder(params.R.Body)
 	var data revertPageData
@@ -44,7 +45,7 @@ func revertPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the page
-	page, err := core.LoadFullEdit(db, data.PageID, u, &core.LoadEditOptions{LoadSpecificEdit: data.EditNum})
+	page, err := core.LoadFullEdit(db, data.PageID, u, handlerData.DomainMap, &core.LoadEditOptions{LoadSpecificEdit: data.EditNum})
 	if err != nil {
 		return pages.Fail("Couldn't load page", err)
 	} else if page == nil {

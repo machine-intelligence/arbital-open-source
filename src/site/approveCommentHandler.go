@@ -47,7 +47,7 @@ func approveCommentHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't load comment parent page id", err)
 	}
 
-	_, canApprove, err := core.CanUserApproveComment(db, u, []string{pageID})
+	canApprove, err := core.CanUserApproveComment(db, u, []string{pageID})
 	if err != nil {
 		return pages.Fail("Error computing appoving", err)
 	} else if !canApprove {

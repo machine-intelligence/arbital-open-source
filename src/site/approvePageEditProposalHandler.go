@@ -33,6 +33,7 @@ func approvePageEditProposalHandlerFunc(params *pages.HandlerParams) *pages.Resu
 	c := params.C
 	db := params.DB
 	u := params.U
+	handlerData := core.NewHandlerData(u)
 
 	// Decode data
 	var data approvePageEditProposalData
@@ -53,7 +54,7 @@ func approvePageEditProposalHandlerFunc(params *pages.HandlerParams) *pages.Resu
 	}
 
 	// Load the published page.
-	oldPage, err := core.LoadFullEdit(db, changeLog.PageID, u, nil)
+	oldPage, err := core.LoadFullEdit(db, changeLog.PageID, u, handlerData.DomainMap, nil)
 	if err != nil {
 		return pages.Fail("Couldn't load the old page", err)
 	} else if oldPage == nil {
@@ -66,7 +67,7 @@ func approvePageEditProposalHandlerFunc(params *pages.HandlerParams) *pages.Resu
 	}
 
 	// Load the proposed edit
-	proposedEdit, err := core.LoadFullEdit(db, changeLog.PageID, u, &core.LoadEditOptions{LoadSpecificEdit: changeLog.Edit})
+	proposedEdit, err := core.LoadFullEdit(db, changeLog.PageID, u, handlerData.DomainMap, &core.LoadEditOptions{LoadSpecificEdit: changeLog.Edit})
 	if err != nil {
 		return pages.Fail("Couldn't load the proposed edit", err)
 	} else if proposedEdit == nil {

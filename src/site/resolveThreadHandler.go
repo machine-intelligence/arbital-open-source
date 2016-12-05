@@ -32,6 +32,7 @@ func resolveThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	c := params.C
 	u := params.U
+	handlerData := core.NewHandlerData(u)
 
 	decoder := json.NewDecoder(params.R.Body)
 	var data resolveThreadData
@@ -44,7 +45,7 @@ func resolveThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the page
-	page, err := core.LoadFullEdit(db, data.PageID, u, nil)
+	page, err := core.LoadFullEdit(db, data.PageID, u, handlerData.DomainMap, nil)
 	if err != nil {
 		return pages.Fail("Couldn't load page", err)
 	}
@@ -72,7 +73,7 @@ func resolveThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Only users who have edit access to the comment's primary page can resolve it
 	if !data.Unresolve {
-		lens, err := core.LoadFullEdit(db, commentPrimaryPageID, u, nil)
+		lens, err := core.LoadFullEdit(db, commentPrimaryPageID, u, handlerData.DomainMap, nil)
 		if err != nil {
 			return pages.Fail("Couldn't load page", err)
 		}

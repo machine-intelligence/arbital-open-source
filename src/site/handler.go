@@ -164,7 +164,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 func loadSubdomain(r *http.Request, db *database.DB, u *core.CurrentUser) (*core.Domain, error) {
 	subdomain := strings.ToLower(mux.Vars(r)["subdomain"])
 	if subdomain == "" {
-		return core.NoDomain, nil
+		return core.NewDomain(), nil
 	}
 	// Get actual page id for the domain
 	domain, err := core.LoadDomainByAlias(db, subdomain)

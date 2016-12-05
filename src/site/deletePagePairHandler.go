@@ -33,6 +33,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	c := params.C
 	db := params.DB
 	u := params.U
+	handlerData := core.NewHandlerData(u)
 
 	// Get and check input data
 	decoder := json.NewDecoder(params.R.Body)
@@ -63,7 +64,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages
-	parent, child, err := core.LoadFullEditsForPagePair(db, pagePair, u)
+	parent, child, err := core.LoadFullEditsForPagePair(db, pagePair, u, handlerData.DomainMap)
 	if err != nil {
 		return pages.Fail("Error loading pagePair pages", err)
 	}

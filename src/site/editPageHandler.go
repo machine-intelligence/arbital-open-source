@@ -82,7 +82,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		LoadNonliveEdit: true,
 		PreferLiveEdit:  true,
 	}
-	oldPage, err := core.LoadFullEdit(db, data.PageID, u, editLoadOptions)
+	oldPage, err := core.LoadFullEdit(db, data.PageID, u, returnData.DomainMap, editLoadOptions)
 	if err != nil {
 		return pages.Fail("Couldn't load the old page", err)
 	} else if oldPage == nil {

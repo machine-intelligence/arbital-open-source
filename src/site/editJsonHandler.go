@@ -69,7 +69,7 @@ func editJSONInternalHandler(params *pages.HandlerParams, data *editJSONData) *p
 		LoadEditWithLimit: data.EditLimit,
 		CreatedAtLimit:    data.CreatedAtLimit,
 	}
-	p, err := core.LoadFullEdit(db, pageID, u, &options)
+	p, err := core.LoadFullEdit(db, pageID, u, returnData.DomainMap, &options)
 	if err != nil {
 		return pages.Fail("Error while loading full edit", err)
 	}
@@ -108,7 +108,8 @@ func editJSONInternalHandler(params *pages.HandlerParams, data *editJSONData) *p
 	}
 
 	// Load data
-	core.AddPageToMap(pageID, returnData.PageMap, core.PrimaryEditLoadOptions)
+	p.LoadOptions = *core.PrimaryEditLoadOptions
+	returnData.PageMap[p.PageID] = p
 	core.AddPageIDToMap(p.EditDomainID, returnData.PageMap)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {

@@ -933,7 +933,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 	// Compute edit permissions
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.DomainsAndPermissions })
-	ComputePermissionsForMap(db.C, filteredPageMap, u)
+	ComputePermissionsForMap(db.C, u, filteredPageMap, data.DomainMap)
 
 	// Load summaries
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Summaries })
@@ -1367,7 +1367,7 @@ func LoadFeedSubmissionsForPages(db *database.DB, u *CurrentUser, resultData *Co
 		AddUserIDToMap(row.SubmitterID, resultData.UserMap)
 		sourcePageMap[row.PageID].FeedSubmissions = append(sourcePageMap[row.PageID].FeedSubmissions, &row)
 		if _, ok := resultData.DomainMap[row.DomainID]; !ok {
-			resultData.DomainMap[row.DomainID] = &Domain{ID: row.DomainID}
+			resultData.DomainMap[row.DomainID] = NewDomainWithID(row.DomainID)
 		}
 		return nil
 	})
@@ -1428,7 +1428,7 @@ type LoadEditOptions struct {
 // LoadFullEdit loads and returns an edit for the given page id from the DB. It
 // also computes the permissions for the edit.
 // If the page couldn't be found, (nil, nil) will be returned.
-func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, options *LoadEditOptions) (*Page, error) {
+func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, domainMap map[string]*Domain, options *LoadEditOptions) (*Page, error) {
 	if options == nil {
 		options = &LoadEditOptions{}
 	}
@@ -1457,16 +1457,14 @@ func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, options *LoadE
 			ORDER BY p.isAutosave DESC,
 				p.isSnapshot DESC,
 				p.edit=pi.currentEdit DESC,
-				p.createdAt DESC
-		`)
+				p.createdAt DESC`)
 		if options.PreferLiveEdit {
 			orderClause = database.NewQuery(`
 			/* From most to least preferred edits: autosave, (applicable) snapshot, currentEdit, anything else */
 			ORDER BY p.edit=pi.currentEdit DESC,
 				p.isAutosave DESC,
 				p.isSnapshot DESC,
-				p.createdAt DESC
-		`)
+				p.createdAt DESC`)
 		}
 		// Load the most recent edit we have for the current user.
 		whereClause = database.NewQuery(`
@@ -1511,7 +1509,15 @@ func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, options *LoadE
 		return nil, nil
 	}
 
-	p.ComputePermissions(db.C, u)
+	userMap := make(map[string]*User)
+	pageMap := make(map[string]*Page)
+	pageMap[p.PageID] = p
+	err = LoadRelevantDomains(db, u, pageMap, userMap, domainMap)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load edit domains: %v", err)
+	}
+
+	p.ComputePermissions(db.C, u, domainMap)
 	p.TextLength = len(p.Text)
 	return p, nil
 }

@@ -47,9 +47,10 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 func deletePageInternalHandlerFunc(params *pages.HandlerParams, data *deletePageData) *pages.Result {
 	db := params.DB
 	u := params.U
+	handlerData := core.NewHandlerData(u)
 
 	// Load the page
-	page, err := core.LoadFullEdit(db, data.PageID, u, nil)
+	page, err := core.LoadFullEdit(db, data.PageID, u, handlerData.DomainMap, nil)
 	if err != nil {
 		return pages.Fail("Couldn't load page", err)
 	}

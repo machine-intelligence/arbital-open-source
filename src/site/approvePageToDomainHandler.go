@@ -45,7 +45,7 @@ func approvePageToDomainHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the page info
-	oldPage, err := core.LoadFullEdit(db, data.PageID, u, nil)
+	oldPage, err := core.LoadFullEdit(db, data.PageID, u, returnData.DomainMap, nil)
 	if err != nil {
 		return pages.Fail("Error loading the page", err)
 	} else if oldPage == nil {

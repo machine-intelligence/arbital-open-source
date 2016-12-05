@@ -75,8 +75,9 @@ type Permissions struct {
 	ProposeEdit Permission `json:"proposeEdit"`
 	Delete      Permission `json:"delete"`
 
-	// Note that for comments, this means "can reply to this comment"
-	Comment Permission `json:"comment"`
+	// Note that for comment a comment page, this means "can reply to this comment"
+	Comment        Permission `json:"comment"`
+	ProposeComment Permission `json:"proposeComment"`
 }
 
 // Permission says whether the user can perform a certain action
@@ -93,7 +94,7 @@ func CanUserSeeDomain(u *CurrentUser, domainID string) bool {
 	return RoleAtLeast(u.GetDomainMembershipRole(domainID), DefaultDomainRole) || u.IsAdmin
 }
 
-func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
+func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser, domainMap map[string]*Domain) {
 	// Compute proposeEdit reason after we compute edit permission
 	defer func() {
 		if p.IsDeleted {
@@ -104,8 +105,7 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 		if p.Permissions.Edit.Has {
 			p.Permissions.ProposeEdit.Has = true
 		}
-		// TODO: we should read in domain's setting, but for now anyone can propose edits
-		p.Permissions.ProposeEdit.Has = true
+		p.Permissions.ProposeEdit.Has = domainMap[p.EditDomainID].CanUsersProposeEdits
 		if !p.Permissions.ProposeEdit.Has {
 			p.Permissions.ProposeEdit.Reason = p.Permissions.Edit.Reason
 		}
@@ -136,7 +136,7 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 	p.Permissions.Edit.Has = true
 }
 
-func (p *Page) computeDeletePermissions(c sessions.Context, u *CurrentUser) {
+func (p *Page) computeDeletePermissions(c sessions.Context, u *CurrentUser, domainMap map[string]*Domain) {
 	if u.IsAdmin {
 		p.Permissions.Delete.Has = true
 		return
@@ -145,7 +145,7 @@ func (p *Page) computeDeletePermissions(c sessions.Context, u *CurrentUser) {
 		p.Permissions.Delete.Reason = "Can't delete an unpublished page"
 		return
 	}
-	if !RoleAtLeast(u.GetDomainMembershipRole(p.EditDomainID), TrustedDomainRole) {
+	if !RoleAtLeast(u.GetDomainMembershipRole(p.EditDomainID), ReviewerDomainRole) {
 		p.Permissions.Delete.Reason = "You don't have domain permission to delete this page"
 		return
 	}
@@ -153,45 +153,79 @@ func (p *Page) computeDeletePermissions(c sessions.Context, u *CurrentUser) {
 	p.Permissions.Delete.Has = true
 }
 
-func (p *Page) computeCommentPermissions(c sessions.Context, u *CurrentUser) {
+func (p *Page) computeCommentPermissions(c sessions.Context, u *CurrentUser, domainMap map[string]*Domain) {
 	if !p.WasPublished {
 		p.Permissions.Comment.Reason = "Can't comment on an unpublished page"
+		p.Permissions.ProposeComment.Reason = "Can't comment on an unpublished page"
 		return
 	}
-	if !RoleAtLeast(u.GetDomainMembershipRole(p.EditDomainID), NoDomainRole) {
-		p.Permissions.Comment.Reason = "You don't have domain permission to comment on this page"
+
+	// Compute proposeComment reason after we compute comment permission
+	defer func() {
+		if p.Permissions.Comment.Has {
+			p.Permissions.ProposeComment.Has = true
+			return
+		}
+		if domainMap[p.EditDomainID].CanUsersComment {
+			p.Permissions.ProposeComment.Has = true
+			return
+		}
+		p.Permissions.ProposeComment.Reason = "Sorry, this domain only allows members to comment"
+	}()
+
+	// Allowed through the domain directly?
+	if RoleAtLeast(u.GetDomainMembershipRole(p.EditDomainID), DefaultDomainRole) {
+		p.Permissions.Comment.Has = true
 		return
 	}
-	if u.GetDomainMembershipRole(p.EditDomainID) == NoDomainRole {
-		// TODO: check if domain allows for people to comment
-		p.Permissions.Comment.Reason = "You don't have domain permission to comment on this page"
-		return
+	// Allowed through a friend of the domain?
+	for _, friendID := range domainMap[p.EditDomainID].FriendDomainIDs {
+		if RoleAtLeast(u.GetDomainMembershipRole(friendID), DefaultDomainRole) {
+			p.Permissions.Comment.Has = true
+			return
+		}
 	}
-	p.Permissions.Comment.Has = true
+	p.Permissions.Comment.Reason = "You can't comment in this domain because you are not a member"
 }
 
 // ComputePermissions computes all the permissions for the given page.
-func (p *Page) ComputePermissions(c sessions.Context, u *CurrentUser) {
+func (p *Page) ComputePermissions(c sessions.Context, u *CurrentUser, domainMap map[string]*Domain) {
 	p.Permissions = &Permissions{}
 	// Order is important
-	p.computeEditPermissions(c, u)
-	p.computeDeletePermissions(c, u)
-	p.computeCommentPermissions(c, u)
+	p.computeEditPermissions(c, u, domainMap)
+	p.computeDeletePermissions(c, u, domainMap)
+	p.computeCommentPermissions(c, u, domainMap)
 }
-func ComputePermissionsForMap(c sessions.Context, pageMap map[string]*Page, u *CurrentUser) {
+func ComputePermissionsForMap(c sessions.Context, u *CurrentUser, pageMap map[string]*Page, domainMap map[string]*Domain) {
 	for _, p := range pageMap {
-		p.ComputePermissions(c, u)
+		p.ComputePermissions(c, u, domainMap)
 	}
 }
 
 // Verify that the user has edit permissions for all the pages in the map.
-func VerifyEditPermissionsForMap(db *database.DB, pageMap map[string]*Page, u *CurrentUser) (string, error) {
+func VerifyEditPermissionsForMap(db *database.DB, u *CurrentUser, pageMap map[string]*Page) (string, error) {
 	err := LoadPages(db, u, pageMap)
 	if err != nil {
 		return "", fmt.Errorf("Couldn't load pages: %v", err)
 	}
 
-	ComputePermissionsForMap(db.C, pageMap, u)
+	domainIDs := make([]string, 0)
+	for _, p := range pageMap {
+		domainIDs = append(domainIDs, p.EditDomainID)
+	}
+
+	// Load relevant domains
+	domainMap := make(map[string]*Domain)
+	queryPart := database.NewQuery(`WHERE d.id IN`).AddArgsGroupStr(domainIDs)
+	err = LoadDomains(db, queryPart, func(db *database.DB, domain *Domain) error {
+		domainMap[domain.ID] = domain
+		return nil
+	})
+	if err != nil {
+		return "", fmt.Errorf("Couldn't load domains: %v", err)
+	}
+
+	ComputePermissionsForMap(db.C, u, pageMap, domainMap)
 	for _, p := range pageMap {
 		if !p.Permissions.Edit.Has {
 			return fmt.Sprintf("Don't have edit access to page " + p.PageID + ": " + p.Permissions.Edit.Reason), nil
@@ -199,12 +233,12 @@ func VerifyEditPermissionsForMap(db *database.DB, pageMap map[string]*Page, u *C
 	}
 	return "", nil
 }
-func VerifyEditPermissionsForList(db *database.DB, pageIDs []string, u *CurrentUser) (string, error) {
+func VerifyEditPermissionsForList(db *database.DB, u *CurrentUser, pageIDs []string) (string, error) {
 	pageMap := make(map[string]*Page)
 	for _, pageID := range pageIDs {
 		AddPageIDToMap(pageID, pageMap)
 	}
-	return VerifyEditPermissionsForMap(db, pageMap, u)
+	return VerifyEditPermissionsForMap(db, u, pageMap)
 }
 
 // =========================== Relationships ==================================

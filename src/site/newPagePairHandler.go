@@ -90,7 +90,7 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 		ChildID:  data.ChildID,
 		Type:     data.Type,
 	}
-	parent, child, err := core.LoadFullEditsForPagePair(db, pagePair, u)
+	parent, child, err := core.LoadFullEditsForPagePair(db, pagePair, u, returnData.DomainMap)
 	if err != nil {
 		return pages.Fail("Error loading pagePair pages", err)
 	}

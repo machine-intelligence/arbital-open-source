@@ -43,6 +43,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	c := params.C
 	db := params.DB
 	u := params.U
+	handlerData := core.NewHandlerData(u)
 
 	// Decode data
 	var data editPageInfoData
@@ -61,7 +62,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		LoadNonliveEdit: true,
 		PreferLiveEdit:  true,
 	}
-	oldPage, err := core.LoadFullEdit(db, data.PageID, u, editLoadOptions)
+	oldPage, err := core.LoadFullEdit(db, data.PageID, u, handlerData.DomainMap, editLoadOptions)
 	if err != nil {
 		return pages.Fail("Couldn't load the old page", err)
 	} else if oldPage == nil {

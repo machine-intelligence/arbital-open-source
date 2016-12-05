@@ -73,7 +73,8 @@ app.config(function($locationProvider, $mdIconProvider, $mdThemingProvider) {
 		.icon('link_variant', 'static/icons/link-variant.svg')
 		.icon('slack', 'static/icons/slack.svg')
 		.icon('thumb_up_outline', 'static/icons/thumb-up-outline.svg')
-		.icon('thumb_down_outline', 'static/icons/thumb-down-outline.svg');
+		.icon('thumb_down_outline', 'static/icons/thumb-down-outline.svg')
+		.icon('visibility_outline', 'static/icons/visibility-outline.svg');
 
 	$locationProvider.html5Mode(true);
 });

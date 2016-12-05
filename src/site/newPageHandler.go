@@ -24,6 +24,8 @@ type newPageData struct {
 	ParentIDs       []string
 	IsEditorComment bool
 	Alias           string
+	// If creating a new comment, this is the id of the primary page
+	CommentPrimaryPageID string
 }
 
 // newPageHandlerFunc handles the request.
@@ -45,12 +47,13 @@ func newPageInternalHandler(params *pages.HandlerParams, data *newPageData) *pag
 	u := params.U
 
 	pageID, err := core.CreateNewPage(params.DB, params.U, &core.CreateNewPageOptions{
-		Alias:           data.Alias,
-		Type:            data.Type,
-		SeeDomainID:     params.PrivateDomain.ID,
-		EditDomainID:    u.MyDomainID(),
-		IsEditorComment: data.IsEditorComment,
-		ParentIDs:       data.ParentIDs,
+		Alias:                data.Alias,
+		Type:                 data.Type,
+		SeeDomainID:          params.PrivateDomain.ID,
+		EditDomainID:         u.MyDomainID(),
+		IsEditorComment:      data.IsEditorComment,
+		ParentIDs:            data.ParentIDs,
+		CommentPrimaryPageID: data.CommentPrimaryPageID,
 	})
 	if err != nil {
 		return pages.Fail("Couldn't create new page", err)

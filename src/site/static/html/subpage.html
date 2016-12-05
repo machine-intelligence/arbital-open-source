@@ -32,11 +32,9 @@
 
 			<div flex>
 				<!-- New comment dot -->
-				<span ng-if="page.pageCreatedAt > lens.lastVisit && lens.lastVisit != ''">
-					<span class="new-dot">
-						<md-tooltip>This comment is new since your last visit</md-tooltip>
-					</span>
-				</span>
+				<strong ng-if="page.pageCreatedAt > lens.lastVisit && lens.lastVisit != ''">
+					(NEW)
+				</strong>
 
 				<!-- User name -->
 				<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>

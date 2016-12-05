@@ -1,4 +1,4 @@
-// domainsHandler.go returns the data about current user's domains.
+// domainsPageHandler.go returns the data about current user's domains.
 
 package site
 
@@ -10,13 +10,13 @@ import (
 	"zanaduu3/src/pages"
 )
 
-var domainsHandler = siteHandler{
+var domainsPageHandler = siteHandler{
 	URI:         "/json/domains/",
-	HandlerFunc: domainsHandlerFunc,
+	HandlerFunc: domainsPageHandlerFunc,
 	Options:     pages.PageOptions{},
 }
 
-func domainsHandlerFunc(params *pages.HandlerParams) *pages.Result {
+func domainsPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 	returnData := core.NewHandlerData(u).SetResetEverything()

@@ -42,3 +42,17 @@ CREATE TABLE lastVisits (
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 insert into lastVisits (userId,pageId,createdAt,updatedAt) (select userId,pageId,min(createdAt),max(createdAt) from visits where userId in (select id from users) and pageId in (select pageId from pageInfos) group by 1,2);
+
+CREATE TABLE domainFriends (
+	/* Domain id. FK into domains. */
+	domainId BIGINT NOT NULL,
+	/* Id of another domain this domain is friends with. FK into domains. */
+	friendId BIGINT NOT NULL,
+	/* When this friendship was originally created. */
+	createdAt DATETIME NOT NULL,
+	/* Id of the user who created the friendship. FK into users. */
+	createdBy VARCHAR(32) NOT NULL,
+
+	UNIQUE(domainId,friendId)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+

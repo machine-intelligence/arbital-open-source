@@ -551,6 +551,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		this.getNewPage({
 			type: 'comment',
 			parentIds: parentIds,
+			commentPrimaryPageId: options.parentPageId,
 			isEditorComment: options.isEditorComment,
 			success: function(newCommentId) {
 				if (options.success) {
