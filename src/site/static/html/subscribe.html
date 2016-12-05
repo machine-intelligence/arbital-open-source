@@ -3,6 +3,8 @@
 		ng-class="::{'md-icon-button': !isStretched}"
 		ng-click="subscribeClick()">
 	<md-icon ng-class="{on: isSubscribed()}">visibility</md-icon>
+	<!--md-icon ng-if="isSubscribed()">visibility</md-icon>
+	<md-icon md-svg-icon="visibility_outline" ng-if="!isSubscribed()"></md-icon>-->
 	<span class="like-count">
 		{{page.subscriberCount + (isSubscribed() ? 1 : 0)}}
 	</span>
