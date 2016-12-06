@@ -35,6 +35,11 @@
 
 			<!-- Page title -->
 			<div class="page-title md-display-3" ng-class="::{'center-text': isTinyScreen}">
+				<div class="md-caption" ng-if="!page.isBlogPage() && !page.isLinkPage()">
+					<arb-page-title page-id="{{::arb.stateService.domainMap[page.editDomainId].pageId}}"
+							is-link="true"></arb-page-title>
+					domain
+				</div>
 				<md-icon ng-if="::page.isUser()">person</md-icon>
 				<md-icon ng-if="::page.isQuestion()">help</md-icon>
 				<span ng-if="::page.isExternalLink()">
@@ -59,11 +64,6 @@
 				<div class="md-caption" ng-if="page.isBlogPage() && !page.isUser()">
 					writen by <arb-user-name user-id="{{::arb.stateService.domainMap[page.editDomainId].pageId}}"></arb-user-name>
 					({{page.pageCreatedAt | smartDateTime}})
-				</div>
-				<div class="md-caption" ng-if="!page.isBlogPage()">
-					<arb-page-title page-id="{{::arb.stateService.domainMap[page.editDomainId].pageId}}"
-							is-link="true"></arb-page-title>
-					domain
 				</div>
 			</div>
 			<hr class="page-title-hr" ng-if="::page.text.length > 1"></hr>
@@ -155,8 +155,8 @@
 				layout-align="start start"
 				class="md-caption"
 				ng-if="!page.isBlogPage() && !page.isLinkPage()">
-			<!-- Parents and children -->
 			<div flex>
+				<!-- Parents and children -->
 				<div layout-align="start center">
 					<span>Parents:</span>
 					<span ng-if="page.parentIds.length == 0">none</span>
@@ -172,31 +172,33 @@
 								when="{'0': 'none', 'one': 'one page', 'other': '{} pages'}"></ng-pluralize>
 					</a>
 				</div>
+
+				<!-- Tags -->
+				<div layout-align="start center"
+		 				ng-if="page.nonMetaTagIds.length > 0">
+		 			<span>Tags:</span>
+		 			<span ng-repeat="(index, tagId) in page.nonMetaTagIds">
+		 				<span class="comma" ng-if="::(index > 0)">,</span>
+		 				<arb-page-title page-id="{{::tagId}}" is-link="true"></arb-page-title>
+		 			</span>
+		 		</div>
 			</div>
 
-			<!-- Tags -->
-			<div layout-align="start center"
-	 				ng-if="page.nonMetaTagIds.length > 0">
-	 			<span>Tags:</span>
-	 			<span ng-repeat="(index, tagId) in page.nonMetaTagIds">
-	 				<span class="comma" ng-if="::(index > 0)">,</span>
-	 				<arb-page-title page-id="{{::tagId}}" is-link="true"></arb-page-title>
-	 			</span>
-	 		</div>
+			<!-- Changes and views -->
+			<div class="right-text" ng-if="page.changeLogs.length > 0">
+				<div>
+					<a ng-href="{{arb.urlService.getEditPageUrl(page.pageId, {tabId: 4})}}" flex>
+						<span ng-bind="page.changeLogs.length"></span>
+						changes by
+						<ng-pluralize count="page.computeAuthors().length"
+								when="{'one': '{} author', 'other': '{} authors'}"></ng-pluralize>
+					</a>
+				</div>
+				<div>
+					<span ng-bind="page.viewCount"></span> views
+				</div>
+			</div>
 	 	</div>
-		<div class="md-caption"
-				layout="column"
-				layout-gt-sm="row"
-				ng-if="page.changeLogs.length > 0 && !page.isBlogPage() && !page.isLinkPage()">
-			<a ng-href="{{arb.urlService.getEditPageUrl(page.pageId, {tabId: 4})}}" flex>
-				<span ng-bind="page.changeLogs.length"></span>
-				changes by
-				<ng-pluralize count="page.computeAuthors().length"
-						when="{'one': '{} author', 'other': '{} authors'}"></ng-pluralize>
-			</a>
-			<span ng-bind="page.viewCount"></span>
-			&nbsp;views
-		</div>
 	</div>
 
 	<!-- The explanations for a concept -->

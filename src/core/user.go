@@ -131,6 +131,7 @@ func LoadUserDomainMembership(db *database.DB, u *User, domainMap map[string]*Do
 			return fmt.Errorf("failed to scan for a member: %v", err)
 		}
 		dm.CanApproveComments = RoleAtLeast(dm.Role, ReviewerDomainRole)
+		dm.CanSubmitLinks = RoleAtLeast(dm.Role, ReviewerDomainRole)
 		u.DomainMembershipMap[dm.DomainID] = &dm
 		if domainMap != nil {
 			domainMap[dm.DomainID] = NewDomainWithID(dm.DomainID)

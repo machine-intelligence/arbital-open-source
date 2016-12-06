@@ -25,7 +25,8 @@
 					hide-icon="true"></arb-edit-button>
 			<md-button class="md-raised"
 					ng-class="{'md-primary': !isSubmittingLink}"
-					ng-click="showSubmissionForm()">
+					ng-click="showSubmissionForm()"
+					ng-if="arb.userService.user.domainMembershipMap[2069].canSubmitLinks">
 				Submit new link
 			</md-button>
 		</div>

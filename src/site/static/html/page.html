@@ -109,11 +109,11 @@
 							<!-- Page improvement requests -->
 							<div>
 								<span ng-if="!selectedLens.contentRequests.improveStub.myLikeValue">
-									You can vote to impove this page:
+									<!--You can vote to impove this page:
 									<md-button class="short-button"
 											ng-click="arb.signupService.submitContentRequest('improveStub', selectedLens)">
 										<md-icon>plus_one</md-icon>
-									</md-button>
+									</md-button>-->
 								</span>
 								<span ng-if="selectedLens.contentRequests.improveStub.myLikeValue">
 									Thanks for voting to improve the page!
@@ -200,7 +200,7 @@
 				ng-if="selectedLens && selectedLens.editDomainId == '1' && !selectedLens.isConcept()"></div>
 
 		<!-- Discussion section -->
-		<div class="after-page-container" ng-if="arb.userService.userIsLoggedIn() && !selectedLens.isConcept()">
+		<div class="after-page-container">
 			<arb-page-discussion ng-repeat="lens in ::lenses"
 					class="reveal-after-render"
 					page-id="{{::lens.lensId}}"

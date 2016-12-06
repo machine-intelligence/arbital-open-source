@@ -2088,7 +2088,7 @@ func LoadSubpageCounts(db *database.DB, u *CurrentUser, pageMap map[string]*Page
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
 		pageMap[parentID].CommentCount++
-		if createdAt > pageMap[parentID].LastVisit && createdBy != u.ID {
+		if createdAt > pageMap[parentID].LastVisit && createdBy != u.ID && u.ID != "" {
 			pageMap[parentID].NewCommentCount++
 		}
 		return nil
