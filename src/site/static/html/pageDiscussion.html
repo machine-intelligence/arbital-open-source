@@ -15,7 +15,7 @@
 		<md-button class="new-comment-button md-primary md-raised"
 				ng-click="newCommentClick()"
 				aria-label="New comment"
-				ng-if="!newCommentId && page.permissions.comment.has">
+				ng-if="!newCommentId && !showNewCommentLoading && page.permissions.comment.has">
 			<md-icon class="md-raised" ng-if="showEditorComments">rate_review</md-icon>
 			<md-icon class="md-raised" ng-if="!showEditorComments">comment</md-icon>
 			<span ng-bind="visibleCommentCount() <= 0 ? 'Write first editor comment' : 'New editor comment'"
@@ -27,6 +27,14 @@
 			Commenting is only enabled for certain users.
 		</div>
 	</div>
+
+	<!-- Loading spinner -->
+	<div layout="column"
+			layout-align="center center"
+			ng-if="showNewCommentLoading">
+		<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+	</div>
+
 	<div arb-edit-page
 			class="new-comment-edit-page edit-comment-embed"
 			is-embedded="true"

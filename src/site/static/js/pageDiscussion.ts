@@ -14,15 +14,18 @@ app.directive('arbPageDiscussion', function($compile, $location, $timeout, arb) 
 			$scope.page = arb.stateService.pageMap[$scope.pageId];
 			$scope.page.subpageIds = $scope.page.commentIds || [];
 			$scope.page.subpageIds.sort(arb.pageService.getChildSortFunc('likes'));
+			$scope.showNewCommentLoading = false;
 			$scope.showEditorComments = false;
 
 			// Process user clicking on New Comment button
 			$scope.newCommentClick = function() {
 				arb.signupService.wrapInSignupFlow('new comment', function() {
+					$scope.showNewCommentLoading = true;
 					arb.pageService.newComment({
 						parentPageId: $scope.pageId,
 						isEditorComment: $scope.showEditorComments,
 						success: function(newCommentId) {
+							$scope.showNewCommentLoading = false;
 							$scope.newCommentId = newCommentId;
 						},
 					});

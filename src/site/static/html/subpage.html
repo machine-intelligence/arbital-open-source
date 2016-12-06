@@ -150,10 +150,17 @@
 			<md-button aria-label="Reply to thread"
 					ng-click="newReply()"
 					arb-user-check=""
-					ng-if="canReply() && !newReplyId">
+					ng-if="canReply() && !newReplyId && !showNewCommentLoading">
 				<md-icon>reply</md-icon>
 				Reply
 			</md-button>
+
+			<!-- Loading spinner -->
+			<div layout="column"
+					layout-align="center center"
+					ng-if="showNewCommentLoading">
+				<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+			</div>
 
 			<!-- Write a new reply -->
 			<div arb-edit-page

@@ -22,6 +22,7 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 			$scope.page.subpageIds = $scope.page.commentIds;
 			$scope.page.subpageIds.sort(arb.pageService.getChildSortFunc('oldestFirst'));
 			$scope.isCollapsed = false;
+			$scope.showNewCommentLoading = false;
 			$scope.isTinyScreen = !$mdMedia('gt-xs');
 
 			// Check if the user has the permissions to reply to this comment. Permission
@@ -105,11 +106,13 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 
 			// Called to create a new reply
 			$scope.newReply = function() {
+				$scope.showNewCommentLoading = true;
 				arb.pageService.newComment({
 					parentPageId: $scope.lensId,
 					replyToId: $scope.page.pageId,
 					success: function(newCommentId) {
 						$scope.newReplyId = newCommentId;
+						$scope.showNewCommentLoading = false;
 					},
 				});
 			};
