@@ -60,6 +60,11 @@
 					writen by <arb-user-name user-id="{{::arb.stateService.domainMap[page.editDomainId].pageId}}"></arb-user-name>
 					({{page.pageCreatedAt | smartDateTime}})
 				</div>
+				<div class="md-caption" ng-if="!page.isBlogPage()">
+					<arb-page-title page-id="{{::arb.stateService.domainMap[page.editDomainId].pageId}}"
+							is-link="true"></arb-page-title>
+					domain
+				</div>
 			</div>
 			<hr class="page-title-hr" ng-if="::page.text.length > 1"></hr>
 
