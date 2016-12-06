@@ -129,7 +129,7 @@
 							<md-tooltip md-delay="500">[@Mention]</md-tooltip>
 						</md-button>
 
-							<!-- Menu with all the Arbital specific stuff -->
+						<!-- Menu with all the Arbital specific stuff -->
 						<div layout="row" ng-show="::gtSmallScreen && !insideDialog">
 							<div class="separator"></div>
 							<md-menu>
@@ -270,7 +270,7 @@
 					<div layout="row" ng-if="showSnapshotText">
 						<input class="snapshot-text" ng-model="page.snapshotText" flex>
 						<md-button class="md-primary md-hue-1 md-raised" ng-click="snapshotPage()">
-								<md-tooltip md-delay="500">Save snapshot</md-tooltip>
+							<md-tooltip md-delay="500">Save snapshot</md-tooltip>
 							Snapshot
 						</md-button>
 					</div>
@@ -408,7 +408,8 @@
 								</div>
 								<span>
 									{{arb.stateService.pageMap[page.pageId].linkedMarkCount}}
-									<ng-pluralize count="arb.stateService.pageMap[page.pageId].linkedMarkCount" when="{'0': 'marks are', 'one': 'mark is', 'other': 'marks are'}"></ng-pluralize>
+									<ng-pluralize count="arb.stateService.pageMap[page.pageId].linkedMarkCount"
+											when="{'0': 'marks are', 'one': 'mark is', 'other': 'marks are'}"></ng-pluralize>
 									linked to this question.
 								</span>
 							</div>
@@ -632,8 +633,9 @@
 					Home
 					<md-tooltip md-delay="500">Go home</md-tooltip>
 				</md-button>
-				<md-button ng-if="::(!page.isDeleted && page.wasPublished)" ng-href="{{::arb.urlService.getPageUrl(page.pageId)}}"
-					class="md-primary md-hue-1 md-raised">
+				<md-button ng-href="{{::arb.urlService.getPageUrl(page.pageId)}}"
+						class="md-primary md-hue-1 md-raised"
+						ng-if="::(!page.isDeleted && page.wasPublished)">
 					<md-icon>arrow_back</md-icon>
 					Back
 					<md-tooltip md-delay="500">Go to live view</md-tooltip>
