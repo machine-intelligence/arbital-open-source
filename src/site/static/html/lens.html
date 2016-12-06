@@ -148,7 +148,8 @@
 		<div layout="column"
 				layout-gt-sm="row"
 				layout-align="start start"
-				ng-if="page.parentIds.length > 0 || page.nonMetaTagIds.length > 0">
+				class="md-caption"
+				ng-if="!page.isBlogPage() && !page.isLinkPage()">
 			<!-- Parents and children -->
 			<div flex>
 				<div layout-align="start center">
