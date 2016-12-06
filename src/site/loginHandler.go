@@ -41,8 +41,11 @@ func loginHandlerFunc(params *pages.HandlerParams) *pages.Result {
 }
 
 func loginHandlerInternalFunc(params *pages.HandlerParams, data *loginHandlerData) *pages.Result {
-	if len(data.Email) <= 0 || len(data.Password) <= 0 {
-		return pages.Fail("Email and password have to be specified", nil).Status(http.StatusBadRequest)
+	if len(data.Email) <= 0 {
+		return pages.Fail("Email has to be specified", nil).Status(http.StatusBadRequest)
+	}
+	if len(data.Password) <= 0 {
+		return pages.Fail("Password has to be specified", nil).Status(http.StatusBadRequest)
 	}
 
 	err := stormpath.AuthenticateUser(params.C, data.Email, data.Password)

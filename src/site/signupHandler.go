@@ -65,6 +65,8 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return pages.Fail("Couldn't process FB token", err)
 		}
 	}
+
+	socialMediaSignup := false
 	if len(data.FbAccessToken) > 0 && len(data.FbUserID) >= 0 {
 		// Get data from FB
 		account, err := stormpath.CreateNewFbUser(c, data.FbAccessToken)
@@ -80,6 +82,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err != nil {
 			return pages.Fail("Couldn't save a cookie", err)
 		}
+		socialMediaSignup = true
 	} else if len(data.Email) > 0 && len(data.FirstName) > 0 && len(data.LastName) > 0 && len(data.Password) > 0 {
 		// Valid request
 	} else {
@@ -236,7 +239,16 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return sessions.NewError("Couldn't delete existing page summaries", err)
 		}
 
-		// TODO: For each existing invite, update user's trust
+		// Redeem invites
+		statement = database.NewQuery(`
+			INSERT INTO domainMembers
+			(domainId,userId,role,createdAt)
+			SELECT domainId,toUserId,role,now()
+			FROM invites
+			WHERE toEmail=?`, u.Email).ToTxStatement(tx)
+		if _, err := statement.Exec(); err != nil {
+			return sessions.NewError("Couldn't insert updates for invites", err)
+		}
 
 		return nil
 	})
@@ -248,5 +260,9 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		Email:    data.Email,
 		Password: data.Password,
 	}
+	if socialMediaSignup {
+		return setUserInternalFunc(params, &loginData)
+	}
+
 	return loginHandlerInternalFunc(params, &loginData)
 }
