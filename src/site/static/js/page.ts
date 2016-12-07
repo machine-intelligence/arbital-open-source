@@ -119,6 +119,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 				if ($scope.selectedLens.isConcept()) return false;
 				if ($scope.selectedLens.isBlogPage()) return false;
 				if ($scope.selectedLens.isLinkPage()) return false;
+				if ($scope.selectedLens.isClaimPage()) return false;
 				let qualityTag = arb.pageService.getQualityTag($scope.selectedLens.tagIds);
 				return ['b-class', 'a-class', 'featured'].indexOf(qualityTag) < 0;
 			};

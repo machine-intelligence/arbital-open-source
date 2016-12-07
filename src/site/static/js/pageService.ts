@@ -158,6 +158,9 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		isLinkPage: function() {
 			return this.externalUrl.length > 0;
 		},
+		isClaimPage: function() {
+			return this.hasVote;
+		},
 		// Helper function for getBest...Id functions
 		_getBestPageId: function(pageIds, excludePageId) {
 			var pageId = undefined;
