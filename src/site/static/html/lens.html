@@ -34,7 +34,7 @@
 		<div class="lens-text-container" ng-class="{shortened: page.text.length <= 1}">
 
 			<!-- Page title -->
-			<div class="page-title md-display-3" ng-class="::{'center-text': isTinyScreen}">
+			<div class="page-title md-display-3">
 				<div class="md-caption" ng-if="!page.isBlogPage() && !page.isLinkPage()">
 					<arb-page-title page-id="{{::arb.stateService.domainMap[page.editDomainId].pageId}}"
 							is-link="true"></arb-page-title>
@@ -150,8 +150,7 @@
 
 	<!-- Parents and tags -->
 	<div layout="column" layout-padding>
-		<div layout="column"
-				layout-gt-sm="row"
+		<div layout="row"
 				layout-align="start start"
 				class="md-caption"
 				ng-if="!page.isBlogPage() && !page.isLinkPage()">

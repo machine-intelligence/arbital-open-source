@@ -22,7 +22,7 @@
 				class="horizontal-margin-between-children">
 			<arb-edit-button custom-text="Create new page"
 					analytics-desc="feed page, new page button"
-					hide-icon="true"></arb-edit-button>
+					ng-if="arb.userService.userIsLoggedIn()"></arb-edit-button>
 			<md-button class="md-raised"
 					ng-class="{'md-primary': !isSubmittingLink}"
 					ng-click="showSubmissionForm()"
@@ -92,21 +92,29 @@
 								</div>
 							</div>
 							<!-- Second row -->
-							<div layout="row" layout-align="start center">
-								<arb-likes object-id="{{::page.pageId}}" is-not-square="true" class="s16"></arb-likes>
-								&nbsp;
-								<arb-comment-count page-id="{{::page.pageId}}"></arb-comment-count>
+							<div layout="row" layout-align="start center" flex>
+								<div layout="row" layout-align="start center" flex>
+									<arb-likes object-id="{{::page.pageId}}" is-not-square="true" class="s16"></arb-likes>
+									&nbsp;
+									<arb-comment-count page-id="{{::page.pageId}}"></arb-comment-count>
+								</div>
+								<div class="md-caption" hide-gt-xs>
+									<span class="nowrap">
+										submitted {{::feedRow.createdAt | smartDateTime}}
+									</span>
+								</div>
 							</div>
 						</div>
 			
 						<!-- RHS metadata -->
-						<div class="md-caption"
+						<div class="md-caption nowrap"
 								layout="column"
-								layout-align="end end">
-							<div class="md-caption">
+								layout-align="end end"
+								hide-xs>
+							<span class="nowrap">
 								submitted
 								<span ng-bind="::feedRow.createdAt | smartDateTime"></span>
-							</div>
+							</span>
 						</div>
 					</div>
 				</div>
