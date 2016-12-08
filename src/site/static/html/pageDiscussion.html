@@ -1,6 +1,17 @@
 <!-- Discussion section for some page -->
 <a id="discussion"></a>
 <div>
+	<div layout="row">
+		<div flex></div>
+		<div layout="row" layout-align="start center">
+			<div><md-icon>comment</md-icon></div>
+			&nbsp;
+			<md-switch ng-model="showEditorComments"></md-switch>
+			<div><md-icon>rate_review</md-icon></div>
+			<md-tooltip md-direction="top">Switch between normal and editor comments.</md-tooltip>
+		</div>
+	</div>
+
 	<div ng-repeat="subpageId in page.subpageIds">
 		<div arb-subpage
 				lens-id="{{::page.pageId}}"
