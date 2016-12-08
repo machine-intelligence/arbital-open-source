@@ -21,18 +21,20 @@
 					<md-content class="prevent-scroll-leak popover-tab-body" layout-padding>
 						<!-- Title row -->
 						<div class="popover-title" layout="row" layout-align="start center">
-							<div flex>
+							<div layout="row" layout-align="start end" flex>
 								<!-- Title -->
 								<arb-page-title page-id="{{::pageId}}"
 										custom-page-title="{{::page.isComment() ? 'Comment': undefined}}"
 										is-link="true"
 										class="ignore-popover" 
-										flex
 										ng-if="::page"></arb-page-title>
+								<a ng-href="{{page.externalUrl}}" class="md-caption" ng-if="page.isLinkPage()">
+									&nbsp;({{::page.externalUrl | urlDomain}})
+								</a>
 							</div>
 
 							<!-- Likes and comment count -->
-							<div>
+							<div layout="row" layout-align="start center">
 								<arb-likes class="s16" object-id="{{::pageId}}" is-not-square="true"></arb-likes>
 								<arb-comment-count page-id="{{::pageId}}"></arb-comment-count>
 							</div>

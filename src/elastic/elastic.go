@@ -89,6 +89,11 @@ func sendRequest(c sessions.Context, request *http.Request) (*http.Response, err
 
 // AddPageToIndex adds a page document to the pages index.
 func AddPageToIndex(c sessions.Context, doc *Document) error {
+	// Make sure the data is good
+	if doc.SeeDomainID == "" {
+		doc.SeeDomainID = "0"
+	}
+
 	// Construct request body
 	jsonData, err := json.Marshal(doc)
 	if err != nil {
