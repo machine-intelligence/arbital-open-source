@@ -129,22 +129,24 @@ func LoadRelevantDomains(db *database.DB, u *CurrentUser, pageMap map[string]*Pa
 		return err
 	}
 
-	// Load domain friends
-	rows := database.NewQuery(`
+	if (len(loadedDomainIDs)) > 0 {
+		// Load domain friends
+		rows := database.NewQuery(`
 		SELECT df.domainId,df.friendId
 		FROM domainFriends AS df`).Add(`
 		WHERE df.domainId IN`).AddArgsGroupStr(loadedDomainIDs).ToStatement(db).Query()
-	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var domainID, friendID string
-		err := rows.Scan(&domainID, &friendID)
+		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+			var domainID, friendID string
+			err := rows.Scan(&domainID, &friendID)
+			if err != nil {
+				return fmt.Errorf("Failed to scan: %v", err)
+			}
+			domainMap[domainID].FriendDomainIDs = append(domainMap[domainID].FriendDomainIDs, friendID)
+			return nil
+		})
 		if err != nil {
-			return fmt.Errorf("Failed to scan: %v", err)
+			return fmt.Errorf("Couldn't load domains friends: %v", err)
 		}
-		domainMap[domainID].FriendDomainIDs = append(domainMap[domainID].FriendDomainIDs, friendID)
-		return nil
-	})
-	if err != nil {
-		return fmt.Errorf("Couldn't load domains friends: %v", err)
 	}
 	return nil
 }

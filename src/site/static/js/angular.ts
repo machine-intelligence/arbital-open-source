@@ -671,6 +671,9 @@ app.filter('simpleDateTime', function() {
 app.filter('smartDateTime', function() {
 	return function(input) {
 		if (moment.utc().diff(moment.utc(input), 'days') <= 7) {
+			return 'a seconds ago';
+		}
+		if (moment.utc().diff(moment.utc(input), 'days') <= 7) {
 			return moment.utc(input).fromNow();
 		}
 		if (moment.utc().diff(moment.utc(input), 'months') <= 10) {
