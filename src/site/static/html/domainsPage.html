@@ -1,7 +1,7 @@
 <div class="capped-body-width">
 	<div class="domain-user-list md-whiteframe-1dp"
 			layout="column"
-			ng-repeat="(domainId,users) in ::domainUsersMap"
+			ng-repeat="domainId in ::sortedDomainIds"
 			ng-init="domain=arb.stateService.domainMap[domainId]">
 		<md-toolbar class="md-hue-2">
 			<div class="md-toolbar-tools">
@@ -15,7 +15,7 @@
 		<div layout="row"
 				layout-align="start center"
 				class="domain-user-list-row"
-				ng-repeat="memberId in ::users">
+				ng-repeat="memberId in ::domainUsersMap[domainId]">
 			<arb-user-name user-id="{{::memberId}}" flex></arb-user-name>
 			<arb-domain-role-input
 					domain-id="{{::domainId}}"

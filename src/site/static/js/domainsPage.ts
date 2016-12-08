@@ -30,6 +30,15 @@ app.directive('arbDomainsPage', function($timeout, $http, $filter, arb) {
 					}
 				}
 			}
+			
+			$scope.sortedDomainIds = [];
+			for (let domainId in $scope.domainUsersMap) {
+				if (arb.stateService.domainMap[domainId].pageId == arb.userService.user.id) {
+					$scope.sortedDomainIds.unshift(domainId);
+				} else {
+					$scope.sortedDomainIds.push(domainId);
+				}
+			}
 
 			// Split invites by domain
 			for (let n = 0; n < $scope.invitesSent.length; n++) {
