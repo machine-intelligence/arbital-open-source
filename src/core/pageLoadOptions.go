@@ -51,6 +51,7 @@ type PageLoadOptions struct {
 	Likes           bool
 	IndividualLikes bool // load each user who liked
 	Votes           bool
+	VoteSummary     bool
 	LastVisit       bool
 	IsSubscribed    bool
 	SubscriberCount bool

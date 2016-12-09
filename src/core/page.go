@@ -3,6 +3,7 @@ package core
 
 import (
 	"fmt"
+	"math"
 	"regexp"
 	"sort"
 	"strings"
@@ -163,6 +164,8 @@ type Page struct {
 	// For pages that are displayed fully, we load more additional data.
 	// Edit number for the currently live version
 	Votes []*Vote `json:"votes"`
+	// A list of 8 numbers, corresponding to the percent of votes in [0%-12.5%),[12.5%-25%),...-100%]
+	VoteSummary []int `json:"voteSummary"`
 	// We don't allow users to change the vote type once a page has been published
 	// with a voteType!="" even once. If it has, this is the vote type it shall
 	// always have.
@@ -272,6 +275,7 @@ type Page struct {
 func NewPage(pageID string) *Page {
 	p := &Page{corePageData: *NewCorePageData(pageID)}
 	p.Votes = make([]*Vote, 0)
+	p.VoteSummary = make([]int, 0)
 	p.Summaries = make(map[string]string)
 	p.CreatorIDs = make([]string, 0)
 	p.CommentIDs = make([]string, 0)
@@ -815,7 +819,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	}
 
 	// Load votes
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Votes })
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Votes || p.LoadOptions.VoteSummary })
 	err = LoadVotes(db, u.ID, filteredPageMap, userMap)
 	if err != nil {
 		return fmt.Errorf("LoadVotes failed: %v", err)
@@ -1606,17 +1610,55 @@ func LoadVotes(db *database.DB, currentUserID string, pageMap map[string]*Page, 
 		if v.Value == 0 {
 			return nil
 		}
-		page := pageMap[pageID]
-		if page.Votes == nil {
-			page.Votes = make([]*Vote, 0, 0)
+		p := pageMap[pageID]
+		if p.Votes == nil {
+			p.Votes = make([]*Vote, 0, 0)
 		}
-		page.Votes = append(page.Votes, &v)
-		if _, ok := userMap[v.UserID]; !ok {
+		p.Votes = append(p.Votes, &v)
+		if _, ok := userMap[v.UserID]; !ok && p.LoadOptions.Votes {
 			AddUserIDToMap(v.UserID, userMap)
 		}
 		return nil
 	})
-	return err
+	if err != nil {
+		return err
+	}
+
+	// For pages that only need vote summary, compute it and delete votes
+	for _, p := range pageMap {
+		if !p.LoadOptions.VoteSummary {
+			continue
+		}
+
+		p.VoteSummary = make([]int, 5, 5)
+		maxVoteCount := 0 // the number of votes in a bucket with highest # of votes
+		for _, vote := range p.Votes {
+			bucketIndex := 2
+			if vote.Value <= 0 {
+				bucketIndex = 0
+			} else if vote.Value >= 100 {
+				bucketIndex = 4
+			} else if vote.Value <= 40 {
+				bucketIndex = int(math.Floor((float64(vote.Value) - 1) / 20))
+			} else if vote.Value >= 60 {
+				bucketIndex = int(math.Floor(float64(vote.Value) / 20))
+			}
+			p.VoteSummary[bucketIndex]++
+			if p.VoteSummary[bucketIndex] > maxVoteCount {
+				maxVoteCount = p.VoteSummary[bucketIndex]
+			}
+		}
+
+		// Renormalize votes; bucket with highest # of votes should end up with an 8
+		if maxVoteCount > 0 {
+			for n := 0; n < len(p.VoteSummary); n++ {
+				p.VoteSummary[n] = (p.VoteSummary[n] * 8) / maxVoteCount
+			}
+		}
+
+		p.Votes = nil
+	}
+	return nil
 }
 
 // LoadRedLinkCount loads the number of red links for a page.
@@ -1746,7 +1788,7 @@ func LoadLinks(db *database.DB, u *CurrentUser, pageMap map[string]*Page, option
 			return fmt.Errorf("failed to scan for a link: %v", err)
 		}
 		if IsIDValid(childAlias) {
-			AddPageIDToMap(childAlias, pageMap)
+			AddPageToMap(childAlias, pageMap, &PageLoadOptions{VoteSummary: true})
 		} else {
 			aliasesList = append(aliasesList, childAlias)
 		}
@@ -1768,7 +1810,7 @@ func LoadLinks(db *database.DB, u *CurrentUser, pageMap map[string]*Page, option
 			if err != nil {
 				return fmt.Errorf("failed to scan for a page: %v", err)
 			}
-			AddPageIDToMap(pageID, pageMap)
+			AddPageToMap(pageID, pageMap, &PageLoadOptions{VoteSummary: true})
 			return nil
 		})
 		if err != nil {

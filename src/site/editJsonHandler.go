@@ -93,7 +93,7 @@ func editJSONInternalHandler(params *pages.HandlerParams, data *editJSONData) *p
 			return pages.Fail("Couldn't load links", err)
 		}
 		for _, pageID := range aliasToIDMap {
-			core.AddPageIDToMap(pageID, returnData.PageMap)
+			core.AddPageToMap(pageID, returnData.PageMap, &core.PageLoadOptions{VoteSummary: true})
 		}
 	}
 

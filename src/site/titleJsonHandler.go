@@ -46,7 +46,7 @@ func titleJSONHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load data
-	core.AddPageIDToMap(pageID, returnData.PageMap)
+	core.AddPageToMap(pageID, returnData.PageMap, &core.PageLoadOptions{VoteSummary: true})
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)

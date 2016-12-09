@@ -86,8 +86,18 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				if (page.isDeleted) {
 					classText += ' red-link';
 				}
-				return '<a href="' + url + '" class="' + classText + '" page-id="' + page.pageId + '">' +
-					text + '</a>';
+				var html = '<a href="' + url + '" class="' + classText + '" page-id="' + page.pageId + '">' + text;
+				if (page.hasVote && page.voteSummary.length > 0) {
+					// Map: how many eights (12.5%) of the total vote does a bucket have -> to a character
+					// NOTE: space characters are two U+2004, which together equal 2/3 em
+					var eights = ['  ', '▁' ,'▂', '▃', '▄', '▅', '▆', '▇', '█'];
+					html += '<span class=\'inline-vote\'>';
+					for (var n = 0; n < page.voteSummary.length; n++) {
+						html += eights[page.voteSummary[n]];
+					}
+					html += '</span>';
+				}
+				return html + '</a>';
 			}
 			fetchLink(trimmedAlias, editor);
 			classText += ' red-link';
@@ -107,6 +117,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			// Try to load the page
 			pageService.loadTitle(pageAlias, {
 				silentFail: true,
+				voteSummary: true,
 				success: function() {
 					if (pageAlias in stateService.pageMap) {
 						editor.refreshPreview();
