@@ -1,0 +1,43 @@
+<md-dialog class="edit-claim-dialog" aria-label="New claim" ng-cloak>
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2>New claim</h2>
+			<span flex></span>
+			<md-button class="md-icon-button" ng-click="hide()" aria-label="Close">
+				<md-icon>close</md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+	<md-dialog-content>
+
+		<md-content class="md-whiteframe-1dp" layout-padding>
+			<md-progress-circular md-mode="indeterminate" ng-if="!page"></md-progress-circular>
+	
+			<div layout="column" ng-if="page">
+				<md-input-container flex>
+					<label>Title</label>
+					<input id="edit-claim-title-input"
+							ng-model="page.title"
+							ng-keypress="titleKeypress($event)"
+							aria-label="Title">
+				</md-input-container>
+	
+				<md-input-container flex>
+					<label>Voting</label>
+					<md-select ng-model="page.voteType">
+						<md-option ng-repeat="(key,value) in ::arb.editService.voteTypes" value="{{::key}}">
+							{{::value}}
+						</md-option>
+					</md-select>
+				</md-input-container>
+	
+				<md-button class="md-primary md-raised heap-publish-button"
+						ng-click="publishPage()"
+						ng-disabled="publishing">
+					Publish
+				</md-button>
+			</div>
+		</md-content>
+	
+	</md-dialog-content>
+</md-dialog>

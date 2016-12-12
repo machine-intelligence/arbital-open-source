@@ -22,6 +22,7 @@ require('js/markService.ts');
 require('js/markdownService.ts');
 require('js/masteryService.ts');
 require('js/pageService.ts');
+require('js/editService.ts');
 require('js/pathService.ts');
 require('js/popoverService.ts');
 require('js/popupService.ts');
@@ -65,6 +66,7 @@ require('js/hubPageFooter.ts');
 // AngularJS controllers
 require('js/arbitalController.ts');
 require('js/editPageDialog.ts');
+require('js/editClaimDialog.ts');
 require('js/feedbackDialog.ts');
 require('js/rhsButtons.ts');
 

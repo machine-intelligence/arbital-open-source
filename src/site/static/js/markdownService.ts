@@ -14,9 +14,6 @@ export var noParen = '(?=$|[^(])';
 var nakedAliasMatch = '[\\-\\+]?[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*';
 export var aliasMatch = '(' + nakedAliasMatch + ')';
 
-// [vote: alias]
-export var voteEmbedRegexp = new RegExp(notEscaped +
-		'\\[vote: ?' + aliasMatch + '\\]' + noParen, 'g');
 // [alias/url text]
 export var forwardLinkRegexp = new RegExp(notEscaped +
 		'\\[([^ \\]]+?) (?![^\\]]*?\\\\\\])([^\\]]+?)\\]' + noParen, 'g');
@@ -71,23 +68,26 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 
 		// Get the html for linking to the given alias. If alias is not found in page mape, the
 		// link will be red.
-		// text - optional text value for the url. If none is given, page's title will be used.
+		// options = {
+		//	text - optional text value for the url. If none is given, page's title will be used.
+		//	claim - if true, process this link as a claim
+		// }
 		//	If page is not found, page's alias will be used.
-		var getLinkHtml = function(editor, alias, text = null) {
+		var getLinkHtml = function(editor, alias, options) {
 			var firstAliasChar = alias.substring(0, 1);
 			var trimmedAlias = trimAlias(alias);
 			var classText = 'intrasite-link';
 			var page = stateService.pageMap[trimmedAlias];
 			if (page) {
 				var url = urlService.getPageUrl(page.pageId);
-				if (!text) {
-					text = getCasedText(page.title, firstAliasChar);
+				if (!options.text) {
+					options.text = getCasedText(page.title, firstAliasChar);
 				}
 				if (page.isDeleted) {
 					classText += ' red-link';
 				}
-				var html = '<a href="' + url + '" class="' + classText + '" page-id="' + page.pageId + '">' + text;
-				if (page.hasVote && page.voteSummary.length > 0) {
+				var html = '<a href="' + url + '" class="' + classText + '" page-id="' + page.pageId + '">' + options.text;
+				if (options.claim && page.hasVote && page.voteSummary.length > 0) {
 					// Map: how many eights (12.5%) of the total vote does a bucket have -> to a character
 					// NOTE: space characters are two U+2004, which together equal 2/3 em
 					var eights = ['  ', '▁' ,'▂', '▃', '▄', '▅', '▆', '▇', '█'];
@@ -102,13 +102,13 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			fetchLink(trimmedAlias, editor);
 			classText += ' red-link';
 			var url = urlService.getEditPageUrl(trimmedAlias);
-			if (!text) {
-				text = getCasedText(trimmedAlias, firstAliasChar).replace(/_/g, ' ');
+			if (!options.text) {
+				options.text = getCasedText(trimmedAlias, firstAliasChar).replace(/_/g, ' ');
 			}
 			if (!isEditor && markdownPage) {
-				markdownPage.redAliases[alias] = text;
+				markdownPage.redAliases[alias] = options.text;
 			}
-			return '<a href="' + url + '" class="' + classText + '" page-id="' + trimmedAlias + '">' + text + '</a>';
+			return '<a href="' + url + '" class="' + classText + '" page-id="' + trimmedAlias + '">' + options.text + '</a>';
 		};
 
 		// Get info from BE to render the given page alias
@@ -515,10 +515,12 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		});
 
-		// Process [vote:alias] spans.
+		// Process [claim([alias]): text] spans.
+		var anonClaimRegexp = new RegExp(notEscaped +
+				'\\[claim\\(\\[' + aliasMatch + '\\]\\)(?:: ?([^\\]]+?))?\\]' + noParen, 'g');
 		converter.hooks.chain('preSpanGamut', function(text) {
-			return text.replace(voteEmbedRegexp, function(whole, prefix, alias) {
-				return prefix + '[Embedded ' + alias + ' vote. ](' + urlService.getPageUrl(alias) + '/?embedVote=1)';
+			return text.replace(anonClaimRegexp, function(whole, prefix, alias, text) {
+				return prefix + getLinkHtml(editor, alias, {text: text, claim: true});
 			});
 		});
 
@@ -546,21 +548,21 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 					// No alias match
 					return whole;
 				}
-				return prefix + getLinkHtml(editor, alias, text);
+				return prefix + getLinkHtml(editor, alias, {text: text});
 			});
 		});
 
 		// Convert [alias] spans into links.
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(simpleLinkRegexp, function(whole, prefix, alias) {
-				return prefix + getLinkHtml(editor, alias);
+				return prefix + getLinkHtml(editor, alias, {});
 			});
 		});
 
 		// Convert [@alias] spans into links.
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(atAliasRegexp, function(whole, prefix, alias) {
-				var html = getLinkHtml(editor, alias);
+				var html = getLinkHtml(editor, alias, {});
 				return prefix + html.replace('page-id', 'user-id').replace('intrasite-link', 'user-link');
 			});
 		});

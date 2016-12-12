@@ -5,7 +5,7 @@ import {isTouchDevice,isIntIdValid} from './util.ts';
 
 // Contains all the services.
 app.service('arb', function(analyticsService, autocompleteService, diffService, markService, markdownService,
-	masteryService, pageService, pathService, popoverService, popupService, stateService, userService, urlService,
+	masteryService, pageService, editService, pathService, popoverService, popupService, stateService, userService, urlService,
 	signupService) {
 	var that = this;
 
@@ -16,6 +16,7 @@ app.service('arb', function(analyticsService, autocompleteService, diffService, 
 	that.markdownService = markdownService;
 	that.masteryService = masteryService;
 	that.pageService = pageService;
+	that.editService = editService;
 	that.pathService = pathService;
 	that.popoverService = popoverService;
 	that.popupService = popupService;

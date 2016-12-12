@@ -145,6 +145,12 @@
 										</md-button>
 									</md-menu-item>
 									<md-menu-item>
+										<md-button class="wmd-new-claim-button{{::page.pageId}}">
+											<md-icon>assessment</md-icon>
+											[claim([alias]): text] | Ctrl+J
+										</md-button>
+									</md-menu-item>
+									<md-menu-item>
 										<md-button class="wmd-new-child-button{{::page.pageId}}" ng-show="page.isWiki()">
 											<md-icon>child_care</md-icon>
 											[New child link] | Ctrl+Shift+P
@@ -290,7 +296,7 @@
 							<textarea id="wmd-input{{::page.pageId}}"
 								class="wmd-input"
 								ng-model="page.text"
-								md-maxlength="{{maxQuestionTextLength}}"
+								md-maxlength="{{::arb.editService.maxQuestionTextLength}}"
 								autofocus
 								flex
 								aria-label="Question text"></textarea>
@@ -521,7 +527,9 @@
 							</div>-->
 
 							<!-- Show/hide vote -->
-							<div layout="row" layout-margin ng-if="::(page.lockedVoteType != '' && page.isWiki() && arb.userService.user.isAdmin)">
+							<div layout="row"
+									layout-margin
+									ng-if="::(page.lockedVoteType != '' && page.isWiki() && arb.userService.user.isAdmin)">
 								<md-switch ng-model="page.hasVote">
 									Show the {{::page.lockedVoteType}} voting bar
 								</md-switch>
@@ -532,7 +540,7 @@
 								<md-input-container flex>
 									<label>Voting</label>
 									<md-select ng-model="page.voteType">
-										<md-option ng-repeat="(key,value) in ::voteTypes" value="{{::key}}">
+										<md-option ng-repeat="(key,value) in ::arb.editService.nullableVoteTypes" value="{{::key}}">
 											{{::value}}
 										</md-option>
 									</md-select>
@@ -547,7 +555,7 @@
 								<md-input-container flex>
 									<label>Sort children</label>
 									<md-select ng-model="page.sortChildrenBy">
-										<md-option ng-repeat="(key,value) in ::sortTypes" value="{{::key}}">
+										<md-option ng-repeat="(key,value) in ::arb.editService.sortTypes" value="{{::key}}">
 											{{::value}}
 										</md-option>
 									</md-select>

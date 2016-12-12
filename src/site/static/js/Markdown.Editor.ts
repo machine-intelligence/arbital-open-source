@@ -985,14 +985,19 @@ function PreviewManager(converter, panels, previewRefreshCallback) {
 // callback: The function which is executed when the prompt is dismissed, either via OK or Cancel.
 //	  It receives a single argument; either the entered text (if OK was chosen) or null (if Cancel
 //	  was chosen).
-// isAtMention: Set to true if the input is for a group mention. If true, search only for groups.
-//    If false, exclude groups from search results.
-ui.prompt = function(callback, pageId, isAtMention, newPageType) {
+// options = {
+//		newPageType: type of the page we are creating,
+//		isAtMention: true if we are inserting an @mention link
+//		title: if set, the new claim will have this title
+// }
+ui.prompt = function(callback, pageId, options) {
 	var $buttonBar = $('#wmd-button-bar' + pageId);
-	if (newPageType) {
-		$buttonBar.trigger('showNewPageDialog', [callback, newPageType]);
+	if (options.newPageType == 'claim') {
+		$buttonBar.trigger('showNewClaimDialog', [callback, options.title]);
+	} else if (options.newPageType) {
+		$buttonBar.trigger('showNewPageDialog', [callback, options.newPageType]);
 	} else {
-		$buttonBar.trigger('showInsertLink', [callback, isAtMention]);
+		$buttonBar.trigger('showInsertLink', [callback, options.isAtMention]);
 	}
 };
 
@@ -1033,6 +1038,9 @@ function UIManager(postfix, panels, undoManager, previewManager, commandManager,
 					break;
 				case 'i':
 					doClick(buttons.italic);
+					break;
+				case 'j':
+					doClick(buttons.newClaimPage);
 					break;
 				case 'p':
 					doClick(buttons.newPage);
@@ -1225,6 +1233,9 @@ function UIManager(postfix, panels, undoManager, previewManager, commandManager,
 		}));
 		buttons.newPage = makeButton('wmd-new-page-button', getString('newpage'), '-60px', bindCommand(function(chunk, postProcessing) {
 			return this.doNewPage(chunk, postProcessing, 'wiki');
+		}));
+		buttons.newClaimPage = makeButton('wmd-new-claim-button', getString('newpage'), '-60px', bindCommand(function(chunk, postProcessing) {
+			return this.doNewPage(chunk, postProcessing, 'claim');
 		}));
 		buttons.newChild = makeButton('wmd-new-child-button', getString('newpage'), '-60px', bindCommand(function(chunk, postProcessing) {
 			return this.doNewPage(chunk, postProcessing, 'child');
@@ -1664,7 +1675,7 @@ commandProto.doIntraLink = function(chunk, postProcessing, isAtMention) {
 			postProcessing();
 		};
 
-		ui.prompt(linkEnteredCallback, this.pageId, isAtMention);
+		ui.prompt(linkEnteredCallback, this.pageId, {isAtMention: isAtMention});
 		return true;
 	}
 };
@@ -1692,20 +1703,33 @@ commandProto.doNewPage = function(chunk, postProcessing, newPageType) {
 		// Adds a link to the newly created page.
 		var pageCreatedCallback = function(alias) {
 			if (alias) {
-				// Same regex as in other link functions.
-				chunk.selection = (' ' + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, '$1\\').substr(1);
-				chunk.startTag = '[' + alias + " ";
-				chunk.endTag = ']';
-
 				if (!chunk.selection) {
-					chunk.startTag = '[';
-					chunk.selection = alias;
+					if (newPageType == 'claim') {
+						chunk.startTag = '[claim([' + alias + "]): ";
+						chunk.selection = 'optional text';
+					} else {
+						chunk.startTag = '[';
+						chunk.selection = alias;
+					}
+				} else {
+					if (newPageType == 'claim') {
+						chunk.startTag = '[claim([' + alias + "]): ";
+					} else {
+						chunk.startTag = '[' + alias + " ";
+					}
+					// Same regex as in other link functions.
+					chunk.selection = (' ' + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, '$1\\').substr(1);
 				}
+				chunk.endTag = ']';
 			}
 			postProcessing();
 		};
 
-		ui.prompt(pageCreatedCallback, this.pageId, false, newPageType);
+		var options = {
+			newPageType: newPageType,
+			title: chunk.selection,
+		};
+		ui.prompt(pageCreatedCallback, this.pageId, options);
 		return true;
 	}
 };

@@ -32,7 +32,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// Set when we can't allow the user to edit the text anymore (e.g. when
 			// we notice that a new edit has been published.)
 			$scope.freezeEdit = false;
-			$scope.maxQuestionTextLength = 1000;
 			$scope.publishOptions = {
 				isProposal: false,
 			};
@@ -161,21 +160,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				$scope.domainOptions[$scope.page.editDomainId] = arb.stateService.domainMap[$scope.page.editDomainId].alias;
 			}
 
-			// Set up sort types.
-			$scope.sortTypes = {
-				likes: 'By likes',
-				recentFirst: 'Recent first',
-				oldestFirst: 'Oldest first',
-				alphabetical: 'Alphabetically',
-			};
-
-			// Set up vote types.
-			$scope.voteTypes = {
-				'': '-',
-				probability: 'Probability',
-				approval: 'Approval',
-			};
-
 			$scope.lockExists = $scope.page.lockedBy != '' && moment.utc($scope.page.lockedUntil).isAfter(moment.utc());
 			$scope.lockedByAnother = $scope.lockExists && $scope.page.lockedBy !== arb.userService.user.id;
 
@@ -295,25 +279,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				// We have to pull the text from textarea directly, because if it's changed by
 				// Markdown library, AngularJS doesn't notice it and page.text isn't updated.
 				$scope.page.text = ($('#wmd-input' + $scope.pageId)[0] as HTMLTextAreaElement).value;
-				var data: any = {
-					pageId: $scope.pageId,
-					prevEdit: $scope.page.currentEdit,
-					currentEdit: $scope.page.currentEdit,
-					title: $scope.page.title,
-					clickbait: $scope.page.clickbait,
-					text: $scope.page.text,
-					snapshotText: $scope.page.snapshotText,
-					editSummary: $scope.page.newEditSummary,
-				};
-				if ($scope.page.isQuestion()) {
-					data.text = data.text.length > $scope.maxQuestionTextLength ? data.text.slice(-$scope.maxQuestionTextLength) : data.text;
-				}
-				if ($scope.page.anchorContext) {
-					data.anchorContext = $scope.page.anchorContext;
-					data.anchorText = $scope.page.anchorText;
-					data.anchorOffset = $scope.page.anchorOffset;
-				}
-				return data;
+				return arb.editService.computeSavePageData($scope.page);
 			};
 			// Save the current page.
 			// callback is called with the error (or undefined on success)
@@ -327,33 +293,33 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					// Send the data to the server.
 					// TODO: if the call takes too long, we should show a warning.
 					$http({method: 'POST', url: '/editPage/', data: JSON.stringify(data)})
-					.success(function(returnedData) {
-						var newEdit = returnedData.result.obsoleteEdit;
-						if (newEdit) {
-							// A new edit has been published while the user has been editing.
-							$scope.freezeEdit = true;
-							var message = 'User (id=' + newEdit.editCreatorId + ') published a new version. To prevent edit conflicts, please refresh the page to see it. (A snapshot of your current state has been saved.)';
-							$scope.addMessage('obsoleteEdit', message, 'error');
-						}
-						if (isAutosave) {
-							// Refresh the lock
-							$scope.page.lockedUntil = moment.utc().add(30, 'm').format('YYYY-MM-DD HH:mm:ss');
-						}
-						$scope.isPageDirty = isAutosave;
-						$scope.isReviewingProposal = false;
-						arb.analyticsService.reportEventToHeapAndMixpanel('Save', {
-							pageId: data.pageId,
-							textLength: data.text.length,
-							isAutoave: data.isAutosave,
-							isSnapshot: data.isSnapshot,
-							isProposal: data.isProposal,
+						.success(function(returnedData) {
+							var newEdit = returnedData.result.obsoleteEdit;
+							if (newEdit) {
+								// A new edit has been published while the user has been editing.
+								$scope.freezeEdit = true;
+								var message = 'User (id=' + newEdit.editCreatorId + ') published a new version. To prevent edit conflicts, please refresh the page to see it. (A snapshot of your current state has been saved.)';
+								$scope.addMessage('obsoleteEdit', message, 'error');
+							}
+							if (isAutosave) {
+								// Refresh the lock
+								$scope.page.lockedUntil = moment.utc().add(30, 'm').format('YYYY-MM-DD HH:mm:ss');
+							}
+							$scope.isPageDirty = isAutosave;
+							$scope.isReviewingProposal = false;
+							arb.analyticsService.reportEventToHeapAndMixpanel('Save', {
+								pageId: data.pageId,
+								textLength: data.text.length,
+								isAutoave: data.isAutosave,
+								isSnapshot: data.isSnapshot,
+								isProposal: data.isProposal,
+							});
+	
+							if (callback) callback();
+						})
+						.error(function(returnedData) {
+							if (callback) callback(returnedData);
 						});
-
-						if (callback) callback();
-					})
-					.error(function(returnedData) {
-						if (callback) callback(returnedData);
-					});
 				} else {
 					if (autosaveNotPerformedCallback) autosaveNotPerformedCallback();
 				}
@@ -745,6 +711,36 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 						} else {
 							callback(result.alias);
 						}
+					});
+					return false;
+				});
+
+				// Create a dialog for (resuming) editing a new claim
+				var resumeClaimPageId = undefined;
+				$markdownToolbar.on('showNewClaimDialog', function(event, callback, title) {
+					$mdDialog.show({
+						templateUrl: versionUrl('static/html/editClaimDialog.html'),
+						controller: 'EditClaimDialogController',
+						autoWrap: false,
+						targetEvent: event,
+						locals: {
+							resumePageId: resumeClaimPageId,
+							title: title,
+							originalPageId: scope.page.pageId,
+						},
+					})
+					.then(function(result) {
+						resumeClaimPageId = undefined;
+						if (result.hidden) {
+							resumeClaimPageId = result.pageId;
+							callback(undefined);
+						} else if (result.discard) {
+							callback(undefined);
+						} else {
+							callback(result.pageId);
+						}
+					}, function() {
+						callback(undefined);
 					});
 					return false;
 				});

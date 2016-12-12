@@ -676,6 +676,12 @@ a:not(.md-button) {
 	}
 }
 
+.edit-claim-dialog {
+	@extend .edit-page-dialog;
+	max-width: 500px;
+	height: initial;
+}
+
 .feedback-textarea {
 	width: 40vw;
 	height: 50vh;

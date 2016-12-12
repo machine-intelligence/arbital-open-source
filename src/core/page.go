@@ -162,7 +162,6 @@ type Page struct {
 
 	// === Full data. ===
 	// For pages that are displayed fully, we load more additional data.
-	// Edit number for the currently live version
 	Votes []*Vote `json:"votes"`
 	// A list of 8 numbers, corresponding to the percent of votes in [0%-12.5%),[12.5%-25%),...-100%]
 	VoteSummary []int `json:"voteSummary"`
@@ -1611,9 +1610,6 @@ func LoadVotes(db *database.DB, currentUserID string, pageMap map[string]*Page, 
 			return nil
 		}
 		p := pageMap[pageID]
-		if p.Votes == nil {
-			p.Votes = make([]*Vote, 0, 0)
-		}
 		p.Votes = append(p.Votes, &v)
 		if _, ok := userMap[v.UserID]; !ok && p.LoadOptions.Votes {
 			AddUserIDToMap(v.UserID, userMap)
@@ -1656,7 +1652,9 @@ func LoadVotes(db *database.DB, currentUserID string, pageMap map[string]*Page, 
 			}
 		}
 
-		p.Votes = nil
+		if !p.LoadOptions.Votes {
+			p.Votes = make([]*Vote, 0)
+		}
 	}
 	return nil
 }

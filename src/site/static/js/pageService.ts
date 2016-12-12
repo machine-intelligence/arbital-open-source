@@ -409,12 +409,6 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 				return prefix + '[' + text + '](' + page.alias + ')';
 			}
 			return whole;
-			/*}).replace(voteEmbedRegexp, function (whole, prefix, alias) {
-				var page = stateService.pageMap[alias];
-				if (page) {
-				return prefix + '[vote: ' + page.alias + ']';
-				}
-				return whole;*/
 		}).replace(forwardLinkRegexp, function(whole, prefix, alias, text) {
 			var page = stateService.pageMap[alias];
 			if (page) {
