@@ -107,13 +107,14 @@ var (
 	}).Add(SubpageLoadOptions)
 	// Options for full page edit
 	PrimaryEditLoadOptions = (&PageLoadOptions{
-		Children:              true,
-		Parents:               true,
-		Tags:                  true,
-		Lenses:                true,
-		Path:                  true,
-		Requisites:            true,
-		Answers:               true,
+		Children:   true,
+		Parents:    true,
+		Tags:       true,
+		Lenses:     true,
+		Path:       true,
+		Requisites: true,
+		Answers:    true,
+		Edit:       true,
 		DomainsAndPermissions: true,
 		ChangeLogs:            true,
 		SearchStrings:         true,
