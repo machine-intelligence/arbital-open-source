@@ -154,11 +154,10 @@
 	<div layout="column" layout-padding>
 		<div layout="row"
 				layout-align="start start"
-				class="md-caption"
-				ng-if="!page.isBlogPage() && !page.isLinkPage()">
+				class="md-caption">
 			<div flex>
 				<!-- Parents and children -->
-				<div layout-align="start center">
+				<div layout-align="start center" ng-if="!page.isBlogPage() && !page.isLinkPage()">
 					<span>Parents:</span>
 					<span ng-if="page.parentIds.length == 0">none</span>
 					<span ng-repeat="(index, parentId) in page.parentIds">
@@ -166,7 +165,7 @@
 						<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
 					</span>
 				</div>
-				<div layout-align="start center">
+				<div layout-align="start center" ng-if="!page.isBlogPage() && !page.isLinkPage()">
 					<span>Children:</span>
 					<a ng-href="{{arb.urlService.getExplorePageUrl(page.pageId)}}">
 						<ng-pluralize count="page.childIds.length"
@@ -186,7 +185,7 @@
 			</div>
 
 			<!-- Changes and views -->
-			<div class="right-text" ng-if="page.changeLogs.length > 0">
+			<div class="right-text" ng-if="!page.isBlogPage() && !page.isLinkPage() && page.changeLogs.length > 0">
 				<div>
 					<a ng-href="{{arb.urlService.getEditPageUrl(page.pageId, {tabId: 4})}}" flex>
 						<span ng-bind="page.changeLogs.length"></span>
