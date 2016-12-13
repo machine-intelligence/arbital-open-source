@@ -45,11 +45,12 @@
 }
 
 @mixin s($size) {
-	font-size: $size;
+	//font-size: $size;
 	md-icon {
 		@include sized-obj($size);
 		max-width: $size;
 		font-size: $size;
+		margin: 0px;
 	}
 
 	md-icon + span {
