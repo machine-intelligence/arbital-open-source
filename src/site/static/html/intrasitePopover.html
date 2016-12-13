@@ -21,13 +21,14 @@
 					<md-content class="prevent-scroll-leak popover-tab-body" layout-padding>
 						<!-- Title row -->
 						<div class="popover-title" layout="row" layout-align="start center">
-							<div layout="row" layout-align="start end" flex>
+							<div flex>
 								<!-- Title -->
-								<arb-page-title page-id="{{::pageId}}"
+								<span arb-page-title
+										page-id="{{::pageId}}"
 										custom-page-title="{{::page.isComment() ? 'Comment': undefined}}"
 										is-link="true"
 										class="ignore-popover" 
-										ng-if="::page"></arb-page-title>
+										ng-if="::page"></span>
 								<a ng-href="{{page.externalUrl}}" class="md-caption" ng-if="page.isLinkPage()">
 									&nbsp;({{::page.externalUrl | urlDomain}})
 								</a>
