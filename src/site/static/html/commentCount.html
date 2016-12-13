@@ -1,5 +1,5 @@
-<md-button ng-href="{{arb.urlService.getPageUrl(pageId, {discussionHash: true})}}" class="s16 short-button">
+<md-button ng-href="{{arb.urlService.getPageUrl(pageId, {discussionHash: true})}}" class="short-button">
 	<md-icon>comment</md-icon>
-	<span ng-bind="::page.commentCount"></span>
+	<span ng-bind="::page.commentCount">
 	<strong ng-if="::page.newCommentCount > 0">({{::page.newCommentCount}} new)</strong>
 </md-button>

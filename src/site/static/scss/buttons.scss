@@ -1,0 +1,87 @@
+@import "constants.scss";
+
+
+// This class removes min-width constraint for the button
+.short-button,
+.short-button button {
+	min-width: 0 !important;
+}
+
+// Make this button as unobtrusive as possible
+.minor-button {
+	@extend .short-button;
+	background-color: ghostwhite;
+	border: gray 1px solid;
+	text-transform: none;
+	line-height: 24px !important;
+	min-height: 0px;
+}
+
+// Add horizontal space between buttons
+.spaced-buttons {
+	.md-button {
+		margin-right: 15px;
+	}
+}
+
+// TODO:
+/*.short-button, .icon-likes {
+	// Number of likes
+	.like-count {
+		color: #666;
+		font-weight: normal;
+		font-size: 16px;
+		// Make room for two digits
+		min-width: 16px;
+	}
+}*/
+/*.like-count {
+}*/
+
+@mixin sized-obj($size) {
+	min-width: $size;
+	min-height: $size;
+	height: $size;
+}
+
+@mixin s($size) {
+	font-size: $size;
+	md-icon {
+		@include sized-obj($size);
+		max-width: $size;
+		font-size: $size;
+	}
+
+	md-icon + span {
+		margin-left: 3px;
+	}
+
+	button, a {
+		$padding-hor: $size / 5;
+		$padding-ver: $size / 2;
+		//@include sized-obj($size);
+		display: inline-flex;
+		//padding: $padding-ver;
+		//padding-left: $padding-hor;
+		//padding-right: $padding-hor + 4px; // +4px because the icon on the left has space and span on the right doesn't
+		//line-height: $padding-ver;
+		font-weight: normal;
+	}
+
+	& > span {
+		@include sized-obj($size);
+	}
+}
+
+.s24 {
+	@include s(24px);
+}
+.s20 {
+	@include s(20px);
+}
+.s18 {
+	@include s(18px);
+}
+.s16 {
+	@include s(16px);
+}

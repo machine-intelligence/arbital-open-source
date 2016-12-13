@@ -3,6 +3,7 @@
 @import "ng-material.scss";
 @import "util.scss";
 @import "changeSpeedButton.scss";
+@import "buttons.scss";
 
 body {
 	overflow-x: hidden;
@@ -13,6 +14,18 @@ ul {
 	&.no-top-margin {
 		margin-top: 0;
 	}
+}
+
+textarea {
+	resize: none;
+}
+
+// Show deletes and inserts
+del {
+	color: red;
+}
+ins {
+	color: green;
 }
 
 // Fix we need to apply to the body for most pages (where content just scrolls down)
@@ -84,20 +97,6 @@ arb-signup {
 	background-repeat: no-repeat;
 	background-size: 100%;
 	min-height: 100vh;
-}
-
-.short-button,
-.short-button button {
-	min-width: 0 !important;
-}
-
-.minor-button {
-	@extend .short-button;
-	background-color: ghostwhite;
-	border: gray 1px solid;
-	text-transform: none;
-	line-height: 24px !important;
-	min-height: 0px;
 }
 
 .light {
@@ -287,33 +286,6 @@ arb-markdown, [arb-markdown], .preview-area {
 	color: rgba(255,255,255,1);
 	font-size: 12px;
 	border-radius: 2px;
-}
-
-.md-button.md-icon-button.remove-extra-space {
-	padding: 0 !important;
-	min-height: 0px;
-}
-
-.md-button.md-icon-button.s20 {
-	height: 20px;
-	width: 20px;
-
-	md-icon {
-		font-size: 20px;
-		height: 20px;
-		width: 20px;
-	}
-}
-
-.md-button.md-icon-button.s24 {
-	height: 24px;
-	width: 24px;
-
-	md-icon {
-		font-size: 24px;
-		height: 24px;
-		width: 24px;
-	}
 }
 
 arb-update-row,
@@ -575,10 +547,6 @@ a:not(.md-button) {
 
 	&.no-blue {
 		color: inherit;
-		//a {
-		//	color: initial !important;
-		//	font-weight: 500;
-		//}
 	}
 }
 
@@ -652,14 +620,6 @@ a:not(.md-button) {
 	}
 }
 
-.cursor-pointer {
-	cursor: pointer;
-}
-
-.underline {
-	text-decoration: underline;
-}
-
 .edit-page-dialog {
 	width: 90vw;
 	height: 90vh;
@@ -689,78 +649,13 @@ a:not(.md-button) {
 }
 
 arb-likes, .likes-in-autocomplete {
-	margin: 0 10px 0 0;
 	white-space: nowrap;
 
 	// The thumbs icon
-	.like-icon {
+	md-icon {
 		// Set width manually, otherwise Safari has it smaller
 		min-width: 24px;
-		margin-right: 2px !important;
 	}
-
-	.short-button, .icon-likes {
-		// Number of likes
-		.like-count {
-			color: #666;
-			font-weight: normal;
-			font-size: 16px;
-			// Make room for two digits
-			min-width: 16px;
-		}
-	}
-
-	button.not-square {
-		background-color: transparent;
-		border: none;
-		outline: none;
-
-		.fill-icon {
-			visibility: hidden;
-		}
-
-		.outline-icon {
-			position: relative;
-			left: -20px;
-			margin-right: -20px !important;
-			z-index: 1;
-			visibility: visible;
-		}
-
-		&.is-liked {
-			.fill-icon {
-				visibility: visible;
-			}
-			.outline-icon {
-				visibility: hidden;
-			}
-		}
-
-		&:hover {
-			.fill-icon {
-				visibility: visible;
-				opacity: 0.5;
-			}
-
-			.outline-icon {
-				visibility: visible;
-			}
-		}
-
-		&.is-liked:hover {
-			.fill-icon {
-				opacity: 0.8;
-			}
-
-			.outline-icon {
-				visibility: hidden;
-			}
-		}
-	}
-}
-
-.like-count {
-	font-weight: normal;
 }
 
 .plus-one-button {
@@ -770,18 +665,10 @@ arb-likes, .likes-in-autocomplete {
 		background-color: $primary-hue-1;
 	}
 
-	.like-icon {
+	md-icon {
 		position: relative;
 		top: -1px;
 	}
-}
-
-// Used, in particular, for small likes
-.small-icon {
-	font-size: 18px;
-	width: 18px;
-	height: 18px;
-	margin-right: 3px !important;
 }
 
 [arb-page-list], .arb-page-list {
@@ -802,7 +689,6 @@ arb-page-title, [arb-page-title] {
 arb-requisite-button, [arb-requisite-button] {
 	.md-button {
 		min-width: 40px;
-		//@include small-button;
 	}
 }
 
@@ -1180,14 +1066,6 @@ md-bottom-sheet {
 	}
 }
 
-// Show deletes and inserts
-del {
-	color: red;
-}
-ins {
-	color: green;
-}
-
 // Fixed-position popup.
 #popup-div {
 	position: fixed;
@@ -1220,7 +1098,6 @@ ins {
 
 	.page-tab {
 		padding: 15px 15px;
-		color: black !important;
 		@media (max-width: 599px) {
 			width: 100%;
 			box-sizing: border-box;
@@ -1303,10 +1180,6 @@ ins {
 	}
 }
 
-.prevent-horizontal-scroll {
-	overflow-x: hidden;
-}
-
 // Border for the RHS preview half on the edit page
 .edit-page-rhs-border {
 	border-left: $primary-hue-2 5px solid;
@@ -1367,10 +1240,6 @@ ins {
 .question-text-container {
 	width: 100%;
 	overflow-y: auto;
-}
-
-textarea {
-	resize: none;
 }
 
 // Contents of editors tabs (but not the tab with the textarea)
@@ -1592,12 +1461,6 @@ arb-log-row, [arb-log-row] {
 	padding-left: 10px;
 }
 
-.spaced-buttons {
-	.md-button {
-		margin-right: 15px;
-	}
-}
-
 .explore-bullet {
 	position: relative;
 	left: 8px;
@@ -1658,6 +1521,10 @@ arb-explanation-request-row {
 	.explanation-text {
 		padding-top: 8px;
 	}
+
+	arb-likes {
+		min-width: 50px;
+	}
 }
 
 .expand-icon {
@@ -1680,112 +1547,9 @@ md-icon.icon-first,
 	margin-right: -12px;
 }
 
-.md-icon.s24 {
-	width: 24px;
-	height: 24px;
-}
-
-.md-button.s24 {
-	width: 24px;
-	height: 24px;
-	min-width: 0px;
-	min-height: 0px;
-	padding: 0;
-}
-
 md-list-item {
 	arb-likes {
 		margin-left: -4px;
-	}
-}
-
-arb-likes.s20 {
-	margin-right: 4px;
-
-	md-icon {
-		width: 20px;
-		height: 20px;
-	}
-
-	.like-icon {
-		min-width: 20px;
-		font-size: 20px;
-		margin-right: 0px !important;
-	}
-}
-
-arb-likes.s18 {
-	margin-right: 6px;
-
-	.like-icon {
-		min-width: 18px;
-		font-size: 18px;
-		margin-right: 0px !important;
-	}
-
-	.like-count {
-		font-size: 14px;
-	}
-}
-
-.s18 {
-	md-icon {
-		width: 18px;
-		height: 18px;
-		font-size: 18px;
-	}
-
-	font-size: 14px;
-}
-
-arb-likes.s16 {
-	margin-right: 0px;
-
-	.like-icon {
-		min-width: 16px;
-		font-size: 16px;
-		margin-right: 0px !important;
-	}
-
-	.like-count {
-		font-size: 14px;
-	}
-}
-
-.s16,
-arb-subscribe.s16 {
-	color: #666;
-
-	md-icon {
-		width: 16px;
-		height: 16px;
-		font-size: 16px;
-	}
-
-	font-size: 14px;
-}
-
-arb-subscribe.s16 {
-	margin-right: 6px;
-}
-
-arb-likes.tiny {
-	line-height: 5px;
-	width: 14px;
-	height: 14px;
-
-	.md-button {
-		line-height: 5px;
-		min-height: 0px;
-		min-width: 0px;
-		font-size: 12px;
-	}
-
-	md-icon {
-		width: 14px;
-		height: 14px;
-		min-width: 0px;
-		margin-right: 0px !important;
 	}
 }
 
@@ -1794,6 +1558,10 @@ arb-likes.tiny {
 			min-width: 0px;
 			overflow: hidden;
 			text-overflow: ellipsis;
+	}
+
+	arb-likes {
+		min-width: 60px;
 	}
 }
 
@@ -1804,9 +1572,9 @@ arb-likes.tiny {
 
 	.page-row-metadata {
 		div + div:before {
-				content: "|";
-			padding: 0 10px
-			}
+			content: "|";
+			padding: 0 10px;
+		}
 	}
 }
 
@@ -1863,8 +1631,6 @@ arb-likes.tiny {
 	padding-top: 10px;
 }
 
-
-
 .popover-panel {
 	margin-top: 12px;
 
@@ -1878,12 +1644,10 @@ arb-likes.tiny {
 	width: 600px;
 }
 
-
 .popover-panel:before {
 	box-shadow: inherit;
 }
 
-// BEGIN STYLES FOR POPOVER TRIANGLES
 .popover-panel:before,
 .popover-panel:after {
 	content: '';
@@ -1908,7 +1672,6 @@ arb-likes.tiny {
 	border-bottom: 0;
 	border-right: 0;
 }
-// END STYLES FOR POPOVER PANEL TRIANGLES
 
 .list-panel {
 	& md-list-item {
@@ -1934,8 +1697,6 @@ arb-likes.tiny {
 	margin-left: auto;
 	margin-right: auto;
 }
-
-
 
 @media (max-width: 600px) {
 	.list-panel md-list-item {
@@ -2180,10 +1941,6 @@ arb-path-nav, [arb-path-nav] {
 		a.external-link {
 			color: $link-color;
 		}
-	}
-
-	.s16 {
-		color: #666;
 	}
 
 	.feed-page-title-row {

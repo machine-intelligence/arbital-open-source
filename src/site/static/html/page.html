@@ -59,16 +59,16 @@
 						ng-init="lens=arb.stateService.pageMap[lensObj.lensId]"
 						ng-href="{{arb.urlService.getPageUrl(page.pageId, {lensId: lens.pageId})}}"
 						ng-click="tabClicked($event, lens.pageId)"
-						class="page-tab lens-tab"
+						class="page-tab lens-tab no-blue"
 						ng-class="{'active-tab': lens.pageId == selectedLens.pageId}">
 					<div layout="row" layout-align="start center" style="min-height: 33px">
 						<div flex>
 							<div ng-bind="::lensObj.lensName" style="white-space: nowrap"></div>
 							<div class="md-caption tab-subtitle" ng-bind="::lensObj.lensSubtitle"></div>
 						</div>
-						<div class="page-tab-likes" layout="row" layout="start end">
-							<md-icon class="small-icon on no-margins" ng-show="lens.myLikeValue > 0">thumb_up</md-icon>
-							<md-icon class="small-icon off no-margins" md-svg-icon="thumb_up_outline" ng-show="lens.myLikeValue <= 0"></md-icon>
+						<div class="page-tab-likes s16" layout="row" layout="start end">
+							<md-icon class="on no-margins" ng-show="lens.myLikeValue > 0">thumb_up</md-icon>
+							<md-icon class="off no-margins" md-svg-icon="thumb_up_outline" ng-show="lens.myLikeValue <= 0"></md-icon>
 							<span class="like-count">{{lens.likeCount + lens.myLikeValue}}</span>
 						</div>
 					</div>

@@ -1,13 +1,15 @@
-<md-button ng-class="{'short-button': !isStretched, 'plus-one-button': isPlusOne, 'on': isPlusOne && likeable.myLikeValue > 0}"
+<md-button ng-class="{'short-button': !isStretched,
+				'plus-one-button': isPlusOne,
+				'on': isPlusOne && likeable.myLikeValue > 0}"
 		ng-click="likeClicked()"
 		aria-label="Like"
 		ng-if="::!isSpan">
-	<md-icon class="like-icon on"
+	<md-icon class="on"
 			ng-if="!isPlusOne && likeable.myLikeValue > 0">thumb_up</md-icon>
-	<md-icon class="like-icon"
+	<md-icon class=""
 			md-svg-icon="thumb_up_outline"
 			ng-if="!isPlusOne && likeable.myLikeValue <= 0"></md-icon>
-	<md-icon class="like-icon" ng-if="isPlusOne">plus_one</md-icon>
+	<md-icon class="" ng-if="isPlusOne">plus_one</md-icon>
 	<span class="like-count" ng-if="!isPlusOne">
 		<span ng-if="isPlusOne && (likeable.likeCount + likeable.myLikeValue) >= 0">+</span>{{likeable.likeCount + likeable.myLikeValue}}
 	</span>
@@ -18,7 +20,7 @@
 	</md-tooltip>
 </md-button>
 <span class="icon-likes" layout="row" layout="center end" ng-if="::isSpan">
-	<md-icon class="like-icon on" ng-if="likeable.myLikeValue > 0">thumb_up</md-icon>
-	<md-icon class="like-icon off" md-svg-icon="thumb_up_outline" ng-if="likeable.myLikeValue <= 0"></md-icon>
+	<md-icon class="on" ng-if="likeable.myLikeValue > 0">thumb_up</md-icon>
+	<md-icon class="off" md-svg-icon="thumb_up_outline" ng-if="likeable.myLikeValue <= 0"></md-icon>
 	<span class="like-count">{{likeable.likeCount + likeable.myLikeValue}}</span>
 </span>

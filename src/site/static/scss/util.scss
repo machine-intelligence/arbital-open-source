@@ -13,6 +13,10 @@
 	font-weight: bold;
 }
 
+.underline {
+	text-decoration: underline;
+}
+
 .float-left {
 	float: left;
 }
@@ -142,4 +146,12 @@
 	margin: 10px 10px;
 	padding: 0 1px 0 0;
 	background-color: silver;
+}
+
+.cursor-pointer {
+	cursor: pointer;
+}
+
+.prevent-horizontal-scroll {
+	overflow-x: hidden;
 }
