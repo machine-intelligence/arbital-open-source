@@ -97,6 +97,14 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 				.error(function(data, status) {
 					console.error('Error changing a vote:'); console.log(data); console.log(status);
 				});
+
+				// Update page's votes
+				for (var i = 0; i < scope.page.votes.length; i++) {
+					var vote = scope.page.votes[i];
+					if (vote.userId === arb.userService.user.id) {
+						vote.value = scope.userVoteValue;
+					}
+				}
 			};
 
 			var $voteBarBody = element.find('.vote-bar-body');
