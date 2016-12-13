@@ -87,7 +87,7 @@
 								<span class="md-caption" ng-if="page.externalUrl.length > 0">
 									(<span ng-bind="::page.externalUrl | urlDomain"></span>)
 								</span>
-								<div class="md-caption" ng-if="page.externalUrl.length <= 0">
+								<div class="md-caption" ng-if="page.isBlogPage()">
 									by <arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
 								</div>
 							</div>
