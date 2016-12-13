@@ -19,8 +19,8 @@ app.controller('EditClaimDialogController', function($scope, $mdDialog, $timeout
 				$scope.page.hasVote = true;
 				$scope.page.voteType = 'approval';
 				$scope.page.text = ' ';
-				$scope.page.seeDomainId = arb.stateService.pageMap[originalPageId].seeDomainId;
-				$scope.page.editDomainId = arb.stateService.pageMap[originalPageId].editDomainId;
+				$scope.page.seeDomainId = arb.stateService.editMap[originalPageId].seeDomainId;
+				$scope.page.editDomainId = arb.stateService.editMap[originalPageId].editDomainId;
 				if (title) {
 					$scope.page.title = title;
 				}
