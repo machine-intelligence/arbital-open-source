@@ -110,33 +110,12 @@ func editJSONInternalHandler(params *pages.HandlerParams, data *editJSONData) *p
 	// Load data
 	p.LoadOptions = *core.PrimaryEditLoadOptions
 	returnData.PageMap[p.PageID] = p
+	returnData.EditMap[pageID] = p
 	core.AddPageIDToMap(p.EditDomainID, returnData.PageMap)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
 	}
-
-	// We need to copy some data from the loaded live version to the edit
-	// NOTE: AAAAARGH! This is such an ugly workaround
-	// NOTE: a reminder when fixing this is that it's quite possible that we don't have
-	// the page in pageMap if it hasn't been published yet, so the only "page" on the FE
-	// is the one from editMap
-	livePage := returnData.PageMap[pageID]
-	p.LensParentID = livePage.LensParentID
-	p.ChildIDs = livePage.ChildIDs
-	p.ParentIDs = livePage.ParentIDs
-	p.TagIDs = livePage.TagIDs
-	p.Requirements = livePage.Requirements
-	p.Subjects = livePage.Subjects
-	p.Lenses = livePage.Lenses
-	p.PathPages = livePage.PathPages
-	p.ChangeLogs = livePage.ChangeLogs
-	p.SearchStrings = livePage.SearchStrings
-	p.ProposalEditNum = livePage.ProposalEditNum
-	returnData.EditMap[pageID] = p
-
-	// Clear change logs from the live page
-	livePage.ChangeLogs = []*core.ChangeLog{}
 
 	return pages.Success(returnData)
 }
