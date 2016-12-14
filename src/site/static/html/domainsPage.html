@@ -1,5 +1,5 @@
 <div class="capped-body-width">
-	<div class="domain-user-list md-whiteframe-1dp"
+	<div class="domain-list md-whiteframe-1dp"
 			layout="column"
 			ng-repeat="domainId in ::sortedDomainIds"
 			ng-init="domain=arb.stateService.domainMap[domainId]">
@@ -14,7 +14,7 @@
 		<!-- Member rows -->
 		<div layout="row"
 				layout-align="start center"
-				class="domain-user-list-row"
+				class="domain-list-row"
 				ng-repeat="memberId in ::domainUsersMap[domainId]">
 			<arb-user-name user-id="{{::memberId}}" flex></arb-user-name>
 			<arb-domain-role-input
@@ -25,7 +25,7 @@
 		</div>
 
 		<!-- New member form -->
-		<div class="domain-user-list-row">
+		<div class="domain-list-row">
 			<form layout="row"
 					layout-align="start center"
 					ng-submit="newMemberFormSubmit(domainId, newMemberInput)">
@@ -40,13 +40,12 @@
 			</form>
 		</div>
 
-
 		<!-- Friends table -->
 		<div ng-if="arb.userService.user.domainMembershipMap[domainId].role == 'arbitrator'">
 			<br>
 			<br>
 			<!-- Header row -->
-			<div layout="row" class="domain-user-list-header domain-user-list-row">
+			<div layout="row" class="domain-list-header domain-list-row">
 				Friendly domains
 				<span>
 					<md-icon>help</md-icon>
@@ -56,13 +55,13 @@
 			<!-- Invite rows -->
 			<div layout="row"
 					layout-align="start center"
-					class="domain-user-list-row"
+					class="domain-list-row"
 					ng-repeat="friendId in domain.friendDomainIds">
 				<div flex>{{arb.stateService.domainMap[friendId].alias}}</div>
 			</div>
 			<div layout="row"
 					layout-align="start center"
-					class="domain-user-list-row"
+					class="domain-list-row"
 					ng-if="domain.friendDomainIds.length <= 0">
 				None yet
 			</div>
@@ -73,13 +72,13 @@
 
 		<!-- Invites table -->
 		<!-- Header row -->
-		<div layout="row" class="domain-user-list-header domain-user-list-row">
+		<div layout="row" class="domain-list-header domain-list-row">
 			Your invites
 		</div>
 		<!-- Invite rows -->
 		<div layout="row"
 				layout-align="start center"
-				class="domain-user-list-row"
+				class="domain-list-row"
 				ng-repeat="invite in invitesMap[domainId]">
 			<div flex>{{invite.toEmail}}</div>
 			<div flex>{{invite.role}}</div>
@@ -87,13 +86,13 @@
 		</div>
 		<div layout="row"
 				layout-align="start center"
-				class="domain-user-list-row"
+				class="domain-list-row"
 				ng-if="invitesMap[domainId].length <= 0">
 			None yet
 		</div>
 
 		<!-- New invite form -->
-		<div class="domain-user-list-row" ng-init="newInviteDomainMembership={role:'default'}">
+		<div class="domain-list-row" ng-init="newInviteDomainMembership={role:'default'}">
 			<form layout="row"
 					layout-align="start center"
 					ng-submit="newInviteFormSubmit(domainId, newInviteInput,newInviteDomainMembership)">
@@ -107,6 +106,18 @@
 				<md-button type="submit" toggle-on-submit>Send invite</md-button>
 				<div class="submit-form-error md-warn" hidden></div>
 			</form>
+		</div>
+
+		<!-- Settings -->
+		<div ng-if="arb.userService.user.domainMembershipMap[domainId].role == 'arbitrator'">
+			<div layout="row" class="domain-list-header domain-list-row">
+				Settings
+			</div>
+			<div class="domain-list-row">
+				<md-checkbox ng-model="domain.canUsersProposeComment" ng-change="domainSettingsChanged(domainId)">
+					All users can propose comments
+				</md-checkbox>
+			</div>
 		</div>
 	</div>
 </div>

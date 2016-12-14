@@ -15,8 +15,9 @@ type Domain struct {
 	Alias     string `json:"alias"`
 
 	// Settings
-	CanUsersComment      bool `json:"canUsersComment"` // misleading name: should be CanUsersProposeComments
-	CanUsersProposeEdits bool `json:"canUsersProposeEdits"`
+	CanUsersComment        bool `json:"canUsersComment"`
+	CanUsersProposeComment bool `json:"canUsersProposeComment"`
+	CanUsersProposeEdits   bool `json:"canUsersProposeEdits"`
 
 	// Additional data loaded from other tables
 	FriendDomainIDs []string `json:"friendDomainIds"`
@@ -57,11 +58,12 @@ type ProcessDomainCallback func(db *database.DB, domain *Domain) error
 // LoadDomains loads the domains matching the given condition.
 func LoadDomains(db *database.DB, queryPart *database.QueryPart, callback ProcessDomainCallback) error {
 	rows := database.NewQuery(`
-		SELECT d.id,d.pageId,d.createdAt,d.alias,d.canUsersComment,d.canUsersProposeEdits
+		SELECT d.id,d.pageId,d.createdAt,d.alias,d.canUsersComment,d.canUsersProposeComment,d.canUsersProposeEdits
 		FROM domains AS d`).AddPart(queryPart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		d := NewDomain()
-		err := rows.Scan(&d.ID, &d.PageID, &d.CreatedAt, &d.Alias, &d.CanUsersComment, &d.CanUsersProposeEdits)
+		err := rows.Scan(&d.ID, &d.PageID, &d.CreatedAt, &d.Alias, &d.CanUsersComment,
+			&d.CanUsersProposeComment, &d.CanUsersProposeEdits)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}

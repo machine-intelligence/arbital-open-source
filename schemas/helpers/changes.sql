@@ -56,3 +56,6 @@ CREATE TABLE domainFriends (
 	UNIQUE(domainId,friendId)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
+alter table domains add column canUsersProposeComment bool not null;
+update domains set canUsersProposeComment=true;
+update domains set canUsersComment=false;

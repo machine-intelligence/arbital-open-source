@@ -1918,16 +1918,16 @@ arb-path-nav, [arb-path-nav] {
 	font-size:12px
 }
 
-.domain-user-list {
+.domain-list {
 	margin-top: 15px;
 
-	.domain-user-list-header {
+	.domain-list-header {
 		@extend .md-headline;
 		margin-top: 15px;
 		margin-bottom: 5px;
 	}
 
-	.domain-user-list-row {
+	.domain-list-row {
 		margin-right: 20px;
 		margin-left: 20px;
 	}

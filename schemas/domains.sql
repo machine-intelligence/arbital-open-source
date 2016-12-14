@@ -14,6 +14,8 @@ CREATE TABLE domains (
 	/* ============ Various domain settings ============ */
 	/* If true, any registered user can comment. */
 	canUsersComment BOOL NOT NULL,
+	/* If true, any registered user can propose a comment. */
+	canUsersProposeComment BOOL NOT NULL,
 	/* If true, any registered user can propose an edit. */
 	canUsersProposeEdits BOOL NOT NULL,
 

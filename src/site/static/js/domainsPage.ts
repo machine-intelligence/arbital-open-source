@@ -106,9 +106,19 @@ app.directive('arbDomainsPage', function($timeout, $http, $filter, arb) {
 				};
 				arb.stateService.postDataWithoutProcessing('/newInvite/', params, function(data) {
 					$scope.invitesMap[domainId].push(data.result.newInvite);
-					arb.popupService.showToast({
-						text: 'Invite sent.',
-					});
+					arb.popupService.showToast({text: 'Invite sent.',});
+				});
+			};
+
+			// Called when one of the domain setings has changed
+			$scope.domainSettingsChanged = function(domainId) {
+				var domain = arb.stateService.domainMap[domainId];
+				var params = {
+					domainId: domainId,
+					canUsersProposeComment: domain.canUsersProposeComment,
+				};
+				arb.stateService.postDataWithoutProcessing('/updateDomain/', params, function(data) {
+					arb.popupService.showToast({text: 'Settings updated.',});
 				});
 			};
 		},

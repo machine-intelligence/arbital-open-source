@@ -166,7 +166,7 @@ func (p *Page) computeCommentPermissions(c sessions.Context, u *CurrentUser, dom
 			p.Permissions.ProposeComment.Has = true
 			return
 		}
-		if domainMap[p.EditDomainID].CanUsersComment {
+		if domainMap[p.EditDomainID].CanUsersProposeComment {
 			p.Permissions.ProposeComment.Has = true
 			return
 		}
