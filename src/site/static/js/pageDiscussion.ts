@@ -17,6 +17,24 @@ app.directive('arbPageDiscussion', function($compile, $location, $timeout, arb) 
 			$scope.showNewCommentLoading = false;
 			$scope.showEditorComments = false;
 
+			// Return text for the "new comment" button
+			$scope.getNewCommentText = function() {
+				var text = '';
+				if (!$scope.page.permissions.comment.has) {
+					text += 'Propose';
+				} else if ($scope.visibleCommentCount() <= 0) {
+					text += 'Write first';
+				} else {
+					text += 'New';
+				}
+				if ($scope.showEditorComments) {
+					text += ' editor comment';
+				} else {
+					text += ' comment';
+				}
+				return text;
+			};
+
 			// Process user clicking on New Comment button
 			$scope.newCommentClick = function() {
 				arb.signupService.wrapInSignupFlow('new comment', function() {

@@ -68,6 +68,20 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 				arb.stateService.postDataWithoutProcessing('/approveComment/', {commentID: $scope.pageId});
 			};
 
+			// Add the author of this comment to the domain.
+			$scope.addUserToDomain = function() {
+				$scope.approveComment();
+				var data = {
+					domainId: $scope.lens.editDomainId,
+					userInput: $scope.page.pageCreatorId,
+				};
+				arb.stateService.postDataWithoutProcessing('/newMember/', data, function() {
+					arb.popupService.showToast({
+						text: 'User added to the domain.',
+					});
+				});
+			};
+
 			// Called when the user collapses/expands this subpage
 			$scope.collapseToggle = function() {
 				$scope.isCollapsed = !$scope.isCollapsed;

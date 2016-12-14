@@ -26,16 +26,13 @@
 		<md-button class="new-comment-button md-primary md-raised"
 				ng-click="newCommentClick()"
 				aria-label="New comment"
-				ng-if="!newCommentId && !showNewCommentLoading && page.permissions.comment.has">
+				ng-if="!newCommentId && !showNewCommentLoading && page.permissions.proposeComment.has">
 			<md-icon class="md-raised" ng-if="showEditorComments">rate_review</md-icon>
 			<md-icon class="md-raised" ng-if="!showEditorComments">comment</md-icon>
-			<span ng-bind="visibleCommentCount() <= 0 ? 'Write first editor comment' : 'New editor comment'"
-					ng-if="showEditorComments"></span>
-			<span ng-bind="visibleCommentCount() <= 0 ? 'Write first comment' : 'New comment'"
-					ng-if="!showEditorComments"></span>
+			<span ng-bind="getNewCommentText()"></span>
 		</md-button>
-		<div ng-if="!page.permissions.comment.has">
-			Commenting is only enabled for certain users.
+		<div ng-if="!page.permissions.proposeComment.has">
+			This domain doesn't allow non-members to submit comments.
 		</div>
 	</div>
 
