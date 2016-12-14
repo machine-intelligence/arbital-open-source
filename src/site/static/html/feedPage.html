@@ -77,6 +77,7 @@
 						<div flex>
 							<!-- Title row row -->
 							<div class="feed-page-title-row">
+								<span ng-if="page.hasVote">Claim:</span>
 								<arb-page-title page-id="{{::page.pageId}}"
 									is-link="true"
 									show-clickbait="false"
@@ -93,9 +94,17 @@
 							</div>
 							<!-- Second row -->
 							<div layout="row" layout-align="start center" flex>
-								<div flex>
+								<div layout="row" layout-align="start center" flex>
 									<arb-likes object-id="{{::page.pageId}}" class="s16"></arb-likes>
 									<arb-comment-count page-id="{{::page.pageId}}" class="s16"></arb-comment-count>
+									<div ng-if="page.hasVote">
+										&nbsp;&nbsp;&nbsp;&nbsp;
+										<span class="inline-vote" ng-bind="page.getVoteBars()"></span>
+										<span class="md-caption" ng-if="page.voteSummary.length == 0">(No votes yet)</span>
+										<span class="md-caption"
+												ng-bind="'(' + page.voteSummary.length + ' votes)'"
+												ng-if="page.voteSummary.length > 0"></span>
+									</div>
 								</div>
 								<div class="md-caption" hide-gt-xs>
 									<span class="nowrap">

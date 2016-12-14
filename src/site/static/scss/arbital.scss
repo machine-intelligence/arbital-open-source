@@ -1565,7 +1565,7 @@ md-list-item {
 	}
 
 	arb-likes {
-		min-width: 60px;
+		min-width: 50px;
 	}
 }
 
@@ -1989,10 +1989,12 @@ arb-path-nav, [arb-path-nav] {
 .inline-vote {
 	position: relative;
 	top: -2px;
+	padding-top: 1px;
 	font-size: 12px;
 	margin: 0 2px;
-	border: 1px solid lightgray;
+	border: 1px solid gray;
 	letter-spacing: 2px;
+	white-space: nowrap;
 	opacity: 0.7;
 
 	.vote-column {

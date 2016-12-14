@@ -88,14 +88,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				}
 				var html = '<a href="' + url + '" class="' + classText + '" page-id="' + page.pageId + '">' + options.text;
 				if (options.claim && page.hasVote && page.voteSummary.length > 0) {
-					// Map: how many eights (12.5%) of the total vote does a bucket have -> to a character
-					// NOTE: space characters are two U+2004, which together equal 2/3 em
-					var eights = ['  ', '▁' ,'▂', '▃', '▄', '▅', '▆', '▇', '█'];
-					html += '<span class=\'inline-vote\'>';
-					for (var n = 0; n < page.voteSummary.length; n++) {
-						html += eights[page.voteSummary[n]];
-					}
-					html += '</span>';
+					html += '<span class=\'inline-vote\'>' + page.getVoteBars() + '</span>';
 				}
 				return html + '</a>';
 			}

@@ -161,6 +161,18 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		isClaimPage: function() {
 			return this.hasVote;
 		},
+		// Return text representation for vote summary
+		getVoteBars: function() {
+			if (!this.hasVote || this.voteSummary.length <= 0) return "";
+			// Map: how many eights (12.5%) of the total vote does a bucket have -> to a character
+			// NOTE: space characters are two U+2004, which together equal 2/3 em
+			var eights = ['  ', '▁' ,'▂', '▃', '▄', '▅', '▆', '▇', '█'];
+			var text = '';
+			for (var n = 0; n < this.voteSummary.length; n++) {
+				text += eights[this.voteSummary[n]];
+			}
+			return text;
+		},
 		// Helper function for getBest...Id functions
 		_getBestPageId: function(pageIds, excludePageId) {
 			var pageId = undefined;
