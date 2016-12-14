@@ -59,3 +59,5 @@ CREATE TABLE domainFriends (
 alter table domains add column canUsersProposeComment bool not null;
 update domains set canUsersProposeComment=true;
 update domains set canUsersComment=false;
+
+update domainMembers as dm set role="arbitrator" where (select d.pageId from domains as d where d.id=dm.domainId)=dm.userId;
