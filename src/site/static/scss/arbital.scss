@@ -2001,3 +2001,37 @@ arb-path-nav, [arb-path-nav] {
 		width: 3px;
 	}
 }
+
+@mixin tag() {
+	position: relative;
+	top: -2px;
+	padding: 5px;
+	margin-right: 5px;
+	font-size: 10px;
+	font-weight: bold;
+	border-radius: 10px;
+	color: white;
+	font-family: sans-serif;
+	letter-spacing: 1px;
+}
+.claim-tag {
+	@include tag;
+	background: #bd7abd;
+	&::before {
+		content: "CLAIM";
+	}
+}
+.link-tag {
+	@include tag;
+	background: $link-color;
+	&::before {
+		content: "LINK";
+	}
+}
+.blog-tag {
+	@include tag;
+	background: #7abd13;
+	&::before {
+		content: "BLOG";
+	}
+}

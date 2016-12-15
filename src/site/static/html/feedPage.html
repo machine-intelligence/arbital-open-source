@@ -76,20 +76,24 @@
 					<div layout="row" layout-align="start start" flex>
 						<div flex>
 							<!-- Title row row -->
-							<div class="feed-page-title-row">
-								<span ng-if="page.hasVote">Claim:</span>
-								<arb-page-title page-id="{{::page.pageId}}"
-									is-link="true"
-									show-clickbait="false"
-									ng-if="page.externalUrl.length <= 0"></arb-page-title>
-								<a ng-href="{{page.externalUrl}}"
-										class="external-link"
-										ng-if="page.externalUrl.length > 0">{{page.title}}</a>
-								<span class="md-caption" ng-if="page.externalUrl.length > 0">
-									(<span ng-bind="::page.externalUrl | urlDomain"></span>)
-								</span>
-								<div class="md-caption" ng-if="page.isBlogPage()">
-									by <arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
+							<div layout="row" layout-align="start start" class="feed-page-title-row">
+								<span class="claim-tag" ng-if="page.isClaimPage()"></span>
+								<span class="blog-tag" ng-if="page.isBlogPage()"></span>
+								<span class="link-tag" ng-if="page.isLinkPage()"></span>
+								<div>
+									<arb-page-title page-id="{{::page.pageId}}"
+										is-link="true"
+										show-clickbait="false"
+										ng-if="page.externalUrl.length <= 0"></arb-page-title>
+									<a ng-href="{{page.externalUrl}}"
+											class="external-link"
+											ng-if="page.externalUrl.length > 0">{{page.title}}</a>
+									<span class="md-caption" ng-if="page.externalUrl.length > 0">
+										(<span ng-bind="::page.externalUrl | urlDomain"></span>)
+									</span>
+									<div class="md-caption" ng-if="page.isBlogPage()">
+										by <arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
+									</div>
 								</div>
 							</div>
 							<!-- Second row -->
