@@ -1,0 +1,50 @@
+{{/* dynamicPage.tmpl is used as the basic starting point for bootstrapping dynamic content */}}
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en" ng-app="arbital">
+<head>
+	<title>Arbital</title>
+	<!-- Setting base href for ngRoute -->
+	<base href="/">
+
+	<meta charset="utf-8">
+	<!-- Prevent scaling -->
+	<meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport'>
+
+	<!-- Open graph settings -->
+	<meta property="og:title" content="{{.Title}}"/>
+	<meta property="og:url" content="{{.URL}}"/>
+	<meta property="og:description" content="{{.Description}}"/>
+	<meta property="og:type" content="article"/>
+	<meta property="fb:app_id" content="1064531780272247"/>
+
+	<!-- G+ signin -->
+	<meta name="google-signin-scope" content="profile email">
+	<meta name="google-signin-client_id"
+			content="179043332347-f82l9562v6bcn4nkpnhibd9dj5u7oqvk.apps.googleusercontent.com">
+
+	<!-- Apple touch icons -->
+	<link rel="apple-touch-icon" href="/static/images/arbital-icon-120.png"/>
+
+	<!-- 3rd party style sheets -->
+	<link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet" type="text/css">
+	<link href="https://fonts.googleapis.com/css?family=Roboto+Slab:100,300,400,700" rel="stylesheet" type="text/css">
+
+	<!-- 3rd party scripts -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+
+	<!-- Webpack bundle. -->
+	<script>
+		var versionId = '{{.VersionID}}';
+		var versionUrl = function(url) {
+			return url;
+		};
+	</script>
+	<script src="{{.MaybeServerPrefix}}/static/js/bundle.js?{{.VersionID}}"></script>
+
+</head>
+
+<body>
+</body>
+</html>
+{{end}}
