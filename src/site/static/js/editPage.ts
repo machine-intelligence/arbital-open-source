@@ -148,17 +148,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			}
 
 			// Set up domain options.
-			$scope.domainOptions = {};
-			for (var domainId in arb.userService.user.domainMembershipMap) {
-				$scope.domainOptions[domainId] = arb.stateService.domainMap[domainId].alias;
-			}
-			// Make sure both see and edit domains are in the map.
-			if (isIntIdValid($scope.page.seeDomainId)) {
-				$scope.domainOptions[$scope.page.seeDomainId] = arb.stateService.domainMap[$scope.page.seeDomainId].alias;
-			}
-			if (isIntIdValid($scope.page.editDomainId)) {
-				$scope.domainOptions[$scope.page.editDomainId] = arb.stateService.domainMap[$scope.page.editDomainId].alias;
-			}
+			$scope.domainOptions = arb.userService.getDomainOptions($scope.page);
 
 			$scope.lockExists = $scope.page.lockedBy != '' && moment.utc($scope.page.lockedUntil).isAfter(moment.utc());
 			$scope.lockedByAnother = $scope.lockExists && $scope.page.lockedBy !== arb.userService.user.id;

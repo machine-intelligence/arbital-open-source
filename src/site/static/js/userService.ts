@@ -1,7 +1,7 @@
 'use strict';
 
 import app from './angular.ts';
-import {isLive} from './util.ts';
+import {isLive, isIntIdValid} from './util.ts';
 
 // User service.
 app.service('userService', function($http, $location, $rootScope, analyticsService, stateService) {
@@ -72,6 +72,23 @@ app.service('userService', function($http, $location, $rootScope, analyticsServi
 		var user = this.userMap[userId];
 		if (!user) console.error('User not found: ' + userId);
 		return user.firstName + ' ' + user.lastName;
+	};
+
+	// Get a map of domains the user can pick from for setting editDomainId/seeDomainId
+	// page - optional parameter; if given, the returned list will definitely contain page's edit/see domain id
+	this.getDomainOptions = function(page) {
+		var domainOptions = {};
+		for (var domainId in that.user.domainMembershipMap) {
+			domainOptions[domainId] = stateService.domainMap[domainId].alias;
+		}
+		// Make sure both see and edit domains are in the map.
+		if (isIntIdValid(page.seeDomainId)) {
+			domainOptions[page.seeDomainId] = stateService.domainMap[page.seeDomainId].alias;
+		}
+		if (isIntIdValid(page.editDomainId)) {
+			domainOptions[page.editDomainId] = stateService.domainMap[page.editDomainId].alias;
+		}
+		return domainOptions;
 	};
 
 	// Sign into FB and call the callback with the response.

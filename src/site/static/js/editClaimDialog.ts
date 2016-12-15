@@ -24,6 +24,7 @@ app.controller('EditClaimDialogController', function($scope, $mdDialog, $timeout
 				if (title) {
 					$scope.page.title = title;
 				}
+				$scope.domainOptions = arb.userService.getDomainOptions($scope.page);
 				$timeout(focusInput);
 			},
 		});
@@ -36,6 +37,7 @@ app.controller('EditClaimDialogController', function($scope, $mdDialog, $timeout
 				if (!$scope.page.voteType) {
 					$scope.page.voteType = arb.editService.voteTypes.approval;
 				}
+				$scope.domainOptions = arb.userService.getDomainOptions($scope.page);
 				$timeout(focusInput);
 			},
 		});

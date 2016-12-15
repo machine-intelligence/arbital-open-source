@@ -190,6 +190,9 @@ func (p *Page) computeCommentPermissions(c sessions.Context, u *CurrentUser, dom
 
 // ComputePermissions computes all the permissions for the given page.
 func (p *Page) ComputePermissions(c sessions.Context, u *CurrentUser, domainMap map[string]*Domain) {
+	if !IsIntIDValid(p.EditDomainID) {
+		c.Errorf("Page's edit domain id isn't loaded")
+	}
 	p.Permissions = &Permissions{}
 	// Order is important
 	p.computeEditPermissions(c, u, domainMap)

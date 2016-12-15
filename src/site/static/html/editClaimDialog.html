@@ -30,6 +30,13 @@
 						</md-option>
 					</md-select>
 				</md-input-container>
+
+				<md-input-container flex>
+					<label>Domain</label>
+					<md-select ng-model="page.editDomainId">
+						<md-option ng-repeat="(key,value) in domainOptions" value="{{::key}}" ng-bind="::value"></md-option>
+					</md-select>
+				</md-input-container>
 	
 				<md-button class="md-primary md-raised heap-publish-button"
 						ng-click="publishPage()"
