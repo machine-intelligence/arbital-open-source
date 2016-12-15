@@ -103,11 +103,11 @@
 									<arb-comment-count page-id="{{::page.pageId}}" class="s16"></arb-comment-count>
 									<div ng-if="page.hasVote">
 										&nbsp;&nbsp;&nbsp;&nbsp;
-										<span class="inline-vote" ng-bind="page.getVoteBars()" ng-if="page.voteSummary.length > 0"></span>
-										<span class="md-caption" ng-if="page.voteSummary.length == 0">(No votes yet)</span>
+										<span class="inline-vote" ng-bind="page.getVoteBars()" ng-if="page.votes.length > 0"></span>
+										<span class="md-caption" ng-if="page.votes.length == 0">(No votes yet)</span>
 										<span class="md-caption"
-												ng-bind="'(' + page.voteSummary.length + ' votes)'"
-												ng-if="page.voteSummary.length > 0"></span>
+												ng-bind="'(' + page.votes.length + ' votes)'"
+												ng-if="page.votes.length > 0"></span>
 									</div>
 								</div>
 								<div class="md-caption" hide-gt-xs>
