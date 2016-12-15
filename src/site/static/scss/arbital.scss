@@ -2028,10 +2028,10 @@ arb-path-nav, [arb-path-nav] {
 		content: "LINK";
 	}
 }
-.blog-tag {
+.post-tag {
 	@include tag;
 	background: #7abd13;
 	&::before {
-		content: "BLOG";
+		content: "POST";
 	}
 }
