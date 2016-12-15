@@ -103,7 +103,7 @@
 									<arb-comment-count page-id="{{::page.pageId}}" class="s16"></arb-comment-count>
 									<div ng-if="page.hasVote">
 										&nbsp;&nbsp;&nbsp;&nbsp;
-										<span class="inline-vote" ng-bind="page.getVoteBars()"></span>
+										<span class="inline-vote" ng-bind="page.getVoteBars()" ng-if="page.voteSummary.length > 0"></span>
 										<span class="md-caption" ng-if="page.voteSummary.length == 0">(No votes yet)</span>
 										<span class="md-caption"
 												ng-bind="'(' + page.voteSummary.length + ' votes)'"
