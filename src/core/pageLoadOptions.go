@@ -165,6 +165,7 @@ var (
 	IntrasitePopoverLoadOptions = (&PageLoadOptions{
 		Links:         true,
 		Votes:         true,
+		VoteSummary:   true,
 		IsSubscribed:  true,
 		SubpageCounts: true,
 		AnswerCounts:  true,
