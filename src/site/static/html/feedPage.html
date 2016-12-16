@@ -95,6 +95,7 @@
 											(<span ng-bind="::page.externalUrl | urlDomain"></span>)
 										</span>
 										<div class="md-caption" ng-if="page.isBlogPage()">
+											<span ng-if="page.isClaimPage()">posed</span>
 											by <arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
 										</div>
 									</div>
@@ -154,11 +155,11 @@
 													ng-if="page.externalUrl.length > 0">{{page.title}}</a>
 									<div class="md-caption">
 										<span class="nowrap" ng-if="page.isBlogPage()">
-											created by
+											posed by
 											<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
 										</span>
 										<span class="nowrap" ng-if="!page.isBlogPage()">
-											created by
+											posed by
 											<arb-page-title page-id="{{::arb.stateService.domainMap[page.editDomainId].pageId}}"
 													is-link="true"></arb-page-title>
 										</span>

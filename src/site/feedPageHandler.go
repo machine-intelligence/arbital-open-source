@@ -62,7 +62,7 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		WHERE hasVote
 		ORDER BY createdAt DESC
-		LIMIT 10`).ToStatement(db).Query()
+		LIMIT 25`).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var row core.FeedSubmission
 		err := rows.Scan(&row.DomainID, &row.PageID, &row.SubmitterID, &row.CreatedAt)
