@@ -1,31 +1,4 @@
 <div class="padding-gt-xs children-margin-gt-xs children-vertical-margin-lt-xs">
-	<!-- Top row -->
-	<div id="index-header"
-			layout="column"
-			layout-gt-xs="row"
-			layout-align="space-between start"
-			class="children-margin-gt-xs children-vertical-margin-lt-xs">
-		<div class="md-whiteframe-1dp arbital-blurb"
-				layout="column"
-				layout-gt-sm="row"
-				layout-align="start center">
-			<span>
-				<a ng-href="{{::arb.urlService.getPageUrl('3d')}}"
-						class="intrasite-link"
-						page-id="3d">Arbital</a>
-				is the place for healthy discussions to improve your understanding of the world.
-			</span>
-		</div>
-		<div layout="row"
-				layout-align="end center"
-				layout-wrap
-				class="horizontal-margin-between-children">
-			<arb-edit-button custom-text="Create new page"
-					analytics-desc="feed page, new page button"
-					ng-if="arb.userService.userIsLoggedIn()"></arb-edit-button>
-		</div>
-	</div>
-
 	<!-- Submit link -->
 	<div layout="column" layout-align="center center">
 		<div class="submit-link-form md-whiteframe-1dp" layout="column" ng-if="isSubmittingLink">

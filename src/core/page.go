@@ -2121,7 +2121,7 @@ func LoadSubpageCounts(db *database.DB, u *CurrentUser, pageMap map[string]*Page
 		WHERE pp.type=?`, ParentPagePairType).Add(`
 			AND pp.parentId IN`).AddArgsGroup(pageIDs).Add(`
 			AND pi.type=?`, CommentPageType).Add(`
-			AND pi.isApprovedComment AND NOT isEditorComment`).ToStatement(db).Query()
+			AND pi.isApprovedComment AND NOT isEditorComment AND NOT isResolved`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentID, childID, createdAt, createdBy string
 		err := rows.Scan(&parentID, &childID, &createdAt, &createdBy)
@@ -2198,15 +2198,15 @@ func LoadCommentIDs(db *database.DB, u *CurrentUser, pageMap map[string]*Page, o
 	// replies, so we need to remove the replies.
 	for _, p := range sourcePageMap {
 		replies := make(map[string]bool)
-		for _, c := range p.CommentIDs {
-			for _, r := range pageMap[c].CommentIDs {
-				replies[r] = true
+		for _, commentID := range p.CommentIDs {
+			for _, replyID := range pageMap[commentID].CommentIDs {
+				replies[replyID] = true
 			}
 		}
 		onlyTopCommentIDs := make([]string, 0)
-		for _, c := range p.CommentIDs {
-			if !replies[c] {
-				onlyTopCommentIDs = append(onlyTopCommentIDs, c)
+		for _, commentID := range p.CommentIDs {
+			if !replies[commentID] {
+				onlyTopCommentIDs = append(onlyTopCommentIDs, commentID)
 			}
 		}
 		p.CommentIDs = onlyTopCommentIDs

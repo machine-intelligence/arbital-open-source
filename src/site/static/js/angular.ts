@@ -98,12 +98,13 @@ app.run(function($http, $location, arb) {
 				}))
 				.error($scope.getErrorFunc('domainPage'));
 			} else {
-				// Get the index page data
-				$http({method: 'POST', url: '/json/index/'})
+				$http({method: 'POST', url: '/json/feed/', data: JSON.stringify({})})
 				.success($scope.getSuccessFunc(function(data) {
+					$scope.feedRows = data.result.feedRows;
+					$scope.claimRows = data.result.claimRows;
 					return {
-						title: '',
-						content: $scope.newElement('<arb-index></arb-index>'),
+						title: 'Feed',
+						content: $scope.newElement('<arb-feed-page feed-rows=\'feedRows\' claim-rows=\'claimRows\'></arb-feed-page>'),
 						analytics: {page: 'index'},
 					};
 				}))
@@ -362,22 +363,6 @@ app.run(function($http, $location, arb) {
 			.error($scope.getErrorFunc('explore'));
 		},
 	});
-	arb.urlService.addUrlHandler('/feed/', {
-		name: 'FeedPage',
-		handler: function(args, $scope) {
-			$http({method: 'POST', url: '/json/feed/', data: JSON.stringify({})})
-			.success($scope.getSuccessFunc(function(data) {
-				$scope.feedRows = data.result.feedRows;
-				$scope.claimRows = data.result.claimRows;
-				return {
-					title: 'Feed',
-					content: $scope.newElement('<arb-feed-page feed-rows=\'feedRows\' claim-rows=\'claimRows\'></arb-feed-page>'),
-					analytics: {page: 'feed'},
-				};
-			}))
-			.error($scope.getErrorFunc('feed'));
-		},
-	});
 	arb.urlService.addUrlHandler('/learn/:pageAlias?', {
 		name: 'LearnPage',
 		handler: function(args, $scope) {
@@ -450,6 +435,21 @@ app.run(function($http, $location, arb) {
 				};
 			}))
 			.error($scope.getErrorFunc('default'));
+		},
+	});
+	arb.urlService.addUrlHandler('/math/', {
+		name: 'MathPage',
+		handler: function(args, $scope) {
+			// Get the index page data
+			$http({method: 'POST', url: '/json/index/'})
+			.success($scope.getSuccessFunc(function(data) {
+				return {
+					title: '',
+					content: $scope.newElement('<arb-index></arb-index>'),
+					analytics: {page: 'math'},
+				};
+			}))
+			.error($scope.getErrorFunc('index'));
 		},
 	});
 	arb.urlService.addUrlHandler('/newsletter/', {
