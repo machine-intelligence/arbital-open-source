@@ -7,11 +7,6 @@ $fixedOverlayZ: 1000;
 $changeSpeedZ: 3;
 $floaterToolbarZ: 2;
 
-$background-color: #f7f7f7;
-$link-color: #137abd;
-$light-link-color: lighten(#137abd, 40%);
-$very-light-link-color: #e8f1f7;
-
 // Colors that are the same as we set for mdThemingProvider
 //http://www.google.com/design/spec/style/color.html#color-color-palette
 $primary-color: #009688; // teal (500)
@@ -26,3 +21,12 @@ $warn-color: #F44336; // red (500)
 $warn-hue-1: #FFCDD2; // 100
 $warn-hue-2: #D32F2F; // 700
 $warn-hue-3: #B71C1C; // 900
+
+$background-color: #f7f7f7;
+
+$link-color: #137abd;
+$light-link-color: lighten(#137abd, 40%);
+$very-light-link-color: #e8f1f7;
+
+$post-color: #7abd13;
+$claim-color: #bd7abd;

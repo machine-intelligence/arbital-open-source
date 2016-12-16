@@ -418,6 +418,19 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				return sessions.NewError("Couldn't update links", err)
 			}
 		}
+
+		// Submit the page to a feed if appropriate
+		if !oldPage.WasPublished && isNewCurrentEdit && core.IsIntIDValid(oldPage.SubmitToDomainID) {
+			newFeedSubmission := &core.FeedSubmission{
+				DomainID:    oldPage.SubmitToDomainID,
+				PageID:      data.PageID,
+				SubmitterID: u.ID,
+				CreatedAt:   database.Now(),
+			}
+			if err := CreateNewFeedPage(tx, newFeedSubmission); err != nil {
+				return sessions.NewError("Couldn't insert into feedPages", err)
+			}
+		}
 		return nil
 	})
 	if err2 != nil {

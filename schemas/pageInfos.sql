@@ -39,6 +39,8 @@ CREATE TABLE pageInfos (
 
 	/* When this page has been added to the Featured section */
 	featuredAt DATETIME NOT NULL,
+	/* If set, when this page is published, it will be submitted to this domain */
+	submitToDomainId BIGINT NOT NULL,
 
 	/* === Permission settings === */
 	/* see: who can see the page */

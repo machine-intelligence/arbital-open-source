@@ -143,6 +143,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 				type: this.type,
 				seeDomainId: this.seeDomainId,
 				editDomainId: this.editDomainId,
+				submitToDomainId: this.submitToDomainId,
 				hasVote: this.hasVote,
 				voteType: this.voteType,
 				sortChildrenBy: this.sortChildrenBy,

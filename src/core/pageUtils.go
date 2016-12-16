@@ -414,17 +414,18 @@ func IsStringInList(str string, list []string) bool {
 
 type CreateNewPageOptions struct {
 	// If PageID isn't given, one will be created
-	PageID          string
-	Alias           string
-	Type            string
-	EditDomainID    string
-	SeeDomainID     string
-	Title           string
-	Clickbait       string
-	Text            string
-	ExternalUrl     string
-	IsEditorComment bool
-	IsPublished     bool
+	PageID           string
+	Alias            string
+	Type             string
+	EditDomainID     string
+	SeeDomainID      string
+	SubmitToDomainID string
+	Title            string
+	Clickbait        string
+	Text             string
+	ExternalUrl      string
+	IsEditorComment  bool
+	IsPublished      bool
 
 	// Additional options
 	ParentIDs []string
@@ -507,6 +508,7 @@ func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOption
 		hashmap["createdAt"] = database.Now()
 		hashmap["seeDomainId"] = options.SeeDomainID
 		hashmap["editDomainId"] = options.EditDomainID
+		hashmap["submitToDomainId"] = options.SubmitToDomainID
 		hashmap["lockedBy"] = u.ID
 		hashmap["lockedUntil"] = GetPageQuickLockedUntilTime()
 		hashmap["externalUrl"] = options.ExternalUrl

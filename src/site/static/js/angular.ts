@@ -308,13 +308,17 @@ app.run(function($http, $location, arb) {
 			var getNewPage = function() {
 				var type = $location.search().type;
 				$location.replace().search('type', undefined);
+
+				// See if the page should be submitted to a domain
+				var submitToDomainId = $location.search().submitToDomainId;
+				$location.search('submitToDomainId', undefined);
+
 				// Create a new page to edit
 				arb.pageService.getNewPage({
 					type: type,
+					submitToDomainId: submitToDomainId,
 					success: function(newPageId) {
-						arb.urlService.goToUrl(arb.urlService.getEditPageUrl(newPageId, {
-							parentId: $location.search().parentId,
-						}), {replace: true});
+						arb.urlService.ensureCanonPath(arb.urlService.getEditPageUrl(newPageId));
 					},
 					error: $scope.getErrorFunc('newPage'),
 				});

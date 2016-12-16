@@ -192,19 +192,19 @@ span.md-warn {
 		overflow: visible;
 	}
 
-	&:not([disabled]).special {
-		color: $link-color !important;
+	@mixin special-button($color) {
+		color: $color !important;
 
 		&:hover {
-			color: darken($link-color, 15%) !important;
+			color: darken($color, 15%) !important;
 		}
 
 		&.md-raised {
-			background-color: $link-color !important;
+			background-color: $color !important;
 			color: white !important;
 
 			&:hover {
-				background-color: darken($link-color, 5%) !important;
+				background-color: darken($color, 5%) !important;
 			}
 
 			& md-icon {
@@ -213,8 +213,24 @@ span.md-warn {
 		}
 
 		& md-icon {
-			color: $link-color;
+			color: $color;
 		}
+	}
+
+	&:not([disabled]).special {
+		@include special-button($link-color);
+	}
+
+	&:not([disabled]).claim-button {
+		@include special-button($claim-color);
+	}
+
+	&:not([disabled]).link-button {
+		@include special-button($link-color);
+	}
+
+	&:not([disabled]).post-button {
+		@include special-button($post-color);
 	}
 }
 

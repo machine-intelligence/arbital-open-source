@@ -629,6 +629,13 @@
 			<md-checkbox ng-model="publishOptions.isProposal" ng-if="::page.permissions.edit.has">
 				Propose edit
 			</md-checkbox>
+
+			<md-input-container ng-if="!page.wasPublished">
+				<label>When published, submit to this domain</label>
+				<md-select ng-model="page.submitToDomainId">
+					<md-option ng-repeat="(key,value) in ::submitToDomainOptions" value="{{::key}}" ng-bind="::value"></md-option>
+				</md-select>
+			</md-input-container>
 		</div>
 
 		<!-- Footer -->

@@ -20,10 +20,11 @@ var newPageHandler = siteHandler{
 
 // newPageData contains parameters passed in via the request.
 type newPageData struct {
-	Type            string
-	ParentIDs       []string
-	IsEditorComment bool
-	Alias           string
+	Type             string
+	ParentIDs        []string
+	IsEditorComment  bool
+	Alias            string
+	SubmitToDomainID string
 	// If creating a new comment, this is the id of the primary page
 	CommentPrimaryPageID string
 }
@@ -51,6 +52,7 @@ func newPageInternalHandler(params *pages.HandlerParams, data *newPageData) *pag
 		Type:                 data.Type,
 		SeeDomainID:          params.PrivateDomain.ID,
 		EditDomainID:         u.MyDomainID(),
+		SubmitToDomainID:     data.SubmitToDomainID,
 		IsEditorComment:      data.IsEditorComment,
 		ParentIDs:            data.ParentIDs,
 		CommentPrimaryPageID: data.CommentPrimaryPageID,

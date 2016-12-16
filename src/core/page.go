@@ -115,6 +115,7 @@ type corePageData struct {
 	PageCreatedAt     string `json:"pageCreatedAt"`
 	SeeDomainID       string `json:"seeDomainId"`
 	EditDomainID      string `json:"editDomainId"`
+	SubmitToDomainID  string `json:"submitToDomainId"`
 	IsAutosave        bool   `json:"isAutosave"`
 	IsSnapshot        bool   `json:"isSnapshot"`
 	IsLiveEdit        bool   `json:"isLiveEdit"`
@@ -1123,7 +1124,7 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 		SELECT p.pageId,p.edit,p.prevEdit,p.creatorId,p.createdAt,p.title,p.clickbait,`).AddPart(textSelect).Add(`,
 			length(p.text),p.metaText,pi.type,pi.hasVote,pi.voteType,pi.alias,
 			pi.createdAt,pi.createdBy,pi.externalUrl,pi.sortChildrenBy,pi.seeDomainId,pi.editDomainId,
-			pi.isEditorComment,pi.isApprovedComment,pi.isResolved,
+			pi.submitToDomainId,pi.isEditorComment,pi.isApprovedComment,pi.isResolved,
 			pi.indirectTeacher,pi.currentEdit,pi.likeableId,pi.viewCount,
 			p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,p.editSummary,pi.isDeleted,pi.mergedInto,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset
@@ -1137,7 +1138,7 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 			&p.PageID, &p.Edit, &p.PrevEdit, &p.EditCreatorID, &p.EditCreatedAt, &p.Title, &p.Clickbait,
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.HasVote,
 			&p.VoteType, &p.Alias, &p.PageCreatedAt, &p.PageCreatorID, &p.ExternalUrl, &p.SortChildrenBy,
-			&p.SeeDomainID, &p.EditDomainID, &p.IsEditorComment, &p.IsApprovedComment,
+			&p.SeeDomainID, &p.EditDomainID, &p.SubmitToDomainID, &p.IsEditorComment, &p.IsApprovedComment,
 			&p.IsResolved, &p.IndirectTeacher, &p.CurrentEdit, &p.LikeableID, &p.ViewCount,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.EditSummary, &p.IsDeleted, &p.MergedInto,
 			&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
@@ -1486,7 +1487,7 @@ func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, domainMap map[
 	statement := database.NewQuery(`
 		SELECT p.pageId,p.edit,p.prevEdit,pi.type,p.title,p.clickbait,p.text,p.metaText,
 			pi.alias,p.creatorId,pi.externalUrl,pi.sortChildrenBy,pi.hasVote,pi.voteType,
-			p.createdAt,pi.seeDomainId,pi.editDomainId,pi.createdAt,
+			p.createdAt,pi.seeDomainId,pi.editDomainId,pi.submitToDomainId,pi.createdAt,
 			pi.createdBy,pi.isEditorComment,pi.isApprovedComment,
 			pi.isResolved,pi.likeableId,p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,p.editSummary,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset,
@@ -1500,7 +1501,7 @@ func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, domainMap map[
 	exists, err := row.Scan(&p.PageID, &p.Edit, &p.PrevEdit, &p.Type, &p.Title, &p.Clickbait,
 		&p.Text, &p.MetaText, &p.Alias, &p.EditCreatorID, &p.ExternalUrl, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.EditCreatedAt, &p.SeeDomainID,
-		&p.EditDomainID, &p.PageCreatedAt, &p.PageCreatorID,
+		&p.EditDomainID, &p.SubmitToDomainID, &p.PageCreatedAt, &p.PageCreatorID,
 		&p.IsEditorComment, &p.IsApprovedComment, &p.IsResolved, &p.LikeableID,
 		&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.EditSummary,
 		&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,

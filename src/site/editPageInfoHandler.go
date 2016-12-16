@@ -18,16 +18,17 @@ import (
 
 // editPageInfoData contains parameters passed in.
 type editPageInfoData struct {
-	PageID          string
-	Type            string
-	HasVote         bool
-	VoteType        string
-	SeeDomainID     string
-	EditDomainID    string
-	Alias           string // if empty, leave the current one
-	SortChildrenBy  string
-	IndirectTeacher bool
-	IsEditorComment bool
+	PageID           string
+	Type             string
+	HasVote          bool
+	VoteType         string
+	SeeDomainID      string
+	EditDomainID     string
+	SubmitToDomainID string
+	Alias            string // if empty, leave the current one
+	SortChildrenBy   string
+	IndirectTeacher  bool
+	IsEditorComment  bool
 }
 
 var editPageInfoHandler = siteHandler{
@@ -167,6 +168,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			data.Type == oldPage.Type &&
 			data.SeeDomainID == oldPage.SeeDomainID &&
 			data.EditDomainID == oldPage.EditDomainID &&
+			data.SubmitToDomainID == oldPage.SubmitToDomainID &&
 			data.IndirectTeacher == oldPage.IndirectTeacher &&
 			data.IsEditorComment == oldPage.IsEditorComment {
 			return pages.Success(nil)
@@ -195,6 +197,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["type"] = data.Type
 		hashmap["seeDomainID"] = data.SeeDomainID
 		hashmap["editDomainID"] = data.EditDomainID
+		hashmap["submitToDomainId"] = data.SubmitToDomainID
 		hashmap["indirectTeacher"] = data.IndirectTeacher
 		hashmap["isEditorComment"] = data.IsEditorComment
 		statement := tx.DB.NewInsertStatement("pageInfos", hashmap, hashmap.GetKeys()...).WithTx(tx)
@@ -265,7 +268,6 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				}
 				changeLogIDs = append(changeLogIDs, changeLogID)
 			}
-
 		}
 		return nil
 	})

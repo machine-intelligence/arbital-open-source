@@ -282,12 +282,25 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 	interface getNewPageUrlOptions {
 		// If set, there will be a quick option to add this page as a parent
 		parentId?: string;
+		// If set, the new page will start out with "new claim" settings under this domain id
+		newClaimDomainId?: string;
+		// If set, the new page will be submitted to this domain feed when it's published
+		submitToDomainId?: string;
 	};
 	this.getNewPageUrl = function(options : getNewPageUrlOptions) : string {
 		options = options || {};
 		let url = '/edit/';
 		if (options.parentId) {
-			url += '?parentId=' + options.parentId;
+			url += url.indexOf('?') < 0 ? '?' : '&';
+			url += 'parentId=' + options.parentId;
+		}
+		if (options.newClaimDomainId) {
+			url += url.indexOf('?') < 0 ? '?' : '&';
+			url += 'newClaimDomainId=' + options.newClaimDomainId;
+		}
+		if (options.submitToDomainId) {
+			url += url.indexOf('?') < 0 ? '?' : '&';
+			url += 'submitToDomainId=' + options.submitToDomainId;
 		}
 		url = that.getDomainUrl() + url;
 		return url;

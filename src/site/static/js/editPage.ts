@@ -48,7 +48,12 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				if ($scope.page.isDeleted) return 'Republish';
 				if ($scope.isReviewingProposal) return 'Approve edit';
 				if ($scope.publishOptions.isProposal) return 'Propose';
-				if ($scope.page.permissions.edit.has) return 'Publish';
+				if ($scope.page.permissions.edit.has) {
+					if (!$scope.page.wasPublished && $scope.page.submitToDomainId != '0') {
+						return 'Publish & Submit';
+					}
+					return 'Publish';
+				}
 				if ($scope.page.permissions.proposeEdit.has) return 'Propose';
 				return '';
 			};
@@ -56,7 +61,13 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				if ($scope.page.isDeleted) return 'Republish this page';
 				if ($scope.isReviewingProposal) return 'Approve the edit and publish this page';
 				if ($scope.publishOptions.isProposal) return 'Propose an edit to this page';
-				if ($scope.page.permissions.edit.has) return 'Make this version live';
+				if ($scope.page.permissions.edit.has) {
+					if (!$scope.page.wasPublished && $scope.page.submitToDomainId != '0') {
+						return 'Publish the page and submit it to ' +
+							arb.stateService.domainMap[$scope.page.submitToDomainId].alias;
+					}
+					return 'Make this version live';
+				}
 				if ($scope.page.permissions.proposeEdit.has) return 'Propose an edit to this page';
 				return '';
 			};
@@ -97,6 +108,14 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			}
 			if ($scope.page.isComment()) {
 				$scope.selectedTab = 1;
+			}
+
+			// See if the user is creating a claim
+			if ($location.search().newClaimDomainId) {
+				$scope.page.hasVote = true;
+				$scope.page.voteType = 'approval';
+				$scope.page.editDomainId = $location.search().newClaimDomainId;
+				$location.search('newClaimDomainId', undefined);
 			}
 
 			// If this is a new page, and it had custom alias set, we can now set the title,
@@ -149,6 +168,8 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			// Set up domain options.
 			$scope.domainOptions = arb.userService.getDomainOptions($scope.page);
+			$scope.submitToDomainOptions = angular.extend({'0': '-'}, $scope.domainOptions);
+			console.log($scope.submitToDomainOptions);
 
 			$scope.lockExists = $scope.page.lockedBy != '' && moment.utc($scope.page.lockedUntil).isAfter(moment.utc());
 			$scope.lockedByAnother = $scope.lockExists && $scope.page.lockedBy !== arb.userService.user.id;

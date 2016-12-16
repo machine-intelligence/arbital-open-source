@@ -4,6 +4,7 @@ package site
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"zanaduu3/src/core"
@@ -78,13 +79,7 @@ func newFeedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			}
 		}
 
-		hashmap := make(map[string]interface{})
-		hashmap["domainId"] = newFeedSubmission.DomainID
-		hashmap["pageId"] = newFeedSubmission.PageID
-		hashmap["submitterId"] = newFeedSubmission.SubmitterID
-		hashmap["createdAt"] = newFeedSubmission.CreatedAt
-		statement := db.NewInsertStatement("feedPages", hashmap)
-		if _, err := statement.Exec(); err != nil {
+		if err := CreateNewFeedPage(tx, newFeedSubmission); err != nil {
 			return sessions.NewError("Couldn't insert into feedPages", err)
 		}
 		return nil
@@ -102,4 +97,17 @@ func newFeedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	returnData.ResultMap["newFeedRow"] = newFeedSubmission
 	return pages.Success(returnData)
+}
+
+func CreateNewFeedPage(tx *database.Tx, newFeedSubmission *core.FeedSubmission) error {
+	hashmap := make(map[string]interface{})
+	hashmap["domainId"] = newFeedSubmission.DomainID
+	hashmap["pageId"] = newFeedSubmission.PageID
+	hashmap["submitterId"] = newFeedSubmission.SubmitterID
+	hashmap["createdAt"] = newFeedSubmission.CreatedAt
+	statement := tx.DB.NewInsertStatement("feedPages", hashmap).WithTx(tx)
+	if _, err := statement.Exec(); err != nil {
+		return fmt.Errorf("Couldn't insert into feedPages: %v", err)
+	}
+	return nil
 }

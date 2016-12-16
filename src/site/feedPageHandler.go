@@ -40,8 +40,11 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Load feed rows
 	feedRows := make([]*core.FeedSubmission, 0)
 	rows := database.NewQuery(`
-		SELECT domainId,pageId,submitterId,createdAt
-		FROM feedPages
+		SELECT fp.domainId,fp.pageId,fp.submitterId,fp.createdAt
+		FROM feedPages AS fp
+		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+		ON (fp.pageId = pi.pageId)
+		WHERE NOT pi.hasVote
 		ORDER BY createdAt DESC
 		LIMIT 25`).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -58,9 +61,11 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Load claim rows
 	claimRows := make([]*core.FeedSubmission, 0)
 	rows = database.NewQuery(`
-		SELECT editDomainId,pageId,createdBy,createdAt
-		FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
-		WHERE hasVote
+		SELECT fp.domainId,fp.pageId,fp.submitterId,fp.createdAt
+		FROM feedPages AS fp
+		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+		ON (fp.pageId = pi.pageId)
+		WHERE pi.hasVote
 		ORDER BY createdAt DESC
 		LIMIT 25`).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {

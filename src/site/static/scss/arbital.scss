@@ -1943,7 +1943,7 @@ arb-path-nav, [arb-path-nav] {
 	}
 
 	.feed-row {
-		margin-bottom: 10px;
+		margin-top: 10px;
 		padding: 10px;
 		padding-bottom: 0px;
 		border-radius: 2px;
@@ -1965,8 +1965,12 @@ arb-path-nav, [arb-path-nav] {
 	}
 }
 
-.claim-row {
-	padding: 10px 10px 0 10px;
+.claim-rows {
+	margin-top: 10px;
+
+	.claim-row {
+		padding: 10px 10px 0 10px;
+	}
 }
 
 .aligned-input-container {
@@ -2030,7 +2034,7 @@ arb-path-nav, [arb-path-nav] {
 }
 .claim-tag {
 	@include tag;
-	background: #bd7abd;
+	background: $claim-color;
 	&::before {
 		content: "CLAIM";
 	}
@@ -2044,7 +2048,7 @@ arb-path-nav, [arb-path-nav] {
 }
 .post-tag {
 	@include tag;
-	background: #7abd13;
+	background: $post-color;
 	&::before {
 		content: "POST";
 	}
