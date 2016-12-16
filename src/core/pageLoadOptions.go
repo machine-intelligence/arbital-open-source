@@ -163,14 +163,15 @@ var (
 	}).Add(TitlePlusLoadOptions)
 	// Options for loading info for an intrasite link popover
 	IntrasitePopoverLoadOptions = (&PageLoadOptions{
-		Links:         true,
-		Votes:         true,
-		VoteSummary:   true,
-		IsSubscribed:  true,
-		SubpageCounts: true,
-		AnswerCounts:  true,
-		Summaries:     true,
-		LastVisit:     true,
+		IndividualLikes: true,
+		Links:           true,
+		Votes:           true,
+		VoteSummary:     true,
+		IsSubscribed:    true,
+		SubpageCounts:   true,
+		AnswerCounts:    true,
+		Summaries:       true,
+		LastVisit:       true,
 	}).Add(TitlePlusLoadOptions)
 	// Options for loading info about a lens
 	LensInfoLoadOptions = (&PageLoadOptions{}).Add(TitlePlusLoadOptions)
