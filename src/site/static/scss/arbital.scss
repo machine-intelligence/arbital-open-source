@@ -1934,7 +1934,13 @@ arb-path-nav, [arb-path-nav] {
 }
 
 .feed-rows {
-	margin-right: 30px;
+
+	@media (min-width: 960px) {
+		margin-right: 30px;
+	}
+	@media (max-width: 959px) {
+		width: 100%;
+	}
 
 	.feed-row {
 		margin-bottom: 10px;
@@ -1942,6 +1948,7 @@ arb-path-nav, [arb-path-nav] {
 		padding-bottom: 0px;
 		border-radius: 2px;
 		width: 100%;
+		box-sizing: border-box;
 	
 		.feed-page-title-row {
 			margin-bottom: 5px;
