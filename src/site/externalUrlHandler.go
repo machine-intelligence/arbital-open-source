@@ -105,10 +105,15 @@ func getTitle(url string, htmlString string) (string, error) {
 
 	title = strings.TrimSpace(title)
 
-	// special case to strip endings from the titles of links to LessWrong
+	// special cases to strip endings from the titles of links to LessWrong and the EA Forum
 	lowercaseUrl := strings.ToLower(url)
-	if strings.HasPrefix(lowercaseUrl, "https://lesswrong.com") || strings.HasPrefix(lowercaseUrl, "http://lesswrong.com") {
+	if strings.HasPrefix(lowercaseUrl, "https://lesswrong.com") ||
+		strings.HasPrefix(lowercaseUrl, "http://lesswrong.com") {
 		title = strings.TrimSuffix(title, " - Less Wrong")
+	}
+	if strings.HasPrefix(lowercaseUrl, "https://effective-altruism.com/ea") ||
+		strings.HasPrefix(lowercaseUrl, "http://effective-altruism.com/ea") {
+		title = strings.TrimSuffix(title, " - Effective Altruism Forum")
 	}
 
 	return title, nil
