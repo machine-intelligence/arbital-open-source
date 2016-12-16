@@ -1940,6 +1940,7 @@ arb-path-nav, [arb-path-nav] {
 	}
 	@media (max-width: 959px) {
 		width: 100%;
+		margin-bottom: 50px;
 	}
 
 	.feed-row {
@@ -1965,11 +1966,15 @@ arb-path-nav, [arb-path-nav] {
 	}
 }
 
-.claim-rows {
-	margin-top: 10px;
+.claims-div {
+	width: 100%;
 
-	.claim-row {
-		padding: 10px 10px 0 10px;
+	.claim-rows {
+		margin-top: 10px;
+	
+		.claim-row {
+			padding: 10px 10px 0 10px;
+		}
 	}
 }
 

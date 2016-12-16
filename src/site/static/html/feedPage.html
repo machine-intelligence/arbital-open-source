@@ -35,7 +35,7 @@
 	<div layout="column" layout-gt-sm="row" layout-align="start start">
 		<div flex="5" flex-gt-md="10"></div>
 
-		<div class="feed-rows" layout="column" flex-gt-sm="50">
+		<div class="feed-rows" flex-gt-sm="50">
 			<!-- Create new ... buttons -->
 			<div layout="row"
 					layout-align="end center"
@@ -54,7 +54,7 @@
 			<div ng-repeat="feedRow in feedRows"
 					ng-init="page=arb.stateService.pageMap[feedRow.pageId]"
 					class="md-whiteframe-1dp feed-row">
-				<div class="page-row" flex>
+				<div class="page-row">
 				
 					<!-- Page title and caption -->
 					<div layout="column" layout-align="center" flex>
@@ -113,7 +113,7 @@
 		</div>
 
 		<!-- Recent claims -->
-		<div flex="30">
+		<div class="claims-div" flex-gt-sm="30">
 			<!-- Create new ... buttons -->
 			<div layout="row"
 					layout-align="end center"
@@ -129,7 +129,7 @@
 			<div ng-repeat="claimRow in claimRows"
 					ng-init="page=arb.stateService.pageMap[claimRow.pageId]">
 				<md-divider></md-divider>
-				<div class="claim-row page-row" flex>
+				<div class="claim-row page-row">
 
 					<!-- Page title and caption -->
 					<div layout="column" layout-align="center" flex>
