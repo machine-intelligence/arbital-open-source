@@ -10,6 +10,7 @@ app.directive('arbFeedPage', function($timeout, $http, arb) {
 		templateUrl: versionUrl('static/html/feedPage.html'),
 		scope: {
 			feedRows: '=',
+			claimRows: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;

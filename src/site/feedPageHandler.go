@@ -37,6 +37,7 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 
+	// Load feed rows
 	feedRows := make([]*core.FeedSubmission, 0)
 	rows := database.NewQuery(`
 		SELECT domainId,pageId,submitterId,createdAt
@@ -54,6 +55,25 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return nil
 	})
 
+	// Load claim rows
+	claimRows := make([]*core.FeedSubmission, 0)
+	rows = database.NewQuery(`
+		SELECT editDomainId,pageId,createdBy,createdAt
+		FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+		WHERE hasVote
+		ORDER BY createdAt DESC
+		LIMIT 10`).ToStatement(db).Query()
+	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var row core.FeedSubmission
+		err := rows.Scan(&row.DomainID, &row.PageID, &row.SubmitterID, &row.CreatedAt)
+		if err != nil {
+			return fmt.Errorf("failed to scan a FeedSubmission: %v", err)
+		}
+		core.AddPageToMap(row.PageID, returnData.PageMap, core.IntrasitePopoverLoadOptions)
+		claimRows = append(claimRows, &row)
+		return nil
+	})
+
 	// Load the pages
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
@@ -61,5 +81,6 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	returnData.ResultMap["feedRows"] = feedRows
+	returnData.ResultMap["claimRows"] = claimRows
 	return pages.Success(returnData)
 }

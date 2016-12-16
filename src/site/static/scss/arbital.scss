@@ -1933,24 +1933,33 @@ arb-path-nav, [arb-path-nav] {
 	}
 }
 
-.feed-row {
-	margin-top: 10px;
-	padding: 10px;
-	border-radius: 2px;
-	width: 900px;
+.feed-rows {
+	margin-right: 30px;
 
-	.feed-page-title-row {
-		margin-bottom: 5px;
-
-		a.external-link {
-			color: $link-color;
+	.feed-row {
+		margin-bottom: 10px;
+		padding: 10px;
+		padding-bottom: 0px;
+		border-radius: 2px;
+		width: 900px;
+	
+		.feed-page-title-row {
+			margin-bottom: 5px;
+	
+			a.external-link {
+				color: $link-color;
+			}
+		}
+	
+		.feed-page-title-row {
+			font-size: 18px;
+			padding-left: 5px;
 		}
 	}
+}
 
-	.feed-page-title-row {
-		font-size: 18px;
-		padding-left: 5px;
-	}
+.claim-row {
+	padding: 10px 10px 0 10px;
 }
 
 .aligned-input-container {
@@ -2004,7 +2013,7 @@ arb-path-nav, [arb-path-nav] {
 
 @mixin tag() {
 	padding: 5px;
-	margin-right: 5px;
+	margin-right: 10px;
 	font-size: 10px;
 	font-weight: bold;
 	border-radius: 10px;

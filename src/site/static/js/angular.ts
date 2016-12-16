@@ -364,9 +364,10 @@ app.run(function($http, $location, arb) {
 			$http({method: 'POST', url: '/json/feed/', data: JSON.stringify({})})
 			.success($scope.getSuccessFunc(function(data) {
 				$scope.feedRows = data.result.feedRows;
+				$scope.claimRows = data.result.claimRows;
 				return {
 					title: 'Feed',
-					content: $scope.newElement('<arb-feed-page feed-rows=\'feedRows\'></arb-feed-page>'),
+					content: $scope.newElement('<arb-feed-page feed-rows=\'feedRows\' claim-rows=\'claimRows\'></arb-feed-page>'),
 					analytics: {page: 'feed'},
 				};
 			}))
