@@ -103,7 +103,6 @@ app.run(function($http, $location, arb) {
 					$scope.feedRows = data.result.feedRows;
 					$scope.claimRows = data.result.claimRows;
 					return {
-						title: 'Feed',
 						content: $scope.newElement('<arb-feed-page feed-rows=\'feedRows\' claim-rows=\'claimRows\'></arb-feed-page>'),
 						analytics: {page: 'index'},
 					};
@@ -361,6 +360,12 @@ app.run(function($http, $location, arb) {
 				};
 			}))
 			.error($scope.getErrorFunc('explore'));
+		},
+	});
+	arb.urlService.addUrlHandler('/feed/', {
+		name: 'FeedPage',
+		handler: function(args, $scope) {
+			$location.path('/');
 		},
 	});
 	arb.urlService.addUrlHandler('/learn/:pageAlias?', {
