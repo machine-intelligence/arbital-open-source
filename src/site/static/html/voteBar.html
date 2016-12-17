@@ -19,13 +19,14 @@
 			<div class="vote-bar-margin full-width" layout="row">
 				<!-- Knob to show where user's vote is -->
 				<div class="my-vote-div"
-						ng-style="{left: valueToOffset(userVoteValue), visibility: userVoteValue ? 'visible' : 'hidden'}">
+						ng-style="{left: valueToOffset(getCurrentUserVote().value),
+								visibility: getCurrentUserVote().value >= 0 ? 'visible' : 'hidden'}">
 					<div class="my-vote-knob md-whiteframe-2dp"></div>
 				</div>
 				<!-- Know to show where the user will vote -->
 				<div class="new-vote-div"
 						ng-style="{left: valueToOffset(newVoteValue)}"
-						ng-if="isHovering && arb.userService.user.id !== ''">
+						ng-if="isHovering && arb.userService.user.id !== '' && selectedVoteBucketIndex !== -1">
 					<div class="new-vote-knob md-whiteframe-4dp"></div>
 					<div class="md-body-2 new-vote-knob-hor" ng-bind="typeHelper.toString(newVoteValue)"></div>
 				</div>
@@ -34,26 +35,38 @@
 			<!-- Buckets -->
 			<div class="vote-bucket-container full-width" layout="row" layout-align="start center">
 				<div class="vote-bucket-div md-whiteframe-1dp"
-						ng-repeat="bucket in ::voteBuckets"
-						ng-class="{selected: bucket === selectedVoteBucket}"
-						flex="{{::bucket.flex}}">
+						ng-repeat="index in typeHelper.buckets"
+						ng-class="{selected: index === selectedVoteBucketIndex}"
+						flex="{{::typeHelper.getFlex(index)}}">
 					<div class="vote-bucket"
-							ng-style="::{opacity: bucket.normValue}"
+							ng-style="{opacity: getNormValue(index)}"
 							layout-fill></div>
 				</div>
 			</div>
 
 			<!-- Bottom margin -->
 			<div class="full-width" layout="row" layout-align="start start">
-				<div class="vote-bar-label left-text" flex="{{::(isTinyScreen ? 20 : 10)}}" ng-bind="::typeHelper.label1"></div>
+				<div class="vote-bar-label left-text"
+						flex="{{::(arb.stateServie.isTinyScreen ? 20 : 10)}}"
+						ng-bind="::typeHelper.label1"></div>
 				<div flex="10"></div>
-				<div class="vote-bar-label center-text" flex="10" ng-bind="::typeHelper.label2" ng-if="::!isTinyScreen"></div>
+				<div class="vote-bar-label center-text"
+						flex="10"
+						ng-bind="::typeHelper.label2"
+						ng-if="::!arb.stateServie.isTinyScreen"></div>
 				<div flex="15"></div>
-				<div class="vote-bar-label center-text" flex="10" ng-bind="::typeHelper.label3"></div>
+				<div class="vote-bar-label center-text"
+						flex="10"
+						ng-bind="::typeHelper.label3"></div>
 				<div flex="15"></div>
-				<div class="vote-bar-label center-text" flex="10" ng-bind="::typeHelper.label4" ng-if="::!isTinyScreen"></div>
+				<div class="vote-bar-label center-text"
+						flex="10"
+						ng-bind="::typeHelper.label4"
+						ng-if="::!arb.stateServie.isTinyScreen"></div>
 				<div flex="10"></div>
-				<div class="vote-bar-label right-text" flex="{{::(isTinyScreen ? 20 : 10)}}" ng-bind="::typeHelper.label5"></div>
+				<div class="vote-bar-label right-text"
+						flex="{{::(arb.stateServie.isTinyScreen ? 20 : 10)}}"
+						ng-bind="::typeHelper.label5"></div>
 			</div>
 		</div>
 	</div>
@@ -61,8 +74,9 @@
 	<!-- Footer -->
 	<div layout="row">
 		<div flex>
-			<div ng-repeat="vote in selectedVoteBucket.votes">
-				<arb-user-name user-id="{{::vote.userId}}"></arb-user-name>:
+			<div ng-repeat="vote in getSelectedVotes()">
+				<arb-user-name user-id="{{::vote.userId}}"></arb-user-name>
+				<span class="comma">:</span>
 				<span ng-bind="::(typeHelper.toString(vote.value))"></span>
 				<span ng-bind="::(vote.createdAt | smartDateTime)"></span>
 			</div>
@@ -71,5 +85,12 @@
 				ng-if="userVoteValue">
 			Delete your {{typeHelper.toString(userVoteValue)}} vote
 		</md-button>-->
+		<md-button ng-class="{'md-raised md-primary': getCurrentUserVote().value == -1}"
+				ng-click="muVote()" 
+				ng-mouseleave="voteMouseMove($event, true, true)"
+				ng-mousemove="voteMouseMove($event, false, true)">
+			Mu (<span ng-bind="getMuVoteCount()"></span>)
+			<md-tooltip md-delay="300">This claim is flawed / confused</md-tooltip>
+		</md-button>
 	</div>
 </div>

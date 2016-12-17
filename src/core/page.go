@@ -1631,7 +1631,10 @@ func LoadVotes(db *database.DB, currentUserID string, pageMap map[string]*Page, 
 		maxVoteCount := 0 // the number of votes in a bucket with highest # of votes
 		for _, vote := range p.Votes {
 			bucketIndex := 2
-			if vote.Value <= 0 {
+			if vote.Value == -1 {
+				// Mu vote, ignore for now
+				continue
+			} else if vote.Value <= 0 {
 				bucketIndex = 0
 			} else if vote.Value >= 100 {
 				bucketIndex = 4
