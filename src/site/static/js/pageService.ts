@@ -149,6 +149,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 				sortChildrenBy: this.sortChildrenBy,
 				indirectTeacher: this.indirectTeacher,
 				isEditorComment: this.isEditorComment,
+				externalUrl: this.externalUrl,
 			};
 		},
 		// Returns true iff the page is owned by a single user

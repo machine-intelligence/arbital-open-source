@@ -482,6 +482,19 @@
 								</div>
 							</div>
 
+							<!-- External URL -->
+							<div layout="row" ng-if="::(!page.isComment() && !page.isUser())">
+								<div layout="column" flex>
+									<md-input-container>
+										<label>External URL</label>
+										<input ng-model="page.externalUrl" md-maxlength="2000">
+									</md-input-container>
+								</div>
+								<div class="md-caption" layout-margin flex>
+									<div>Link to the external resource</div>
+								</div>
+							</div>
+
 							<!-- See group id -->
 							<!--<div layout="row" ng-if="::!page.wasPublished">
 								<md-input-container flex>

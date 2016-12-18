@@ -29,6 +29,7 @@ type editPageInfoData struct {
 	SortChildrenBy   string
 	IndirectTeacher  bool
 	IsEditorComment  bool
+	ExternalUrl      string
 }
 
 var editPageInfoHandler = siteHandler{
@@ -170,7 +171,8 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			data.EditDomainID == oldPage.EditDomainID &&
 			data.SubmitToDomainID == oldPage.SubmitToDomainID &&
 			data.IndirectTeacher == oldPage.IndirectTeacher &&
-			data.IsEditorComment == oldPage.IsEditorComment {
+			data.IsEditorComment == oldPage.IsEditorComment &&
+			data.ExternalUrl == oldPage.ExternalUrl {
 			return pages.Success(nil)
 		}
 	}
@@ -200,6 +202,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["submitToDomainId"] = data.SubmitToDomainID
 		hashmap["indirectTeacher"] = data.IndirectTeacher
 		hashmap["isEditorComment"] = data.IsEditorComment
+		hashmap["externalUrl"] = data.ExternalUrl
 		statement := tx.DB.NewInsertStatement("pageInfos", hashmap, hashmap.GetKeys()...).WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't update pageInfos", err)
@@ -231,6 +234,13 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 			if data.Alias != oldPage.Alias {
 				changeLogID, err2 := updateChangeLog(core.NewAliasChangeLog, "", oldPage.Alias, data.Alias)
+				if err2 != nil {
+					return err2
+				}
+				changeLogIDs = append(changeLogIDs, changeLogID)
+			}
+			if data.ExternalUrl != oldPage.ExternalUrl {
+				changeLogID, err2 := updateChangeLog(core.NewAliasChangeLog, "", oldPage.ExternalUrl, data.ExternalUrl)
 				if err2 != nil {
 					return err2
 				}

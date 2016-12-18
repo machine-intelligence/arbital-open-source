@@ -52,6 +52,7 @@ const (
 	RevertEditChangeLog         = "revertEdit"
 	NewSnapshotChangeLog        = "newSnapshot"
 	NewAliasChangeLog           = "newAlias"
+	NewExternalUrlChangeLog     = "newExternalUrl"
 	NewSortChildrenByChangeLog  = "newSortChildrenBy"
 	TurnOnVoteChangeLog         = "turnOnVote"
 	TurnOffVoteChangeLog        = "turnOffVote"
