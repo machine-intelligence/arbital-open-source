@@ -32,7 +32,7 @@ func userSearchJSONHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("No search term specified", nil).Status(http.StatusBadRequest)
 	}
 
-	groupIDs := []string{"\"\""}
+	groupIDs := []string{"\"0\""}
 	escapedTerm := elastic.EscapeMatchTerm(data.Term)
 
 	// Construct the search JSON

@@ -169,7 +169,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// Set up domain options.
 			$scope.domainOptions = arb.userService.getDomainOptions($scope.page);
 			$scope.submitToDomainOptions = angular.extend({'0': '-'}, $scope.domainOptions);
-			console.log($scope.submitToDomainOptions);
 
 			$scope.lockExists = $scope.page.lockedBy != '' && moment.utc($scope.page.lockedUntil).isAfter(moment.utc());
 			$scope.lockedByAnother = $scope.lockExists && $scope.page.lockedBy !== arb.userService.user.id;
