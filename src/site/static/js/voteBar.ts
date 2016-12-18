@@ -29,16 +29,19 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 
 			// Set the value of current user's vote
 			scope.setCurrentUserVote = function(voteValue) {
-				var currentVote = scope.getCurrentUserVote();
-				if (currentVote) {
-					currentVote.value = voteValue;
-				} else {
-					scope.page.votes.push({
-						value: voteValue,
-						userId: arb.userService.user.id,
-						createdAt: moment.utc().format('YYYY-MM-DD HH:mm:ss'),
-					});
-				}
+				arb.signupService.wrapInSignupFlow('vote', function() {
+					var currentVote = scope.getCurrentUserVote();
+					if (currentVote) {
+						currentVote.value = voteValue;
+					} else {
+						scope.page.votes.push({
+							value: voteValue,
+							userId: arb.userService.user.id,
+							createdAt: moment.utc().format('YYYY-MM-DD HH:mm:ss'),
+						});
+					}
+					postNewVote();
+				});
 			};
 
 			// Value of the current user's vote
@@ -163,11 +166,12 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 				}
 				scope.isHovering = !leave;
 			};
-			scope.voteMouseClick = function(event, leave) {
-				if (arb.userService.user.id !== '') {
-					scope.setCurrentUserVote(scope.offsetToValue(event.pageX));
-					postNewVote();
-				}
+			scope.voteMouseClick = function(event) {
+				scope.setCurrentUserVote(scope.offsetToValue(event.pageX));
+			};
+			// Called when the user casts a "mu" vote
+			scope.muVote = function() {
+				scope.setCurrentUserVote(-1);
 			};
 
 			// Return number of "mu" votes
@@ -183,12 +187,6 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 			scope.deleteMyVote = function() {
 				// TODO
 				// scope.userVoteValue = undefined;
-				postNewVote();
-			};
-
-			// Called when the user casts a "mu" vote
-			scope.muVote = function() {
-				scope.setCurrentUserVote(-1);
 				postNewVote();
 			};
 		},
