@@ -154,9 +154,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if len(data.Title) <= 0 && oldPage.Type != core.CommentPageType {
 			return pages.Fail("Need title", nil).Status(http.StatusBadRequest)
 		}
-		if len(data.Text) <= 0 && oldPage.Type != core.QuestionPageType {
-			return pages.Fail("Need text", nil).Status(http.StatusBadRequest)
-		}
 	}
 	if !data.IsAutosave {
 		if data.AnchorContext == "" && data.AnchorText != "" {

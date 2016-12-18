@@ -134,8 +134,9 @@ type corePageData struct {
 	ViewCount         int    `json:"viewCount"`
 
 	// The following data is filled on demand.
-	Text     string `json:"text"`
-	MetaText string `json:"metaText"`
+	Text         string `json:"text"`
+	MetaText     string `json:"metaText"`
+	IsTextLoaded bool   `json:"isTextLoaded"`
 }
 
 // NewCorePageData returns a pointer to a new corePageData object created with the given page id
@@ -1153,6 +1154,9 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 		if p.Type == "" {
 			delete(pageMap, p.PageID)
 		}
+		if p.LoadOptions.Text {
+			p.IsTextLoaded = true
+		}
 	}
 	return err
 }
@@ -1512,6 +1516,8 @@ func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, domainMap map[
 	} else if !exists {
 		return nil, nil
 	}
+	p.TextLength = len(p.Text)
+	p.IsTextLoaded = true
 
 	userMap := make(map[string]*User)
 	pageMap := make(map[string]*Page)
@@ -1522,7 +1528,6 @@ func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, domainMap map[
 	}
 
 	p.ComputePermissions(db.C, u, domainMap)
-	p.TextLength = len(p.Text)
 	return p, nil
 }
 
