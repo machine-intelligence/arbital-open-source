@@ -148,14 +148,9 @@
 													class="external-link"
 													ng-if="page.externalUrl.length > 0">{{page.title}}</a>
 									<div class="md-caption">
-										<span class="nowrap" ng-if="page.isBlogPage()">
+										<span class="nowrap">
 											posed by
 											<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
-										</span>
-										<span class="nowrap" ng-if="!page.isBlogPage()">
-											posed by
-											<arb-page-title page-id="{{::arb.stateService.domainMap[page.editDomainId].pageId}}"
-													is-link="true"></arb-page-title>
 										</span>
 										<span class="nowrap" ng-bind="::claimRow.createdAt | smartDateTime"></span>
 									</div>

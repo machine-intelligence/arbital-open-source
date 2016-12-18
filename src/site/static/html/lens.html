@@ -66,6 +66,11 @@
 					<arb-user-name user-id="{{::arb.stateService.domainMap[page.editDomainId].pageId}}"></arb-user-name>
 					({{page.pageCreatedAt | smartDateTime}})
 				</div>
+				<div class="md-caption" ng-if="page.isClaimPage() && !page.isBlogPage()">
+					posed by
+					<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
+					({{page.pageCreatedAt | smartDateTime}})
+				</div>
 			</div>
 
 			<!-- Voting container -->
