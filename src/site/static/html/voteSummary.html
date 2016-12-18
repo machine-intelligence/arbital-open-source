@@ -1,0 +1,11 @@
+<span class="vote-summary">
+	<span ng-repeat="(index, voteValue) in page.voteSummary track by $index"
+			class="vote-column" 
+			ng-style="{'max-height': voteValue + 'em'}">
+		<span class="vote-column-content"
+				ng-class="{'double-sized': index == 4 && page.voteType == 'approval'}"></span>
+	</span>
+	<span class="mu-vote"
+		ng-style="{opacity: page.muVoteSummary}"
+		ng-if="page.muVoteSummary > 0.2">mu</span>
+</span>

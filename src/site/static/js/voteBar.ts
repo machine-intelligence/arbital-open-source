@@ -50,7 +50,7 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 					label3: '50%',
 					label4: '75%',
 					label5: '100%',
-					toString: function(value) { return value + '%'; },
+					toString: function(value) { return value == -1 ? '' : value + '%'; },
 					buckets: [0,1,2,3,4,5,6,7,8,9],
 					min: 0,
 					max: 100,

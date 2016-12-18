@@ -1083,3 +1083,17 @@ app.directive('arbCommentCount', function(arb) {
 		},
 	};
 });
+
+// Showing vote summary in line with text
+app.directive('arbVoteSummary', function(arb) {
+	return {
+		templateUrl: versionUrl('static/html/voteSummary.html'),
+		scope: {
+			pageId: '@',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+			$scope.page = arb.stateService.pageMap[$scope.pageId];
+		},
+	};
+});

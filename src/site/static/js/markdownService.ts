@@ -88,7 +88,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				}
 				var html = '<a href="' + url + '" class="' + classText + '" page-id="' + page.pageId + '">' + options.text;
 				if (options.claim && page.hasVote && page.voteSummary.length > 0) {
-					html += '<span class=\'inline-vote\'>' + page.getVoteBars() + '</span>';
+					html += '<span arb-vote-summary page-id="' + page.pageId + '"></span>';
 				}
 				return html + '</a>';
 			}

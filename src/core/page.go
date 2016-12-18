@@ -165,8 +165,9 @@ type Page struct {
 	// === Full data. ===
 	// For pages that are displayed fully, we load more additional data.
 	Votes []*Vote `json:"votes"`
-	// A list of 8 numbers, corresponding to the percent of votes in [0%-12.5%),[12.5%-25%),...-100%]
-	VoteSummary []int `json:"voteSummary"`
+	// Summary of all the votes on this page; the bucket with the max votes will have value of 1.0
+	VoteSummary   []float64 `json:"voteSummary"`
+	MuVoteSummary float64   `json:"muVoteSummary"`
 	// We don't allow users to change the vote type once a page has been published
 	// with a voteType!="" even once. If it has, this is the vote type it shall
 	// always have.
@@ -276,7 +277,7 @@ type Page struct {
 func NewPage(pageID string) *Page {
 	p := &Page{corePageData: *NewCorePageData(pageID)}
 	p.Votes = make([]*Vote, 0)
-	p.VoteSummary = make([]int, 0)
+	p.VoteSummary = make([]float64, 0)
 	p.Summaries = make(map[string]string)
 	p.CreatorIDs = make([]string, 0)
 	p.CommentIDs = make([]string, 0)
@@ -819,13 +820,6 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		return fmt.Errorf("LoadDraftExistence failed: %v", err)
 	}
 
-	// Load votes
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Votes || p.LoadOptions.VoteSummary })
-	err = LoadVotes(db, u.ID, filteredPageMap, userMap)
-	if err != nil {
-		return fmt.Errorf("LoadVotes failed: %v", err)
-	}
-
 	// Load last visit dates
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.LastVisit || p.LoadOptions.SubpageCounts })
 	err = LoadLastVisits(db, u, filteredPageMap)
@@ -919,6 +913,13 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	err = LoadPagesWithOptions(db, u, filteredPageMap, PageInfosTableWithOptions(u, &PageInfosOptions{Deleted: true}))
 	if err != nil {
 		return fmt.Errorf("LoadPages (deleted) failed: %v", err)
+	}
+
+	// Load votes
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Votes || p.LoadOptions.VoteSummary })
+	err = LoadVotes(db, u.ID, filteredPageMap, userMap)
+	if err != nil {
+		return fmt.Errorf("LoadVotes failed: %v", err)
 	}
 
 	// Load proposal edit number (if any)
@@ -1632,21 +1633,35 @@ func LoadVotes(db *database.DB, currentUserID string, pageMap map[string]*Page, 
 			continue
 		}
 
-		p.VoteSummary = make([]int, 5, 5)
-		maxVoteCount := 0 // the number of votes in a bucket with highest # of votes
+		if p.VoteType == ApprovalVoteType {
+			p.VoteSummary = make([]float64, 9, 9)
+		} else {
+			p.VoteSummary = make([]float64, 10, 10)
+		}
+		var maxVoteCount float64 // the number of votes in a bucket with highest # of votes
 		for _, vote := range p.Votes {
-			bucketIndex := 2
 			if vote.Value == -1 {
-				// Mu vote, ignore for now
+				// Mu vote
+				p.MuVoteSummary++
+				if p.MuVoteSummary > maxVoteCount {
+					maxVoteCount = p.MuVoteSummary
+				}
 				continue
-			} else if vote.Value <= 0 {
-				bucketIndex = 0
-			} else if vote.Value >= 100 {
+			}
+			bucketIndex := -1
+			if p.VoteType == ApprovalVoteType {
 				bucketIndex = 4
-			} else if vote.Value <= 40 {
-				bucketIndex = int(math.Floor((float64(vote.Value) - 1) / 20))
-			} else if vote.Value >= 60 {
-				bucketIndex = int(math.Floor(float64(vote.Value) / 20))
+				if vote.Value <= 0 {
+					bucketIndex = 0
+				} else if vote.Value >= 100 {
+					bucketIndex = 8
+				} else if vote.Value <= 40 {
+					bucketIndex = int(math.Floor((float64(vote.Value) - 1) / 10))
+				} else if vote.Value >= 60 {
+					bucketIndex = int(math.Floor(float64(vote.Value)/10) - 1)
+				}
+			} else {
+				bucketIndex = int(math.Floor(float64(vote.Value) / 10))
 			}
 			p.VoteSummary[bucketIndex]++
 			if p.VoteSummary[bucketIndex] > maxVoteCount {
@@ -1657,8 +1672,9 @@ func LoadVotes(db *database.DB, currentUserID string, pageMap map[string]*Page, 
 		// Renormalize votes; bucket with highest # of votes should end up with an 8
 		if maxVoteCount > 0 {
 			for n := 0; n < len(p.VoteSummary); n++ {
-				p.VoteSummary[n] = (p.VoteSummary[n] * 8) / maxVoteCount
+				p.VoteSummary[n] = p.VoteSummary[n] / maxVoteCount
 			}
+			p.MuVoteSummary = p.MuVoteSummary / maxVoteCount
 		}
 
 		if !p.LoadOptions.Votes {

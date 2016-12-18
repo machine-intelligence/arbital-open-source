@@ -2011,20 +2011,40 @@ arb-path-nav, [arb-path-nav] {
 	border-radius: 0.5em;
 }
 
-.inline-vote {
+.vote-summary {
 	position: relative;
 	top: -2px;
-	padding-top: 1px;
 	font-size: 12px;
 	margin: 0 2px;
 	border: 1px solid gray;
-	letter-spacing: 2px;
 	white-space: nowrap;
-	opacity: 0.7;
 
 	.vote-column {
-		width: 3px;
+		display: inline-block;
+		background-color: gray;
+		vertical-align: text-bottom;
+
+		.vote-column-content {
+			display: inline-block;
+			min-width: 5px;
+
+			&.double-sized {
+				min-width: 10px;
+			}
+		}
 	}
+
+	.mu-vote {
+		color: $accent-color;
+	}
+
+	& > * + * {
+		margin-left: 1px;
+	}
+}
+
+.intrasite-link .vote-summary .vote-column {
+	background-color: $primary-color;
 }
 
 @mixin tag() {
