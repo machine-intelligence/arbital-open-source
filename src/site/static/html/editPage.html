@@ -699,7 +699,7 @@
 					confirmed="discardPage()"
 					disabled="publishing || snapshotting"
 					tooltip-text="Discard the autosave"
-					checker-fn="shouldAskToDiscard()"
+					checker-fn="shouldSkipDiscard()"
 					ng-if="isPublishButtonVisible() && isPageDirty"></arb-confirm-button>
 			<div ng-if="isPublishButtonVisible() && !fullView && !inPreview">
 				<md-button class="md-primary md-hue-1 md-raised"

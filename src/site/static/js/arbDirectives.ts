@@ -703,10 +703,9 @@ app.directive('arbConfirmButton', function(arb) {
 			$scope.toggleConfirming = function(confirming) {
 				if (!$scope.confirming) {
 					// Check if we need to confirm
-					if ($scope.checkerFn) {
-						if (!$scope.checkerFn()) {
-							$scope.confirmed();
-						}
+					if ($scope.checkerFn()) {
+						$scope.confirmed();
+						return;
 					}
 				}
 				$scope.confirming = confirming;
