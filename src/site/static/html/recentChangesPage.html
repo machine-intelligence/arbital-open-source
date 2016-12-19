@@ -39,11 +39,11 @@
 					ng-click="selectTodoTab(0)">
 				Unassessed
 			</md-button>
-			<md-button class="tab-panel-tab"
+			<!--<md-button class="tab-panel-tab"
 					ng-class="{'active-tab': todoTab==1}"
 					ng-click="selectTodoTab(1)">
 				Proposed
-			</md-button>
+			</md-button>-->
 		</div>
 		<div arb-page-list source-url="/json/unassessedPages/" ng-if="todoTab==0"></div>
 		<div arb-pending-mode-panel hide-title="::true" ng-if="todoTab==1"></div>
