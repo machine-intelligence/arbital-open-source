@@ -139,7 +139,7 @@ func approvePageToDomainTx(tx *database.Tx, approver *core.CurrentUser, submissi
 	}
 
 	// Subscribe the approver as a maintainer
-	serr := addSubscription(tx, approver.ID, submission.PageID, true)
+	serr := core.AddSubscription(tx, approver.ID, submission.PageID, true)
 	if serr != nil {
 		return serr
 	}

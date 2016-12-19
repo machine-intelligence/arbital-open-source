@@ -429,9 +429,11 @@ type CreateNewPageOptions struct {
 
 	// Additional options
 	ParentIDs []string
-	// If creating a new comment, this is the id of the page to which the comment belongs
+	// If creating a new comment, this is the id of the page to which the comment belongs...
 	CommentPrimaryPageID string
-	Tx                   *database.Tx
+	// ... and this is potentially empty id of the parent
+	ReplyToCommentID string
+	Tx               *database.Tx
 }
 
 func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOptions) (string, error) {
@@ -499,7 +501,7 @@ func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOption
 		}
 
 		// Update pageInfos
-		hashmap := make(map[string]interface{})
+		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = options.PageID
 		hashmap["alias"] = options.Alias
 		hashmap["type"] = options.Type
@@ -524,7 +526,7 @@ func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOption
 		}
 
 		// Update pages
-		hashmap = make(map[string]interface{})
+		hashmap = make(database.InsertMap)
 		hashmap["pageId"] = options.PageID
 		hashmap["edit"] = 1
 		hashmap["title"] = options.Title
@@ -552,6 +554,16 @@ func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOption
 			if _, err := statement.Exec(); err != nil {
 				return sessions.NewError("Couldn't create a new page summary", err)
 			}
+		}
+
+		// Subscribe this user to the page that they just created.
+		toID := options.PageID
+		if options.Type == CommentPageType && IsIDValid(options.ReplyToCommentID) {
+			toID = options.ReplyToCommentID // subscribe to the parent comment
+		}
+		err2 := AddSubscription(tx, u.ID, toID, true)
+		if err2 != nil {
+			return err2
 		}
 
 		return nil
@@ -590,6 +602,21 @@ func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOption
 	}
 
 	return options.PageID, nil
+}
+
+// Create / update a subscription
+func AddSubscription(tx *database.Tx, userID string, toPageID string, asMaintainer bool) sessions.Error {
+	hashmap := make(database.InsertMap)
+	hashmap["userId"] = userID
+	hashmap["toId"] = toPageID
+	hashmap["createdAt"] = database.Now()
+	hashmap["asMaintainer"] = asMaintainer
+	statement := tx.DB.NewInsertStatement("subscriptions", hashmap, "asMaintainer").WithTx(tx)
+	_, err := statement.Exec()
+	if err != nil {
+		return sessions.NewError("Couldn't subscribe", err)
+	}
+	return nil
 }
 
 // Return true if the user (can create approved comments, can approve comments)

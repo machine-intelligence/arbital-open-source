@@ -213,12 +213,6 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			}
 		}
 
-		// Signup for the user's own page
-		err2 = addSubscription(tx, userID, userID, true)
-		if err2 != nil {
-			return err2
-		}
-
 		// Add an update for each invite that will be claimed
 		statement = database.NewQuery(`
 			INSERT INTO updates

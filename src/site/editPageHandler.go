@@ -396,18 +396,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			}
 		}
 
-		// Subscribe this user to the page that they just created.
-		if !oldPage.WasPublished && isNewCurrentEdit {
-			toID := data.PageID
-			if oldPage.Type == core.CommentPageType && core.IsIDValid(commentParentID) {
-				toID = commentParentID // subscribe to the parent comment
-			}
-			err2 := addSubscription(tx, u.ID, toID, true)
-			if err2 != nil {
-				return err2
-			}
-		}
-
 		// Update the links table.
 		if isNewCurrentEdit {
 			err = core.UpdatePageLinks(tx, data.PageID, data.Text, sessions.GetDomain())

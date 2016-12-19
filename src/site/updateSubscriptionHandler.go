@@ -53,24 +53,10 @@ func updateSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Otherwise, create/update it
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		return addSubscription(tx, u.ID, data.ToID, data.AsMaintainer)
+		return core.AddSubscription(tx, u.ID, data.ToID, data.AsMaintainer)
 	})
 	if err2 != nil {
 		return pages.FailWith(err2)
 	}
 	return pages.Success(nil)
-}
-
-func addSubscription(tx *database.Tx, userID string, toPageID string, asMaintainer bool) sessions.Error {
-	hashmap := make(map[string]interface{})
-	hashmap["userId"] = userID
-	hashmap["toId"] = toPageID
-	hashmap["createdAt"] = database.Now()
-	hashmap["asMaintainer"] = asMaintainer
-	statement := tx.DB.NewInsertStatement("subscriptions", hashmap, "asMaintainer").WithTx(tx)
-	_, err := statement.Exec()
-	if err != nil {
-		return sessions.NewError("Couldn't subscribe", err)
-	}
-	return nil
 }
