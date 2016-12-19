@@ -28,9 +28,9 @@
 
 	<!-- Page's text. Populated by markdown. -->
 	<div layout="row">
-		<!--<arb-change-speed-button page-id="{{::page.pageId}}"
+		<arb-change-speed-button page-id="{{::page.pageId}}"
 				go-slow="::true"
-				ng-if="::!isHub() && !page.isConcept() && !page.isUser()"></arb-change-speed-button>-->
+				ng-if="::!isHub() && !page.isConcept() && !page.isUser()"></arb-change-speed-button>
 		<div class="lens-text-container" ng-class="{shortened: page.text.length <= 0}">
 
 			<!-- Page title -->
@@ -150,9 +150,9 @@
 				</span>
 			</div>
 		</div>
-		<!--<arb-change-speed-button page-id="{{::page.pageId}}"
+		<arb-change-speed-button page-id="{{::page.pageId}}"
 				go-slow="::false"
-				ng-if="::!isHub() && !page.isConcept() && !page.isUser()"></arb-change-speed-button>-->
+				ng-if="::!isHub() && !page.isConcept() && !page.isUser()"></arb-change-speed-button>
 	</div>
 
 	<!-- Parents and tags -->

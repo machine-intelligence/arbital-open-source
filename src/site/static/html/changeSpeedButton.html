@@ -7,7 +7,8 @@
 				'stick-to-bottom': stickToBottom,
 				'expanded': isHovered,
 			}"
-		arb-click-elsewhere="isHovered = false">
+		arb-click-elsewhere="isHovered = false"
+		ng-if="::hasSomeSuggestions()">
 
 	<div class="md-body-2 change-speed-button change-speed-top-offset"
 			ng-mouseenter="hoverStart()"
