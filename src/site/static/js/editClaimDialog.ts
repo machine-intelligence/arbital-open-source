@@ -1,7 +1,7 @@
 import app from './angular.ts';
 
 // EditClaimDialogController is used for editing a claim in an mdDialog
-app.controller('EditClaimDialogController', function($scope, $mdDialog, $timeout, $http, arb, originalPageId, title, resumePageId) {
+app.controller('EditClaimDialogController', function($scope, $mdDialog, $timeout, $interval, $http, arb, originalPageId, title, resumePageId) {
 	$scope.arb = arb;
 
 	let focusInput = function() {
@@ -73,6 +73,37 @@ app.controller('EditClaimDialogController', function($scope, $mdDialog, $timeout
 				});
 		});
 	};
+
+	var searchingForSimilarPages = false;
+	var prevSimilarData = {};
+	$scope.similarPages = [];
+	var findSimilarFunc = function() {
+		if (searchingForSimilarPages) return;
+		if (!$scope.page) return;
+
+		var data = {
+			title: $scope.page.title,
+		};
+		if (JSON.stringify(data) == JSON.stringify(prevSimilarData)) {
+			return;
+		}
+
+		searchingForSimilarPages = true;
+		prevSimilarData = data;
+		arb.autocompleteService.findSimilarPages(data, function(data) {
+			searchingForSimilarPages = false;
+			$scope.similarPages.length = 0;
+			for (var n = 0; n < data.length; n++) {
+				var pageId = data[n].pageId;
+				if (pageId === $scope.page.pageId) continue;
+				$scope.similarPages.push({pageId: pageId, score: data[n].score});
+			}
+		});
+	};
+	var similarInterval = $interval(findSimilarFunc, 500);
+	$scope.$on('$destroy', function() {
+		$interval.cancel(similarInterval);
+	});
 
 	$timeout(function() {
 		// We need this class in the beginning to make sure dialog appears in the
