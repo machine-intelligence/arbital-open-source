@@ -107,7 +107,7 @@
 					</md-menu-item>
 
 					<!-- Resolve comment thread -->
-					<md-menu-item ng-if="(page.isEditorComment && !parentSubpageId && lens.permissions.edit.has)">
+					<md-menu-item ng-if="(!parentSubpageId && lens.permissions.edit.has)">
 						<md-button aria-label="Resolve comment thread"
 								ng-disabled="editing"
 								ng-click="resolveThread($event)">
