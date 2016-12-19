@@ -41,11 +41,9 @@ func unassessedPagesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		FROM (
 			SELECT pi.pageId AS pageId
 			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
-			JOIN pageDomainPairs AS pdp
-			ON (pi.pageId=pdp.pageId)
 			LEFT JOIN pagePairs AS pp
 			ON (pi.pageId=pp.childId)
-			WHERE pdp.domainId=?`, core.MathDomainID).Add(`
+			WHERE pi.editDomainId=?`, core.MathDomainID).Add(`
 				/* Check that this page doesn't have a quality tag */
 				AND pp.type=?`, core.TagPagePairType).Add(`
 			GROUP BY 1
