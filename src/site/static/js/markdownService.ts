@@ -17,9 +17,9 @@ export var aliasMatch = '(' + nakedAliasMatch + ')';
 // [alias/url text]
 export var forwardLinkRegexp = new RegExp(notEscaped +
 		'\\[([^ \\]]+?) (?![^\\]]*?\\\\\\])([^\\]]+?)\\]' + noParen, 'g');
-// [alias]
+// [alias] and [alias ]
 export var simpleLinkRegexp = new RegExp(notEscaped +
-		'\\[' + aliasMatch + '\\]' + noParen, 'g');
+		'\\[' + aliasMatch + '( ?)\\]' + noParen, 'g');
 // [text](alias)
 export var complexLinkRegexp = new RegExp(notEscaped +
 		'\\[([^\\]]+?)\\]' + // match [Text]
@@ -70,7 +70,6 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		// link will be red.
 		// options = {
 		//	text - optional text value for the url. If none is given, page's title will be used.
-		//	claim - if true, process this link as a claim
 		// }
 		//	If page is not found, page's alias will be used.
 		var getLinkHtml = function(editor, alias, options) {
@@ -87,7 +86,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 					classText += ' red-link';
 				}
 				var html = '<a href="' + url + '" class="' + classText + '" page-id="' + page.pageId + '">' + options.text;
-				if (options.claim && page.hasVote && page.voteSummary.length > 0) {
+				if (page.hasVote && page.voteSummary.length > 0) {
 					html += '<span arb-vote-summary page-id="' + page.pageId + '"></span>';
 				}
 				return html + '</a>';
@@ -508,6 +507,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		});
 
+		// TODO: this is obsolete, but we are still keeping it for now
 		// Process [claim([alias]): text] spans.
 		var anonClaimRegexp = new RegExp(notEscaped +
 				'\\[claim\\(\\[' + aliasMatch + '\\]\\)(?:: ?([^\\]]+?))?\\]' + noParen, 'g');
@@ -547,8 +547,8 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 
 		// Convert [alias] spans into links.
 		converter.hooks.chain('preSpanGamut', function(text) {
-			return text.replace(simpleLinkRegexp, function(whole, prefix, alias) {
-				return prefix + getLinkHtml(editor, alias, {});
+			return text.replace(simpleLinkRegexp, function(whole, prefix, alias, optionalSpace) {
+				return prefix + getLinkHtml(editor, alias, {text: optionalSpace});
 			});
 		});
 

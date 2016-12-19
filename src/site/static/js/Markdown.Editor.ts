@@ -1705,7 +1705,7 @@ commandProto.doNewPage = function(chunk, postProcessing, newPageType) {
 			if (alias) {
 				if (!chunk.selection) {
 					if (newPageType == 'claim') {
-						chunk.startTag = '[claim([' + alias + "]): ";
+						chunk.startTag = '[' + alias + ' ';
 						chunk.selection = 'optional text';
 					} else {
 						chunk.startTag = '[';
@@ -1713,9 +1713,9 @@ commandProto.doNewPage = function(chunk, postProcessing, newPageType) {
 					}
 				} else {
 					if (newPageType == 'claim') {
-						chunk.startTag = '[claim([' + alias + "]): ";
+						chunk.startTag = '[' + alias + ' ';
 					} else {
-						chunk.startTag = '[' + alias + " ";
+						chunk.startTag = '[' + alias + ' ';
 					}
 					// Same regex as in other link functions.
 					chunk.selection = (' ' + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, '$1\\').substr(1);
