@@ -47,6 +47,11 @@ func adminTaskHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			return pages.Fail("Couldn't enqueue a task", err)
 		}
+	} else if task == "tick" {
+		var task tasks.TickTask
+		if err := tasks.Enqueue(c, &task, nil); err != nil {
+			return pages.Fail("Couldn't enqueue a task", err)
+		}
 	} else {
 		return pages.Fail("Unknown ?task var", nil)
 	}
