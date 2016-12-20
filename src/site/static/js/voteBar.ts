@@ -40,7 +40,16 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 							createdAt: moment.utc().format('YYYY-MM-DD HH:mm:ss'),
 						});
 					}
-					postNewVote();
+
+					// Send a new probability vote value to the server.
+					var data = {
+						pageId: scope.page.pageId,
+						value: scope.getCurrentUserVote().value,
+					};
+					$http({method: 'POST', url: '/newVote/', data: JSON.stringify(data)})
+					.error(function(data, status) {
+						console.error('Error changing a vote:'); console.log(data); console.log(status);
+					});
 				});
 			};
 
@@ -53,7 +62,7 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 					label3: '50%',
 					label4: '75%',
 					label5: '100%',
-					toString: function(value) { return value == -1 ? '' : value + '%'; },
+					toString: function(value) { return value < 0 ? '' : value + '%'; },
 					buckets: [0,1,2,3,4,5,6,7,8,9],
 					min: 0,
 					max: 100,
@@ -108,6 +117,7 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 				var votes = [];
 				for (var i = 0; i < scope.page.votes.length; i++) {
 					var vote = scope.page.votes[i];
+					if (vote.value === -2) continue;
 					if (scope.typeHelper.getBucketIndex(vote.value) == scope.selectedVoteBucketIndex) {
 						votes.push(vote);
 					}
@@ -121,18 +131,6 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 					return a.value - b.value;
 				});
 				return votes;
-			};
-
-			// Send a new probability vote value to the server.
-			var postNewVote = function() {
-				var data = {
-					pageId: scope.page.pageId,
-					value: scope.getCurrentUserVote().value,
-				};
-				$http({method: 'POST', url: '/newVote/', data: JSON.stringify(data)})
-				.error(function(data, status) {
-					console.error('Error changing a vote:'); console.log(data); console.log(status);
-				});
 			};
 
 			var $voteBarBody = element.find('.vote-bar-body');
@@ -156,6 +154,9 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 					scope.selectedVoteBucketIndex = leave ? undefined : -1;
 					scope.isHovering = !leave;
 					return;
+				} else if ($(event.target).closest('.md-button').length > 0) {
+					scope.isHovering = false;
+					return;
 				}
 				scope.newVoteValue = scope.offsetToValue(event.pageX);
 				if (!leave && event.pageY <= $voteBarBody.offset().top + $voteBarBody.height()) {
@@ -167,6 +168,9 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 				scope.isHovering = !leave;
 			};
 			scope.voteMouseClick = function(event) {
+				if ($(event.target).closest('.md-button').length > 0) {
+					return;
+				}
 				scope.setCurrentUserVote(scope.offsetToValue(event.pageX));
 			};
 			// Called when the user casts a "mu" vote
@@ -185,9 +189,7 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 
 			// Process deleting user's vote
 			scope.deleteMyVote = function() {
-				// TODO
-				// scope.userVoteValue = undefined;
-				postNewVote();
+				scope.setCurrentUserVote(-2);
 			};
 		},
 	};

@@ -11,7 +11,9 @@ CREATE TABLE votes (
 	/* Id of the page this vote is for. FK into pages. */
 	pageId VARCHAR(32) NOT NULL,
 
-	/* Vote value. */
+	/* Vote value. Special values are:
+	 -1: mu
+	 -2: no vote */
 	value TINYINT NOT NULL,
 
 	/* Date this like was created. */

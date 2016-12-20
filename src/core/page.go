@@ -71,6 +71,10 @@ const (
 	// How long the page lock lasts
 	PageQuickLockDuration = 5 * 60  // in seconds
 	PageLockDuration      = 30 * 60 // in seconds
+
+	// Special values for votes
+	MuVoteValue = -1
+	NoVoteValue = -2
 )
 
 const (
@@ -1613,8 +1617,7 @@ func LoadVotes(db *database.DB, currentUserID string, pageMap map[string]*Page, 
 		err := rows.Scan(&v.UserID, &pageID, &v.Value, &v.CreatedAt)
 		if err != nil {
 			return fmt.Errorf("failed to scan for a vote: %v", err)
-		}
-		if v.Value == 0 {
+		} else if v.Value == NoVoteValue {
 			return nil
 		}
 		p := pageMap[pageID]
@@ -1641,7 +1644,7 @@ func LoadVotes(db *database.DB, currentUserID string, pageMap map[string]*Page, 
 		}
 		var maxVoteCount float64 // the number of votes in a bucket with highest # of votes
 		for _, vote := range p.Votes {
-			if vote.Value == -1 {
+			if vote.Value == MuVoteValue {
 				// Mu vote
 				p.MuVoteSummary++
 				if p.MuVoteSummary > maxVoteCount {

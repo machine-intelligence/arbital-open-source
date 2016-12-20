@@ -43,8 +43,8 @@ func newVoteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if !core.IsIDValid(task.PageID) {
 		return pages.Fail("Missing or invalid page id", nil).Status(http.StatusBadRequest)
 	}
-	if task.Value < -1 || task.Value > 100 {
-		return pages.Fail("Value has to be mu or [0, 100]", nil).Status(http.StatusBadRequest)
+	if task.Value != core.MuVoteValue && task.Value != core.NoVoteValue && !(task.Value >= 0 && task.Value <= 100) {
+		return pages.Fail("Value has to be none, mu or [0, 100]", nil).Status(http.StatusBadRequest)
 	}
 
 	// Get the last vote.

@@ -13,6 +13,10 @@
 			<div flex layout="row" layout-align="end end">
 				<ng-pluralize count="page.votes.length"
 						when="{'0': 'No votes', 'one': 'One vote', 'other': '{} votes'}"></ng-pluralize>
+				<md-button class="short-button" ng-click="deleteMyVote()" ng-if="getCurrentUserVote().value >= -1">
+					<md-icon>delete</md-icon>
+					<md-tooltip md-delay="300">Delete your vote</md-tooltip>
+				</md-button>
 			</div>
 
 			<!-- Top margin -->
@@ -55,9 +59,17 @@
 						ng-bind="::typeHelper.label2"
 						ng-if="::!arb.stateServie.isTinyScreen"></div>
 				<div flex="15"></div>
-				<div class="vote-bar-label center-text"
-						flex="10"
-						ng-bind="::typeHelper.label3"></div>
+				<div flex="10">
+					<div class="vote-bar-label center-text" ng-bind="::typeHelper.label3"></div>
+					<md-button ng-class="{'md-raised md-accent': getCurrentUserVote().value == -1}"
+							ng-click="muVote()" 
+							ng-mouseleave="voteMouseMove($event, true, true)"
+							ng-mousemove="voteMouseMove($event, false, true)">
+						<md-icon>block</md-icon>
+						<span ng-bind="getMuVoteCount()"></span>
+						<md-tooltip md-delay="300">This claim is flawed / confused</md-tooltip>
+					</md-button>
+				</div>
 				<div flex="15"></div>
 				<div class="vote-bar-label center-text"
 						flex="10"
@@ -81,16 +93,5 @@
 				<span ng-bind="::(vote.createdAt | smartDateTime)"></span>
 			</div>
 		</div>
-		<!--<md-button ng-click="deleteMyVote()"
-				ng-if="userVoteValue">
-			Delete your {{typeHelper.toString(userVoteValue)}} vote
-		</md-button>-->
-		<md-button ng-class="{'md-raised md-primary': getCurrentUserVote().value == -1}"
-				ng-click="muVote()" 
-				ng-mouseleave="voteMouseMove($event, true, true)"
-				ng-mousemove="voteMouseMove($event, false, true)">
-			Mu (<span ng-bind="getMuVoteCount()"></span>)
-			<md-tooltip md-delay="300">This claim is flawed / confused</md-tooltip>
-		</md-button>
 	</div>
 </div>
