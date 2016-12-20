@@ -1933,14 +1933,7 @@ arb-path-nav, [arb-path-nav] {
 }
 
 .feed-rows {
-
-	@media (min-width: 960px) {
-		margin-right: 30px;
-	}
-	@media (max-width: 959px) {
-		width: 100%;
-		margin-bottom: 50px;
-	}
+	width: 100%;
 
 	.feed-row {
 		margin-top: 10px;
@@ -1966,7 +1959,13 @@ arb-path-nav, [arb-path-nav] {
 }
 
 .claims-div {
-	width: 100%;
+	@media (min-width: 960px) {
+		margin-right: 30px;
+	}
+	@media (max-width: 959px) {
+		width: 100%;
+		margin-bottom: 50px;
+	}
 
 	.claim-rows {
 		margin-top: 10px;

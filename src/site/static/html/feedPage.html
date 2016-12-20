@@ -31,11 +31,81 @@
 		</div>
 	</div>
 
-	<!-- Feed rows -->
+	<!-- Feeds -->
 	<div layout="column" layout-gt-sm="row" layout-align="start start">
 		<div flex="5" flex-gt-md="10"></div>
 
-		<div class="feed-rows" flex-gt-sm="50">
+		<!-- Recent claims -->
+		<div class="claims-div" flex-gt-sm="50">
+			<!-- Create new ... buttons -->
+			<div layout="row"
+					layout-align="end center"
+					ng-if="arb.userService.user.domainMembershipMap[2069].canSubmitLinks">
+				<md-button ng-href="{{arb.urlService.getNewPageUrl({newClaimDomainId: '2069', submitToDomainId: '2069'})}}"
+						class="claim-button md-raised">
+					New claim
+				</md-button>
+			</div>
+
+			<div class="claim-rows md-whiteframe-1dp">
+				<!-- Claim rows -->
+				<div ng-repeat="claimRow in claimRows"
+						ng-init="page=arb.stateService.pageMap[claimRow.pageId]">
+					<md-divider></md-divider>
+					<div class="claim-row page-row">
+	
+						<!-- Page title and caption -->
+						<div layout="column" layout-align="center" flex>
+							<div layout="row" layout-align="start start" flex>
+								<div flex>
+									<!-- Title row row -->
+									<div class="feed-page-title-row">
+										<div layout="row" layout-align="start start" class="feed-page-title-row">
+											<span class="claim-tag" ng-if="page.isClaimPage()"></span>
+											<div>
+												<arb-page-title page-id="{{::page.pageId}}"
+													is-link="true"
+													show-clickbait="false"
+													ng-if="page.externalUrl.length <= 0"></arb-page-title>
+												<a ng-href="{{page.externalUrl}}"
+														class="external-link"
+														ng-if="page.externalUrl.length > 0">{{page.title}}</a>
+										<div class="md-caption">
+											<span class="nowrap">
+												posed by
+												<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
+											</span>
+											<span class="nowrap" ng-bind="::claimRow.createdAt | smartDateTime"></span>
+										</div>
+											</div>
+										</div>
+									</div>
+									<!-- Second row -->
+									<div layout="row" layout-align="start center" flex>
+										<div layout="row" layout-align="start center" flex>
+											<arb-likes object-id="{{::page.pageId}}" class="s16"></arb-likes>
+											<arb-comment-count page-id="{{::page.pageId}}" class="s16"></arb-comment-count>
+											<div ng-if="page.hasVote">
+												&nbsp;&nbsp;&nbsp;&nbsp;
+												<span arb-vote-summary page-id="{{::page.pageId}}"></span>
+												<span class="inline-vote" ng-bind="page.getVoteBars()" ng-if="page.votes.length > 0"></span>
+												<span class="md-caption" ng-if="page.votes.length == 0">No votes yet</span>
+												<ng-pluralize class="md-caption"
+														count="page.votes.length"
+														when="{'one': '(1 vote)', 'other': '({} votes)'}"
+														ng-if="page.votes.length > 0"></ng-pluralize>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="feed-rows" flex-gt-sm="30">
 			<!-- Create new ... buttons -->
 			<div layout="row"
 					layout-align="end center"
@@ -112,75 +182,6 @@
 			</div>
 		</div>
 
-		<!-- Recent claims -->
-		<div class="claims-div" flex-gt-sm="30">
-			<!-- Create new ... buttons -->
-			<div layout="row"
-					layout-align="end center"
-					ng-if="arb.userService.user.domainMembershipMap[2069].canSubmitLinks">
-				<md-button ng-href="{{arb.urlService.getNewPageUrl({newClaimDomainId: '2069', submitToDomainId: '2069'})}}"
-						class="claim-button md-raised">
-					New claim
-				</md-button>
-			</div>
-
-			<div class="claim-rows md-whiteframe-1dp">
-			<!-- Claim rows -->
-			<div ng-repeat="claimRow in claimRows"
-					ng-init="page=arb.stateService.pageMap[claimRow.pageId]">
-				<md-divider></md-divider>
-				<div class="claim-row page-row">
-
-					<!-- Page title and caption -->
-					<div layout="column" layout-align="center" flex>
-						<div layout="row" layout-align="start start" flex>
-							<div flex>
-								<!-- Title row row -->
-								<div class="feed-page-title-row">
-									<div layout="row" layout-align="start start" class="feed-page-title-row">
-										<span class="claim-tag" ng-if="page.isClaimPage()"></span>
-										<div>
-											<arb-page-title page-id="{{::page.pageId}}"
-												is-link="true"
-												show-clickbait="false"
-												ng-if="page.externalUrl.length <= 0"></arb-page-title>
-											<a ng-href="{{page.externalUrl}}"
-													class="external-link"
-													ng-if="page.externalUrl.length > 0">{{page.title}}</a>
-									<div class="md-caption">
-										<span class="nowrap">
-											posed by
-											<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
-										</span>
-										<span class="nowrap" ng-bind="::claimRow.createdAt | smartDateTime"></span>
-									</div>
-										</div>
-									</div>
-								</div>
-								<!-- Second row -->
-								<div layout="row" layout-align="start center" flex>
-									<div layout="row" layout-align="start center" flex>
-										<arb-likes object-id="{{::page.pageId}}" class="s16"></arb-likes>
-										<arb-comment-count page-id="{{::page.pageId}}" class="s16"></arb-comment-count>
-										<div ng-if="page.hasVote">
-											&nbsp;&nbsp;&nbsp;&nbsp;
-											<span arb-vote-summary page-id="{{::page.pageId}}"></span>
-											<span class="inline-vote" ng-bind="page.getVoteBars()" ng-if="page.votes.length > 0"></span>
-											<span class="md-caption" ng-if="page.votes.length == 0">No votes yet</span>
-											<ng-pluralize class="md-caption"
-													count="page.votes.length"
-													when="{'one': '(1 vote)', 'other': '({} votes)'}"
-													ng-if="page.votes.length > 0"></ng-pluralize>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			</div>
-		</div>
 		<div flex="5" flex-gt-md="10"></div>
 	</div>
 	<br>
