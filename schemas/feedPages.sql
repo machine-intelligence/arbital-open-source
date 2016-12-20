@@ -13,5 +13,8 @@ CREATE TABLE feedPages (
 	/* When this submission was made. */
 	createdAt DATETIME NOT NULL,
 
+	/* Score for this feed page, determining where it appears in the feed. */
+	score DOUBLE NOT NULL,
+
 	PRIMARY KEY(domainId, pageId)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

@@ -70,13 +70,16 @@
 												<a ng-href="{{page.externalUrl}}"
 														class="external-link"
 														ng-if="page.externalUrl.length > 0">{{page.title}}</a>
-										<div class="md-caption">
-											<span class="nowrap">
-												posed by
-												<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
-											</span>
-											<span class="nowrap" ng-bind="::claimRow.createdAt | smartDateTime"></span>
-										</div>
+												<div class="md-caption">
+													<span class="nowrap">
+														posed by
+														<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
+													</span>
+													<span class="nowrap" ng-bind="::claimRow.createdAt | smartDateTime"></span>
+													<span class="md-caption" ng-if="::arb.userService.user.isAdmin">
+														({{claimRow.score}})
+													</span>
+												</div>
 											</div>
 										</div>
 									</div>
@@ -170,6 +173,9 @@
 									<div class="md-caption">
 										<span class="nowrap">
 											submitted {{::feedRow.createdAt | smartDateTime}}
+											<span class="md-caption" ng-if="::arb.userService.user.isAdmin">
+												({{feedRow.score}})
+											</span>
 										</span>
 									</div>
 								</div>

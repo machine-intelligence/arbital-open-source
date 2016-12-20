@@ -4,7 +4,6 @@ package site
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"zanaduu3/src/core"
@@ -38,44 +37,30 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load feed rows
-	feedRows := make([]*core.FeedSubmission, 0)
-	rows := database.NewQuery(`
-		SELECT fp.domainId,fp.pageId,fp.submitterId,fp.createdAt
-		FROM feedPages AS fp
+	feedRows := make([]*core.FeedPage, 0)
+	queryPart := database.NewQuery(`
 		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		ON (fp.pageId = pi.pageId)
 		WHERE NOT pi.hasVote
-		ORDER BY createdAt DESC
-		LIMIT 25`).ToStatement(db).Query()
-	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var row core.FeedSubmission
-		err := rows.Scan(&row.DomainID, &row.PageID, &row.SubmitterID, &row.CreatedAt)
-		if err != nil {
-			return fmt.Errorf("failed to scan a FeedSubmission: %v", err)
-		}
-		core.AddPageToMap(row.PageID, returnData.PageMap, core.IntrasitePopoverLoadOptions)
-		feedRows = append(feedRows, &row)
+		ORDER BY fp.score DESC
+		LIMIT 25`)
+	err = core.LoadFeedPages(db, queryPart, func(db *database.DB, feedPage *core.FeedPage) error {
+		core.AddPageToMap(feedPage.PageID, returnData.PageMap, core.IntrasitePopoverLoadOptions)
+		feedRows = append(feedRows, feedPage)
 		return nil
 	})
 
 	// Load claim rows
-	claimRows := make([]*core.FeedSubmission, 0)
-	rows = database.NewQuery(`
-		SELECT fp.domainId,fp.pageId,fp.submitterId,fp.createdAt
-		FROM feedPages AS fp
+	claimRows := make([]*core.FeedPage, 0)
+	queryPart = database.NewQuery(`
 		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		ON (fp.pageId = pi.pageId)
 		WHERE pi.hasVote
-		ORDER BY createdAt DESC
-		LIMIT 25`).ToStatement(db).Query()
-	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var row core.FeedSubmission
-		err := rows.Scan(&row.DomainID, &row.PageID, &row.SubmitterID, &row.CreatedAt)
-		if err != nil {
-			return fmt.Errorf("failed to scan a FeedSubmission: %v", err)
-		}
-		core.AddPageToMap(row.PageID, returnData.PageMap, core.IntrasitePopoverLoadOptions)
-		claimRows = append(claimRows, &row)
+		ORDER BY fp.score DESC
+		LIMIT 25`)
+	err = core.LoadFeedPages(db, queryPart, func(db *database.DB, feedPage *core.FeedPage) error {
+		core.AddPageToMap(feedPage.PageID, returnData.PageMap, core.IntrasitePopoverLoadOptions)
+		claimRows = append(claimRows, feedPage)
 		return nil
 	})
 

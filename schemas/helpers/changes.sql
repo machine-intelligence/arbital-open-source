@@ -62,3 +62,5 @@ update domains set canUsersComment=false;
 
 update domainMembers as dm set role="arbitrator" where (select d.pageId from domains as d where d.id=dm.domainId)=dm.userId;
 alter table pageInfos add column submitToDomainId bigint not null;
+
+alter table feedPages add column score double not null;

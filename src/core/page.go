@@ -249,7 +249,7 @@ type Page struct {
 	ChangeLogs []*ChangeLog `json:"changeLogs"`
 
 	// List of feeds the page has been submitted to
-	FeedSubmissions []*FeedSubmission `json:"feedSubmissions"`
+	FeedSubmissions []*FeedPage `json:"feedSubmissions"`
 
 	// List of search strings associated with this page. Map: string id -> string text
 	SearchStrings map[string]string `json:"searchStrings"`
@@ -292,7 +292,7 @@ func NewPage(pageID string) *Page {
 	p.Requirements = make([]*PagePair, 0)
 	p.Subjects = make([]*PagePair, 0)
 	p.ChangeLogs = make([]*ChangeLog, 0)
-	p.FeedSubmissions = make([]*FeedSubmission, 0)
+	p.FeedSubmissions = make([]*FeedPage, 0)
 	p.ChildIDs = make([]string, 0)
 	p.ParentIDs = make([]string, 0)
 	p.MarkIDs = make([]string, 0)
@@ -393,14 +393,6 @@ func NewPathInstance() *PathInstance {
 type PathInstancePage struct {
 	PageID   string `json:"pageId"`
 	SourceID string `json:"sourceId"`
-}
-
-// A page that was submitted to a domain feed
-type FeedSubmission struct {
-	DomainID    string `json:"domainId"`
-	PageID      string `json:"pageId"`
-	SubmitterID string `json:"submitterId"`
-	CreatedAt   string `json:"createdAt"`
 }
 
 // User's probability vote
@@ -922,7 +914,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 	// Load votes
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Votes || p.LoadOptions.VoteSummary })
-	err = LoadVotes(db, u.ID, filteredPageMap, userMap)
+	err = LoadVotes(db, filteredPageMap, userMap)
 	if err != nil {
 		return fmt.Errorf("LoadVotes failed: %v", err)
 	}
@@ -1360,37 +1352,6 @@ func LoadContentRequestsForPages(db *database.DB, u *CurrentUser, resultData *Co
 	return LoadLikes(db, u, likeablesMap, nil, nil)
 }
 
-// LoadFeedSubmissionsForPages loads all the times the given pages have been submitted to a feed
-func LoadFeedSubmissionsForPages(db *database.DB, u *CurrentUser, resultData *CommonHandlerData, options *LoadDataOptions) error {
-	sourcePageMap := options.ForPages
-	pageIDs := PageIDsListFromMap(sourcePageMap)
-	if len(pageIDs) <= 0 {
-		return nil
-	}
-
-	rows := database.NewQuery(`
-		SELECT domainId, pageId, submitterId, createdAt
-		FROM feedPages
-		WHERE pageId IN`).AddArgsGroup(pageIDs).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var row FeedSubmission
-		err := rows.Scan(&row.DomainID, &row.PageID, &row.SubmitterID, &row.CreatedAt)
-		if err != nil {
-			return fmt.Errorf("failed to scan a FeedSubmission: %v", err)
-		}
-		AddUserIDToMap(row.SubmitterID, resultData.UserMap)
-		sourcePageMap[row.PageID].FeedSubmissions = append(sourcePageMap[row.PageID].FeedSubmissions, &row)
-		if _, ok := resultData.DomainMap[row.DomainID]; !ok {
-			resultData.DomainMap[row.DomainID] = NewDomainWithID(row.DomainID)
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // LoadProposalEditNum loads the proposal edit number
 func LoadProposalEditNum(db *database.DB, pageMap map[string]*Page) error {
 	if len(pageMap) <= 0 {
@@ -1596,7 +1557,7 @@ func LoadSearchString(db *database.DB, id string) (*SearchString, error) {
 }
 
 // LoadVotes loads probability votes corresponding to the given pages and updates the pages.
-func LoadVotes(db *database.DB, currentUserID string, pageMap map[string]*Page, userMap map[string]*User) error {
+func LoadVotes(db *database.DB, pageMap map[string]*Page, userMap map[string]*User) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
