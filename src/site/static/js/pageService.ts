@@ -163,6 +163,13 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		isClaimPage: function() {
 			return this.hasVote;
 		},
+		getMuVoteCount: function() {
+			var count = 0;
+			for (var i = 0; i < this.votes.length; i++) {
+				if (this.votes[i].value == -1) count++;
+			}
+			return count;
+		},
 		// Helper function for getBest...Id functions
 		_getBestPageId: function(pageIds, excludePageId) {
 			var pageId = undefined;

@@ -2032,17 +2032,28 @@ arb-path-nav, [arb-path-nav] {
 		}
 	}
 
-	.mu-vote md-icon {
+	& > * + * {
+		margin-left: 1px;
+	}
+}
+
+.mu-vote {
+	position: relative;
+	top: -3px;
+	color: $accent-color;
+	font-size: 12px;
+
+	span {
 		position: relative;
-		top: -1px;
+		top: 1px;
+		left: -2px;
+	}
+
+	md-icon {
+		color: $accent-color;
 		font-size: 14px;
 		width: 14px;
 		height: 14px;
-		color: $accent-color;
-	}
-
-	& > * + * {
-		margin-left: 1px;
 	}
 }
 

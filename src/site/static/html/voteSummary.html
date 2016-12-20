@@ -5,7 +5,9 @@
 		<span class="vote-column-content"
 				ng-class="{'double-sized': index == 4 && page.voteType == 'approval'}"></span>
 	</span>
-	<span class="mu-vote"
-		ng-style="{opacity: page.muVoteSummary}"
-		ng-if="page.muVoteSummary > 0.2"><md-icon>block</md-icon></span>
+</span>
+<span class="mu-vote"
+	ng-if="page.muVoteSummary > 0.2">
+		<md-icon>block</md-icon>
+		<span ng-bind="page.getMuVoteCount()"></span>
 </span>

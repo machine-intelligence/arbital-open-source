@@ -178,15 +178,6 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 				scope.setCurrentUserVote(-1);
 			};
 
-			// Return number of "mu" votes
-			scope.getMuVoteCount = function() {
-				var count = 0;
-				for (var i = 0; i < scope.page.votes.length; i++) {
-					if (scope.page.votes[i].value == -1) count++;
-				}
-				return count;
-			};
-
 			// Process deleting user's vote
 			scope.deleteMyVote = function() {
 				scope.setCurrentUserVote(-2);
