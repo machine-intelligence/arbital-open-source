@@ -39,12 +39,10 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Load feed rows
 	feedRows := make([]*core.FeedPage, 0)
 	queryPart := database.NewQuery(`
-		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
-		ON (fp.pageId = pi.pageId)
 		WHERE NOT pi.hasVote
 		ORDER BY fp.score DESC
 		LIMIT 25`)
-	err = core.LoadFeedPages(db, queryPart, func(db *database.DB, feedPage *core.FeedPage) error {
+	err = core.LoadFeedPages(db, u, queryPart, func(db *database.DB, feedPage *core.FeedPage) error {
 		core.AddPageToMap(feedPage.PageID, returnData.PageMap, core.IntrasitePopoverLoadOptions)
 		feedRows = append(feedRows, feedPage)
 		return nil
@@ -53,12 +51,10 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Load claim rows
 	claimRows := make([]*core.FeedPage, 0)
 	queryPart = database.NewQuery(`
-		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
-		ON (fp.pageId = pi.pageId)
 		WHERE pi.hasVote
 		ORDER BY fp.score DESC
 		LIMIT 25`)
-	err = core.LoadFeedPages(db, queryPart, func(db *database.DB, feedPage *core.FeedPage) error {
+	err = core.LoadFeedPages(db, u, queryPart, func(db *database.DB, feedPage *core.FeedPage) error {
 		core.AddPageToMap(feedPage.PageID, returnData.PageMap, core.IntrasitePopoverLoadOptions)
 		claimRows = append(claimRows, feedPage)
 		return nil

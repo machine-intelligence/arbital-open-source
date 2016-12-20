@@ -38,8 +38,11 @@ func (task TickTask) Execute(db *database.DB) (delay int, err error) {
 		return
 	}
 
+	c.Infof("==== TICK START ====")
+	defer c.Infof("==== TICK COMPLETED ====")
+
 	// Update pages' view counts
-	/*query := database.NewQuery(`
+	query := database.NewQuery(`
 		UPDATE pageInfos AS pi
 		SET pi.viewCount=(
 			SELECT COUNT(DISTINCT userId)
@@ -48,14 +51,14 @@ func (task TickTask) Execute(db *database.DB) (delay int, err error) {
 		)`).ToStatement(db)
 	if _, err := query.Exec(); err != nil {
 		c.Errorf("Failed to update view count: %v", err)
-	}*/
+	}
 
 	feedPages := make([]*core.FeedPage, 0)
 	returnData := core.NewHandlerData(core.NewCurrentUser())
 
 	// Load all feeed pages
 	queryPart := database.NewQuery(``)
-	err = core.LoadFeedPages(db, queryPart, func(db *database.DB, feedPage *core.FeedPage) error {
+	err = core.LoadFeedPages(db, returnData.User, queryPart, func(db *database.DB, feedPage *core.FeedPage) error {
 		core.AddPageToMap(feedPage.PageID, returnData.PageMap, (&core.PageLoadOptions{
 			Votes:    true,
 			Comments: true,
@@ -89,7 +92,5 @@ func (task TickTask) Execute(db *database.DB) (delay int, err error) {
 		return
 	}
 
-	c.Infof("==== TICK START ====")
-	defer c.Infof("==== TICK COMPLETED ====")
 	return
 }
