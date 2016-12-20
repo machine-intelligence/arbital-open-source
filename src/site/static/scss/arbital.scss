@@ -2032,7 +2032,12 @@ arb-path-nav, [arb-path-nav] {
 		}
 	}
 
-	.mu-vote {
+	.mu-vote md-icon {
+		position: relative;
+		top: -1px;
+		font-size: 14px;
+		width: 14px;
+		height: 14px;
 		color: $accent-color;
 	}
 
