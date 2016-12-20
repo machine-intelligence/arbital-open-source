@@ -431,9 +431,7 @@ type CreateNewPageOptions struct {
 	ParentIDs []string
 	// If creating a new comment, this is the id of the page to which the comment belongs...
 	CommentPrimaryPageID string
-	// ... and this is potentially empty id of the parent
-	ReplyToCommentID string
-	Tx               *database.Tx
+	Tx                   *database.Tx
 }
 
 func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOptions) (string, error) {
@@ -557,11 +555,7 @@ func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOption
 		}
 
 		// Subscribe this user to the page that they just created.
-		toID := options.PageID
-		if options.Type == CommentPageType && IsIDValid(options.ReplyToCommentID) {
-			toID = options.ReplyToCommentID // subscribe to the parent comment
-		}
-		err2 := AddSubscription(tx, u.ID, toID, true)
+		err2 := AddSubscription(tx, u.ID, options.PageID, true)
 		if err2 != nil {
 			return err2
 		}

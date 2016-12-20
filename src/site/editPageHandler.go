@@ -396,6 +396,15 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			}
 		}
 
+		// Subscribe this user to the parent comment
+		if !oldPage.WasPublished && isNewCurrentEdit &&
+			oldPage.Type == core.CommentPageType && core.IsIDValid(commentParentID) {
+			err2 := core.AddSubscription(tx, u.ID, commentParentID, false)
+			if err2 != nil {
+				return err2
+			}
+		}
+
 		// Update the links table.
 		if isNewCurrentEdit {
 			err = core.UpdatePageLinks(tx, data.PageID, data.Text, sessions.GetDomain())
