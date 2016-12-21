@@ -14,7 +14,7 @@ import (
 
 const (
 	FeedPageID                   = "6rl"
-	MinFeaturedCommentTextLength = 40
+	MinFeaturedCommentTextLength = 20
 )
 
 type feedData struct {
@@ -90,7 +90,7 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				AND pi.type=?`, core.CommentPageType).Add(`
 				AND NOT pi.isResolved AND NOT pi.isEditorComment AND pi.isApprovedComment
 				/* No replies */
-				AND pp.childId IN (SELECT childId FROM pagePairs GROUP BY 1 HAVING SUM(1) <= 1)
+				/*AND pp.childId IN (SELECT childId FROM pagePairs GROUP BY 1 HAVING SUM(1) <= 1)*/
 			ORDER BY pi.createdAt DESC
 		) AS t
 		GROUP BY 1,2`).ToStatement(db).Query()

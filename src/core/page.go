@@ -1003,7 +1003,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	visitorID := u.GetSomeID()
 	if visitorID != "" {
 		for pageID, p := range pageMap {
-			if p.Text != "" {
+			if p.LoadOptions.Text {
 				visitedValues = append(visitedValues, visitorID, u.SessionID, u.AnalyticsID, db.C.R.RemoteAddr, pageID, database.Now())
 			}
 		}
