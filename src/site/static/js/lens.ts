@@ -211,6 +211,16 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				$scope.unlockedIds = data && data.result && data.result.unlockedIds;
 			};
 
+			// Process delete page.
+			$scope.deletePage = function() {
+				arb.pageService.deletePage($scope.page.pageId, function() {
+					arb.urlService.goToUrl('/');
+					arb.popupService.showToast({text: 'Page deleted!'});
+				}, function(data) {
+					arb.popupService.showToast({text: 'Can\t delete page: ' + data, isError: true});
+				});
+			};
+
 			$scope.showTagsPanel = function() {
 				$scope.$emit('showTagsPanel');
 			};
