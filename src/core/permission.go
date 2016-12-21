@@ -194,10 +194,12 @@ func (p *Page) ComputePermissions(c sessions.Context, u *CurrentUser, domainMap 
 	if p.IsDeleted {
 		// TODO: compute permissions for deleted pages correctly; right now there is the problem that
 		// EditDomainID is not loaded for them
+		// GAH! We don't have IsDeleted loaded for deleted pages!! :(
 		return
 	}
 	if !IsIntIDValid(p.EditDomainID) {
 		c.Errorf("Page's [%v] edit domain id isn't loaded", p.PageID)
+		return
 	}
 	// Order is important
 	p.computeEditPermissions(c, u, domainMap)
