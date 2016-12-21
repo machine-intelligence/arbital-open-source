@@ -98,13 +98,13 @@
 					</md-menu-item>
 
 					<!-- Mark comment as for editors only -->
-					<md-menu-item ng-if="(page.permissions.edit.has || lens.permissions.edit.has) && !page.isEditorComment">
+					<!--<md-menu-item ng-if="(page.permissions.edit.has || lens.permissions.edit.has) && !page.isEditorComment">
 						<md-button ng-click="showToEditorsOnly()"
 								ng-disabled="editing"
 								aria-label="Show to editors only">
 							Show to editors only
 						</md-button>
-					</md-menu-item>
+					</md-menu-item>-->
 
 					<!-- Resolve comment thread -->
 					<md-menu-item ng-if="(!parentSubpageId && lens.permissions.edit.has)">

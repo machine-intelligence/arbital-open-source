@@ -1981,6 +1981,10 @@ arb-path-nav, [arb-path-nav] {
 		.claim-row {
 			padding: 10px 10px 0 10px;
 		}
+
+		.page-row + .page-row {
+			margin-top: 40px;
+		}
 	}
 }
 
@@ -2099,9 +2103,4 @@ arb-path-nav, [arb-path-nav] {
 	&::before {
 		content: "POST";
 	}
-}
-
-.claim-subpage {
-	border-left: $claim-color 4px solid;
-	margin-bottom: 15px;
 }

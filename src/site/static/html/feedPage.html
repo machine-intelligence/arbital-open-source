@@ -47,14 +47,14 @@
 				</md-button>
 			</div>
 
-			<div class="claim-rows md-whiteframe-1dp">
+			<div class="claim-rows">
 				<!-- Claim rows -->
 				<div ng-repeat="claimRow in claimRows"
-						ng-init="page=arb.stateService.pageMap[claimRow.pageId]">
-					<md-divider ng-if="::!$first"></md-divider>
+						ng-init="page=arb.stateService.pageMap[claimRow.pageId]"
+						class="page-row md-whiteframe-1dp">
 	
 					<!-- Page title and caption -->
-					<div class="claim-row page-row" flex>
+					<div class="claim-row" flex>
 						<!-- Top half of the row -->
 						<div layout="row" layout-align="start start" class="feed-page-title-row">
 							<span class="claim-tag" ng-if="page.isClaimPage()"></span>
@@ -93,15 +93,16 @@
 										ng-if="page.votes.length > 0"></ng-pluralize>
 							</div>
 						</div>
+					</div>
+
+					<div class="expand-tray" ng-if="::claimRow.featuredCommentId">
 						<!-- Featured comment -->
 						<div arb-subpage
 								lens-id="{{::page.pageId}}"
 								page-id="{{::claimRow.featuredCommentId}}"
 								is-top-level-comment="false"
-								class="reveal-after-render claim-subpage"
-								ng-if="::claimRow.featuredCommentId"></div>
+								class="reveal-after-render"></div>
 					</div>
-
 				</div>
 			</div>
 		</div>

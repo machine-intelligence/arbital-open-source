@@ -14,7 +14,7 @@ import (
 
 const (
 	FeedPageID                   = "6rl"
-	MinFeaturedCommentTextLength = 140
+	MinFeaturedCommentTextLength = 40
 )
 
 type feedData struct {
