@@ -1023,7 +1023,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	if IsIDValid(u.ID) {
 		hashmaps := make(database.InsertMaps, 0)
 		for pageID, p := range pageMap {
-			if p.Text != "" {
+			if p.LoadOptions.Text {
 				hashmap := make(database.InsertMap)
 				hashmap["userId"] = u.ID
 				hashmap["pageId"] = pageID
