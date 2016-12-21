@@ -190,10 +190,15 @@ func (p *Page) computeCommentPermissions(c sessions.Context, u *CurrentUser, dom
 
 // ComputePermissions computes all the permissions for the given page.
 func (p *Page) ComputePermissions(c sessions.Context, u *CurrentUser, domainMap map[string]*Domain) {
+	p.Permissions = &Permissions{}
+	if p.IsDeleted {
+		// TODO: compute permissions for deleted pages correctly; right now there is the problem that
+		// EditDomainID is not loaded for them
+		return
+	}
 	if !IsIntIDValid(p.EditDomainID) {
 		c.Errorf("Page's [%v] edit domain id isn't loaded", p.PageID)
 	}
-	p.Permissions = &Permissions{}
 	// Order is important
 	p.computeEditPermissions(c, u, domainMap)
 	p.computeDeletePermissions(c, u, domainMap)

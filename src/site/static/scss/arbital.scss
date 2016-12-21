@@ -1266,10 +1266,18 @@ md-bottom-sheet {
 	border: $accent-color 1px solid;
 }
 
-.subpage-content .comment {
-	border-bottom: 1px solid #eee;
-	padding-bottom: 6px;
-    padding-top: 2px;
+
+arb-page-discussion, [arb-page-discussion] {
+	.comment {
+		border-bottom: 1px solid #eee;
+	}
+}
+
+.subpage-content {
+	.comment {
+		padding-bottom: 6px;
+		padding-top: 2px;
+	}
 }
 
 .subpage-content.top-level-comment {
@@ -2091,4 +2099,9 @@ arb-path-nav, [arb-path-nav] {
 	&::before {
 		content: "POST";
 	}
+}
+
+.claim-subpage {
+	border-left: $claim-color 4px solid;
+	margin-bottom: 15px;
 }

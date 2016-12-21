@@ -23,6 +23,9 @@ type FeedPage struct {
 	SubmitterID string  `json:"submitterId"`
 	CreatedAt   string  `json:"createdAt"`
 	Score       float64 `json:"score"`
+
+	// Additionally loaded data
+	FeaturedCommentID string `json:"featuredCommentId"`
 }
 
 // Compute the factor to multiple with a score, such that the score decays based on
