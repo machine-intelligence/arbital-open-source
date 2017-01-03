@@ -2052,7 +2052,6 @@ arb-path-nav, [arb-path-nav] {
 .mu-vote {
 	position: relative;
 	top: -3px;
-	color: $accent-color;
 	font-size: 12px;
 
 	span {
@@ -2062,7 +2061,8 @@ arb-path-nav, [arb-path-nav] {
 	}
 
 	md-icon {
-		color: $accent-color;
+		color: inherit;
+		opacity: 0.7;
 		font-size: 14px;
 		width: 14px;
 		height: 14px;
