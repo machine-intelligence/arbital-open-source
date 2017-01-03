@@ -359,7 +359,9 @@ func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 	// For now, we want to only suggest pages in the math domain, or other domains you're explicitly
 	// subscribed to.
 	// TODO: create a table for domain subscriptions
-	domainId = core.MathDomainID
+	if domainId <= 0 {
+		domainId = core.MathDomainID
+	}
 	subscribedDomains := database.NewQuery(`?`, domainId)
 	/*if domainId <= 0 {
 		subscribedDomains = database.NewQuery(`
