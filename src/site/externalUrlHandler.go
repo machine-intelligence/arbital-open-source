@@ -9,12 +9,12 @@ import (
 	"net/url"
 	"strings"
 
-	"golang.org/x/net/html"
-
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
 
 	"zanaduu3/vendor/github.com/dyatlov/go-opengraph/opengraph"
+	"zanaduu3/vendor/golang.org/x/net/html"
+	"zanaduu3/vendor/google.golang.org/appengine"
 	"zanaduu3/vendor/google.golang.org/appengine/urlfetch"
 )
 
@@ -67,7 +67,13 @@ func externalUrlHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return pages.Fail("Pipeline error", err)
 		}
 	} else {
-		resp, err := urlfetch.Client(db.C).Get(externalUrlString)
+		client := &http.Client{
+			Transport: &urlfetch.Transport{
+				Context: db.C,
+				AllowInvalidServerCertificate: appengine.IsDevAppServer(),
+			},
+		}
+		resp, err := client.Get(externalUrlString)
 		if err != nil {
 			// If can't find the page, just return.
 			return pages.Success(returnData)
@@ -103,10 +109,9 @@ func getTitle(url string, htmlString string) (string, error) {
 			return "", err
 		}
 	}
-
 	title = strings.TrimSpace(title)
 
-	// special cases to strip endings from the titles of links to LessWrong and the EA Forum
+	// special cases to strip endings from the titles of links to various sites
 	lowercaseUrl := strings.ToLower(url)
 	if strings.HasPrefix(lowercaseUrl, "https://lesswrong.com") ||
 		strings.HasPrefix(lowercaseUrl, "http://lesswrong.com") {
@@ -115,6 +120,10 @@ func getTitle(url string, htmlString string) (string, error) {
 	if strings.HasPrefix(lowercaseUrl, "https://effective-altruism.com/ea") ||
 		strings.HasPrefix(lowercaseUrl, "http://effective-altruism.com/ea") {
 		title = strings.TrimSuffix(title, " - Effective Altruism Forum")
+	}
+	if strings.HasPrefix(lowercaseUrl, "https://medium.com/ai-control") ||
+		strings.HasPrefix(lowercaseUrl, "http://medium.com/ai-control") {
+		title = strings.TrimSuffix(title, " – AI Control")
 	}
 
 	return title, nil
