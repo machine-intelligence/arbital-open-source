@@ -9,8 +9,7 @@ import (
 	"zanaduu3/src/core"
 	"zanaduu3/src/logger"
 	"zanaduu3/src/sessions"
-
-	"github.com/gorilla/mux"
+	"zanaduu3/vendor/github.com/gorilla/mux"
 )
 
 var (

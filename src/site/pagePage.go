@@ -6,8 +6,7 @@ import (
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
-
-	"github.com/gorilla/mux"
+	"zanaduu3/vendor/github.com/gorilla/mux"
 )
 
 // pagePage serves the page page.

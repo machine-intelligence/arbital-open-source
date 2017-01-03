@@ -15,8 +15,8 @@ import (
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
 
-	"github.com/gorilla/mux"
-	"github.com/imdario/mergo"
+	"zanaduu3/vendor/github.com/gorilla/mux"
+	"zanaduu3/vendor/github.com/imdario/mergo"
 )
 
 type dynamicPageTmplData struct {
