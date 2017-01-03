@@ -1,4 +1,4 @@
-// init.go runs the daemon to process the daemonQueue.
+// Package queueDaemon runs the daemon to process the tasks in the Google Cloud queue.
 package queueDaemon
 
 import (
@@ -7,11 +7,11 @@ import (
 	"reflect"
 	"time"
 
-	"google.golang.org/appengine/taskqueue"
-
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
+
+	"zanaduu3/vendor/google.golang.org/appengine/taskqueue"
 )
 
 const (

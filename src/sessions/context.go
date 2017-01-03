@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/net/context"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/log"
-	"google.golang.org/appengine/taskqueue"
+	"zanaduu3/vendor/golang.org/x/net/context"
+	"zanaduu3/vendor/google.golang.org/appengine"
+	"zanaduu3/vendor/google.golang.org/appengine/log"
+	"zanaduu3/vendor/google.golang.org/appengine/taskqueue"
 )
 
 // requestID is the unique ID for a given request.

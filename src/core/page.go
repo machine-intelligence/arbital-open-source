@@ -1608,9 +1608,6 @@ func LoadVotes(db *database.DB, pageMap map[string]*Page, userMap map[string]*Us
 			if vote.Value == MuVoteValue {
 				// Mu vote
 				p.MuVoteSummary++
-				if p.MuVoteSummary > maxVoteCount {
-					maxVoteCount = p.MuVoteSummary
-				}
 				continue
 			}
 			bucketIndex := -1
@@ -1639,7 +1636,6 @@ func LoadVotes(db *database.DB, pageMap map[string]*Page, userMap map[string]*Us
 			for n := 0; n < len(p.VoteSummary); n++ {
 				p.VoteSummary[n] = p.VoteSummary[n] / maxVoteCount
 			}
-			p.MuVoteSummary = p.MuVoteSummary / maxVoteCount
 		}
 
 		if !p.LoadOptions.Votes {

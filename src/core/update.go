@@ -8,12 +8,11 @@ import (
 	"io/ioutil"
 	"time"
 
-	"google.golang.org/appengine/urlfetch"
-
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
 
-	"github.com/dustin/go-humanize"
+	"zanaduu3/vendor/github.com/dustin/go-humanize"
+	"zanaduu3/vendor/google.golang.org/appengine/urlfetch"
 )
 
 const (

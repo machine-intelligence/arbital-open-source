@@ -4,11 +4,11 @@ package tasks
 import (
 	"fmt"
 
-	"google.golang.org/appengine/mail"
-
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
+
+	"zanaduu3/vendor/google.golang.org/appengine/mail"
 )
 
 // SendFeedbackEmailTask is the object that's put into the daemon queue.

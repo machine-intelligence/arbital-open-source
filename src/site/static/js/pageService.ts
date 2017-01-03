@@ -164,6 +164,9 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 			return this.hasVote;
 		},
 		getMuVoteCount: function() {
+			if (this.votes.length <= 0) {
+				return this.muVoteSummary;
+			}
 			var count = 0;
 			for (var i = 0; i < this.votes.length; i++) {
 				if (this.votes[i].value == -1) count++;

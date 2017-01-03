@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"time"
 
-	"google.golang.org/appengine/taskqueue"
-
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
+
+	"zanaduu3/vendor/google.golang.org/appengine/taskqueue"
 )
 
 // QueueTask is the object that's put into the daemon queue.

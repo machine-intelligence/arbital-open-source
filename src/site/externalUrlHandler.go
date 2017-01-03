@@ -10,11 +10,12 @@ import (
 	"strings"
 
 	"golang.org/x/net/html"
-	"google.golang.org/appengine/urlfetch"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
+
 	"zanaduu3/vendor/github.com/dyatlov/go-opengraph/opengraph"
+	"zanaduu3/vendor/google.golang.org/appengine/urlfetch"
 )
 
 var externalUrlHandler = siteHandler{

@@ -8,8 +8,6 @@ import (
 	"net/url"
 	"strings"
 
-	"google.golang.org/appengine"
-
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
@@ -17,6 +15,7 @@ import (
 
 	"zanaduu3/vendor/github.com/gorilla/mux"
 	"zanaduu3/vendor/github.com/imdario/mergo"
+	"zanaduu3/vendor/google.golang.org/appengine"
 )
 
 type dynamicPageTmplData struct {

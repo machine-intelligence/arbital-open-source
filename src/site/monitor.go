@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"google.golang.org/appengine/urlfetch"
-
 	"zanaduu3/src/config"
 	"zanaduu3/src/sessions"
+
+	"zanaduu3/vendor/google.golang.org/appengine/urlfetch"
 )
 
 var monitoringAPI = getMonitoringAPI()
