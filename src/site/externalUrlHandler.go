@@ -10,10 +10,12 @@ import (
 	"strings"
 
 	"golang.org/x/net/html"
+	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
+
 	"zanaduu3/vendor/github.com/dyatlov/go-opengraph/opengraph"
 )
 
@@ -66,7 +68,13 @@ func externalUrlHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return pages.Fail("Pipeline error", err)
 		}
 	} else {
-		resp, err := urlfetch.Client(db.C).Get(externalUrlString)
+		client := &http.Client{
+			Transport: &urlfetch.Transport{
+				Context: db.C,
+				AllowInvalidServerCertificate: appengine.IsDevAppServer(),
+			},
+		}
+		resp, err := client.Get(externalUrlString)
 		if err != nil {
 			// If can't find the page, just return.
 			return pages.Success(returnData)
