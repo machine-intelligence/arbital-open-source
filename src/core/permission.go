@@ -170,7 +170,7 @@ func (p *Page) computeCommentPermissions(c sessions.Context, u *CurrentUser, dom
 			p.Permissions.ProposeComment.Has = true
 			return
 		}
-		p.Permissions.ProposeComment.Reason = "Sorry, this domain only allows members to comment"
+		p.Permissions.ProposeComment.Reason = "Sorry, only members can comment in this domain"
 	}()
 
 	// Allowed through the domain directly?

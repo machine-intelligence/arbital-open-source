@@ -157,7 +157,7 @@ If you are the owner, click [here to edit](%s).`, fullName, url)
 	hashmap["alias"] = alias
 	hashmap["createdBy"] = u.ID
 	hashmap["createdAt"] = database.Now()
-	hashmap["canUsersComment"] = true
+	hashmap["canUsersProposeComment"] = true
 	hashmap["canUsersProposeEdits"] = true
 	statement := tx.DB.NewInsertStatement("domains", hashmap).WithTx(tx)
 	if result, err := statement.Exec(); err != nil {
