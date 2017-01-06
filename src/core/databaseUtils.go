@@ -9,12 +9,22 @@ import (
 	"zanaduu3/src/sessions"
 )
 
+var (
+	allPageInfosOptions = &PageInfosOptions{
+		Unpublished: true,
+		Deleted:     true,
+	}
+)
+
 // What pages to load from pageInfos table.
 type PageInfosOptions struct {
 	Unpublished bool
 	Deleted     bool
 	Fields      []string
 	WhereFilter *database.QueryPart
+
+	// Options for WHERE clause
+	OmitPrefix bool
 }
 
 // PageInfosTable is a wrapper for loading data from the pageInfos table.
@@ -26,13 +36,10 @@ func PageInfosTable(u *CurrentUser) *database.QueryPart {
 
 // Like PageInfosTable but allows for autosaves, snapshots, and deleted pages.
 func PageInfosTableAll(u *CurrentUser) *database.QueryPart {
-	return PageInfosTableWithOptions(u, &PageInfosOptions{
-		Unpublished: true,
-		Deleted:     true,
-	})
+	return PageInfosTableWithOptions(u, allPageInfosOptions)
 }
 
-// pageInfosTableInternal is a wrapper for loading data from the pageInfos table.
+// PageInfosTableWithOptions is a wrapper for loading data from the pageInfos table.
 func PageInfosTableWithOptions(u *CurrentUser, options *PageInfosOptions) *database.QueryPart {
 	if u == nil && options.Unpublished && options.Deleted {
 		return database.NewQuery(`pageInfos`)
@@ -50,7 +57,30 @@ func PageInfosTableWithOptions(u *CurrentUser, options *PageInfosOptions) *datab
 		fieldsString = "*"
 	}
 
-	q := database.NewQuery(`(SELECT ` + fieldsString + ` FROM pageInfos WHERE true`)
+	options.OmitPrefix = true
+	q := database.NewQuery(`(
+			SELECT ` + fieldsString + `
+			FROM pageInfos
+			WHERE`).AddPart(WherePageInfosWithOptions(u, options)).Add(`
+		)`)
+	return q
+}
+
+func WherePageInfos(u *CurrentUser) *database.QueryPart {
+	return WherePageInfosWithOptions(u, &PageInfosOptions{})
+}
+
+func WherePageInfosAll(u *CurrentUser) *database.QueryPart {
+	return WherePageInfosWithOptions(u, allPageInfosOptions)
+}
+
+// WherePageInfosWithOptions returns a clase for making sure the selected rows from pageInfos table are valid.
+func WherePageInfosWithOptions(u *CurrentUser, options *PageInfosOptions) *database.QueryPart {
+	prefix := `pi.`
+	if options.OmitPrefix {
+		prefix = ``
+	}
+	q := database.NewQuery(`(TRUE`)
 	if u != nil {
 		allowedDomainIDs := []string{"0"}
 		for domainID := range u.DomainMembershipMap {
@@ -58,13 +88,13 @@ func PageInfosTableWithOptions(u *CurrentUser, options *PageInfosOptions) *datab
 				allowedDomainIDs = append(allowedDomainIDs, domainID)
 			}
 		}
-		q.Add(`AND seeDomainId IN`).AddArgsGroupStr(allowedDomainIDs)
+		q.Add(`AND ` + prefix + `seeDomainId IN`).AddArgsGroupStr(allowedDomainIDs)
 	}
 	if !options.Unpublished {
-		q.Add(`AND currentEdit>0`)
+		q.Add(`AND ` + prefix + `currentEdit > 0`)
 	}
 	if !options.Deleted {
-		q.Add(`AND not isDeleted`)
+		q.Add(`AND NOT ` + prefix + `isDeleted`)
 	}
 	if options.WhereFilter != nil {
 		q.Add(`AND (`).AddPart(options.WhereFilter).Add(`)`)

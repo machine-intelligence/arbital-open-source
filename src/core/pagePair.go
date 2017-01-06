@@ -108,8 +108,9 @@ func LoadChildIDs(db *database.DB, pageMap map[string]*Page, u *CurrentUser, opt
 			FROM pagePairs
 			WHERE`).Add(pairTypeFilter).Add(`parentId IN`).AddArgsGroup(pageIDs).Add(`
 		) AS pp
-		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
-		ON pi.pageId=pp.childId`).Add(pageTypeFilter).ToStatement(db).Query()
+		JOIN pageInfos AS pi
+		ON pi.pageId=pp.childId`).Add(pageTypeFilter).Add(`
+		WHERE`).AddPart(WherePageInfos(u)).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentID, childID string
 		var ppType string
@@ -164,9 +165,10 @@ func LoadParentIDs(db *database.DB, pageMap map[string]*Page, u *CurrentUser, op
 			FROM pagePairs
 			WHERE `).Add(pairTypeFilter).Add(`childId IN`).AddArgsGroup(pageIDs).Add(`
 		) AS pp
-		JOIN`).AddPart(PageInfosTableAll(u)).Add(`AS pi
+		JOIN pageInfos AS pi
 		ON (pi.pageId=pp.parentId)
-		WHERE (pi.currentEdit>0 AND NOT pi.isDeleted) OR pp.parentId=pp.childId
+		WHERE ((pi.currentEdit>0 AND NOT pi.isDeleted) OR pp.parentId=pp.childId)
+			AND`).AddPart(WherePageInfosAll(u)).Add(`
 		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentID, childID string
@@ -233,11 +235,12 @@ func LoadRequisites(db *database.DB, pageMap map[string]*Page, u *CurrentUser, o
 	pageIDs := PageIDsListFromMap(sourcePageMap)
 
 	queryPart := database.NewQuery(`
-		JOIN`).AddPart(PageInfosTableAll(u)).Add(`AS pi
+		JOIN pageInfos AS pi
 		ON (pi.pageId=pp.parentId)
 		WHERE ((pi.currentEdit>0 AND NOT pi.isDeleted) OR pp.parentId=pp.childId)
 			AND pp.type IN (?,?)`, RequirementPagePairType, SubjectPagePairType).Add(`
 			AND pp.childId IN`).AddArgsGroup(pageIDs).Add(`
+			AND`).AddPart(WherePageInfosAll(u)).Add(`
 		`)
 	err := LoadPagePairs(db, queryPart, func(db *database.DB, pagePair *PagePair) error {
 		childPage := sourcePageMap[pagePair.ChildID]
@@ -305,9 +308,11 @@ func _getParents(db *database.DB, pageID string) ([]string, error) {
 	rows := database.NewQuery(`
 		SELECT parentId
 		FROM pagePairs AS pp
-		JOIN`).AddPart(PageInfosTable(nil)).Add(`AS pi
+		JOIN pageInfos AS pi
 		ON pp.parentId=pi.pageId
-		WHERE pp.childId=?`, pageID).Add(`AND pp.type=?`, ParentPagePairType).ToStatement(db).Query()
+		WHERE pp.childId=?`, pageID).Add(`
+			AND pp.type=?`, ParentPagePairType).Add(`
+			AND`).AddPart(WherePageInfos(nil)).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentID string
 		if err := rows.Scan(&parentID); err != nil {

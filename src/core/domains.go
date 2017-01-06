@@ -106,18 +106,31 @@ func LoadRelevantDomains(db *database.DB, u *CurrentUser, pageMap map[string]*Pa
 	for domainID := range u.DomainMembershipMap {
 		domainIDs = append(domainIDs, domainID)
 	}
-	whereClause := database.NewQuery(`WHERE FALSE`)
-	if len(domainIDs) > 0 {
-		whereClause.Add(`OR d.id IN`).AddArgsGroupStr(domainIDs)
-	}
 
 	pageIDs := PageIDsListFromMap(pageMap)
 	if len(pageIDs) > 0 {
-		whereClause.Add(`
-			OR d.id IN (
-				SELECT seeDomainId FROM pageInfos WHERE pageId IN`).AddArgsGroup(pageIDs).Add(`
-				UNION SELECT editDomainId FROM pageInfos WHERE pageId IN`).AddArgsGroup(pageIDs).Add(`
-			)`)
+		rows := database.NewQuery(`
+			SELECT seeDomainId,editDomainId
+			FROM pageInfos
+			WHERE pageId IN`).AddArgsGroup(pageIDs).ToStatement(db).Query()
+		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+			var seeDomainID, editDomainID string
+			err := rows.Scan(&seeDomainID, &editDomainID)
+			if err != nil {
+				return fmt.Errorf("Failed to scan: %v", err)
+			}
+			domainIDs = append(domainIDs, seeDomainID)
+			domainIDs = append(domainIDs, editDomainID)
+			return nil
+		})
+		if err != nil {
+			return fmt.Errorf("Couldn't load pages' edit/see domain ids: %v", err)
+		}
+	}
+
+	whereClause := database.NewQuery(`WHERE FALSE`)
+	if len(domainIDs) > 0 {
+		whereClause.Add(`OR d.id IN`).AddArgsGroupStr(domainIDs)
 	}
 
 	loadedDomainIDs := make([]string, 0)
@@ -134,9 +147,9 @@ func LoadRelevantDomains(db *database.DB, u *CurrentUser, pageMap map[string]*Pa
 	if (len(loadedDomainIDs)) > 0 {
 		// Load domain friends
 		rows := database.NewQuery(`
-		SELECT df.domainId,df.friendId
-		FROM domainFriends AS df`).Add(`
-		WHERE df.domainId IN`).AddArgsGroupStr(loadedDomainIDs).ToStatement(db).Query()
+			SELECT df.domainId,df.friendId
+			FROM domainFriends AS df`).Add(`
+			WHERE df.domainId IN`).AddArgsGroupStr(loadedDomainIDs).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var domainID, friendID string
 			err := rows.Scan(&domainID, &friendID)

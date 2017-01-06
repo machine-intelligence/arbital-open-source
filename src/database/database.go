@@ -2,7 +2,7 @@
 package database
 
 import (
-	_ "google.golang.org/appengine/cloudsql"
+	_ "zanaduu3/vendor/google.golang.org/appengine/cloudsql"
 
 	"database/sql"
 	"fmt"
@@ -115,7 +115,7 @@ func GetDB(c sessions.Context) (*DB, error) {
 		return nil, fmt.Errorf("Couldn't open DB: %v", err)
 	}
 	db.C = c
-	db.PrintInfo = sessions.Live
+	db.PrintInfo = true //sessions.Live
 	db.db.SetMaxOpenConns(12)
 	return &db, nil
 }

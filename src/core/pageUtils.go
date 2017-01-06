@@ -144,8 +144,9 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 	aliasMap := make(map[string]string)
 	rows := database.NewQuery(`
 		SELECT pageId,alias
-		FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
-		WHERE alias IN`).AddArgsGroupStr(aliasesAndIDs).ToStatement(db).Query()
+		FROM pageInfos AS pi
+		WHERE alias IN`).AddArgsGroupStr(aliasesAndIDs).Add(`
+			AND`).AddPart(WherePageInfos(nil)).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageID, alias string
 		err := rows.Scan(&pageID, &alias)
@@ -367,12 +368,12 @@ func GetCommentParents(db *database.DB, pageID string) (string, string, error) {
 	var commentPrimaryPageID string
 	rows := database.NewQuery(`
 		SELECT pi.pageId,pi.type
-		FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
+		FROM pageInfos AS pi
 		JOIN pagePairs AS pp
 		ON (pi.pageId=pp.parentId)
 		WHERE pp.type=?`, ParentPagePairType).Add(`
 			AND pp.childId=?`, pageID).Add(`
-		`).ToStatement(db).Query()
+			AND`).AddPart(WherePageInfos(nil)).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentID string
 		var pageType string
@@ -618,9 +619,10 @@ func CanUserApproveComment(db *database.DB, u *CurrentUser, parentIDs []string) 
 	var domainID string
 	row := database.NewQuery(`
 		SELECT pi.editDomainId
-		FROM`).AddPart(PageInfosTable(u)).Add(`AS pi
+		FROM pageInfos AS pi
 		WHERE pi.pageId IN`).AddArgsGroupStr(parentIDs).Add(`
-			AND pi.type!=?`, CommentPageType).ToStatement(db).QueryRow()
+			AND pi.type!=?`, CommentPageType).Add(`
+			AND`).AddPart(WherePageInfos(u)).ToStatement(db).QueryRow()
 	exists, err := row.Scan(&domainID)
 	if err != nil {
 		return false, err
