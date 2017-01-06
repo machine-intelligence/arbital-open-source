@@ -2,7 +2,9 @@
   "version": "0.0.0",
   "private": true,
   "name": "arbital",
-  "devDependencies": {},
+  "devDependencies": {
+    "fsevents": "^1.0.17"
+  },
   "scripts": {
     "postinstall": "cd src/site/static/js && typings install",
     "typings": "cd src/site/static/js && typings",

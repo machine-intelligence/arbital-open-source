@@ -140,7 +140,7 @@
 						<a ng-href="{{page.externalUrl}}"
 								class="external-link"
 								ng-if="page.externalUrl.length > 0">{{page.title}}</a>
-						<span class="md-caption" ng-if="page.externalUrl.length > 0">
+						<span class="md-caption nowrap" ng-if="page.externalUrl.length > 0">
 							(<span ng-bind="::page.externalUrl | urlDomain"></span>)
 						</span>
 						<div class="md-caption" ng-if="page.isBlogPage()">

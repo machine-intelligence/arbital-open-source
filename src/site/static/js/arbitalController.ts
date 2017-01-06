@@ -149,7 +149,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 				var revealTimeout = $timeout(function() {
 					console.error('Forced reveal timeout');
 					showEverything();
-				}, 1000);
+				}, 500);
 
 				arb.stateService.clearMathjaxCache();
 				currentView = result.content;

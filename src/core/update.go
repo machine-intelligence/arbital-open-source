@@ -223,6 +223,7 @@ func LoadUpdateEmail(db *database.DB, userID string) (resultData *UpdateData, re
 
 	// Check to make sure there are enough updates
 	resultData.UpdateCount = len(resultData.UpdateRows)
+	u.EmailThreshold = 1 // for now, we are ignoring the threshold
 	if resultData.UpdateCount < u.EmailThreshold {
 		db.C.Debugf("Not enough updates to send the email: %d < %d", resultData.UpdateCount, u.EmailThreshold)
 		return nil, nil

@@ -155,57 +155,6 @@
 				ng-if="::!isHub() && !page.isConcept() && !page.isUser()"></arb-change-speed-button>
 	</div>
 
-	<!-- Parents and tags -->
-	<div layout="column" layout-padding>
-		<div layout="row"
-				layout-align="start start"
-				class="md-caption">
-			<div flex>
-				<!-- Parents and children -->
-				<div layout-align="start center" ng-if="!page.isBlogPage() && !page.isLinkPage()">
-					<span>Parents:</span>
-					<span ng-if="page.parentIds.length == 0">none</span>
-					<span ng-repeat="(index, parentId) in page.parentIds">
-						<span class="comma" ng-if="index > 0">,</span>
-						<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
-					</span>
-				</div>
-				<div layout-align="start center" ng-if="!page.isBlogPage() && !page.isLinkPage()">
-					<span>Children:</span>
-					<a ng-href="{{arb.urlService.getExplorePageUrl(page.pageId)}}">
-						<ng-pluralize count="page.childIds.length"
-								when="{'0': 'none', 'one': 'one page', 'other': '{} pages'}"></ng-pluralize>
-					</a>
-				</div>
-
-				<!-- Tags -->
-				<div layout-align="start center"
-		 				ng-if="page.nonMetaTagIds.length > 0">
-		 			<span>Tags:</span>
-		 			<span ng-repeat="(index, tagId) in page.nonMetaTagIds">
-		 				<span class="comma" ng-if="::(index > 0)">,</span>
-		 				<arb-page-title page-id="{{::tagId}}" is-link="true"></arb-page-title>
-		 			</span>
-		 		</div>
-			</div>
-
-			<!-- Changes and views -->
-			<div class="right-text" ng-if="!page.isBlogPage() && !page.isLinkPage() && page.changeLogs.length > 0">
-				<div>
-					<a ng-href="{{arb.urlService.getEditPageUrl(page.pageId, {tabId: 4})}}" flex>
-						<span ng-bind="page.changeLogs.length"></span>
-						changes by
-						<ng-pluralize count="page.computeAuthors().length"
-								when="{'one': '{} author', 'other': '{} authors'}"></ng-pluralize>
-					</a>
-				</div>
-				<div>
-					<span ng-bind="page.viewCount"></span> views
-				</div>
-			</div>
-	 	</div>
-	</div>
-
 	<!-- The explanations for a concept -->
 	<div layout="row">
 		<div class="lens-text-container" ng-if="page.isConcept()">
@@ -305,6 +254,57 @@
 		</div>
 	</div>
 	<!-- /Explanation section -->
+
+	<!-- Parents and tags -->
+	<div layout="column" layout-padding>
+		<div layout="row"
+				layout-align="start start"
+				class="md-caption">
+			<div flex>
+				<!-- Parents and children -->
+				<div layout-align="start center" ng-if="!page.isBlogPage() && !page.isLinkPage()">
+					<span>Parents:</span>
+					<span ng-if="page.parentIds.length == 0">none</span>
+					<span ng-repeat="(index, parentId) in page.parentIds">
+						<span class="comma" ng-if="index > 0">,</span>
+						<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
+					</span>
+				</div>
+				<div layout-align="start center" ng-if="!page.isBlogPage() && !page.isLinkPage()">
+					<span>Children:</span>
+					<a ng-href="{{arb.urlService.getExplorePageUrl(page.pageId)}}">
+						<ng-pluralize count="page.childIds.length"
+								when="{'0': 'none', 'one': 'one page', 'other': '{} pages'}"></ng-pluralize>
+					</a>
+				</div>
+
+				<!-- Tags -->
+				<div layout-align="start center"
+		 				ng-if="page.nonMetaTagIds.length > 0">
+		 			<span>Tags:</span>
+		 			<span ng-repeat="(index, tagId) in page.nonMetaTagIds">
+		 				<span class="comma" ng-if="::(index > 0)">,</span>
+		 				<arb-page-title page-id="{{::tagId}}" is-link="true"></arb-page-title>
+		 			</span>
+		 		</div>
+			</div>
+
+			<!-- Changes and views -->
+			<div class="right-text" ng-if="!page.isBlogPage() && !page.isLinkPage() && page.changeLogs.length > 0">
+				<div>
+					<a ng-href="{{arb.urlService.getEditPageUrl(page.pageId, {tabId: 4})}}" flex>
+						<span ng-bind="page.changeLogs.length"></span>
+						changes by
+						<ng-pluralize count="page.computeAuthors().length"
+								when="{'one': '{} author', 'other': '{} authors'}"></ng-pluralize>
+					</a>
+				</div>
+				<div>
+					<span ng-bind="page.viewCount"></span> views
+				</div>
+			</div>
+	 	</div>
+	</div>
 
 	<!-- Action bar -->
 	<arb-lens-toolbar></arb-lens-toolbar>
