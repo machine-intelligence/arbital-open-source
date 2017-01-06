@@ -115,7 +115,7 @@ func GetDB(c sessions.Context) (*DB, error) {
 		return nil, fmt.Errorf("Couldn't open DB: %v", err)
 	}
 	db.C = c
-	db.PrintInfo = true //sessions.Live
+	db.PrintInfo = sessions.Live
 	db.db.SetMaxOpenConns(12)
 	return &db, nil
 }

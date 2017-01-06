@@ -40,9 +40,11 @@ func (task UpdateElasticPageTask) Execute(db *database.DB) (int, error) {
 	rows := database.NewQuery(`
 		SELECT p.pageId,pi.type,p.title,p.clickbait,p.text,pi.alias,pi.seeDomainId,pi.createdBy,pi.externalUrl
 		FROM pages AS p
-		JOIN`).AddPart(core.PageInfosTable(nil)).Add(`AS pi
+		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId)
-		WHERE p.isLiveEdit AND p.pageId=?`, task.PageID).ToStatement(db).Query()
+		WHERE p.isLiveEdit
+			AND p.pageId=?`, task.PageID).Add(`
+			AND`).AddPart(core.WherePageInfos(nil)).ToStatement(db).Query()
 	err := rows.Process(populateElasticProcessPage)
 	if err != nil {
 		return -1, err

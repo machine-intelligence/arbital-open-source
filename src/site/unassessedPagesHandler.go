@@ -40,12 +40,13 @@ func unassessedPagesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		SELECT t.pageId
 		FROM (
 			SELECT pi.pageId AS pageId
-			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+			FROM pageInfos AS pi
 			LEFT JOIN pagePairs AS pp
 			ON (pi.pageId=pp.childId)
 			WHERE pi.editDomainId=?`, core.MathDomainID).Add(`
 				/* Check that this page doesn't have a quality tag */
 				AND pp.type=?`, core.TagPagePairType).Add(`
+				AND`).AddPart(core.WherePageInfos(u)).Add(`
 			GROUP BY 1
 			HAVING SUM(pp.parentId IN (
 					SELECT pp2.childId

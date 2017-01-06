@@ -196,11 +196,12 @@ func loadContentRequests(db *database.DB, returnData *core.CommonHandlerData, li
 				GROUP BY likeableId
 			) AS likeCounts
 			ON (cr.likeableId=likeCounts.likeableId)
-			JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
+			JOIN pageInfos AS pi
 			ON cr.pageId=pi.pageId
 			/* Having no dislikes */
 			WHERE !COALESCE(hasAnyDownvotes,0)
 				AND NOT cr.type IN (?,?)`, string(core.SlowDown), string(core.SpeedUp)).Add(`
+				AND`).AddPart(core.WherePageInfos(returnData.User)).Add(`
 			GROUP BY cr.id
 			ORDER BY COALESCE(likeCount, 0) DESC
 			LIMIT ?`, limit).ToStatement(db).Query()

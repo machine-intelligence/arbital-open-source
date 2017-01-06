@@ -30,12 +30,14 @@ func LoadPagesWithDraft(db *database.DB, returnData *core.CommonHandlerData, pri
 	rows := database.NewQuery(`
 			SELECT p.pageId,p.title,p.createdAt,pi.currentEdit>0,pi.isDeleted
 			FROM pages AS p
-			JOIN`).AddPart(core.PageInfosTableAll(returnData.User)).Add(`AS pi
+			JOIN pageInfos AS pi
 			ON (p.pageId = pi.pageId)
 			WHERE p.creatorId=?`, returnData.User.ID).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
 				AND pi.seeDomainId=?`, privateDomainID).Add(`
-				AND p.edit>pi.currentEdit AND (p.text!="" OR p.title!="")
+				AND p.edit>pi.currentEdit
+				AND (p.text!="" OR p.title!="")
+				AND`).AddPart(core.WherePageInfosAll(returnData.User)).Add(`
 			GROUP BY p.pageId
 			ORDER BY p.createdAt DESC
 			LIMIT ?`, numToLoad).ToStatement(db).Query()

@@ -5,7 +5,6 @@ package site
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"zanaduu3/src/core"
@@ -83,7 +82,7 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 	var id string
 	exists, err := row.Scan(&id)
 	if err != nil {
-		fmt.Errorf("failed to scan for a member: %v", err)
+		return pages.Fail("failed to scan for a member", err)
 	}
 	// If page is a user page, add some values to returnData
 	if exists {
@@ -95,10 +94,11 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 		// Load recently created by me page ids.
 		rows := database.NewQuery(`
 			SELECT pi.pageId
-			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+			FROM pageInfos AS pi
 			WHERE pi.createdBy=?`, pageID).Add(`
 				AND pi.seeDomainId=?`, params.PrivateDomain.ID).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
+				AND`).AddPart(core.WherePageInfos(u)).Add(`
 			ORDER BY pi.createdAt DESC
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 		returnData.ResultMap["recentlyCreatedIds"], err = core.LoadPageIDs(rows, returnData.PageMap, pageOptions)
@@ -110,11 +110,12 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 		rows = database.NewQuery(`
 			SELECT p.pageId
 			FROM pages AS p
-			JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+			JOIN pageInfos AS pi
 			ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
 			WHERE p.creatorId=?`, pageID).Add(`
 				AND pi.seeDomainId=?`, params.PrivateDomain.ID).Add(`
 				AND pi.type=?`, core.CommentPageType).Add(`
+				AND`).AddPart(core.WherePageInfos(u)).Add(`
 			ORDER BY pi.createdAt DESC
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 		returnData.ResultMap["recentlyCreatedCommentIds"], err =
@@ -127,11 +128,12 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 		rows = database.NewQuery(`
 			SELECT p.pageId
 			FROM pages AS p
-			JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+			JOIN pageInfos AS pi
 			ON (p.pageId=pi.pageId)
 			WHERE p.creatorId=?`, pageID).Add(`
 				AND pi.seeDomainId=?`, params.PrivateDomain.ID).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
+				AND`).AddPart(core.WherePageInfos(u)).Add(`
 			GROUP BY 1
 			ORDER BY MAX(p.createdAt) DESC
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
@@ -143,12 +145,13 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 		// Load top pages by me
 		rows = database.NewQuery(`
 			SELECT pi.pageId
-			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+			FROM pageInfos AS pi
 			JOIN likes AS l2
 			ON (pi.likeableId=l2.likeableId)
 			WHERE pi.editDomainId=?`, u.MyDomainID()).Add(`
 				AND pi.seeDomainId=?`, params.PrivateDomain.ID).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
+				AND`).AddPart(core.WherePageInfos(u)).Add(`
 			GROUP BY 1
 			ORDER BY SUM(l2.value) DESC
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()

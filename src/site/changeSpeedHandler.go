@@ -76,9 +76,10 @@ func _loadArcs(db *database.DB, pageID string, returnData *core.CommonHandlerDat
 	rows := database.NewQuery(`
 		SELECT guideId
 		FROM pathPages AS pathPages
-		JOIN`).AddPart(core.PageInfosTableAll(returnData.User)).Add(`AS pi
+		JOIN pageInfos AS pi
 		ON (pi.pageId=pathPages.guideId)
-		WHERE pathPageId=?`, pageID).ToStatement(db).Query()
+		WHERE pathPageId=?`, pageID).Add(`
+			AND`).AddPart(core.WherePageInfosAll(returnData.User)).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var guideID string
 		err := rows.Scan(&guideID)
@@ -127,8 +128,9 @@ func _loadChangeSpeedPagePairs(db *database.DB, slower bool, pageID string, retu
 			)
 
 		/* filter for pages the user has access to */
-		JOIN`).AddPart(core.PageInfosTableAll(returnData.User)).Add(`AS pi
+		JOIN pageInfos AS pi
 		ON pi.pageId=pp.childId
+		WHERE`).AddPart(core.WherePageInfosAll(returnData.User)).Add(`
 	`)
 	err := core.LoadPagePairs(db, queryPart, func(db *database.DB, pagePair *core.PagePair) error {
 		pagePairs = append(pagePairs, pagePair)

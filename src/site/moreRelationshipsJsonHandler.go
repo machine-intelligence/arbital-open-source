@@ -58,14 +58,15 @@ func loadRelationships(db *database.DB, aliases []string, returnData *core.Commo
 	query := database.NewQuery(`
 		SELECT l.parentId, l.childAlias
 		FROM links AS l
-		JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
+		JOIN pageInfos AS pi
 		ON (l.parentId=pi.pageId OR l.parentId=pi.alias)`)
 	if restrictToMathDomain {
 		query.Add(`
 			JOIN domains AS d
 			ON d.pageId=pi.editDomainId AND d.id=?`, core.MathDomainID)
 	}
-	query.Add(`WHERE l.childAlias IN`).AddIdsGroupStr(aliases)
+	query.Add(`WHERE l.childAlias IN`).AddIdsGroupStr(aliases).Add(`
+		AND`).AddPart(core.WherePageInfos(returnData.User))
 
 	rows := query.ToStatement(db).Query()
 	loadOptions := (&core.PageLoadOptions{}).Add(core.TitlePlusLoadOptions)

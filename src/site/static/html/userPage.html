@@ -16,8 +16,8 @@
 			</div>
 			<div ng-if="::!arb.userService.user.isAdmin">
 				This user's role in
-				<arb-page-title page-id="{{::membership.domainPageId}}" is-link="true"></arb-page-title>
-				domain is {{membership.role}}.
+				<arb-page-title page-id="{{::arb.stateService.domainMap[domainId].pageId}}" is-link="true"></arb-page-title>
+				domain is {{membership.role == '' ? 'none' : membership.role}}.
 			</div>
 		</div>
 	</div>
