@@ -2028,6 +2028,9 @@ arb-path-nav, [arb-path-nav] {
 	margin: 0 2px;
 	border: 1px solid gray;
 	white-space: nowrap;
+	border: 1px solid gray;
+	border-radius: 3px;
+	background: rgba(189, 122, 189, .15);
 
 	.vote-column {
 		display: inline-block;
