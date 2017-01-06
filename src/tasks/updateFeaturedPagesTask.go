@@ -47,7 +47,7 @@ func (task UpdateFeaturedPagesTask) Execute(db *database.DB) (delay int, err err
 	// Load all pages that haven't been featured yet
 	rows := database.NewQuery(`
 		SELECT pi.pageId
-		FROM`).AddPart(core.PageInfosTable(nil)).Add(`AS pi
+		FROM pageInfos AS pi
 		JOIN pages AS p
 		ON (pi.pageId=p.pageId AND p.isLiveEdit)
 		JOIN pageDomainPairs AS pdp /*Has to be part of a domain*/
@@ -58,6 +58,7 @@ func (task UpdateFeaturedPagesTask) Execute(db *database.DB) (delay int, err err
 			AND length(p.text)>=?`, minTextLengthForFeaturedPages).Add(`
 			AND pp.type=?`, core.TagPagePairType).Add(`
 			AND pp.parentId IN (?,?)`, core.AClassPageID, core.BClassPageID).Add(`
+			AND`).AddPart(core.WherePageInfos(nil)).Add(`
 		GROUP BY 1`).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageID string

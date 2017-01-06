@@ -118,7 +118,7 @@ func loadCommentModeRows(db *database.DB, returnData *core.CommonHandlerData, li
 	}).Add(core.TitlePlusLoadOptions)
 	rows := database.NewQuery(`
 		SELECT pp.parentId,pp.childId,pi.createdAt
-		FROM`).AddPart(core.PageInfosTable(returnData.User)).Add(`AS pi
+		FROM pageInfos AS pi
 		JOIN pagePairs AS pp
 		ON (pp.childId=pi.pageId)
 		JOIN subscriptions AS s
@@ -127,6 +127,7 @@ func loadCommentModeRows(db *database.DB, returnData *core.CommonHandlerData, li
 			AND pi.createdBy!=?`, returnData.User.ID).Add(`
 			AND pi.type=?`, core.CommentPageType).Add(`
 			AND NOT pi.isEditorComment
+			AND`).AddPart(core.WherePageInfos(returnData.User)).Add(`
 		GROUP BY pp.childId
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
@@ -190,7 +191,7 @@ func loadLikesModeRows(db *database.DB, returnData *core.CommonHandlerData, limi
 
 	rows := database.NewQuery(`
 		SELECT u.id,pi.pageId,pi.type,l.updatedAt
-		FROM `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
+		FROM pageInfos AS pi
 		JOIN likes AS l
 		ON pi.likeableId=l.likeableId
 		JOIN users AS u
@@ -198,6 +199,7 @@ func loadLikesModeRows(db *database.DB, returnData *core.CommonHandlerData, limi
 		WHERE pi.createdBy=?`, returnData.User.ID).Add(`
 			AND l.userId!=?`, returnData.User.ID).Add(`
 			AND l.value=1
+			AND`).AddPart(core.WherePageInfos(returnData.User)).Add(`
 		ORDER BY l.updatedAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -298,12 +300,14 @@ func loadReqsTaughtModeRows(db *database.DB, returnData *core.CommonHandlerData,
 	rows := database.NewQuery(`
 		SELECT u.id,pi.pageId,ump.masteryId,ump.updatedAt
 		FROM userMasteryPairs AS ump
-		JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
+		JOIN pageInfos AS pi
 		ON ump.taughtBy=pi.pageId
 		JOIN users AS u
 		ON ump.userId=u.id
 		WHERE pi.createdBy=?`, returnData.User.ID).Add(`
-			AND ump.has=1 AND ump.userId!=?`, returnData.User.ID).Add(`
+			AND ump.has=1
+			AND ump.userId!=?`, returnData.User.ID).Add(`
+			AND`).AddPart(core.WherePageInfos(returnData.User)).Add(`
 		ORDER BY ump.updatedAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -375,12 +379,13 @@ func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 
 	rows := database.NewQuery(`
 		SELECT DISTINCT pi.pageId, pi.`+pageInfoActivityDateField+`
-		FROM`).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
+		FROM pageInfos AS pi
 		JOIN domains AS d
 		ON pi.editDomainId=d.id
 		WHERE pi.type IN (?,?)`, core.WikiPageType, core.QuestionPageType).Add(`
 			AND pi.`+pageInfoActivityDateField+`!=0
 			AND d.id IN (`).AddPart(subscribedDomains).Add(`)
+			AND`).AddPart(core.WherePageInfos(returnData.User)).Add(`
 		ORDER BY pi.`+pageInfoActivityDateField+` DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -422,12 +427,13 @@ func loadDraftRows(db *database.DB, returnData *core.CommonHandlerData, limit in
 	rows := database.NewQuery(`
 		SELECT p.pageId,p.title,p.createdAt,pi.currentEdit>0,pi.isDeleted
 		FROM pages AS p
-		JOIN`).AddPart(core.PageInfosTableAll(returnData.User)).Add(`AS pi
+		JOIN pageInfos AS pi
 		ON p.pageId = pi.pageId
 		WHERE p.creatorId=?`, returnData.User.ID).Add(`
 			AND pi.type!=?`, core.CommentPageType).Add(`
 			AND p.edit>pi.currentEdit AND (p.text!="" OR p.title!="")
 			AND (p.isAutosave OR p.isSnapshot)
+			AND`).AddPart(core.WherePageInfosAll(returnData.User)).Add(`
 		GROUP BY p.pageId
 		ORDER BY p.createdAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
@@ -479,13 +485,14 @@ func loadTaggedForEditRows(db *database.DB, returnData *core.CommonHandlerData, 
 	rows := database.NewQuery(`
 		SELECT pi.pageId,p.createdAt
 		FROM pagePairs AS pp
-		JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
+		JOIN pageInfos AS pi
 		ON (pi.pageId=pp.childId)
 		JOIN pages AS p
 		ON (p.pageId = pi.pageId AND p.edit = pi.currentEdit)
 		WHERE pp.type=?`, core.TagPagePairType).Add(`
 			AND pp.parentId IN`).AddArgsGroupStr(tagsForEdit).Add(`
 			AND pi.createdBy=?`, returnData.User.ID).Add(`
+			AND`).AddPart(core.WherePageInfos(returnData.User)).Add(`
 		GROUP BY pi.pageId
 		ORDER BY p.createdAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
@@ -595,11 +602,12 @@ func loadChangeLogModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 	}
 
 	queryPart := database.NewQuery(`
-		JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
+		JOIN pageInfos AS pi
 		ON pi.pageId = cl.pageId
 		WHERE cl.type IN `).AddArgsGroupStr(changeLogTypes).Add(`
 			AND pi.type!=?`, core.CommentPageType).Add(`
 			AND cl.createdAt<=?`, createdBefore).Add(`
+			AND`).AddPart(core.WherePageInfos(returnData.User)).Add(`
 		ORDER BY cl.createdAt DESC
 		LIMIT ?`, limit)
 	err := core.LoadChangeLogs(db, queryPart, returnData, func(db *database.DB, changeLog *core.ChangeLog) error {

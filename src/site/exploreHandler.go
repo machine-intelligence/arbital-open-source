@@ -65,11 +65,12 @@ func exploreJSONHandler(params *pages.HandlerParams) *pages.Result {
 		rows := database.NewQuery(`
 			SELECT pp.childId
 			FROM pagePairs AS pp
-			JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+			JOIN pageInfos AS pi
 			ON (pi.pageId=pp.childId)
 			WHERE pp.type=?`, core.ParentPagePairType).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
-				AND pp.parentId IN`).AddArgsGroupStr(parentIdsToProcess).ToStatement(db).Query()
+				AND pp.parentId IN`).AddArgsGroupStr(parentIdsToProcess).Add(`
+				AND`).AddPart(core.WherePageInfos(u)).ToStatement(db).Query()
 		parentIdsToProcess = make([]string, 0)
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageID string

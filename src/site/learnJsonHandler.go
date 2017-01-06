@@ -217,13 +217,13 @@ func learnJSONHandler(params *pages.HandlerParams) *pages.Result {
 		rows := database.NewQuery(`
 			SELECT pp.parentId,pp.childId,IFNULL(l.lensIndex,0)
 			FROM pagePairs AS pp
-			JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+			JOIN pageInfos AS pi
 			ON (pp.childId=pi.pageId)
 			LEFT JOIN lenses AS l
 			ON (pi.pageId=l.lensId)
 			WHERE pp.parentId IN`).AddArgsGroupStr(requirementIDs).Add(`
 				AND pp.type=?`, core.SubjectPagePairType).Add(`
-			`).ToStatement(db).Query()
+				AND`).AddPart(core.WherePageInfos(u)).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var parentID, childID string
 			var lensIndex int
@@ -258,7 +258,7 @@ func learnJSONHandler(params *pages.HandlerParams) *pages.Result {
 		rows = database.NewQuery(`
 			SELECT pp.parentId,pp.childId,IFNULL(l.lensIndex,0)
 			FROM pagePairs AS pp
-			JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+			JOIN pageInfos AS pi
 			ON (pp.parentId=pi.pageId)
 			LEFT JOIN userMasteryPairs AS mp
 			ON (pp.parentId=mp.masteryId AND mp.userId=?)`, userID).Add(`
@@ -266,7 +266,8 @@ func learnJSONHandler(params *pages.HandlerParams) *pages.Result {
 			ON (pi.pageId=l.lensId)
 			WHERE pp.childId IN`).AddArgsGroupStr(tutorIDs).Add(`
 				AND pp.type=?`, core.RequirementPagePairType).Add(`
-				AND (NOT mp.has OR ISNULL(mp.has))`).ToStatement(db).Query()
+				AND (NOT mp.has OR ISNULL(mp.has))
+				AND`).AddPart(core.WherePageInfos(u)).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var parentID, childID string
 			var lensIndex int

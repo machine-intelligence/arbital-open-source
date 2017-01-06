@@ -41,7 +41,7 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Load feed rows
 	feedRows := make([]*core.FeedPage, 0)
 	queryPart := database.NewQuery(`
-		WHERE NOT pi.hasVote
+		AND NOT pi.hasVote
 		ORDER BY fp.score DESC
 		LIMIT 25`)
 	err = core.LoadFeedPages(db, u, queryPart, func(db *database.DB, feedPage *core.FeedPage) error {
@@ -56,7 +56,7 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Load claim rows
 	claimRows := make([]*core.FeedPage, 0)
 	queryPart = database.NewQuery(`
-		WHERE pi.hasVote
+		AND pi.hasVote
 		ORDER BY fp.score DESC
 		LIMIT 25`)
 	err = core.LoadFeedPages(db, u, queryPart, func(db *database.DB, feedPage *core.FeedPage) error {
@@ -81,7 +81,7 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		FROM (
 			SELECT pp.parentId,pp.childId
 			FROM pagePairs AS pp
-			JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+			JOIN pageInfos AS pi
 			ON (pp.childId = pi.pageId)
 			JOIN pages AS p
 			ON (pi.pageId = p.pageId AND p.isLiveEdit)
@@ -91,6 +91,7 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				AND NOT pi.isResolved AND NOT pi.isEditorComment AND pi.isApprovedComment
 				/* No replies */
 				/*AND pp.childId IN (SELECT childId FROM pagePairs GROUP BY 1 HAVING SUM(1) <= 1)*/
+				AND`).AddPart(core.WherePageInfos(u)).Add(`
 			ORDER BY pi.createdAt DESC
 		) AS t
 		GROUP BY 1,2`).ToStatement(db).Query()

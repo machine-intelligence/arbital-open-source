@@ -28,11 +28,12 @@ func LoadRecentlyCreatedComment(db *database.DB, returnData *core.CommonHandlerD
 	rows := database.NewQuery(`
 		SELECT p.pageId
 		FROM pages AS p
-		JOIN`).AddPart(core.PageInfosTable(returnData.User)).Add(`AS pi
+		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
 		WHERE p.creatorId=?`, returnData.User.ID).Add(`
 			AND pi.seeDomainId=?`, privateDomainID).Add(`
 			AND pi.type=?`, core.CommentPageType).Add(`
+			AND`).AddPart(core.WherePageInfos(returnData.User)).Add(`
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`, numToLoad).ToStatement(db).Query()
 	return core.LoadPageIDs(rows, returnData.PageMap, core.TitlePlusLoadOptions)

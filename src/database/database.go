@@ -2,7 +2,7 @@
 package database
 
 import (
-	_ "google.golang.org/appengine/cloudsql"
+	_ "zanaduu3/vendor/google.golang.org/appengine/cloudsql"
 
 	"database/sql"
 	"fmt"

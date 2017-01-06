@@ -53,9 +53,10 @@ func (task PopulateElasticTask) Execute(db *database.DB) (delay int, err error) 
 	rows := database.NewQuery(`
 		SELECT p.pageId,pi.type,p.title,p.clickbait,p.text,pi.alias,pi.seeDomainId,p.creatorId,pi.externalUrl
 		FROM pages AS p
-		JOIN`).AddPart(core.PageInfosTable(nil)).Add(`AS pi
+		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId)
-		WHERE p.isLiveEdit`).ToStatement(db).Query()
+		WHERE p.isLiveEdit
+			AND`).AddPart(core.WherePageInfos(nil)).ToStatement(db).Query()
 	err = rows.Process(populateElasticProcessPage)
 	if err != nil {
 		c.Errorf("ERROR: %v", err)
@@ -72,7 +73,7 @@ func populateElasticProcessPage(db *database.DB, rows *database.Rows) error {
 	}
 
 	// Load search strings
-	pageMap := make(map[string]*core.Page)
+	/*pageMap := make(map[string]*core.Page)
 	p := core.AddPageIDToMap(doc.PageID, pageMap)
 	if err := core.LoadSearchStrings(db, pageMap); err != nil {
 		return fmt.Errorf("LoadSearchStrings failed: %v", err)
@@ -80,7 +81,7 @@ func populateElasticProcessPage(db *database.DB, rows *database.Rows) error {
 	doc.SearchStrings = make([]string, 0)
 	for _, str := range p.SearchStrings {
 		doc.SearchStrings = append(doc.SearchStrings, str)
-	}
+	}*/
 
 	return elastic.AddPageToIndex(db.C, doc)
 }

@@ -149,9 +149,6 @@ func searchJSONHandler(params *pages.HandlerParams) *pages.Result {
 							},
 							{
 								"match_phrase_prefix": { "externalUrl": "%[3]s" }
-							},
-							{
-								"match": { "searchStrings": "%[3]s" }
 							}
 						]
 					}

@@ -132,9 +132,10 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		var ignore int
 		exists, err := database.NewQuery(`
 				SELECT 1
-				FROM`).AddPart(core.PageInfosTable(nil)).Add(`AS pi
+				FROM pageInfos AS pi
 				WHERE type=?`, core.GroupPageType).Add(`
-				AND alias=?`, alias).ToStatement(db).QueryRow().Scan(&ignore)
+					AND alias=?`, alias).Add(`
+					AND`).AddPart(core.WherePageInfos(nil)).ToStatement(db).QueryRow().Scan(&ignore)
 		if err != nil {
 			return pages.Fail("Error checking for existing alias", err)
 		}

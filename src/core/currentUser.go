@@ -229,12 +229,13 @@ func LoadNewAchievementCount(db *database.DB, user *CurrentUser) (int, error) {
 	var newLikeCount int
 	row := database.NewQuery(`
 		SELECT COUNT(*)
-		FROM `).AddPart(PageInfosTable(user)).Add(` AS pi
+		FROM pageInfos AS pi
 		JOIN likes AS l
 		ON pi.likeableId=l.likeableId
 		JOIN users AS u
 		ON l.userId=u.id
-		WHERE pi.createdBy=?`, user.ID).Add(`
+		WHERE`).AddPart(WherePageInfos(user)).Add(`
+			AND pi.createdBy=?`, user.ID).Add(`
 			AND l.userId!=?`, user.ID).Add(`
 			AND l.value=1
 			AND l.updatedAt>?`, lastAchievementsView).ToStatement(db).QueryRow()
@@ -246,8 +247,8 @@ func LoadNewAchievementCount(db *database.DB, user *CurrentUser) (int, error) {
 	var newChangeLogLikeCount int
 	row = database.NewQuery(`
 		SELECT COUNT(*)
-		FROM likes as l
-		JOIN changeLogs as cl
+		FROM likes AS l
+		JOIN changeLogs AS cl
 		ON cl.likeableId=l.likeableId
 		WHERE cl.userId=?`, user.ID).Add(`
 			AND l.value=1 AND l.userId!=?`, user.ID).Add(`
@@ -262,11 +263,12 @@ func LoadNewAchievementCount(db *database.DB, user *CurrentUser) (int, error) {
 	row = database.NewQuery(`
 		SELECT COUNT(*)
 		FROM userMasteryPairs AS ump
-		JOIN `).AddPart(PageInfosTable(user)).Add(` AS pi
+		JOIN pageInfos AS pi
 		ON ump.taughtBy=pi.pageId
 		JOIN users AS u
 		ON ump.userId=u.id
-		WHERE pi.createdBy=?`, user.ID).Add(`
+		WHERE`).AddPart(WherePageInfos(user)).Add(`
+			AND pi.createdBy=?`, user.ID).Add(`
 			AND ump.has=1 AND ump.userId!=?`, user.ID).Add(`
 			AND ump.updatedAt>?`, lastAchievementsView).ToStatement(db).QueryRow()
 	_, err = row.Scan(&newTaughtCount)

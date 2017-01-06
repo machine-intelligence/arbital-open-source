@@ -6,6 +6,7 @@ import (
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+
 	"zanaduu3/vendor/github.com/gorilla/mux"
 )
 
@@ -31,8 +32,9 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 	var seeGroupID string
 	row := database.NewQuery(`
 		SELECT type,seeDomainId
-		FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
-		WHERE pageId=?`, pageID).ToStatement(db).QueryRow()
+		FROM pageInfos AS pi
+		WHERE pageId=?`, pageID).Add(`
+			AND`).AddPart(core.WherePageInfos(u)).ToStatement(db).QueryRow()
 	exists, err := row.Scan(&pageType, &seeGroupID)
 	if err != nil {
 		return pages.Fail("Couldn't get page info", err)
@@ -44,8 +46,9 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 		if core.IsIDValid(seeGroupID) {
 			row := database.NewQuery(`
 				SELECT alias
-				FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
-				WHERE pageId=?`, seeGroupID).ToStatement(db).QueryRow()
+				FROM pageInfos AS pi
+				WHERE pageId=?`, seeGroupID).Add(`
+					AND`).AddPart(core.WherePageInfos(u)).ToStatement(db).QueryRow()
 			exists, err := row.Scan(&subdomain)
 			if err != nil || !exists {
 				return pages.Fail("Failed to redirect to subdomain", err)

@@ -59,8 +59,9 @@ func LoadFeedPages(db *database.DB, u *CurrentUser, queryPart *database.QueryPar
 	rows := database.NewQuery(`
 		SELECT fp.domainId, fp.pageId, fp.submitterId, fp.createdAt, fp.score
 		FROM feedPages AS fp
-		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
-		ON (pi.pageId = fp.pageId)`).AddPart(queryPart).ToStatement(db).Query()
+		JOIN pageInfos AS pi
+		ON (pi.pageId = fp.pageId)`).Add(`
+		WHERE`).AddPart(WherePageInfos(u)).AddPart(queryPart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var row FeedPage
 		err := rows.Scan(&row.DomainID, &row.PageID, &row.SubmitterID, &row.CreatedAt, &row.Score)
@@ -80,7 +81,7 @@ func LoadFeedSubmissionsForPages(db *database.DB, u *CurrentUser, resultData *Co
 		return nil
 	}
 
-	queryPart := database.NewQuery(`WHERE fp.pageId IN`).AddArgsGroup(pageIDs)
+	queryPart := database.NewQuery(`AND fp.pageId IN`).AddArgsGroup(pageIDs)
 	err := LoadFeedPages(db, u, queryPart, func(db *database.DB, feedPage *FeedPage) error {
 		AddUserIDToMap(feedPage.SubmitterID, resultData.UserMap)
 		sourcePageMap[feedPage.PageID].FeedSubmissions = append(sourcePageMap[feedPage.PageID].FeedSubmissions, feedPage)

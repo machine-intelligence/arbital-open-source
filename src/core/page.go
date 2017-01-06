@@ -907,7 +907,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	}
 
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return !p.LoadOptions.Edit && p.LoadOptions.IncludeDeleted })
-	err = LoadPagesWithOptions(db, u, filteredPageMap, PageInfosTableWithOptions(u, &PageInfosOptions{Deleted: true}))
+	err = LoadPagesWithOptions(db, u, filteredPageMap, WherePageInfosWithOptions(u, &PageInfosOptions{Deleted: true}))
 	if err != nil {
 		return fmt.Errorf("LoadPages (deleted) failed: %v", err)
 	}
@@ -1015,7 +1015,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 			INSERT INTO visits (userId, sessionId, analyticsId, ipAddress, pageId, createdAt)
 			VALUES ` + database.ArgsPlaceholder(len(visitedValues), 6))
 		if _, err = statement.Exec(visitedValues...); err != nil {
-			return fmt.Errorf("Couldn't update visits", err)
+			return fmt.Errorf("Couldn't update visits: %v", err)
 		}
 	}
 
@@ -1100,10 +1100,10 @@ func LoadPageObjects(db *database.DB, u *CurrentUser, pageMap map[string]*Page, 
 
 // LoadPages loads the given pages.
 func LoadPages(db *database.DB, u *CurrentUser, pageMap map[string]*Page) error {
-	return LoadPagesWithOptions(db, u, pageMap, PageInfosTable(u))
+	return LoadPagesWithOptions(db, u, pageMap, WherePageInfos(u))
 }
 
-func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*Page, pageInfosTable *database.QueryPart) error {
+func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*Page, wherePageInfosTable *database.QueryPart) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
@@ -1128,9 +1128,10 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 			p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,p.editSummary,pi.isDeleted,pi.mergedInto,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset
 		FROM pages AS p
-		JOIN`).AddPart(pageInfosTable).Add(`AS pi
+		JOIN pageInfos AS pi
 		ON (p.pageId = pi.pageId AND p.edit = pi.currentEdit)
-		WHERE p.pageId IN`).AddArgsGroup(pageIDs).ToStatement(db).Query()
+		WHERE p.pageId IN`).AddArgsGroup(pageIDs).Add(`
+			AND`).AddPart(wherePageInfosTable).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		p := NewCorePageData("")
 		err := rows.Scan(
@@ -1446,7 +1447,7 @@ func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, domainMap map[
 			p.edit=(
 				SELECT p.edit
 				FROM pages AS p
-				JOIN`).AddPart(PageInfosTableAll(u)).Add(`AS pi
+				JOIN pageInfos AS pi
 				ON (p.pageId=pi.pageId)
 				WHERE p.pageId=?`, pageID).Add(`
 					AND (p.creatorId=? OR (NOT p.isSnapshot AND NOT p.isAutosave))`, u.ID).Add(`
@@ -1465,9 +1466,10 @@ func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, domainMap map[
 			pi.currentEdit>0,pi.isDeleted,pi.mergedInto,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
 			pi.viewCount,pi.voteType,pi.indirectTeacher
 		FROM pages AS p
-		JOIN`).AddPart(PageInfosTableAll(u)).Add(`AS pi
+		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId AND p.pageId=?)`, pageID).Add(`
-		WHERE`).AddPart(whereClause).ToStatement(db)
+		WHERE`).AddPart(WherePageInfosAll(u)).Add(`
+			AND`).AddPart(whereClause).ToStatement(db)
 	row := statement.QueryRow()
 	exists, err := row.Scan(&p.PageID, &p.Edit, &p.PrevEdit, &p.Type, &p.Title, &p.Clickbait,
 		&p.Text, &p.MetaText, &p.Alias, &p.EditCreatorID, &p.ExternalUrl, &p.SortChildrenBy,
@@ -1654,10 +1656,11 @@ func LoadRedLinkCount(db *database.DB, u *CurrentUser, pageMap map[string]*Page)
 
 	rows := database.NewQuery(`
 		SELECT l.parentId,SUM(ISNULL(pi.pageId))
-		FROM`).AddPart(PageInfosTable(u)).Add(`AS pi
+		FROM pageInfos AS pi
 		RIGHT JOIN links AS l
 		ON (pi.pageId=l.childAlias OR pi.alias=l.childAlias)
 		WHERE l.parentId IN`).AddArgsGroup(pageIdsList).Add(`
+			AND`).AddPart(WherePageInfos(u)).Add(`
 		GROUP BY 1`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentID string
@@ -1785,9 +1788,10 @@ func LoadLinks(db *database.DB, u *CurrentUser, pageMap map[string]*Page, option
 	// Convert all page aliases to page ids.
 	if len(aliasesList) > 0 {
 		rows = database.NewQuery(`
-			SELECT pageId
-			FROM`).AddPart(PageInfosTable(u)).Add(`AS pi
-			WHERE alias IN`).AddArgsGroup(aliasesList).ToStatement(db).Query()
+			SELECT pi.pageId
+			FROM pageInfos AS pi
+			WHERE pi.alias IN`).AddArgsGroup(aliasesList).Add(`
+				AND`).AddPart(WherePageInfos(u)).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageID string
 			err := rows.Scan(&pageID)
@@ -1827,10 +1831,11 @@ func LoadLearnMore(db *database.DB, u *CurrentUser, pageMap map[string]*Page, op
 	}
 
 	queryPart := database.NewQuery(`
-		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
+		JOIN pageInfos AS pi
 		ON (pi.pageId=pp.childId)
 		WHERE pp.parentId IN`).AddArgsGroupStr(subjectIDs).Add(`
-			AND (pp.type=? || pp.type=?)`, RequirementPagePairType, SubjectPagePairType)
+			AND (pp.type=? || pp.type=?)`, RequirementPagePairType, SubjectPagePairType).Add(`
+			AND`).AddPart(WherePageInfos(u))
 	err := LoadPagePairs(db, queryPart, func(db *database.DB, pp *PagePair) error {
 		for _, page := range sourceMap {
 			for _, subject := range page.Subjects {
@@ -2101,12 +2106,13 @@ func LoadSubpageCounts(db *database.DB, u *CurrentUser, pageMap map[string]*Page
 	rows := database.NewQuery(`
 		SELECT pp.parentId,pp.childId,pi.createdAt,pi.createdBy
 		FROM pagePairs AS pp
-		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
+		JOIN pageInfos AS pi
 		ON (pi.pageId=pp.childId)
 		WHERE pp.type=?`, ParentPagePairType).Add(`
 			AND pp.parentId IN`).AddArgsGroup(pageIDs).Add(`
 			AND pi.type=?`, CommentPageType).Add(`
-			AND pi.isApprovedComment AND NOT isEditorComment AND NOT isResolved`).ToStatement(db).Query()
+			AND pi.isApprovedComment AND NOT isEditorComment AND NOT isResolved`).Add(`
+			AND`).AddPart(WherePageInfos(u)).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentID, childID, createdAt, createdBy string
 		err := rows.Scan(&parentID, &childID, &createdAt, &createdBy)
@@ -2161,11 +2167,12 @@ func LoadCommentIDs(db *database.DB, u *CurrentUser, pageMap map[string]*Page, o
 		WHERE type=?`, ParentPagePairType).Add(`AND childId IN (
 			SELECT pp.childId
 			FROM pagePairs AS pp
-			JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
+			JOIN pageInfos AS pi
 			ON (pi.pageId=pp.childId)
 			WHERE pi.type=?`, CommentPageType).Add(`
 				AND pp.type=?`, ParentPagePairType).Add(`
 				AND pp.parentId IN`).AddArgsGroup(pageIDs).Add(`
+				AND`).AddPart(WherePageInfos(u)).Add(`
 		)`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentID, childID string
@@ -2322,19 +2329,24 @@ func LoadAliasToPageIDMap(db *database.DB, u *CurrentUser, aliases []string) (ma
 	if len(strictPageIDs) <= 0 {
 		query = database.NewQuery(`
 				SELECT pageId,alias
-				FROM`).AddPart(PageInfosTable(u)).Add(`AS pi
-				WHERE alias IN`).AddArgsGroupStr(strictAliases).ToStatement(db)
+				FROM pageInfos AS pi
+				WHERE`).AddPart(WherePageInfos(u)).Add(`
+					AND alias IN`).AddArgsGroupStr(strictAliases).ToStatement(db)
 	} else if len(strictAliases) <= 0 {
 		query = database.NewQuery(`
 				SELECT pageId,alias
-				FROM`).AddPart(PageInfosTable(u)).Add(`AS pi
-				WHERE pageId IN`).AddArgsGroupStr(strictPageIDs).ToStatement(db)
+				FROM pageInfos AS pi
+				WHERE`).AddPart(WherePageInfos(u)).Add(`
+					AND pageId IN`).AddArgsGroupStr(strictPageIDs).ToStatement(db)
 	} else {
 		query = database.NewQuery(`
 				SELECT pageId,alias
-				FROM`).AddPart(PageInfosTable(u)).Add(`AS pi
-				WHERE pageId IN`).AddArgsGroupStr(strictPageIDs).Add(`
-					OR alias IN`).AddArgsGroupStr(strictAliases).ToStatement(db)
+				FROM pageInfos AS pi
+				WHERE`).AddPart(WherePageInfos(u)).Add(`
+					AND (
+						pageId IN`).AddArgsGroupStr(strictPageIDs).Add(`
+						OR alias IN`).AddArgsGroupStr(strictAliases).Add(`
+					)`).ToStatement(db)
 	}
 
 	rows := query.Query()
@@ -2350,7 +2362,7 @@ func LoadAliasToPageIDMap(db *database.DB, u *CurrentUser, aliases []string) (ma
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't convert pageId=>alias", err)
+		return nil, fmt.Errorf("Couldn't convert pageId=>alias: %v", err)
 	}
 
 	// The query only gets results for when the page is published
@@ -2384,10 +2396,11 @@ func LoadExplanations(db *database.DB, resultData *CommonHandlerData, options *L
 
 	pageIDs := PageIDsListFromMap(sourcePageMap)
 	queryPart := database.NewQuery(`
-		JOIN`).AddPart(PageInfosTable(resultData.User)).Add(`AS pi
+		JOIN pageInfos AS pi
 		ON (pp.childId=pi.pageId)`).Add(`
 		WHERE pp.parentId IN`).AddArgsGroup(pageIDs).Add(`
-			AND pp.type=?`, SubjectPagePairType)
+			AND pp.type=?`, SubjectPagePairType).Add(`
+			AND`).AddPart(WherePageInfos(resultData.User))
 	err := LoadPagePairs(db, queryPart, func(db *database.DB, pp *PagePair) error {
 		if pp.IsStrong {
 			sourcePageMap[pp.ParentID].Explanations = append(sourcePageMap[pp.ParentID].Explanations, pp)
@@ -2435,9 +2448,10 @@ func LoadLensesForPages(db *database.DB, resultData *CommonHandlerData, options 
 
 	pageIDs := PageIDsListFromMap(sourcePageMap)
 	queryPart := database.NewQuery(`
-		JOIN`).AddPart(PageInfosTable(resultData.User)).Add(`AS pi
+		JOIN pageInfos AS pi
 		ON (l.lensId=pi.pageId)`).Add(`
-		WHERE l.pageId IN`).AddArgsGroup(pageIDs)
+		WHERE l.pageId IN`).AddArgsGroup(pageIDs).Add(`
+			AND`).AddPart(WherePageInfos(resultData.User))
 	err := LoadLenses(db, queryPart, resultData, func(db *database.DB, lens *Lens) error {
 		sourcePageMap[lens.PageID].Lenses = append(sourcePageMap[lens.PageID].Lenses, lens)
 		AddPageToMap(lens.LensID, resultData.PageMap, LensInfoLoadOptions)

@@ -84,8 +84,9 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 	// Load number of wiki pages and comments created by this user
 	rows := database.NewQuery(`
 		SELECT pi.type,COUNT(*)
-		FROM `).AddPart(core.PageInfosTable(u)).Add(` AS pi
+		FROM pageInfos AS pi
 		WHERE pi.createdBy=?
+			AND`).AddPart(core.WherePageInfos(u)).Add(`
 		GROUP BY pi.type`, u.ID).ToStatement(db).Query()
 	resultMap["numWikiPages"] = 0
 	resultMap["numComments"] = 0
@@ -114,10 +115,11 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 	// Load number of likes on wiki pages and comments created by this user
 	rows = database.NewQuery(`
 		SELECT pi.type,COUNT(*)
-		FROM `).AddPart(core.PageInfosTable(u)).Add(` AS pi
+		FROM pageInfos AS pi
 		JOIN likes AS l
 	    ON pi.likeableId=l.likeableId
 		WHERE pi.createdBy=?
+			AND`).AddPart(core.WherePageInfos(u)).Add(`
 		GROUP BY pi.type`, u.ID).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageType string
@@ -143,11 +145,12 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 	// Load number of users taught by this user
 	var numUsersTaught int
 	row := database.NewQuery(`
-	    SELECT COUNT(DISTINCT ump.userId)
+		SELECT COUNT(DISTINCT ump.userId)
 		FROM userMasteryPairs AS ump
-	    JOIN `).AddPart(core.PageInfosTable(u)).Add(` AS pi
-	    ON ump.taughtBy=pi.pageId
-	    WHERE pi.createdBy=?`, u.ID).ToStatement(db).QueryRow()
+		JOIN pageInfos AS pi
+		ON ump.taughtBy=pi.pageId
+		WHERE pi.createdBy=?`, u.ID).Add(`
+			AND`).AddPart(core.WherePageInfos(u)).ToStatement(db).QueryRow()
 	_, err = row.Scan(&numUsersTaught)
 	if err != nil {
 		return err
@@ -157,11 +160,12 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 	// Load number of requisites taught by this user
 	var numReqsTaught int
 	row = database.NewQuery(`
-	    SELECT COUNT(*)
-	    FROM userMasteryPairs AS ump
-	    JOIN `).AddPart(core.PageInfosTable(u)).Add(` AS pi
-	    ON ump.taughtBy=pi.pageId
-	    WHERE pi.createdBy=?`, u.ID).ToStatement(db).QueryRow()
+	  SELECT COUNT(*)
+	  FROM userMasteryPairs AS ump
+		JOIN pageInfos AS pi
+	  ON ump.taughtBy=pi.pageId
+		WHERE pi.createdBy=?`, u.ID).Add(`
+			AND`).AddPart(core.WherePageInfos(u)).ToStatement(db).QueryRow()
 	_, err = row.Scan(&numReqsTaught)
 	if err != nil {
 		return err
@@ -176,9 +180,11 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 		WHERE type=?`, core.ParentPagePairType).Add(`
 			AND parentId IN (
 				SELECT  pageId
-				FROM `).AddPart(core.PageInfosTable(u)).Add(` AS pi
+				FROM pageInfos AS pi
 				WHERE pi.createdBy=?
-					AND NOT pi.type=?)`, u.ID, core.CommentPageType).ToStatement(db).QueryRow()
+					AND NOT pi.type=?
+					AND`).AddPart(core.WherePageInfos(u)).Add(`
+				)`, u.ID, core.CommentPageType).ToStatement(db).QueryRow()
 	_, err = row.Scan(&numCommentThreads)
 	if err != nil {
 		return err
@@ -192,10 +198,12 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 		FROM pagePairs
 		WHERE type=?`, core.ParentPagePairType).Add(`
 			AND parentId IN (
-				SELECT  pageId
-				FROM `).AddPart(core.PageInfosTable(u)).Add(` AS pi
+				SELECT pi.pageId
+				FROM pageInfos AS pi
 				WHERE pi.createdBy=?
-					AND pi.type=?)`, u.ID, core.CommentPageType).ToStatement(db).QueryRow()
+					AND pi.type=?`, u.ID, core.CommentPageType).Add(`
+					AND`).AddPart(core.WherePageInfos(u)).Add(`
+			)`).ToStatement(db).QueryRow()
 	_, err = row.Scan(&numReplies)
 	if err != nil {
 		return err
@@ -205,9 +213,9 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 	// Load number of edits made.
 	var numEdits int
 	row = database.NewQuery(`
-	    SELECT COUNT(*)
-	    FROM pages
-	    WHERE creatorId=?`, u.ID).ToStatement(db).QueryRow()
+    SELECT COUNT(*)
+    FROM pages
+    WHERE creatorId=?`, u.ID).ToStatement(db).QueryRow()
 	_, err = row.Scan(&numEdits)
 	if err != nil {
 		return err
@@ -217,12 +225,13 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 	// Load number of pages edited.
 	var numPagesEdited int
 	row = database.NewQuery(`
-	    SELECT COUNT(DISTINCT p.pageId)
-		FROM `).AddPart(core.PageInfosTable(u)).Add(` AS pi
+		SELECT COUNT(DISTINCT p.pageId)
+		FROM pageInfos AS pi
 		JOIN pages AS p
 		ON p.pageId=pi.pageId
 		WHERE p.creatorId=?
-			AND NOT pi.type=?`, u.ID, core.CommentPageType).ToStatement(db).QueryRow()
+			AND NOT pi.type=?`, u.ID, core.CommentPageType).Add(`
+			AND`).AddPart(core.WherePageInfos(u)).ToStatement(db).QueryRow()
 	_, err = row.Scan(&numPagesEdited)
 	if err != nil {
 		return err
