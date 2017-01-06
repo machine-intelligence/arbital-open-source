@@ -509,7 +509,7 @@
 							</div>-->
 
 							<!-- Edit group id -->
-							<div layout="row" ng-if="::arb.stateService.domainMap[page.editDomainId].pageId == arb.userService.user.id">
+							<div layout="row" ng-if="::page.permissions.edit.has">
 								<md-input-container flex>
 									<label>Domain</label>
 									<md-select ng-model="page.editDomainId">

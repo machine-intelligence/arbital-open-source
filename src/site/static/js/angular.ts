@@ -553,7 +553,7 @@ app.run(function($http, $location, arb) {
 					return {};
 				}
 
-				// If the page is a user page, user the user-page template
+				// If the page is a user page, use the user-page template
 				if (arb.userService.userMap[page.pageId]) {
 					$scope.userPageIdsMap = data.result;
 					pageTemplate = '<arb-user-page user-id=\'' + page.pageId +
