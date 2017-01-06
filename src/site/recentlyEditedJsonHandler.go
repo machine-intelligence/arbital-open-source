@@ -33,7 +33,7 @@ func LoadRecentlyEdited(db *database.DB, returnData *core.CommonHandlerData, pri
 		WHERE p.creatorId=?`, returnData.User.ID).Add(`
 			AND pi.seeDomainId=?`, privateDomainID).Add(`
 			AND pi.type!=?`, core.CommentPageType).Add(`
-			AND`).AddPart(core.WherePageInfos(returnData.User)).Add(`
+			AND`).AddPart(core.PageInfosFilter(returnData.User)).Add(`
 		GROUP BY 1
 		ORDER BY MAX(p.createdAt) DESC
 		LIMIT ?`, numToLoad).ToStatement(db).Query()

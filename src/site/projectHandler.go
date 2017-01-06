@@ -141,7 +141,7 @@ func loadProjectPageIDs(db *database.DB, returnData *core.CommonHandlerData, pro
 		FROM pageInfos AS pi
 		JOIN links AS l
 		ON ((l.childAlias=pi.pageId OR l.childAlias=pi.alias) AND l.parentId=?)`, projectPageID).Add(`
-		WHERE`).AddPart(core.WherePageInfos(returnData.User)).Add(`
+		WHERE`).AddPart(core.PageInfosFilter(returnData.User)).Add(`
 		GROUP BY 1
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {

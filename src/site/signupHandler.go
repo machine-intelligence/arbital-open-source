@@ -135,7 +135,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				FROM pageInfos AS pi
 				WHERE type=?`, core.GroupPageType).Add(`
 					AND alias=?`, alias).Add(`
-					AND`).AddPart(core.WherePageInfos(nil)).ToStatement(db).QueryRow().Scan(&ignore)
+					AND`).AddPart(core.PageInfosFilter(nil)).ToStatement(db).QueryRow().Scan(&ignore)
 		if err != nil {
 			return pages.Fail("Error checking for existing alias", err)
 		}

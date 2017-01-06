@@ -44,7 +44,7 @@ func (task UpdateElasticPageTask) Execute(db *database.DB) (int, error) {
 		ON (p.pageId=pi.pageId)
 		WHERE p.isLiveEdit
 			AND p.pageId=?`, task.PageID).Add(`
-			AND`).AddPart(core.WherePageInfos(nil)).ToStatement(db).Query()
+			AND`).AddPart(core.PageInfosFilter(nil)).ToStatement(db).Query()
 	err := rows.Process(populateElasticProcessPage)
 	if err != nil {
 		return -1, err

@@ -68,7 +68,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			SELECT pi.pageId
 			FROM pageInfos AS pi
 			WHERE pi.alias=?`, data.UserInput).Add(`
-				AND`).AddPart(core.WherePageInfos(u)).ToStatement(db).QueryRow().Scan(&newMemberID)
+				AND`).AddPart(core.PageInfosFilter(u)).ToStatement(db).QueryRow().Scan(&newMemberID)
 		if err != nil {
 			return pages.Fail("Couldn't check for a user", err)
 		} else if !found {

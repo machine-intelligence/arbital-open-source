@@ -61,7 +61,7 @@ func LoadFeedPages(db *database.DB, u *CurrentUser, queryPart *database.QueryPar
 		FROM feedPages AS fp
 		JOIN pageInfos AS pi
 		ON pi.pageId = fp.pageId`).Add(`
-			AND`).AddPart(WherePageInfos(u)).AddPart(queryPart).ToStatement(db).Query()
+			AND`).AddPart(PageInfosFilter(u)).AddPart(queryPart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var row FeedPage
 		err := rows.Scan(&row.DomainID, &row.PageID, &row.SubmitterID, &row.CreatedAt, &row.Score)

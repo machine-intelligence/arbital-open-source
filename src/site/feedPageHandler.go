@@ -104,7 +104,7 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				AND NOT pi.isResolved AND NOT pi.isEditorComment AND pi.isApprovedComment
 				/* No replies */
 				/*AND pp.childId IN (SELECT childId FROM pagePairs GROUP BY 1 HAVING SUM(1) <= 1)*/
-				AND`).AddPart(core.WherePageInfos(u)).Add(`
+				AND`).AddPart(core.PageInfosFilter(u)).Add(`
 			ORDER BY pi.createdAt DESC
 		) AS t
 		GROUP BY 1,2`).ToStatement(db).Query()

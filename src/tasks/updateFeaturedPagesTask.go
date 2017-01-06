@@ -58,7 +58,7 @@ func (task UpdateFeaturedPagesTask) Execute(db *database.DB) (delay int, err err
 			AND length(p.text)>=?`, minTextLengthForFeaturedPages).Add(`
 			AND pp.type=?`, core.TagPagePairType).Add(`
 			AND pp.parentId IN (?,?)`, core.AClassPageID, core.BClassPageID).Add(`
-			AND`).AddPart(core.WherePageInfos(nil)).Add(`
+			AND`).AddPart(core.PageInfosFilter(nil)).Add(`
 		GROUP BY 1`).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageID string

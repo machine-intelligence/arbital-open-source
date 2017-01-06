@@ -150,7 +150,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			FROM pageInfos AS pi
 			WHERE pageId!=?`, data.PageID).Add(`
 				AND alias=?`, data.Alias).Add(`
-				AND`).AddPart(core.WherePageInfos(u)).ToStatement(db).QueryRow()
+				AND`).AddPart(core.PageInfosFilter(u)).ToStatement(db).QueryRow()
 		exists, err := row.Scan(&existingPageID)
 		if err != nil {
 			return pages.Fail("Failed on looking for conflicting alias", err)

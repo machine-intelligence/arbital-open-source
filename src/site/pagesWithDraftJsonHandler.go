@@ -37,7 +37,7 @@ func LoadPagesWithDraft(db *database.DB, returnData *core.CommonHandlerData, pri
 				AND pi.seeDomainId=?`, privateDomainID).Add(`
 				AND p.edit>pi.currentEdit
 				AND (p.text!="" OR p.title!="")
-				AND`).AddPart(core.WherePageInfosAll(returnData.User)).Add(`
+				AND`).AddPart(core.PageInfosFilterAll(returnData.User)).Add(`
 			GROUP BY p.pageId
 			ORDER BY p.createdAt DESC
 			LIMIT ?`, numToLoad).ToStatement(db).Query()

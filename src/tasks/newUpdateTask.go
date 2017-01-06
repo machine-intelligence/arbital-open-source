@@ -76,7 +76,7 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		FROM pageInfos AS pi
 		WHERE pi.seeDomainId != '0'
 			AND pi.pageId IN (?)`, task.GoToPageID).Add(`
-			AND`).AddPart(core.WherePageInfosWithOptions(nil, &core.PageInfosOptions{Deleted: true})).ToStatement(db).Query()
+			AND`).AddPart(core.PageInfosFilterWithOptions(nil, &core.PageInfosOptions{Deleted: true})).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var domainID string
 		err := rows.Scan(&domainID)

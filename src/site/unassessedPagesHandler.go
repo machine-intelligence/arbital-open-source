@@ -46,7 +46,7 @@ func unassessedPagesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			WHERE pi.editDomainId=?`, core.MathDomainID).Add(`
 				/* Check that this page doesn't have a quality tag */
 				AND pp.type=?`, core.TagPagePairType).Add(`
-				AND`).AddPart(core.WherePageInfos(u)).Add(`
+				AND`).AddPart(core.PageInfosFilter(u)).Add(`
 			GROUP BY 1
 			HAVING SUM(pp.parentId IN (
 					SELECT pp2.childId
