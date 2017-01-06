@@ -18,6 +18,7 @@ const (
 )
 
 type feedData struct {
+	FilterByTagID string
 }
 
 var feedPageHandler = siteHandler{
@@ -38,14 +39,28 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 
-	// Load feed rows
-	feedRows := make([]*core.FeedPage, 0)
-	queryPart := database.NewQuery(`
-		AND NOT pi.hasVote
+	feedRowLoadOptions := (&core.PageLoadOptions{
+		Tags: true,
+	}).Add(core.IntrasitePopoverLoadOptions)
+
+	tagFilter := database.NewQuery("")
+	if len(data.FilterByTagID) > 0 {
+		tagFilter = database.NewQuery(`
+		JOIN pagePairs AS pp
+		ON pi.pageId = pp.childId
+			AND pp.type = ?`, core.TagPagePairType).Add(`
+			AND pp.parentId = ?`, data.FilterByTagID)
+	}
+	orderByAndLimit := database.NewQuery(`
 		ORDER BY fp.score DESC
 		LIMIT 25`)
+
+	// Load feed rows
+	feedRows := make([]*core.FeedPage, 0)
+	queryPart := database.NewQuery(`AND NOT pi.hasVote`).AddPart(tagFilter).AddPart(orderByAndLimit)
+
 	err = core.LoadFeedPages(db, u, queryPart, func(db *database.DB, feedPage *core.FeedPage) error {
-		core.AddPageToMap(feedPage.PageID, returnData.PageMap, core.IntrasitePopoverLoadOptions)
+		core.AddPageToMap(feedPage.PageID, returnData.PageMap, feedRowLoadOptions)
 		feedRows = append(feedRows, feedPage)
 		return nil
 	})
@@ -55,12 +70,10 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Load claim rows
 	claimRows := make([]*core.FeedPage, 0)
-	queryPart = database.NewQuery(`
-		AND pi.hasVote
-		ORDER BY fp.score DESC
-		LIMIT 25`)
+	queryPart = database.NewQuery(`AND pi.hasVote`).AddPart(tagFilter).AddPart(orderByAndLimit)
+
 	err = core.LoadFeedPages(db, u, queryPart, func(db *database.DB, feedPage *core.FeedPage) error {
-		core.AddPageToMap(feedPage.PageID, returnData.PageMap, core.IntrasitePopoverLoadOptions)
+		core.AddPageToMap(feedPage.PageID, returnData.PageMap, feedRowLoadOptions)
 		claimRows = append(claimRows, feedPage)
 		return nil
 	})
