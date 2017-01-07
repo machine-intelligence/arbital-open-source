@@ -18,7 +18,7 @@ const (
 )
 
 type feedData struct {
-	FilterByTagID string
+	FilterByTagAlias string `json:"filterByTagAlias"`
 }
 
 var feedPageHandler = siteHandler{
@@ -39,17 +39,30 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 
+	filterByTagID := ""
+	if len(data.FilterByTagAlias) > 0 {
+		// Get actual tag id
+		tagID, ok, err := core.LoadAliasToPageID(db, u, data.FilterByTagAlias)
+		if err != nil {
+			return pages.Fail("Couldn't convert alias", err)
+		}
+		if !ok {
+			return pages.Fail("Couldn't find tag", err)
+		}
+		filterByTagID = tagID
+	}
+
 	feedRowLoadOptions := (&core.PageLoadOptions{
 		Tags: true,
 	}).Add(core.IntrasitePopoverLoadOptions)
 
 	tagFilter := database.NewQuery("")
-	if len(data.FilterByTagID) > 0 {
+	if len(filterByTagID) > 0 {
 		tagFilter = database.NewQuery(`
 		JOIN pagePairs AS pp
 		ON pi.pageId = pp.childId
 			AND pp.type = ?`, core.TagPagePairType).Add(`
-			AND pp.parentId = ?`, data.FilterByTagID)
+			AND pp.parentId = ?`, filterByTagID)
 	}
 	orderByAndLimit := database.NewQuery(`
 		ORDER BY fp.score DESC

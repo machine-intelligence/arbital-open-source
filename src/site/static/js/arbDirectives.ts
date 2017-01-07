@@ -800,11 +800,14 @@ app.directive('arbTag', function(arb) {
 		replace: true,
 		scope: {
 			tagId: '@',
+			url: '@',
 		},
 		controller: function($scope) {
 			var tag = arb.stateService.getPage($scope.tagId);
 			$scope.tagName = tag ? tag.title : $scope.tagId;
-			$scope.url = arb.urlService.getPageUrl($scope.tagId);
+			if (!$scope.url) {
+				$scope.url = arb.urlService.getPageUrl($scope.tagId);
+			}
 		},
 	};
 });
