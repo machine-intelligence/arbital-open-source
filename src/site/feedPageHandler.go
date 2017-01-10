@@ -101,38 +101,40 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		claimMap[claimRow.PageID] = claimRow
 	}
 
-	// For each claim row, find the best comment to show
-	rows := database.NewQuery(`
-		SELECT t.parentId,t.childId
-		FROM (
-			SELECT pp.parentId,pp.childId
-			FROM pagePairs AS pp
-			JOIN pageInfos AS pi
-			ON (pp.childId = pi.pageId)
-			JOIN pages AS p
-			ON (pi.pageId = p.pageId AND p.isLiveEdit)
-			WHERE pp.parentId IN`).AddArgsGroupStr(claimIDs).Add(`
-				AND length(p.text) >= ?`, MinFeaturedCommentTextLength).Add(`
-				AND pi.type=?`, core.CommentPageType).Add(`
-				AND NOT pi.isResolved AND NOT pi.isEditorComment AND pi.isApprovedComment
-				/* No replies */
-				/*AND pp.childId IN (SELECT childId FROM pagePairs GROUP BY 1 HAVING SUM(1) <= 1)*/
-				AND`).AddPart(core.PageInfosFilter(u)).Add(`
-			ORDER BY pi.createdAt DESC
-		) AS t
-		GROUP BY 1,2`).ToStatement(db).Query()
-	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var claimPageID, commentID string
-		err := rows.Scan(&claimPageID, &commentID)
+	if len(claimIDs) > 0 {
+		// For each claim row, find the best comment to show
+		rows := database.NewQuery(`
+			SELECT t.parentId,t.childId
+			FROM (
+				SELECT pp.parentId,pp.childId
+				FROM pagePairs AS pp
+				JOIN pageInfos AS pi
+				ON pp.parentId IN`).AddArgsGroupStr(claimIDs).Add(`
+					AND pp.childId = pi.pageId
+					AND pi.type=?`, core.CommentPageType).Add(`
+					AND NOT pi.isResolved AND NOT pi.isEditorComment AND pi.isApprovedComment
+				JOIN pages AS p
+				ON pi.pageId = p.pageId AND p.isLiveEdit
+					AND length(p.text) >= ?`, MinFeaturedCommentTextLength).Add(`
+					/* No replies */
+					/*AND pp.childId IN (SELECT childId FROM pagePairs GROUP BY 1 HAVING SUM(1) <= 1)*/
+					AND`).AddPart(core.PageInfosFilter(u)).Add(`
+				ORDER BY pi.createdAt DESC
+			) AS t
+			GROUP BY 1,2`).ToStatement(db).Query()
+		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+			var claimPageID, commentID string
+			err := rows.Scan(&claimPageID, &commentID)
+			if err != nil {
+				return fmt.Errorf("Failed to scan: %v", err)
+			}
+			claimMap[claimPageID].FeaturedCommentID = commentID
+			core.AddPageToMap(commentID, returnData.PageMap, core.SubpageLoadOptions)
+			return nil
+		})
 		if err != nil {
-			return fmt.Errorf("Failed to scan: %v", err)
+			return pages.Fail("Couldn't load featured claims", err)
 		}
-		claimMap[claimPageID].FeaturedCommentID = commentID
-		core.AddPageToMap(commentID, returnData.PageMap, core.SubpageLoadOptions)
-		return nil
-	})
-	if err != nil {
-		return pages.Fail("Couldn't load featured claims", err)
 	}
 
 	// Load the pages
