@@ -556,7 +556,11 @@ func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOption
 		}
 
 		// Subscribe this user to the page that they just created.
-		err2 := AddSubscription(tx, u.ID, options.PageID, true)
+		err2 := AddSubscription(tx, u.ID, DiscussionSubscriptionTable, options.PageID)
+		if err2 != nil {
+			return err2
+		}
+		err2 = AddSubscription(tx, u.ID, MaintainerSubscriptionTable, options.PageID)
 		if err2 != nil {
 			return err2
 		}
@@ -600,13 +604,16 @@ func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOption
 }
 
 // Create / update a subscription
-func AddSubscription(tx *database.Tx, userID string, toPageID string, asMaintainer bool) sessions.Error {
+func AddSubscription(tx *database.Tx, userID, tableName, toID string) sessions.Error {
 	hashmap := make(database.InsertMap)
 	hashmap["userId"] = userID
-	hashmap["toId"] = toPageID
+	if tableName == UserSubscriptionTable {
+		hashmap["toUserId"] = toID
+	} else {
+		hashmap["toPageId"] = toID
+	}
 	hashmap["createdAt"] = database.Now()
-	hashmap["asMaintainer"] = asMaintainer
-	statement := tx.DB.NewInsertStatement("subscriptions", hashmap, "asMaintainer").WithTx(tx)
+	statement := tx.DB.NewInsertStatement(tableName, hashmap, "userId").WithTx(tx)
 	_, err := statement.Exec()
 	if err != nil {
 		return sessions.NewError("Couldn't subscribe", err)

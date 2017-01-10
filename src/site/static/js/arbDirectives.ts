@@ -435,10 +435,10 @@ app.directive('arbLikes', function($http, arb) {
 	};
 });
 
-// subscribe directive displays the button for subscribing to a page.
-app.directive('arbSubscribe', function($http, arb) {
+// subscribe directive displays the button for subscribing to a discussion.
+app.directive('arbSubscribeToDiscussion', function($http, arb) {
 	return {
-		templateUrl: versionUrl('static/html/subscribe.html'),
+		templateUrl: versionUrl('static/html/subscribeToDiscussion.html'),
 		scope: {
 			pageId: '@',
 			// If true, the button is not an icon button, but is a normal button with a label
@@ -449,13 +449,14 @@ app.directive('arbSubscribe', function($http, arb) {
 			$scope.page = arb.stateService.pageMap[$scope.pageId];
 
 			$scope.isSubscribed = function() {
-				return arb.stateService.pageMap[$scope.pageId].isSubscribed;
+				return $scope.page.isSubscribedToDiscussion;
 			};
 
 			// User clicked on the subscribe button
 			$scope.subscribeClick = function() {
-				arb.stateService.pageMap[$scope.pageId].isSubscribed = !$scope.isSubscribed();
+				arb.stateService.pageMap[$scope.pageId].isSubscribedToDiscussion = !$scope.isSubscribed();
 				let postParams = {
+					table: 'discussionSubscriptions',
 					toId: $scope.pageId,
 					isSubscribed: $scope.isSubscribed(),
 				};
@@ -486,9 +487,40 @@ app.directive('arbSubscribeToMaintain', function($http, arb) {
 			$scope.subscribeClick = function() {
 				arb.stateService.pageMap[$scope.pageId].isSubscribedAsMaintainer  = !$scope.isSubscribed();
 				let postParams = {
+					table: 'maintainerSubscriptions',
 					toId: $scope.pageId,
 					isSubscribed: $scope.isSubscribed(),
-					asMaintainer: true,
+				};
+				arb.stateService.postDataWithoutProcessing('/updateSubscription/', postParams);
+			};
+		},
+	};
+});
+
+// subscribe directive displays the button for subscribing to a user.
+app.directive('arbSubscribeToUser', function($http, arb) {
+	return {
+		templateUrl: versionUrl('static/html/subscribeToUser.html'),
+		scope: {
+			userId: '@',
+			// If true, the button is not an icon button, but is a normal button with a label
+			isStretched: '=',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+			$scope.page = arb.stateService.pageMap[$scope.userId];
+
+			$scope.isSubscribed = function() {
+				return arb.stateService.pageMap[$scope.pageId].isSubscribedToUser;
+			};
+
+			// User clicked on the subscribe button
+			$scope.subscribeClick = function() {
+				arb.stateService.pageMap[$scope.pageId].isSubscribedToUser = !$scope.isSubscribed();
+				let postParams = {
+					table: 'userSubscriptions',
+					toId: $scope.userId,
+					isSubscribed: $scope.isSubscribed(),
 				};
 				arb.stateService.postDataWithoutProcessing('/updateSubscription/', postParams);
 			};
@@ -929,14 +961,10 @@ app.directive('arbLensToolbar', function($window, $mdConstant, $mdUtil, $compile
 			// Process click on "Subscribe as maintainer"
 			$scope.toggleMaintainerSub = function() {
 				$scope.page.isSubscribedAsMaintainer = !$scope.page.isSubscribedAsMaintainer;
-				if ($scope.page.isSubscribedAsMaintainer) {
-					$scope.page.isSubscribed = true;
-				}
-
 				$http({method: 'POST', url: '/updateSubscription/', data: JSON.stringify({
+					table: 'maintainerSubscriptions',
 					toId: $scope.page.pageId,
-					isSubscribed: $scope.page.isSubscribed,
-					asMaintainer: $scope.page.isSubscribedAsMaintainer,
+					isSubscribed: $scope.page.isSubscribedAsMaintainer,
 				})});
 			};
 		},

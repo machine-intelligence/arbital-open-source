@@ -94,12 +94,7 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	var query *database.QueryPart
 	// Iterate through all users who are subscribed to this page/comment.
 	// If it is an editors only comment, only select editor ids.
-	query = database.NewQuery(`
-			SELECT DISTINCT s.userId
-			FROM subscriptions AS s
-			JOIN pages as p
-			ON s.userId = p.creatorId
-			WHERE s.toId=? AND p.pageId=?`, task.SubscribedToID, task.SubscribedToID)
+	query = database.NewQuery(`SELECT s.userId`)
 	if !task.ForceMaintainersOnly &&
 		(task.UpdateType == core.TopLevelCommentUpdateType || task.UpdateType == core.ReplyUpdateType ||
 			task.UpdateType == core.NewPageByUserUpdateType || task.UpdateType == core.AtMentionUpdateType ||
@@ -107,10 +102,12 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 			task.UpdateType == core.InviteReceivedUpdateType || task.UpdateType == core.ResolvedMarkUpdateType ||
 			task.UpdateType == core.AnsweredMarkUpdateType) {
 		// This update can be shown to all users who are subscribed
+		query.Add(`FROM discussionSubscriptions AS s`)
 	} else {
 		// This update is only for authors who explicitly opted into maintaining the page
-		query = query.Add(`AND s.asMaintainer`)
+		query.Add(`FROM maintainerSubscriptions AS s`)
 	}
+	query.Add(`WHERE s.toPageId=?`, task.SubscribedToID)
 	if len(requiredDomainIDs) > 0 {
 		query = query.Add(`AND
 		(

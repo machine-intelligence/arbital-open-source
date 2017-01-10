@@ -68,6 +68,11 @@ const (
 	TypoMarkType      = "typo"
 	ConfusionMarkType = "confusion"
 
+	// Subscription table names
+	DiscussionSubscriptionTable = "discussionSubscriptions"
+	UserSubscriptionTable       = "userSubscriptions"
+	MaintainerSubscriptionTable = "maintainerSubscriptions"
+
 	// How long the page lock lasts
 	PageQuickLockDuration = 5 * 60  // in seconds
 	PageLockDuration      = 30 * 60 // in seconds
@@ -158,10 +163,14 @@ type Page struct {
 
 	// === Auxillary data. ===
 	// For some pages we load additional data.
-	IsSubscribed             bool `json:"isSubscribed"`
+	// Set to true if the current user is subscribed to this page/user
+	IsSubscribedToDiscussion bool `json:"isSubscribedToDiscussion"`
+	IsSubscribedToUser       bool `json:"isSubscribedToUser"`
 	IsSubscribedAsMaintainer bool `json:"isSubscribedAsMaintainer"`
-	SubscriberCount          int  `json:"subscriberCount"`
-	MaintainerCount          int  `json:"maintainerCount"`
+	// Number of subscribers for this page, not counting the current user
+	DiscussionSubscriberCount int `json:"discussionSubscriberCount"`
+	MaintainerCount           int `json:"maintainerCount"`
+	UserSubscriberCount       int `json:"userSubscriberCount"`
 	// Last time the user visited this page.
 	LastVisit string `json:"lastVisit"`
 	// True iff the user has a work-in-progress draft for this page
@@ -825,17 +834,10 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	}
 
 	// Load subscriptions
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.IsSubscribed })
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Subscriptions })
 	err = LoadSubscriptions(db, u.ID, filteredPageMap)
 	if err != nil {
 		return fmt.Errorf("LoadSubscriptions failed: %v", err)
-	}
-
-	// Load subscriber count
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.SubscriberCount })
-	err = LoadSubscriberCount(db, u.ID, filteredPageMap)
-	if err != nil {
-		return fmt.Errorf("LoadSubscriberCount failed: %v", err)
 	}
 
 	// Load subpage counts
@@ -2001,11 +2003,10 @@ func LoadMarkIDs(db *database.DB, u *CurrentUser, pageMap map[string]*Page, mark
 	pageIdsPart := database.NewQuery(``).AddArgsGroup(pageIDs)
 	if options.EditorConstraint {
 		pageIdsPart = database.NewQuery(`(
-			SELECT s.toId
-			FROM subscriptions AS s
-			WHERE s.toId IN`).AddArgsGroup(pageIDs).Add(`
+			SELECT s.toPageId
+			FROM maintainerSubscriptions AS s
+			WHERE s.toPageId IN`).AddArgsGroup(pageIDs).Add(`
 				AND s.userId=?`, u.ID).Add(`
-				AND s.asMaintainer
 		)`)
 		constraint.Add(`AND m.isSubmitted`)
 	}
@@ -2257,51 +2258,58 @@ func LoadLastVisits(db *database.DB, u *CurrentUser, pageMap map[string]*Page) e
 }
 
 // LoadSubscriptions loads subscription statuses corresponding to the given
-// pages, and then updates the given maps.
+// pages, as well as subscription counts.
 func LoadSubscriptions(db *database.DB, currentUserID string, pageMap map[string]*Page) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
 	pageIDs := PageIDsListFromMap(pageMap)
 	rows := database.NewQuery(`
-		SELECT toId,asMaintainer
-		FROM subscriptions
-		WHERE userId=?`, currentUserID).Add(`AND toId IN`).AddArgsGroup(pageIDs).ToStatement(db).Query()
+		SELECT t.toId,t.type,sum(1),sum(t.userId=?)`, currentUserID).Add(`
+		FROM (
+			SELECT toPageId AS toId,userId,? AS type`, DiscussionSubscriptionTable).Add(`
+			FROM discussionSubscriptions
+			WHERE toPageId IN`).AddArgsGroup(pageIDs).Add(`
+			UNION ALL
+			SELECT toPageId AS toId,userId,? AS type`, MaintainerSubscriptionTable).Add(`
+			FROM maintainerSubscriptions
+			WHERE toPageId IN`).AddArgsGroup(pageIDs).Add(`
+			UNION ALL
+			SELECT toUserId AS toId,userId,? AS type`, UserSubscriptionTable).Add(`
+			FROM userSubscriptions
+			WHERE toUserId IN`).AddArgsGroup(pageIDs).Add(`
+		) AS t
+		/* Need to check for NULL rows because of how UNION ALL works when it doesn't find any rows. */
+		WHERE NOT ISNULL(t.toId)
+		GROUP BY 1,2`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var toPageID string
-		var asMaintainer bool
-		err := rows.Scan(&toPageID, &asMaintainer)
+		var toPageID, subType string
+		var count, isCurrentUserSubscribed int
+		err := rows.Scan(&toPageID, &subType, &count, &isCurrentUserSubscribed)
 		if err != nil {
-			return fmt.Errorf("Failed to scan for a subscription: %v", err)
+			return fmt.Errorf("failed to scan for a subscription count: %v", err)
 		}
-		pageMap[toPageID].IsSubscribed = true
-		pageMap[toPageID].IsSubscribedAsMaintainer = asMaintainer
-		return nil
-	})
-	return err
-}
-
-// LoadSubscriberCount loads number of subscribers the page has.
-func LoadSubscriberCount(db *database.DB, currentUserID string, pageMap map[string]*Page) error {
-	if len(pageMap) <= 0 {
-		return nil
-	}
-	pageIDs := PageIDsListFromMap(pageMap)
-	rows := database.NewQuery(`
-		SELECT toId,COUNT(*),SUM(asMaintainer)
-		FROM subscriptions
-		WHERE userId!=?`, currentUserID).Add(`
-			AND toId IN`).AddArgsGroup(pageIDs).Add(`
-		GROUP BY 1`).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var toPageID string
-		var subscriberCount, maintainerCount int
-		err := rows.Scan(&toPageID, &subscriberCount, &maintainerCount)
-		if err != nil {
-			return fmt.Errorf("failed to scan for a subscription: %v", err)
+		if subType == DiscussionSubscriptionTable {
+			pageMap[toPageID].DiscussionSubscriberCount = count
+			if isCurrentUserSubscribed > 0 {
+				pageMap[toPageID].DiscussionSubscriberCount--
+				pageMap[toPageID].IsSubscribedToDiscussion = true
+			}
+		} else if subType == MaintainerSubscriptionTable {
+			pageMap[toPageID].MaintainerCount = count
+			if isCurrentUserSubscribed > 0 {
+				pageMap[toPageID].MaintainerCount--
+				pageMap[toPageID].IsSubscribedAsMaintainer = true
+			}
+		} else if subType == UserSubscriptionTable {
+			pageMap[toPageID].UserSubscriberCount = count
+			if isCurrentUserSubscribed > 0 {
+				pageMap[toPageID].UserSubscriberCount--
+				pageMap[toPageID].IsSubscribedToUser = true
+			}
+		} else {
+			return fmt.Errorf("Couldn't decode subscription type: %v", subType)
 		}
-		pageMap[toPageID].SubscriberCount = subscriberCount
-		pageMap[toPageID].MaintainerCount = maintainerCount
 		return nil
 	})
 	return err

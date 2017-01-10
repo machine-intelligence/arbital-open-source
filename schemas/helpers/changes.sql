@@ -64,3 +64,50 @@ update domainMembers as dm set role="arbitrator" where (select d.pageId from dom
 alter table pageInfos add column submitToDomainId bigint not null;
 
 alter table feedPages add column score double not null;
+
+CREATE TABLE discussionSubscriptions (
+
+	/* User id of the subscriber. FK into users. */
+	userId VARCHAR(32) NOT NULL,
+
+	/* Id of page/comment the user is subscribed to. FK into pageInfos. */
+	toPageId VARCHAR(32) NOT NULL,
+
+	/* When this subscription was created. */
+	createdAt DATETIME NOT NULL,
+
+  	PRIMARY KEY(userId, toPageId)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE userSubscriptions (
+
+	/* User id of the subscriber. FK into users. */
+	userId VARCHAR(32) NOT NULL,
+
+	/* Id of the user this user is subscribed to. FK into users. */
+	toUserId VARCHAR(32) NOT NULL,
+
+	/* When this subscription was created. */
+	createdAt DATETIME NOT NULL,
+
+  	PRIMARY KEY(userId, toUserId)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE maintainerSubscriptions (
+
+	/* User id of the subscriber. FK into users. */
+	userId VARCHAR(32) NOT NULL,
+
+	/* Id of the page the user is subscribed to. FK into pageInfos. */
+	toPageId VARCHAR(32) NOT NULL,
+
+	/* When this subscription was created. */
+	createdAt DATETIME NOT NULL,
+
+  	PRIMARY KEY(userId, toPageId)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+insert into maintainerSubscriptions (userId,toPageId,createdAt) (select userId,toId,createdAt from subscriptions where asMaintainer);
+insert into userSubscriptions (userId,toUserId,createdAt) (select userId,toId,createdAt from subscriptions where toId in (select id from users));
+delete from subscriptions where toId in (select id from users);
+insert into discussionSubscriptions (userId,toPageId,createdAt) (select userId,toId,createdAt from subscriptions);
+drop table subscriptions;

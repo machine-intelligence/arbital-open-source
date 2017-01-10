@@ -12,6 +12,12 @@
 		</div>
 	</div>-->
 
+	<!-- Subscribe -->
+	<div class="page-discussion-toolbar" layout="row" layout-align="end start">
+		<arb-subscribe-to-discussion page-id="{{page.pageId}}"
+				is-stretched="::!isTinyScreen"></arb-subscribe-to-discussion>
+	</div>
+
 	<div ng-repeat="subpageId in page.subpageIds">
 		<div arb-subpage
 				lens-id="{{::page.pageId}}"

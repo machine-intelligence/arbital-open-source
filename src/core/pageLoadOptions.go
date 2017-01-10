@@ -53,8 +53,7 @@ type PageLoadOptions struct {
 	Votes           bool
 	VoteSummary     bool
 	LastVisit       bool
-	IsSubscribed    bool
-	SubscriberCount bool
+	Subscriptions   bool
 	LinkedMarkCount bool
 	RedLinkCount    bool
 	Mastery         bool
@@ -123,7 +122,7 @@ var (
 		LinkedMarkCount:       true,
 		ProposalEditNum:       true,
 		Text:                  true,
-		IsSubscribed:          true,
+		Subscriptions:         true,
 	}).Add(EmptyLoadOptions)
 	// Options for loading a full lens
 	LensFullLoadOptions = (&PageLoadOptions{
@@ -156,8 +155,7 @@ var (
 		HasDraft:        true,
 		IndividualLikes: true,
 		Votes:           true,
-		SubscriberCount: true,
-		IsSubscribed:    true,
+		Subscriptions:   true,
 		Text:            true,
 		PageObjects:     true,
 	}).Add(TitlePlusLoadOptions)
@@ -167,8 +165,7 @@ var (
 		Links:           true,
 		Votes:           true,
 		VoteSummary:     true,
-		IsSubscribed:    true,
-		SubpageCounts:   true,
+		Subscriptions:   true,
 		AnswerCounts:    true,
 		Summaries:       true,
 		LastVisit:       true,

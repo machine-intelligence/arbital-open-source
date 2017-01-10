@@ -578,7 +578,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		// TODO: actually fetch the newly created comment from the server
 		comment.pageCreatedAt = moment().utc().format('YYYY-MM-DD HH:mm:ss');
 		comment.permissions.comment.has = true;
-		comment.isSubscribed = true;
+		comment.isSubscribedToDiscussion = true;
 
 		// If this comment is a reply, we add it to the parent comment. Otherwise we
 		// add it to the lens its on.

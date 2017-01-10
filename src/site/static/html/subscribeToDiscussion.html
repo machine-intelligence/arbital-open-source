@@ -1,0 +1,19 @@
+<md-button arb-user-check
+		aria-label="subscribe"
+		ng-class="::{'md-icon-button': !isStretched, 'md-raised': !page.isComment()}"
+		ng-click="subscribeClick()">
+	<span ng-if="::!page.isComment()">
+		Watch discussion
+	</span>
+	<md-icon ng-if="isSubscribed()">visibility</md-icon>
+	<md-icon md-svg-icon="visibility_outline" ng-if="!isSubscribed()"></md-icon>
+	<span class="like-count">
+		{{page.discussionSubscriberCount + (isSubscribed() ? 1 : 0)}}
+	</span>
+	<md-tooltip md-delay="500" md-direction="top" ng-if="!isSubscribed()">
+		Receive notifications when new top-level comments are posted
+	</md-tooltip>
+	<md-tooltip md-delay="500" md-direction="top" ng-if="isSubscribed()">
+		Stop receiving comment notifications
+	</md-tooltip>
+</md-button>

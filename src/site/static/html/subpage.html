@@ -48,11 +48,11 @@
 				<span class="md-caption" ng-bind="::(page.pageCreatedAt | smartDateTime)"></span>
 			</div>
 
-			<arb-subscribe page-id="{{::page.pageId}}"
+			<arb-subscribe-to-discussion page-id="{{::page.pageId}}"
 					show-subscriber-count="::!isTinyScreen"
 					is-stretched="true"
 					class="short-button s16"
-					ng-if="::!parentSubpageId"></arb-subscribe>
+					ng-if="::!parentSubpageId"></arb-subscribe-to-discussion>
 
 			<arb-likes object-id="{{::page.pageId}}" is-button="true" is-stretched="false" class="s16"></arb-likes>
 

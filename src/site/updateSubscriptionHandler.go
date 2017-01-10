@@ -13,9 +13,9 @@ import (
 )
 
 type updateSubscriptionData struct {
+	Table        string `json:"table"`
 	ToID         string `json:"toId"`
 	IsSubscribed bool   `json:"isSubscribed"`
-	AsMaintainer bool   `json:asMaintainer"`
 }
 
 var updateSubscriptionHandler = siteHandler{
@@ -39,12 +39,22 @@ func updateSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if !core.IsIDValid(data.ToID) {
 		return pages.Fail("ToId has to be set", err).Status(http.StatusBadRequest)
 	}
+	if data.Table != core.DiscussionSubscriptionTable &&
+		data.Table != core.UserSubscriptionTable &&
+		data.Table != core.MaintainerSubscriptionTable {
+		return pages.Fail("Invalid subscription table", nil).Status(http.StatusBadRequest)
+	}
 
 	if !data.IsSubscribed {
 		// Delete the subscription
+		toId := `toPageId`
+		if data.Table == core.UserSubscriptionTable {
+			toId = `toUserId`
+		}
 		query := database.NewQuery(`
-			DELETE FROM subscriptions
-			WHERE userId=? AND toId=?`, u.ID, data.ToID)
+			DELETE FROM `+data.Table+`
+			WHERE userId=?`, u.ID).Add(`
+				AND `+toId+`=?`, data.ToID)
 		if _, err := query.ToStatement(db).Exec(); err != nil {
 			return pages.Fail("Couldn't delete a subscription", err)
 		}
@@ -53,7 +63,7 @@ func updateSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Otherwise, create/update it
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		return core.AddSubscription(tx, u.ID, data.ToID, data.AsMaintainer)
+		return core.AddSubscription(tx, u.ID, data.Table, data.ToID)
 	})
 	if err2 != nil {
 		return pages.FailWith(err2)

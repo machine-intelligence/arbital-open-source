@@ -54,7 +54,7 @@ func exploreJSONHandler(params *pages.HandlerParams) *pages.Result {
 		HasGrandChildren: true,
 		Tags:             true,
 		Lenses:           true,
-		IsSubscribed:     true,
+		Subscriptions:    true,
 		RedLinkCount:     true,
 	}).Add(core.TitlePlusLoadOptions)
 	core.AddPageToMap(pageID, returnData.PageMap, loadOptions)

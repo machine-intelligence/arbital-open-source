@@ -399,7 +399,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// Subscribe this user to the parent comment
 		if !oldPage.WasPublished && isNewCurrentEdit &&
 			oldPage.Type == core.CommentPageType && core.IsIDValid(commentParentID) {
-			err2 := core.AddSubscription(tx, u.ID, commentParentID, false)
+			err2 := core.AddSubscription(tx, u.ID, core.DiscussionSubscriptionTable, commentParentID)
 			if err2 != nil {
 				return err2
 			}

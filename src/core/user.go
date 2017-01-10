@@ -85,9 +85,10 @@ func LoadUsers(db *database.DB, userMap map[string]*User, currentUserID string) 
 		) AS u
 		LEFT JOIN (
 			SELECT *
-			FROM subscriptions WHERE userId=?`, currentUserID).Add(`
+			FROM userSubscriptions
+			WHERE userId=?`, currentUserID).Add(`
 		) AS s
-		ON (u.id=s.toId)`).ToStatement(db).Query()
+		ON (u.id=s.toUserId)`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var u coreUserData
 		err := rows.Scan(&u.ID, &u.FirstName, &u.LastName, &u.LastWebsiteVisit, &u.IsSubscribed)

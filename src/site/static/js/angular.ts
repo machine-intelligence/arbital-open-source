@@ -279,11 +279,10 @@ app.run(function($http, $location, arb) {
 
 						$scope.subscribeAsMaintainer = function() {
 							$http({method: 'POST', url: '/updateSubscription/', data: JSON.stringify({
+								table: 'maintainerSubscriptions',
 								toId: page.pageId,
 								isSubscribed: true,
-								asMaintainer: true,
 							})});
-							arb.stateService.pageMap[page.pageId].isSubscribed = true;
 							arb.stateService.pageMap[page.pageId].isSubscribedAsMaintainer = true;
 
 							arb.popupService.showToast({
