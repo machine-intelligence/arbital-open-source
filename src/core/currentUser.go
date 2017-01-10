@@ -234,7 +234,7 @@ func LoadNewAchievementCount(db *database.DB, user *CurrentUser) (int, error) {
 		ON pi.likeableId=l.likeableId
 		JOIN users AS u
 		ON l.userId=u.id
-		WHERE`).AddPart(WherePageInfos(user)).Add(`
+		WHERE`).AddPart(PageInfosFilter(user)).Add(`
 			AND pi.createdBy=?`, user.ID).Add(`
 			AND l.userId!=?`, user.ID).Add(`
 			AND l.value=1
@@ -267,7 +267,7 @@ func LoadNewAchievementCount(db *database.DB, user *CurrentUser) (int, error) {
 		ON ump.taughtBy=pi.pageId
 		JOIN users AS u
 		ON ump.userId=u.id
-		WHERE`).AddPart(WherePageInfos(user)).Add(`
+		WHERE`).AddPart(PageInfosFilter(user)).Add(`
 			AND pi.createdBy=?`, user.ID).Add(`
 			AND ump.has=1 AND ump.userId!=?`, user.ID).Add(`
 			AND ump.updatedAt>?`, lastAchievementsView).ToStatement(db).QueryRow()

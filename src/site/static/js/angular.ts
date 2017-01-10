@@ -98,7 +98,28 @@ app.run(function($http, $location, arb) {
 				}))
 				.error($scope.getErrorFunc('domainPage'));
 			} else {
+				// TODO: this is duplicated in the FeedPage handler
 				$http({method: 'POST', url: '/json/feed/', data: JSON.stringify({})})
+				.success($scope.getSuccessFunc(function(data) {
+					$scope.feedRows = data.result.feedRows;
+					$scope.claimRows = data.result.claimRows;
+					return {
+						content: $scope.newElement('<arb-feed-page feed-rows=\'feedRows\' claim-rows=\'claimRows\'></arb-feed-page>'),
+						analytics: {page: 'index'},
+					};
+				}))
+				.error($scope.getErrorFunc('index'));
+			}
+		},
+	});
+	arb.urlService.addUrlHandler('/feed/:filterByTagAlias?', {
+		name: 'FeedPage',
+		handler: function(args, $scope) {
+			if ($scope.subdomain || !args.filterByTagAlias) {
+				$location.path('/');
+			} else {
+				// TODO: this is duplicated from the IndexPage handler
+				$http({method: 'POST', url: '/json/feed/', data: JSON.stringify({'filterByTagAlias':args.filterByTagAlias})})
 				.success($scope.getSuccessFunc(function(data) {
 					$scope.feedRows = data.result.feedRows;
 					$scope.claimRows = data.result.claimRows;
@@ -359,12 +380,6 @@ app.run(function($http, $location, arb) {
 				};
 			}))
 			.error($scope.getErrorFunc('explore'));
-		},
-	});
-	arb.urlService.addUrlHandler('/feed/', {
-		name: 'FeedPage',
-		handler: function(args, $scope) {
-			$location.path('/');
 		},
 	});
 	arb.urlService.addUrlHandler('/learn/:pageAlias?', {

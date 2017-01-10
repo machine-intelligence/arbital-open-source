@@ -66,7 +66,7 @@ func loadRelationships(db *database.DB, aliases []string, returnData *core.Commo
 			ON d.pageId=pi.editDomainId AND d.id=?`, core.MathDomainID)
 	}
 	query.Add(`WHERE l.childAlias IN`).AddIdsGroupStr(aliases).Add(`
-		AND`).AddPart(core.WherePageInfos(returnData.User))
+		AND`).AddPart(core.PageInfosFilter(returnData.User))
 
 	rows := query.ToStatement(db).Query()
 	loadOptions := (&core.PageLoadOptions{}).Add(core.TitlePlusLoadOptions)

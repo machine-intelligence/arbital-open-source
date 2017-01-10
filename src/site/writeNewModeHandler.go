@@ -201,7 +201,7 @@ func loadContentRequests(db *database.DB, returnData *core.CommonHandlerData, li
 			/* Having no dislikes */
 			WHERE !COALESCE(hasAnyDownvotes,0)
 				AND NOT cr.type IN (?,?)`, string(core.SlowDown), string(core.SpeedUp)).Add(`
-				AND`).AddPart(core.WherePageInfos(returnData.User)).Add(`
+				AND`).AddPart(core.PageInfosFilter(returnData.User)).Add(`
 			GROUP BY cr.id
 			ORDER BY COALESCE(likeCount, 0) DESC
 			LIMIT ?`, limit).ToStatement(db).Query()

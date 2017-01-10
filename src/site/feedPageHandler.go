@@ -18,6 +18,7 @@ const (
 )
 
 type feedData struct {
+	FilterByTagAlias string `json:"filterByTagAlias"`
 }
 
 var feedPageHandler = siteHandler{
@@ -38,14 +39,41 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 
-	// Load feed rows
-	feedRows := make([]*core.FeedPage, 0)
-	queryPart := database.NewQuery(`
-		AND NOT pi.hasVote
+	filterByTagID := ""
+	if len(data.FilterByTagAlias) > 0 {
+		// Get actual tag id
+		tagID, ok, err := core.LoadAliasToPageID(db, u, data.FilterByTagAlias)
+		if err != nil {
+			return pages.Fail("Couldn't convert alias", err)
+		}
+		if !ok {
+			return pages.Fail("Couldn't find tag", err)
+		}
+		filterByTagID = tagID
+	}
+
+	feedRowLoadOptions := (&core.PageLoadOptions{
+		Tags: true,
+	}).Add(core.IntrasitePopoverLoadOptions)
+
+	tagFilter := database.NewQuery("")
+	if len(filterByTagID) > 0 {
+		tagFilter = database.NewQuery(`
+		JOIN pagePairs AS pp
+		ON pi.pageId = pp.childId
+			AND pp.type = ?`, core.TagPagePairType).Add(`
+			AND pp.parentId = ?`, filterByTagID)
+	}
+	orderByAndLimit := database.NewQuery(`
 		ORDER BY fp.score DESC
 		LIMIT 25`)
+
+	// Load feed rows
+	feedRows := make([]*core.FeedPage, 0)
+	queryPart := database.NewQuery(`AND NOT pi.hasVote`).AddPart(tagFilter).AddPart(orderByAndLimit)
+
 	err = core.LoadFeedPages(db, u, queryPart, func(db *database.DB, feedPage *core.FeedPage) error {
-		core.AddPageToMap(feedPage.PageID, returnData.PageMap, core.IntrasitePopoverLoadOptions)
+		core.AddPageToMap(feedPage.PageID, returnData.PageMap, feedRowLoadOptions)
 		feedRows = append(feedRows, feedPage)
 		return nil
 	})
@@ -55,12 +83,10 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Load claim rows
 	claimRows := make([]*core.FeedPage, 0)
-	queryPart = database.NewQuery(`
-		AND pi.hasVote
-		ORDER BY fp.score DESC
-		LIMIT 25`)
+	queryPart = database.NewQuery(`AND pi.hasVote`).AddPart(tagFilter).AddPart(orderByAndLimit)
+
 	err = core.LoadFeedPages(db, u, queryPart, func(db *database.DB, feedPage *core.FeedPage) error {
-		core.AddPageToMap(feedPage.PageID, returnData.PageMap, core.IntrasitePopoverLoadOptions)
+		core.AddPageToMap(feedPage.PageID, returnData.PageMap, feedRowLoadOptions)
 		claimRows = append(claimRows, feedPage)
 		return nil
 	})
@@ -91,7 +117,7 @@ func feedPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				AND NOT pi.isResolved AND NOT pi.isEditorComment AND pi.isApprovedComment
 				/* No replies */
 				/*AND pp.childId IN (SELECT childId FROM pagePairs GROUP BY 1 HAVING SUM(1) <= 1)*/
-				AND`).AddPart(core.WherePageInfos(u)).Add(`
+				AND`).AddPart(core.PageInfosFilter(u)).Add(`
 			ORDER BY pi.createdAt DESC
 		) AS t
 		GROUP BY 1,2`).ToStatement(db).Query()

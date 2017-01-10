@@ -70,7 +70,7 @@ func exploreJSONHandler(params *pages.HandlerParams) *pages.Result {
 			WHERE pp.type=?`, core.ParentPagePairType).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
 				AND pp.parentId IN`).AddArgsGroupStr(parentIdsToProcess).Add(`
-				AND`).AddPart(core.WherePageInfos(u)).ToStatement(db).Query()
+				AND`).AddPart(core.PageInfosFilter(u)).ToStatement(db).Query()
 		parentIdsToProcess = make([]string, 0)
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageID string

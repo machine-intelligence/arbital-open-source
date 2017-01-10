@@ -38,7 +38,7 @@ func LoadMostTodos(db *database.DB, returnData *core.CommonHandlerData, privateD
 		ON (l.childAlias=pi.alias OR l.childAlias=pi.pageId)
 		WHERE pi.seeDomainId=?`, privateDomainID).Add(`
 			AND pi.type!=?`, core.CommentPageType).Add(`
-			AND`).AddPart(core.WherePageInfos(returnData.User)).Add(`
+			AND`).AddPart(core.PageInfosFilter(returnData.User)).Add(`
 		GROUP BY 1
 		ORDER BY (SUM(ISNULL(pi.pageId)) + MAX(l.parentTodoCount)) DESC
 		LIMIT ?`, numToLoad).ToStatement(db).Query()

@@ -86,7 +86,7 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 		SELECT pi.type,COUNT(*)
 		FROM pageInfos AS pi
 		WHERE pi.createdBy=?
-			AND`).AddPart(core.WherePageInfos(u)).Add(`
+			AND`).AddPart(core.PageInfosFilter(u)).Add(`
 		GROUP BY pi.type`, u.ID).ToStatement(db).Query()
 	resultMap["numWikiPages"] = 0
 	resultMap["numComments"] = 0
@@ -119,7 +119,7 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 		JOIN likes AS l
 	    ON pi.likeableId=l.likeableId
 		WHERE pi.createdBy=?
-			AND`).AddPart(core.WherePageInfos(u)).Add(`
+			AND`).AddPart(core.PageInfosFilter(u)).Add(`
 		GROUP BY pi.type`, u.ID).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageType string
@@ -150,7 +150,7 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 		JOIN pageInfos AS pi
 		ON ump.taughtBy=pi.pageId
 		WHERE pi.createdBy=?`, u.ID).Add(`
-			AND`).AddPart(core.WherePageInfos(u)).ToStatement(db).QueryRow()
+			AND`).AddPart(core.PageInfosFilter(u)).ToStatement(db).QueryRow()
 	_, err = row.Scan(&numUsersTaught)
 	if err != nil {
 		return err
@@ -165,7 +165,7 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 		JOIN pageInfos AS pi
 	  ON ump.taughtBy=pi.pageId
 		WHERE pi.createdBy=?`, u.ID).Add(`
-			AND`).AddPart(core.WherePageInfos(u)).ToStatement(db).QueryRow()
+			AND`).AddPart(core.PageInfosFilter(u)).ToStatement(db).QueryRow()
 	_, err = row.Scan(&numReqsTaught)
 	if err != nil {
 		return err
@@ -183,7 +183,7 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 				FROM pageInfos AS pi
 				WHERE pi.createdBy=?
 					AND NOT pi.type=?
-					AND`).AddPart(core.WherePageInfos(u)).Add(`
+					AND`).AddPart(core.PageInfosFilter(u)).Add(`
 				)`, u.ID, core.CommentPageType).ToStatement(db).QueryRow()
 	_, err = row.Scan(&numCommentThreads)
 	if err != nil {
@@ -202,7 +202,7 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 				FROM pageInfos AS pi
 				WHERE pi.createdBy=?
 					AND pi.type=?`, u.ID, core.CommentPageType).Add(`
-					AND`).AddPart(core.WherePageInfos(u)).Add(`
+					AND`).AddPart(core.PageInfosFilter(u)).Add(`
 			)`).ToStatement(db).QueryRow()
 	_, err = row.Scan(&numReplies)
 	if err != nil {
@@ -231,7 +231,7 @@ func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.Curren
 		ON p.pageId=pi.pageId
 		WHERE p.creatorId=?
 			AND NOT pi.type=?`, u.ID, core.CommentPageType).Add(`
-			AND`).AddPart(core.WherePageInfos(u)).ToStatement(db).QueryRow()
+			AND`).AddPart(core.PageInfosFilter(u)).ToStatement(db).QueryRow()
 	_, err = row.Scan(&numPagesEdited)
 	if err != nil {
 		return err

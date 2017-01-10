@@ -223,7 +223,7 @@ func learnJSONHandler(params *pages.HandlerParams) *pages.Result {
 			ON (pi.pageId=l.lensId)
 			WHERE pp.parentId IN`).AddArgsGroupStr(requirementIDs).Add(`
 				AND pp.type=?`, core.SubjectPagePairType).Add(`
-				AND`).AddPart(core.WherePageInfos(u)).ToStatement(db).Query()
+				AND`).AddPart(core.PageInfosFilter(u)).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var parentID, childID string
 			var lensIndex int
@@ -267,7 +267,7 @@ func learnJSONHandler(params *pages.HandlerParams) *pages.Result {
 			WHERE pp.childId IN`).AddArgsGroupStr(tutorIDs).Add(`
 				AND pp.type=?`, core.RequirementPagePairType).Add(`
 				AND (NOT mp.has OR ISNULL(mp.has))
-				AND`).AddPart(core.WherePageInfos(u)).ToStatement(db).Query()
+				AND`).AddPart(core.PageInfosFilter(u)).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var parentID, childID string
 			var lensIndex int

@@ -127,7 +127,7 @@ func loadCommentModeRows(db *database.DB, returnData *core.CommonHandlerData, li
 			AND pi.createdBy!=?`, returnData.User.ID).Add(`
 			AND pi.type=?`, core.CommentPageType).Add(`
 			AND NOT pi.isEditorComment
-			AND`).AddPart(core.WherePageInfos(returnData.User)).Add(`
+			AND`).AddPart(core.PageInfosFilter(returnData.User)).Add(`
 		GROUP BY pp.childId
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
@@ -199,7 +199,7 @@ func loadLikesModeRows(db *database.DB, returnData *core.CommonHandlerData, limi
 		WHERE pi.createdBy=?`, returnData.User.ID).Add(`
 			AND l.userId!=?`, returnData.User.ID).Add(`
 			AND l.value=1
-			AND`).AddPart(core.WherePageInfos(returnData.User)).Add(`
+			AND`).AddPart(core.PageInfosFilter(returnData.User)).Add(`
 		ORDER BY l.updatedAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -307,7 +307,7 @@ func loadReqsTaughtModeRows(db *database.DB, returnData *core.CommonHandlerData,
 		WHERE pi.createdBy=?`, returnData.User.ID).Add(`
 			AND ump.has=1
 			AND ump.userId!=?`, returnData.User.ID).Add(`
-			AND`).AddPart(core.WherePageInfos(returnData.User)).Add(`
+			AND`).AddPart(core.PageInfosFilter(returnData.User)).Add(`
 		ORDER BY ump.updatedAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -385,7 +385,7 @@ func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 		WHERE pi.type IN (?,?)`, core.WikiPageType, core.QuestionPageType).Add(`
 			AND pi.`+pageInfoActivityDateField+`!=0
 			AND d.id IN (`).AddPart(subscribedDomains).Add(`)
-			AND`).AddPart(core.WherePageInfos(returnData.User)).Add(`
+			AND`).AddPart(core.PageInfosFilter(returnData.User)).Add(`
 		ORDER BY pi.`+pageInfoActivityDateField+` DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -433,7 +433,7 @@ func loadDraftRows(db *database.DB, returnData *core.CommonHandlerData, limit in
 			AND pi.type!=?`, core.CommentPageType).Add(`
 			AND p.edit>pi.currentEdit AND (p.text!="" OR p.title!="")
 			AND (p.isAutosave OR p.isSnapshot)
-			AND`).AddPart(core.WherePageInfosAll(returnData.User)).Add(`
+			AND`).AddPart(core.PageInfosFilterAll(returnData.User)).Add(`
 		GROUP BY p.pageId
 		ORDER BY p.createdAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
@@ -492,7 +492,7 @@ func loadTaggedForEditRows(db *database.DB, returnData *core.CommonHandlerData, 
 		WHERE pp.type=?`, core.TagPagePairType).Add(`
 			AND pp.parentId IN`).AddArgsGroupStr(tagsForEdit).Add(`
 			AND pi.createdBy=?`, returnData.User.ID).Add(`
-			AND`).AddPart(core.WherePageInfos(returnData.User)).Add(`
+			AND`).AddPart(core.PageInfosFilter(returnData.User)).Add(`
 		GROUP BY pi.pageId
 		ORDER BY p.createdAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
@@ -607,7 +607,7 @@ func loadChangeLogModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 		WHERE cl.type IN `).AddArgsGroupStr(changeLogTypes).Add(`
 			AND pi.type!=?`, core.CommentPageType).Add(`
 			AND cl.createdAt<=?`, createdBefore).Add(`
-			AND`).AddPart(core.WherePageInfos(returnData.User)).Add(`
+			AND`).AddPart(core.PageInfosFilter(returnData.User)).Add(`
 		ORDER BY cl.createdAt DESC
 		LIMIT ?`, limit)
 	err := core.LoadChangeLogs(db, queryPart, returnData, func(db *database.DB, changeLog *core.ChangeLog) error {

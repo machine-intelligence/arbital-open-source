@@ -98,7 +98,7 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 			WHERE pi.createdBy=?`, pageID).Add(`
 				AND pi.seeDomainId=?`, params.PrivateDomain.ID).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
-				AND`).AddPart(core.WherePageInfos(u)).Add(`
+				AND`).AddPart(core.PageInfosFilter(u)).Add(`
 			ORDER BY pi.createdAt DESC
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 		returnData.ResultMap["recentlyCreatedIds"], err = core.LoadPageIDs(rows, returnData.PageMap, pageOptions)
@@ -115,7 +115,7 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 			WHERE p.creatorId=?`, pageID).Add(`
 				AND pi.seeDomainId=?`, params.PrivateDomain.ID).Add(`
 				AND pi.type=?`, core.CommentPageType).Add(`
-				AND`).AddPart(core.WherePageInfos(u)).Add(`
+				AND`).AddPart(core.PageInfosFilter(u)).Add(`
 			ORDER BY pi.createdAt DESC
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 		returnData.ResultMap["recentlyCreatedCommentIds"], err =
@@ -133,7 +133,7 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 			WHERE p.creatorId=?`, pageID).Add(`
 				AND pi.seeDomainId=?`, params.PrivateDomain.ID).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
-				AND`).AddPart(core.WherePageInfos(u)).Add(`
+				AND`).AddPart(core.PageInfosFilter(u)).Add(`
 			GROUP BY 1
 			ORDER BY MAX(p.createdAt) DESC
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
@@ -151,7 +151,7 @@ func primaryPageJSONHandler(params *pages.HandlerParams) *pages.Result {
 			WHERE pi.editDomainId=?`, u.MyDomainID()).Add(`
 				AND pi.seeDomainId=?`, params.PrivateDomain.ID).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
-				AND`).AddPart(core.WherePageInfos(u)).Add(`
+				AND`).AddPart(core.PageInfosFilter(u)).Add(`
 			GROUP BY 1
 			ORDER BY SUM(l2.value) DESC
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()

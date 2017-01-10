@@ -112,7 +112,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 				SELECT !isDeleted
 				FROM pageInfos AS pi
 				WHERE updates.goToPageId = pageId
-					AND`).AddPart(WherePageInfosWithOptions(u, &PageInfosOptions{Deleted: true})).Add(`
+					AND`).AddPart(PageInfosFilterWithOptions(u, &PageInfosOptions{Deleted: true})).Add(`
 			), false) AS isGoToPageAlive
 		FROM updates
 		WHERE updates.userId=?`, u.ID).AddPart(emailFilter).AddPart(updateTypeFilter).Add(`

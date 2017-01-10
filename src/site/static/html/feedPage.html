@@ -79,18 +79,24 @@
 							</div>
 						</div>
 						<!-- Bottom half of the row -->
-						<div layout="row" layout-align="start center" flex>
-							<arb-likes object-id="{{::page.pageId}}" class="s16"></arb-likes>
-							<arb-comment-count page-id="{{::page.pageId}}" class="s16"></arb-comment-count>
-							<div ng-if="page.hasVote">
-								&nbsp;&nbsp;&nbsp;&nbsp;
-								<span arb-vote-summary page-id="{{::page.pageId}}"></span>
-								<span class="inline-vote" ng-bind="page.getVoteBars()" ng-if="page.votes.length > 0"></span>
-								<span class="md-caption" ng-if="page.votes.length == 0">No votes yet</span>
-								<ng-pluralize class="md-caption"
-										count="page.votes.length"
-										when="{'one': '(1 vote)', 'other': '({} votes)'}"
-										ng-if="page.votes.length > 0"></ng-pluralize>
+						<div layout="row" layout-align="space-between">
+							<div layout="row" layout-align="start center" flex>
+								<arb-likes object-id="{{::page.pageId}}" class="s16"></arb-likes>
+								<arb-comment-count page-id="{{::page.pageId}}" class="s16"></arb-comment-count>
+								<div layout="row" layout-align="center center" ng-if="page.hasVote">
+									<span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+									<span arb-vote-summary page-id="{{::page.pageId}}"></span>
+									<span class="inline-vote" ng-bind="page.getVoteBars()" ng-if="page.votes.length > 0"></span>
+									<span class="md-caption" ng-if="page.votes.length == 0">No votes yet</span>
+									<ng-pluralize class="md-caption"
+											count="page.votes.length"
+											when="{'one': '(1 vote)', 'other': '({} votes)'}"
+											ng-if="page.votes.length > 0"></ng-pluralize>
+								</div>
+							</div>
+							<div layout="row" layout-align="end center" ng-repeat="tagId in page.tagIds" style="font-size: 12px; color: gray">
+								<span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+								<arb-tag tag-id="{{::tagId}}" url="/feed/{{arb.stateService.pageMap[tagId].alias}}"></arb-tag>
 							</div>
 						</div>
 					</div>

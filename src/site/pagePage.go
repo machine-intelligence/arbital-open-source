@@ -34,7 +34,7 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 		SELECT type,seeDomainId
 		FROM pageInfos AS pi
 		WHERE pageId=?`, pageID).Add(`
-			AND`).AddPart(core.WherePageInfos(u)).ToStatement(db).QueryRow()
+			AND`).AddPart(core.PageInfosFilter(u)).ToStatement(db).QueryRow()
 	exists, err := row.Scan(&pageType, &seeGroupID)
 	if err != nil {
 		return pages.Fail("Couldn't get page info", err)
@@ -48,7 +48,7 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 				SELECT alias
 				FROM pageInfos AS pi
 				WHERE pageId=?`, seeGroupID).Add(`
-					AND`).AddPart(core.WherePageInfos(u)).ToStatement(db).QueryRow()
+					AND`).AddPart(core.PageInfosFilter(u)).ToStatement(db).QueryRow()
 			exists, err := row.Scan(&subdomain)
 			if err != nil || !exists {
 				return pages.Fail("Failed to redirect to subdomain", err)

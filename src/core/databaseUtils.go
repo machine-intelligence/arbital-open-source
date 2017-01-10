@@ -61,21 +61,21 @@ func PageInfosTableWithOptions(u *CurrentUser, options *PageInfosOptions) *datab
 	q := database.NewQuery(`(
 			SELECT ` + fieldsString + `
 			FROM pageInfos
-			WHERE`).AddPart(WherePageInfosWithOptions(u, options)).Add(`
+			WHERE`).AddPart(PageInfosFilterWithOptions(u, options)).Add(`
 		)`)
 	return q
 }
 
-func WherePageInfos(u *CurrentUser) *database.QueryPart {
-	return WherePageInfosWithOptions(u, &PageInfosOptions{})
+func PageInfosFilter(u *CurrentUser) *database.QueryPart {
+	return PageInfosFilterWithOptions(u, &PageInfosOptions{})
 }
 
-func WherePageInfosAll(u *CurrentUser) *database.QueryPart {
-	return WherePageInfosWithOptions(u, allPageInfosOptions)
+func PageInfosFilterAll(u *CurrentUser) *database.QueryPart {
+	return PageInfosFilterWithOptions(u, allPageInfosOptions)
 }
 
-// WherePageInfosWithOptions returns a clase for making sure the selected rows from pageInfos table are valid.
-func WherePageInfosWithOptions(u *CurrentUser, options *PageInfosOptions) *database.QueryPart {
+// PageInfosFilterWithOptions returns a clase for making sure the selected rows from pageInfos table are valid.
+func PageInfosFilterWithOptions(u *CurrentUser, options *PageInfosOptions) *database.QueryPart {
 	prefix := `pi.`
 	if options.OmitPrefix {
 		prefix = ``
