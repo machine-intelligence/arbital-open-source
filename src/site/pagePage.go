@@ -29,25 +29,25 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 
 	// Check if we need to redirect.
 	var pageType string
-	var seeGroupID string
+	var seeDomainID string
 	row := database.NewQuery(`
 		SELECT type,seeDomainId
 		FROM pageInfos AS pi
 		WHERE pageId=?`, pageID).Add(`
 			AND`).AddPart(core.PageInfosFilter(u)).ToStatement(db).QueryRow()
-	exists, err := row.Scan(&pageType, &seeGroupID)
+	exists, err := row.Scan(&pageType, &seeDomainID)
 	if err != nil {
 		return pages.Fail("Couldn't get page info", err)
 	}
 
 	// Check if a subdomain redirect is necessary.
-	if exists && seeGroupID != params.PrivateDomain.ID {
+	if exists && seeDomainID != params.PrivateDomain.ID {
 		subdomain := ""
-		if core.IsIDValid(seeGroupID) {
+		if core.IsIDValid(seeDomainID) {
 			row := database.NewQuery(`
 				SELECT alias
 				FROM pageInfos AS pi
-				WHERE pageId=?`, seeGroupID).Add(`
+				WHERE pageId=?`, seeDomainID).Add(`
 					AND`).AddPart(core.PageInfosFilter(u)).ToStatement(db).QueryRow()
 			exists, err := row.Scan(&subdomain)
 			if err != nil || !exists {
