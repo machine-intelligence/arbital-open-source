@@ -128,6 +128,10 @@
 							<md-icon>person</md-icon>
 							<md-tooltip md-delay="500">[@Mention]</md-tooltip>
 						</md-button>
+						<md-button class="wmd-new-claim-button{{::page.pageId}}" ng-show="::gtSmallScreen">
+							<md-icon>assessment</md-icon>
+							[new_claim text] | Ctrl+J
+						</md-button>
 
 						<!-- Menu with all the Arbital specific stuff -->
 						<div layout="row" ng-show="::gtSmallScreen && !insideDialog">
@@ -142,12 +146,6 @@
 										<md-button class="wmd-new-page-button{{::page.pageId}}">
 											<md-icon>note_add</md-icon>
 											[New page link] | Ctrl+P
-										</md-button>
-									</md-menu-item>
-									<md-menu-item>
-										<md-button class="wmd-new-claim-button{{::page.pageId}}">
-											<md-icon>assessment</md-icon>
-											[alias text] | Ctrl+J
 										</md-button>
 									</md-menu-item>
 									<md-menu-item>
