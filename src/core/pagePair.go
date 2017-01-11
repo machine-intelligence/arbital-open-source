@@ -414,5 +414,5 @@ func CreateNewPagePair(db *database.DB, u *CurrentUser, options *CreateNewPagePa
 	if err != nil {
 		return "", fmt.Errorf("Couldn't get page pair id: %v", err)
 	}
-	return fmt.Sprintf("%s", pagePairID), nil
+	return fmt.Sprintf("%d", pagePairID), nil
 }

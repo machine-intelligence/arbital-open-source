@@ -22,10 +22,10 @@ func (task PublishPagePairTask) Tag() string {
 
 // Check if this task is valid, and we can safely execute it.
 func (task PublishPagePairTask) IsValid() error {
-	if task.PagePairID == "" {
+	if !core.IsValidIntID(task.PagePairID) {
 		return fmt.Errorf("PagePairId needs to be set")
 	}
-	if task.UserID == "" {
+	if !core.IsValidID(task.UserID) {
 		return fmt.Errorf("UserId needs to be set")
 	}
 	return nil
@@ -54,7 +54,7 @@ func (task PublishPagePairTask) Execute(db *database.DB) (delay int, err error) 
 	if err != nil {
 		return -1, fmt.Errorf("Failed to load the page pair: %v", err)
 	} else if pagePair == nil {
-		return -1, fmt.Errorf("Failed to find the page pair: %v", err)
+		return -1, fmt.Errorf("Failed to find the page pair")
 	}
 
 	// Load all the involved pages
