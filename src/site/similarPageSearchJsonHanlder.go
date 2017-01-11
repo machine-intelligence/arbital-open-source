@@ -13,10 +13,11 @@ import (
 )
 
 type similarPageSearchJSONData struct {
-	Title     string
-	Clickbait string
-	Text      string
-	PageType  string
+	Title      string
+	Clickbait  string
+	Text       string
+	PageType   string
+	OnlyClaims bool
 }
 
 var similarPageSearchHandler = siteHandler{
@@ -41,6 +42,14 @@ func similarPageSearchJSONHandler(params *pages.HandlerParams) *pages.Result {
 	escapedTitle := elastic.EscapeMatchTerm(data.Title)
 	escapedClickbait := elastic.EscapeMatchTerm(data.Clickbait)
 	escapedText := elastic.EscapeMatchTerm(data.Text)
+
+	onlyClaimsClause := ``
+	if data.OnlyClaims {
+		onlyClaimsClause = `
+			,{
+				"term": { "hasVote": true }
+			}`
+	}
 
 	// Construct the search JSON
 	jsonStr := fmt.Sprintf(`{
@@ -68,7 +77,7 @@ func similarPageSearchJSONHandler(params *pages.HandlerParams) *pages.Result {
 						"must": [
 							{
 								"terms": { "seeDomainId": [%s] }
-							}
+							}`+onlyClaimsClause+`
 						]
 					}
 				}

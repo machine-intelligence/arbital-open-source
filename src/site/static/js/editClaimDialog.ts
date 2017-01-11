@@ -83,6 +83,7 @@ app.controller('EditClaimDialogController', function($scope, $mdDialog, $timeout
 
 		var data = {
 			title: $scope.page.title,
+			onlyClaims: true,
 		};
 		if (JSON.stringify(data) == JSON.stringify(prevSimilarData)) {
 			return;

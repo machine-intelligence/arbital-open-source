@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"strings"
 
-	"google.golang.org/appengine/urlfetch"
+	"zanaduu3/vendor/google.golang.org/appengine/urlfetch"
 
 	"zanaduu3/src/config"
 	"zanaduu3/src/sessions"
@@ -36,6 +36,7 @@ type Document struct {
 	SeeDomainID string `json:"seeDomainId"`
 	CreatorID   string `json:"creatorId"`
 	ExternalUrl string `json:"externalUrl"`
+	HasVote     bool   `json:"hasVote"`
 	//SearchStrings []string `json:"searchStrings"`
 }
 
@@ -170,6 +171,7 @@ func CreatePageIndex(c sessions.Context) error {
 	mapping.Properties["creatorId"] = &Property{Type: "string", Index: "not_analyzed"}
 	mapping.Properties["externalUrl"] = &Property{Type: "string"}
 	//mapping.Properties["searchStrings"] = &Property{Type: "string", IndexName: "searchString", Analyzer: "english"}
+	mapping.Properties["hasVote"] = &Property{Type: "boolean"}
 
 	var schema IndexSchema
 	schema.Mappings = make(map[string]*Mapping)
