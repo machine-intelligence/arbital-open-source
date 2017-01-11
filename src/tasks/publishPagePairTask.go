@@ -24,10 +24,6 @@ func (task PublishPagePairTask) Tag() string {
 // Check if this task is valid, and we can safely execute it.
 func (task PublishPagePairTask) IsValid() error {
 	if !core.IsIntIDValid(task.PagePairID) {
-		// NOTE: this workaround is temporary while bad jobs get processed; if you see this after Jan 13th, 2017 please remove it
-		task.PagePairID = strings.Trim(strings.TrimPrefix(task.PagePairID, `%!s(int64=`), `()`)
-	}
-	if !core.IsIntIDValid(task.PagePairID) {
 		return fmt.Errorf("PagePairId needs to be set")
 	}
 	if !core.IsIDValid(task.UserID) {
@@ -41,6 +37,10 @@ func (task PublishPagePairTask) IsValid() error {
 func (task PublishPagePairTask) Execute(db *database.DB) (delay int, err error) {
 	c := db.C
 
+	if !core.IsIntIDValid(task.PagePairID) {
+		// NOTE: this workaround is temporary while bad jobs get processed; if you see this after Jan 13th, 2017 please remove it
+		task.PagePairID = strings.Trim(strings.TrimPrefix(task.PagePairID, `%!s(int64=`), `()`)
+	}
 	if err = task.IsValid(); err != nil {
 		return -1, err
 	}
