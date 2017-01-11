@@ -18,7 +18,12 @@ app.directive('arbLogin', function($location, $http, arb) {
 
 			$scope.formSubmit = function(event) {
 				submitForm($(event.currentTarget), '/login/', $scope.formData, function(r) {
-					window.location.href = $location.search().continueUrl || '/';
+					console.log($location.path());
+					if ($location.path() == '/login/') {
+						window.location.href = $location.search().continueUrl || '/';
+					} else {
+						window.location.reload();
+					}
 				}, function() {
 				});
 			};

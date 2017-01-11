@@ -38,7 +38,7 @@ func (task UpdateElasticPageTask) Execute(db *database.DB) (int, error) {
 
 	// Compute all priors.
 	rows := database.NewQuery(`
-		SELECT p.pageId,pi.type,p.title,p.clickbait,p.text,pi.alias,pi.seeDomainId,pi.createdBy,pi.externalUrl
+		SELECT p.pageId,pi.type,p.title,p.clickbait,p.text,pi.alias,pi.seeDomainId,pi.createdBy,pi.externalUrl,pi.hasVote
 		FROM pages AS p
 		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId)
