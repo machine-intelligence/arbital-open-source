@@ -22,10 +22,10 @@ func (task PublishPagePairTask) Tag() string {
 
 // Check if this task is valid, and we can safely execute it.
 func (task PublishPagePairTask) IsValid() error {
-	if !core.IsValidIntID(task.PagePairID) {
+	if !core.IsIntIDValid(task.PagePairID) {
 		return fmt.Errorf("PagePairId needs to be set")
 	}
-	if !core.IsValidID(task.UserID) {
+	if !core.IsIDValid(task.UserID) {
 		return fmt.Errorf("UserId needs to be set")
 	}
 	return nil
