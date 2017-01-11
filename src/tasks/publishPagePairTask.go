@@ -4,6 +4,7 @@ package tasks
 
 import (
 	"fmt"
+	"strings"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -22,6 +23,10 @@ func (task PublishPagePairTask) Tag() string {
 
 // Check if this task is valid, and we can safely execute it.
 func (task PublishPagePairTask) IsValid() error {
+	if !core.IsIntIDValid(task.PagePairID) {
+		// NOTE: this workaround is temporary while bad jobs get processed; if you see this after Jan 13th, 2017 please remove it
+		task.PagePairID = strings.Trim(task.PagePairID, `%!s(int64=6752)`)
+	}
 	if !core.IsIntIDValid(task.PagePairID) {
 		return fmt.Errorf("PagePairId needs to be set")
 	}
