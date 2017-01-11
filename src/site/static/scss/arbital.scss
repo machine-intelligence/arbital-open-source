@@ -1992,6 +1992,19 @@ arb-path-nav, [arb-path-nav] {
 	}
 }
 
+.feed-row-tag-container {
+	display:inline;
+	margin-bottom: 6px;
+
+	.feed-row-tag {
+		display:inline-block;
+		margin-left: 12px;
+		margin-bottom: 2px;
+		font-size: 12px;
+		color: gray;
+	}
+}
+
 .aligned-input-container {
 	margin-bottom: 0;
 }

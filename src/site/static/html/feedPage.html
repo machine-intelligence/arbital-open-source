@@ -79,7 +79,7 @@
 							</div>
 						</div>
 						<!-- Bottom half of the row -->
-						<div layout="row" layout-align="space-between">
+						<div layout="row" layout-align="space-between end">
 							<div layout="row" layout-align="start center" flex>
 								<arb-likes object-id="{{::page.pageId}}" class="s16"></arb-likes>
 								<arb-comment-count page-id="{{::page.pageId}}" class="s16"></arb-comment-count>
@@ -94,9 +94,10 @@
 											ng-if="page.votes.length > 0"></ng-pluralize>
 								</div>
 							</div>
-							<div layout="row" layout-align="end center" ng-repeat="tagId in page.tagIds" style="font-size: 12px; color: gray">
-								<span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
-								<arb-tag tag-id="{{::tagId}}" url="/feed/{{arb.stateService.pageMap[tagId].alias}}"></arb-tag>
+							<div class="feed-row-tag-container">
+								<arb-tag ng-repeat="tagId in page.tagIds" class="feed-row-tag"
+									tag-id="{{::tagId}}" url="/feed/{{arb.stateService.pageMap[tagId].alias}}" max-length="20">
+								</arb-tag>
 							</div>
 						</div>
 					</div>
@@ -139,25 +140,41 @@
 					<span class="post-tag" ng-if="page.isBlogPage()"></span>
 					<span class="link-tag" ng-if="page.isLinkPage()"></span>
 					<div>
-						<arb-page-title page-id="{{::page.pageId}}"
-							is-link="true"
-							show-clickbait="false"
-							ng-if="page.externalUrl.length <= 0"></arb-page-title>
-						<a ng-href="{{page.externalUrl}}"
-								class="external-link"
-								ng-if="page.externalUrl.length > 0">{{page.title}}</a>
-						<span class="md-caption nowrap" ng-if="page.externalUrl.length > 0">
-							(<span ng-bind="::page.externalUrl | urlDomain"></span>)
+						<span>
+							<arb-page-title page-id="{{::page.pageId}}"
+								is-link="true"
+								show-clickbait="false"
+								ng-if="page.externalUrl.length <= 0"></arb-page-title>
+							<a ng-href="{{page.externalUrl}}"
+									class="external-link"
+									ng-if="page.externalUrl.length > 0">{{page.title}}</a>
+							<span class="md-caption nowrap">
+								<span ng-if="page.externalUrl.length > 0">
+									(<span ng-bind="::page.externalUrl | urlDomain"></span>)
+								</span>
+							</span>
 						</span>
-						<div class="md-caption" ng-if="page.isBlogPage()">
-							<span ng-if="page.isClaimPage()">posed</span>
-							by <arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
+						<div layout="row" class="md-caption nowrap">
+							<span ng-if="page.isBlogPage() && !page.isClaimPage()">
+								by <arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
+							</span>
+							<span ng-if="page.isClaimPage()">
+								posed by <arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
+							</span>
+							<span ng-if="page.externalUrl.length > 0">
+								submitted
+							</span>
+							&nbsp;{{::feedRow.createdAt | smartDateTime}}
+							<span class="md-caption" ng-if="::arb.userService.user.isAdmin">
+								<span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
+								&lt;{{feedRow.score}}&gt;
+							</span>
 						</div>
 					</div>
 				</div>
 				<!-- Bottom half of the row -->
-				<div layout="row" layout-align="start center" flex>
-					<div layout="row" layout-align="start center" flex>
+				<div layout="row" layout-align="space-between end">
+					<div layout="row" layout-align="start center">
 						<arb-likes object-id="{{::page.pageId}}" class="s16"></arb-likes>
 						<arb-comment-count page-id="{{::page.pageId}}" class="s16"></arb-comment-count>
 						<div ng-if="page.hasVote">
@@ -170,13 +187,10 @@
 									ng-if="page.votes.length > 0"></ng-pluralize>
 						</div>
 					</div>
-					<div class="md-caption">
-						<span class="nowrap">
-							submitted {{::feedRow.createdAt | smartDateTime}}
-							<span class="md-caption" ng-if="::arb.userService.user.isAdmin">
-								&lt;{{feedRow.score}}&gt;
-							</span>
-						</span>
+					<div class="feed-row-tag-container">
+						<arb-tag ng-repeat="tagId in page.tagIds" class="feed-row-tag"
+							tag-id="{{::tagId}}" url="/feed/{{arb.stateService.pageMap[tagId].alias}}" max-length="20">
+						</arb-tag>
 					</div>
 				</div>
 			</div>
