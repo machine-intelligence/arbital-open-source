@@ -143,6 +143,14 @@ func searchJSONHandler(params *pages.HandlerParams) *pages.Result {
 						"should": [
 							{
 								"term": { "pageId": "%[3]s" }
+							},
+							{
+								"term": {
+									"alias": {
+										"value": "%[3]s",
+										"boost": 3
+									}
+								}
 							},`+textMatch+`
 							{
 								"match_phrase_prefix": { "alias": "%[3]s" }
