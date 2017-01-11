@@ -25,7 +25,7 @@ func (task PublishPagePairTask) Tag() string {
 func (task PublishPagePairTask) IsValid() error {
 	if !core.IsIntIDValid(task.PagePairID) {
 		// NOTE: this workaround is temporary while bad jobs get processed; if you see this after Jan 13th, 2017 please remove it
-		task.PagePairID = strings.Trim(strings.TrimPrefix(task.PagePairID, `%!s(int64`), `()`)
+		task.PagePairID = strings.Trim(strings.TrimPrefix(task.PagePairID, `%!s(int64=`), `()`)
 	}
 	if !core.IsIntIDValid(task.PagePairID) {
 		return fmt.Errorf("PagePairId needs to be set")
