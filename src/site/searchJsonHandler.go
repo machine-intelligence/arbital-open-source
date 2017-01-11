@@ -30,6 +30,8 @@ type searchJSONData struct {
 	PageType string
 	// If this is set, pages of these types will not be returned
 	FilterPageTypes []string
+	// If this is set, pages in this domain will get a boost
+	PreferredEditDomainID string
 }
 
 var searchHandler = siteHandler{
@@ -151,6 +153,14 @@ func searchJSONHandler(params *pages.HandlerParams) *pages.Result {
 										"boost": 3
 									}
 								}
+							},
+							{
+								"term": {
+									"editDomainId": {
+										"value": "%[5]s",
+										"boost": 2
+									}
+								}
 							},`+textMatch+`
 							{
 								"match_phrase_prefix": { "alias": "%[3]s" }
@@ -178,7 +188,7 @@ func searchJSONHandler(params *pages.HandlerParams) *pages.Result {
 			}
 		},
 		"_source": []
-	}`, minSearchScore, searchSize, data.Term, strings.Join(domainIDs, ","))
+	}`, minSearchScore, searchSize, data.Term, strings.Join(domainIDs, ","), data.PreferredEditDomainID)
 	return searchJSONInternalHandler(params, jsonStr)
 }
 

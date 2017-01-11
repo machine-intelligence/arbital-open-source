@@ -39,6 +39,7 @@
 	<!-- Add a relationship -->
 	<arb-autocomplete placeholder="Add a {{::type}}"
 			on-select="searchResultSelected(result)"
+			preferred-edit-domain-id="{{page.editDomainId}}"
 			ng-if="::!readonly"></arb-autocomplete>
 
 	<!-- Quick parent button -->

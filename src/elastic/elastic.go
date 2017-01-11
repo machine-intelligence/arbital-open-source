@@ -27,16 +27,17 @@ func (a HitsList) Less(i, j int) bool { return a[i].Score > a[j].Score }
 
 // Document describes the document which goes into the pages search index.
 type Document struct {
-	PageID      string `json:"pageId"`
-	Alias       string `json:"alias"`
-	Type        string `json:"type"`
-	Title       string `json:"title"`
-	Clickbait   string `json:"clickbait"`
-	Text        string `json:"text"`
-	SeeDomainID string `json:"seeDomainId"`
-	CreatorID   string `json:"creatorId"`
-	ExternalUrl string `json:"externalUrl"`
-	HasVote     bool   `json:"hasVote"`
+	PageID       string `json:"pageId"`
+	Alias        string `json:"alias"`
+	Type         string `json:"type"`
+	Title        string `json:"title"`
+	Clickbait    string `json:"clickbait"`
+	Text         string `json:"text"`
+	SeeDomainID  string `json:"seeDomainId"`
+	EditDomainID string `json:"editDomainId"`
+	CreatorID    string `json:"creatorId"`
+	ExternalUrl  string `json:"externalUrl"`
+	HasVote      bool   `json:"hasVote"`
 	//SearchStrings []string `json:"searchStrings"`
 }
 
@@ -168,6 +169,7 @@ func CreatePageIndex(c sessions.Context) error {
 	mapping.Properties["text"] = &Property{Type: "string", Analyzer: "english"}
 	mapping.Properties["alias"] = &Property{Type: "string"}
 	mapping.Properties["seeDomainId"] = &Property{Type: "string", Index: "not_analyzed"}
+	mapping.Properties["editDomainId"] = &Property{Type: "string", Index: "not_analyzed"}
 	mapping.Properties["creatorId"] = &Property{Type: "string", Index: "not_analyzed"}
 	mapping.Properties["externalUrl"] = &Property{Type: "string"}
 	//mapping.Properties["searchStrings"] = &Property{Type: "string", IndexName: "searchString", Analyzer: "english"}
