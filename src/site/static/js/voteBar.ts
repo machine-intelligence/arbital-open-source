@@ -16,24 +16,22 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 			// Bucket the user is hovering over (undefined is none, -1 is 'mu')
 			scope.selectedVoteBucketIndex = undefined;
 
-			// Return the vote object corresponding to current user's vote
-			scope.getCurrentUserVote = function() {
-				for (var i = 0; i < scope.page.votes.length; i++) {
-					var vote = scope.page.votes[i];
-					if (vote.userId === arb.userService.user.id) {
-						return vote;
-					}
-				}
-				return undefined;
-			};
-
 			// Set the value of current user's vote
 			scope.setCurrentUserVote = function(voteValue) {
 				arb.signupService.wrapInSignupFlow('vote', function() {
-					var currentVote = scope.getCurrentUserVote();
-					if (currentVote) {
-						currentVote.value = voteValue;
-					} else {
+					let oldVote = scope.page.currentUserVote;
+					scope.page.currentUserVote = voteValue;
+
+					let foundCurrentUserVote = false;
+					for (var i = 0; i < scope.page.votes.length; i++) {
+						var vote = scope.page.votes[i];
+						if (vote.userId === arb.userService.user.id) {
+							vote.value = voteValue;
+							foundCurrentUserVote = true;
+							break;
+						}
+					}
+					if (!foundCurrentUserVote) {
 						scope.page.votes.push({
 							value: voteValue,
 							userId: arb.userService.user.id,
@@ -41,10 +39,39 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 						});
 					}
 
+					// Recompute vote summary
+					let oldVoteIndex = scope.page.getVoteSummaryIndex(oldVote);
+					let curVoteIndex = scope.page.getVoteSummaryIndex(voteValue);
+					if (scope.page.voteSummary) {
+						// Compute new vote counts
+						let newVoteScaling = 0;
+						for (let n = 0; n < scope.page.voteSummary.length; n++) {
+							let voteCount = scope.page.voteSummary[n] * scope.page.voteScaling;
+							if (n == oldVoteIndex) voteCount--;
+							if (n == curVoteIndex) voteCount++;
+							if (voteCount > newVoteScaling) newVoteScaling = voteCount;
+							scope.page.voteSummary[n] = voteCount;
+						}
+
+						// Update voteScaling and rescale votes
+						scope.page.voteScaling = newVoteScaling;
+						if (scope.page.voteScaling > 0) {
+							for (let n = 0; n < scope.page.voteSummary.length; n++) {
+								scope.page.voteSummary[n] /= scope.page.voteScaling;
+							}
+						}
+					}
+
+					// Update voteCount
+					let newVoteCount = scope.page.voteCount;
+					if (oldVoteIndex == -2 && curVoteIndex != -2) newVoteCount++;
+					if (oldVoteIndex != -2 && curVoteIndex == -2) newVoteCount--;
+					scope.page.voteCount = newVoteCount;
+
 					// Send a new probability vote value to the server.
 					var data = {
 						pageId: scope.page.pageId,
-						value: scope.getCurrentUserVote().value,
+						value: voteValue,
 					};
 					$http({method: 'POST', url: '/newVote/', data: JSON.stringify(data)})
 					.error(function(data, status) {
@@ -68,7 +95,6 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 					max: 100,
 					makeValid: function(value) { return Math.max(1, Math.min(99, Math.round(value))); },
 					getFlex: function(n) { return 10; },
-					getBucketIndex: function(value) { return Math.floor(value / 10); },
 				},
 				approval: {
 					headerLabel: 'Approval ratings',
@@ -85,13 +111,6 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 					max: 100,
 					makeValid: function(value) { return Math.max(0, Math.min(100, Math.round(value))); },
 					getFlex: function(n) { return n == 4 ? 20 : 10; },
-					getBucketIndex: function(value) {
-						if (value <= -1) return -1;
-						if (value >= 100) return 8;
-						if (value <= 40) return Math.floor((value - 1) / 10);
-						if (value >= 60) return Math.floor(value / 10) - 1;
-						return 4;
-					},
 				},
 			};
 			scope.isProbability = scope.page.voteType === 'probability';
@@ -103,7 +122,7 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 				var voteCount = 0;
 				for (var i = 0; i < scope.page.votes.length; i++) {
 					var vote = scope.page.votes[i];
-					if (scope.typeHelper.getBucketIndex(vote.value) == bucketIndex) {
+					if (scope.page.getVoteSummaryIndex(vote.value) == bucketIndex) {
 						voteCount++;
 					}
 				}
@@ -118,7 +137,7 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 				for (var i = 0; i < scope.page.votes.length; i++) {
 					var vote = scope.page.votes[i];
 					if (vote.value === -2) continue;
-					if (scope.typeHelper.getBucketIndex(vote.value) == scope.selectedVoteBucketIndex) {
+					if (scope.page.getVoteSummaryIndex(vote.value) == scope.selectedVoteBucketIndex) {
 						votes.push(vote);
 					}
 				}
@@ -160,7 +179,7 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 				}
 				scope.newVoteValue = scope.offsetToValue(event.pageX);
 				if (!leave && event.pageY <= $voteBarBody.offset().top + $voteBarBody.height()) {
-					scope.selectedVoteBucketIndex = scope.typeHelper.getBucketIndex(scope.newVoteValue);
+					scope.selectedVoteBucketIndex = scope.page.getVoteSummaryIndex(scope.newVoteValue);
 				}
 				if (leave && scope.getSelectedVotes().length <= 0) {
 					scope.selectedVoteBucketIndex = undefined;
@@ -173,6 +192,7 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 				}
 				scope.setCurrentUserVote(scope.offsetToValue(event.pageX));
 			};
+
 			// Called when the user casts a "mu" vote
 			scope.muVote = function() {
 				scope.setCurrentUserVote(-1);
@@ -181,12 +201,6 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 			// Process deleting user's vote
 			scope.deleteMyVote = function() {
 				scope.setCurrentUserVote(-2);
-			};
-
-			// Return if current user's vote is visible on the bar
-			scope.isCurrentVoteVisible = function() {
-				let vote = scope.getCurrentUserVote();
-				return vote !== undefined && vote > 0;
 			};
 		},
 	};

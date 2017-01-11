@@ -2051,8 +2051,22 @@ arb-path-nav, [arb-path-nav] {
 
 	.vote-column {
 		display: inline-block;
-		background-color: gray;
-		vertical-align: text-bottom;
+
+		.summary-vote-column {
+			display: inline-block;
+			background-color: gray;
+			vertical-align: text-bottom;
+		}
+
+		.current-user-vote {
+			position: absolute;
+			bottom: 0;
+			background-color: $accent-hue-3;
+			opacity: 0.5;
+			max-height: 100% !important;
+			margin: 0;
+			z-index: 1;
+		}
 
 		.vote-column-content {
 			display: inline-block;
@@ -2075,22 +2089,28 @@ arb-path-nav, [arb-path-nav] {
 	font-size: 12px;
 
 	span {
+		color: initial;
+		opacity: 0.7;
 		position: relative;
 		top: 1px;
 		left: -2px;
 	}
 
 	md-icon {
-		color: inherit;
 		opacity: 0.7;
 		font-size: 14px;
 		width: 14px;
 		height: 14px;
 	}
-}
 
-.intrasite-link .vote-summary .vote-column {
-	background-color: $primary-color;
+	&.current-user-vote {
+		span {
+			color: $accent-hue-3;
+		}
+		md-icon {
+			color: $accent-hue-3;
+		}
+	}
 }
 
 @mixin tag() {

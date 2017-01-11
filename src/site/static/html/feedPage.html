@@ -86,12 +86,11 @@
 								<div layout="row" layout-align="center center" ng-if="page.hasVote">
 									<span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
 									<span arb-vote-summary page-id="{{::page.pageId}}"></span>
-									<span class="inline-vote" ng-bind="page.getVoteBars()" ng-if="page.votes.length > 0"></span>
-									<span class="md-caption" ng-if="page.votes.length == 0">No votes yet</span>
+									<span class="md-caption" ng-if="page.voteCount == 0">No votes yet</span>
 									<ng-pluralize class="md-caption"
-											count="page.votes.length"
+											count="page.voteCount"
 											when="{'one': '(1 vote)', 'other': '({} votes)'}"
-											ng-if="page.votes.length > 0"></ng-pluralize>
+											ng-if="page.voteCount > 0"></ng-pluralize>
 								</div>
 							</div>
 							<div class="feed-row-tag-container">
@@ -179,12 +178,11 @@
 						<arb-comment-count page-id="{{::page.pageId}}" class="s16"></arb-comment-count>
 						<div ng-if="page.hasVote">
 							&nbsp;&nbsp;&nbsp;&nbsp;
-							<span class="inline-vote" ng-bind="page.getVoteBars()" ng-if="page.votes.length > 0"></span>
-							<span class="md-caption" ng-if="page.votes.length == 0">No votes yet</span>
+							<span class="md-caption" ng-if="page.voteCount == 0">No votes yet</span>
 							<ng-pluralize class="md-caption"
-									count="page.votes.length"
+									count="page.voteCount"
 									when="{'one': '(1 vote)', 'other': '({} votes)'}"
-									ng-if="page.votes.length > 0"></ng-pluralize>
+									ng-if="page.voteCount > 0"></ng-pluralize>
 						</div>
 					</div>
 					<div class="feed-row-tag-container">

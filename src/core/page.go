@@ -159,10 +159,9 @@ func NewCorePageData(pageID string) *corePageData {
 type Page struct {
 	corePageData
 
+	// This determines which variables for this page will be loaded / computed
 	LoadOptions PageLoadOptions `json:"-"`
 
-	// === Auxillary data. ===
-	// For some pages we load additional data.
 	// Set to true if the current user is subscribed to this page/user
 	IsSubscribedToDiscussion bool `json:"isSubscribedToDiscussion"`
 	IsSubscribedToUser       bool `json:"isSubscribedToUser"`
@@ -171,17 +170,22 @@ type Page struct {
 	DiscussionSubscriberCount int `json:"discussionSubscriberCount"`
 	MaintainerCount           int `json:"maintainerCount"`
 	UserSubscriberCount       int `json:"userSubscriberCount"`
+
 	// Last time the user visited this page.
 	LastVisit string `json:"lastVisit"`
+
 	// True iff the user has a work-in-progress draft for this page
 	HasDraft bool `json:"hasDraft"`
 
-	// === Full data. ===
-	// For pages that are displayed fully, we load more additional data.
+	// Detailed list of all the votes on this page
 	Votes []*Vote `json:"votes"`
 	// Summary of all the votes on this page; the bucket with the max votes will have value of 1.0
-	VoteSummary   []float64 `json:"voteSummary"`
-	MuVoteSummary float64   `json:"muVoteSummary"`
+	VoteSummary     []float64 `json:"voteSummary"`
+	MuVoteSummary   float64   `json:"muVoteSummary"` // mu vote bucket
+	VoteScaling     int       `json:"voteScaling"`   // number of votes in the bucket with most votes
+	CurrentUserVote int       `json:"currentUserVote"`
+	VoteCount       int       `json:"voteCount"`
+
 	// We don't allow users to change the vote type once a page has been published
 	// with a voteType!="" even once. If it has, this is the vote type it shall
 	// always have.
@@ -203,9 +207,9 @@ type Page struct {
 	// What actions the current user can perform with this page
 	Permissions *Permissions `json:"permissions"`
 
-	// === Other data ===
-	// This data is included under "Full data", but can also be loaded along side "Auxillary data".
+	// Various page summaries
 	Summaries map[string]string `json:"summaries"`
+
 	// Ids of the users who edited this page. Ordered by how much they contributed.
 	CreatorIDs []string `json:"creatorIds"`
 
@@ -916,7 +920,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 	// Load votes
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Votes || p.LoadOptions.VoteSummary })
-	err = LoadVotes(db, filteredPageMap, userMap)
+	err = LoadVotes(db, u, filteredPageMap, userMap)
 	if err != nil {
 		return fmt.Errorf("LoadVotes failed: %v", err)
 	}
@@ -1561,7 +1565,7 @@ func LoadSearchString(db *database.DB, id string) (*SearchString, error) {
 }
 
 // LoadVotes loads probability votes corresponding to the given pages and updates the pages.
-func LoadVotes(db *database.DB, pageMap map[string]*Page, userMap map[string]*User) error {
+func LoadVotes(db *database.DB, u *CurrentUser, pageMap map[string]*Page, userMap map[string]*User) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
@@ -1596,20 +1600,23 @@ func LoadVotes(db *database.DB, pageMap map[string]*Page, userMap map[string]*Us
 		return err
 	}
 
-	// For pages that only need vote summary, compute it and delete votes
+	// Compute vote summary and a few other vote-related variables
 	for _, p := range pageMap {
-		if !p.LoadOptions.VoteSummary {
-			continue
-		}
+		p.VoteCount = len(p.Votes)
+		p.CurrentUserVote = NoVoteValue
 
 		if p.VoteType == ApprovalVoteType {
 			p.VoteSummary = make([]float64, 9, 9)
 		} else {
 			p.VoteSummary = make([]float64, 10, 10)
 		}
-		var maxVoteCount float64 // the number of votes in a bucket with highest # of votes
 		for _, vote := range p.Votes {
-			if vote.Value == MuVoteValue {
+			if vote.UserID == u.ID {
+				p.CurrentUserVote = vote.Value
+			}
+			if vote.Value == NoVoteValue {
+				continue
+			} else if vote.Value == MuVoteValue {
 				// Mu vote
 				p.MuVoteSummary++
 				continue
@@ -1630,20 +1637,23 @@ func LoadVotes(db *database.DB, pageMap map[string]*Page, userMap map[string]*Us
 				bucketIndex = int(math.Floor(float64(vote.Value) / 10))
 			}
 			p.VoteSummary[bucketIndex]++
-			if p.VoteSummary[bucketIndex] > maxVoteCount {
-				maxVoteCount = p.VoteSummary[bucketIndex]
+			if int(p.VoteSummary[bucketIndex]) > p.VoteScaling {
+				p.VoteScaling = int(p.VoteSummary[bucketIndex])
 			}
 		}
 
 		// Renormalize votes; bucket with highest # of votes should end up with an 8
-		if maxVoteCount > 0 {
+		if p.VoteScaling > 0 {
 			for n := 0; n < len(p.VoteSummary); n++ {
-				p.VoteSummary[n] = p.VoteSummary[n] / maxVoteCount
+				p.VoteSummary[n] = p.VoteSummary[n] / float64(p.VoteScaling)
 			}
 		}
 
 		if !p.LoadOptions.Votes {
 			p.Votes = make([]*Vote, 0)
+		}
+		if !p.LoadOptions.VoteSummary {
+			p.VoteSummary = nil
 		}
 	}
 	return nil

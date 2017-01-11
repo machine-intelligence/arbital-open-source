@@ -163,6 +163,19 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		isClaimPage: function() {
 			return this.hasVote;
 		},
+		// Return the index (into vote summary) for the (current) vote; -1 is for mu; -2 is for no vote
+		getVoteSummaryIndex: function(voteValue) {
+			voteValue = voteValue || this.currentUserVote;
+			if (voteValue < 0) return voteValue;
+			if (this.voteType == 'probability') {
+				return Math.floor(voteValue / 10);
+			}
+			// Approval vote
+			if (voteValue >= 100) return 8;
+			if (voteValue <= 40) return Math.floor((voteValue - 1) / 10);
+			if (voteValue >= 60) return Math.floor(voteValue / 10) - 1;
+			return 4;
+		},
 		getMuVoteCount: function() {
 			if (this.votes.length <= 0) {
 				return this.muVoteSummary;

@@ -10,9 +10,9 @@
 				ng-click="voteMouseClick($event)">
 
 			<div layout="row" layout-align="end center">
-				<ng-pluralize count="page.votes.length"
+				<ng-pluralize count="page.voteCount"
 						when="{'0': 'No votes', 'one': 'One vote', 'other': '{} votes'}"></ng-pluralize>
-				<md-button class="short-button" ng-click="deleteMyVote()" ng-if="getCurrentUserVote().value >= -1">
+				<md-button class="short-button" ng-click="deleteMyVote()" ng-if="page.currentUserVote >= -1">
 					<md-icon>delete</md-icon>
 					<md-tooltip md-delay="300">Delete your vote</md-tooltip>
 				</md-button>
@@ -22,8 +22,8 @@
 			<div class="vote-bar-margin full-width" layout="row">
 				<!-- Knob to show where user's vote is -->
 				<div class="my-vote-div"
-						ng-style="{left: valueToOffset(getCurrentUserVote().value),
-								visibility: isCurrentVoteVisible() ? 'visible' : 'hidden'}">
+						ng-style="{left: valueToOffset(page.currentUserVote),
+								visibility: page.currentUserVote > 0 ? 'visible' : 'hidden'}">
 					<div class="my-vote-knob md-whiteframe-2dp"></div>
 				</div>
 				<!-- Know to show where the user will vote -->
@@ -60,7 +60,7 @@
 				<div flex="15"></div>
 				<div flex="10">
 					<div class="vote-bar-label center-text" ng-bind="::typeHelper.label3"></div>
-					<md-button ng-class="{'md-raised md-accent': getCurrentUserVote().value == -1}"
+					<md-button ng-class="{'md-raised md-accent': page.currentUserVote == -1}"
 							ng-click="muVote()" 
 							ng-mouseleave="voteMouseMove($event, true, true)"
 							ng-mousemove="voteMouseMove($event, false, true)">

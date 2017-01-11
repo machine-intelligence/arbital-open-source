@@ -1,13 +1,21 @@
 <span class="vote-summary">
 	<span ng-repeat="(index, voteValue) in page.voteSummary track by $index"
-			class="vote-column" 
-			ng-style="{'max-height': voteValue + 'em'}">
-		<span class="vote-column-content"
-				ng-class="{'double-sized': index == 4 && page.voteType == 'approval'}"></span>
+			class="vote-column">
+		<!-- Highlighter for current user's vote -->
+		<span class="current-user-vote" ng-if="index == page.getVoteSummaryIndex()">
+			<span class="vote-column-content"
+					ng-class="{'double-sized': index == 4 && page.voteType == 'approval'}"></span>
+		</span>
+		<!-- Column for the vote summary -->
+		<span class="summary-vote-column" ng-style="{'max-height': voteValue + 'em'}">
+			<span class="vote-column-content"
+					ng-class="{'double-sized': index == 4 && page.voteType == 'approval'}"></span>
+		</span>
 	</span>
 </span>
 <span class="mu-vote"
-	ng-if="page.muVoteSummary > 0.2">
-		<md-icon>block</md-icon>
-		<span ng-bind="page.getMuVoteCount()"></span>
+		ng-class="{'current-user-vote': page.currentUserVote == -1}"
+		ng-if="page.muVoteSummary > 0 || page.currentUserVote == -1">
+	<md-icon>block</md-icon>
+	<span ng-bind="page.getMuVoteCount()"></span>
 </span>
