@@ -828,15 +828,19 @@ app.directive('arbPageRow', function($mdMedia, arb) {
 
 app.directive('arbTag', function(arb) {
 	return {
-		template: '<a ng-href="{{url}}" class="chip">{{tagName}}</a>',
+		template: '<a ng-href="{{url}}" class="chip nowrap">{{tagName}}</a>',
 		replace: true,
 		scope: {
 			tagId: '@',
 			url: '@',
+			maxLength: '=',
 		},
 		controller: function($scope) {
 			var tag = arb.stateService.getPage($scope.tagId);
 			$scope.tagName = tag ? tag.title : $scope.tagId;
+			if ($scope.maxLength > 0 && $scope.tagName.length > $scope.maxLength) {
+				$scope.tagName = $scope.tagName.substring(0, $scope.maxLength-3) + "...";
+			}
 			if (!$scope.url) {
 				$scope.url = arb.urlService.getPageUrl($scope.tagId);
 			}
