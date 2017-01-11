@@ -182,6 +182,12 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 			scope.deleteMyVote = function() {
 				scope.setCurrentUserVote(-2);
 			};
+
+			// Return if current user's vote is visible on the bar
+			scope.isCurrentVoteVisible = function() {
+				let vote = scope.getCurrentUserVote();
+				return vote !== undefined && vote > 0;
+			};
 		},
 	};
 });

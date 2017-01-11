@@ -7,10 +7,9 @@
 		<div class="vote-bar-body full-width"
 				ng-mouseleave="voteMouseMove($event, true)"
 				ng-mousemove="voteMouseMove($event, false)"
-				ng-click="voteMouseClick($event)"
-				layout="column">
+				ng-click="voteMouseClick($event)">
 
-			<div flex layout="row" layout-align="end center">
+			<div layout="row" layout-align="end center">
 				<ng-pluralize count="page.votes.length"
 						when="{'0': 'No votes', 'one': 'One vote', 'other': '{} votes'}"></ng-pluralize>
 				<md-button class="short-button" ng-click="deleteMyVote()" ng-if="getCurrentUserVote().value >= -1">
@@ -24,7 +23,7 @@
 				<!-- Knob to show where user's vote is -->
 				<div class="my-vote-div"
 						ng-style="{left: valueToOffset(getCurrentUserVote().value),
-								visibility: getCurrentUserVote().value >= 0 ? 'visible' : 'hidden'}">
+								visibility: isCurrentVoteVisible() ? 'visible' : 'hidden'}">
 					<div class="my-vote-knob md-whiteframe-2dp"></div>
 				</div>
 				<!-- Know to show where the user will vote -->
