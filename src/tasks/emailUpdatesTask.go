@@ -54,18 +54,31 @@ func (task EmailUpdatesTask) Execute(db *database.DB) (delay int, err error) {
 		return
 	}
 
+	// NOTE: this query is tightly coupled with a query in update.go::LoadUpdateRows
 	// Find all users who need emailing.
-	rows := db.NewStatement(`
-		SELECT id
-		FROM users
-		WHERE (DATEDIFF(NOW(),updateEmailSentAt)>=7 AND emailFrequency=?)
-			OR (DATEDIFF(NOW(),updateEmailSentAt)>=1 AND emailFrequency=?)
-			OR (DATEDIFF(NOW(),updateEmailSentAt)>=0 AND emailFrequency=?)
-		`).Query(core.WeeklyEmailFrequency, core.DailyEmailFrequency, core.ImmediatelyEmailFrequency)
-
+	rows := database.NewQuery(`
+		SELECT u.id
+		FROM users AS u
+		JOIN (
+			SELECT updates.userId,updates.createdAt,updates.type,updates.seen,updates.dismissed,updates.emailed,
+				COALESCE((
+					SELECT !isDeleted
+					FROM pageInfos AS pi
+					WHERE updates.goToPageId = pi.pageId
+						AND`).AddPart(core.PageInfosFilterWithOptions(nil, &core.PageInfosOptions{Deleted: true})).Add(`
+				), false) AS isGoToPageAlive
+			FROM updates
+		) AS up
+		ON (u.id = up.userId)
+		WHERE NOT up.seen
+			AND NOT up.emailed
+			AND NOT up.dismissed
+			AND (DATEDIFF(up.createdAt,NOW()) >= 1 OR u.emailFrequency=?)`, core.ImmediatelyEmailFrequency).Add(`
+			AND (up.isGoToPageAlive OR up.type IN`).AddArgsGroupStr(core.GetOkayToShowWhenGoToPageIsDeletedUpdateTypes()).Add(`)
+		GROUP BY 1`).ToStatement(db).Query()
 	err = rows.Process(emailUpdatesProcessUser)
 	if err != nil {
-		c.Errorf("ERROR: %v", err)
+		c.Errorf("Error while counting updates per user: %v", err)
 	}
 	return
 }

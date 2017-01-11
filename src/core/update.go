@@ -105,6 +105,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 	changeLogIDs := make([]string, 0)
 	changeLogMap := make(map[string]*ChangeLog)
 
+	// NOTE: this query is tightly coupled with a query in emailUpdatesTask.go
 	rows := database.NewQuery(`
 		SELECT updates.id,updates.userId,updates.byUserId,updates.createdAt,updates.type,updates.seen,
 			updates.subscribedToId,updates.goToPageId,updates.markId,updates.changeLogId,
@@ -117,7 +118,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		FROM updates
 		WHERE updates.userId=?`, u.ID).AddPart(emailFilter).AddPart(updateTypeFilter).Add(`
 			AND NOT updates.dismissed
-		HAVING isGoToPageAlive OR updates.type IN`).AddArgsGroupStr(getOkayToShowWhenGoToPageIsDeletedUpdateTypes()).Add(`
+		HAVING isGoToPageAlive OR updates.type IN`).AddArgsGroupStr(GetOkayToShowWhenGoToPageIsDeletedUpdateTypes()).Add(`
 		ORDER BY updates.createdAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -324,7 +325,7 @@ func GetMaintenanceUpdateTypes() []string {
 	}
 }
 
-func getOkayToShowWhenGoToPageIsDeletedUpdateTypes() []string {
+func GetOkayToShowWhenGoToPageIsDeletedUpdateTypes() []string {
 	return []string{
 		ChangeLogUpdateType,
 		PageEditUpdateType,
