@@ -586,13 +586,15 @@ func CreateNewPage(db *database.DB, u *CurrentUser, options *CreateNewPageOption
 	// Update elastic search index.
 	if options.IsPublished {
 		doc := &elastic.Document{
-			PageID:    options.PageID,
-			Type:      options.Type,
-			Title:     options.Title,
-			Clickbait: options.Clickbait,
-			Text:      options.Text,
-			Alias:     options.Alias,
-			CreatorID: u.ID,
+			PageID:       options.PageID,
+			Type:         options.Type,
+			Title:        options.Title,
+			Clickbait:    options.Clickbait,
+			Text:         options.Text,
+			Alias:        options.Alias,
+			SeeDomainID:  options.SeeDomainID,
+			EditDomainID: options.EditDomainID,
+			CreatorID:    u.ID,
 		}
 		err := elastic.AddPageToIndex(db.C, doc)
 		if err != nil {

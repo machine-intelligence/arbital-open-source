@@ -653,6 +653,8 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 			searchGroups: '=',
 			// If true, exclude groups from search results
 			ignoreGroups: '=',
+			// If this is set, pages in this domain will get a boost
+			preferredEditDomainId: '@',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -670,6 +672,7 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 						term: text,
 						pageType: $scope.pageType,
 						filterPageTypes: $scope.ignoreGroups ? ['group'] : [],
+						preferredEditDomainID: $scope.preferredEditDomainID,
 					}, function(results) {
 						deferred.resolve(results);
 					});

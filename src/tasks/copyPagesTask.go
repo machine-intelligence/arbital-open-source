@@ -80,7 +80,7 @@ func (task CopyPagesTask) Execute(db *database.DB) (delay int, err error) {
 		}
 
 		_, err = database.NewQuery(`
-			UPDATE tmptable_1 SET pageId=?,alias=?,seeGroupId=?,currentEdit=?`, newPageID, newPageID, "4f", editNum).Add(`
+			UPDATE tmptable_1 SET pageId=?,alias=?,seeDomainId=?,currentEdit=?`, newPageID, newPageID, "4f", editNum).Add(`
 		`).ToStatement(db).Exec()
 		if err != nil {
 			return fmt.Errorf("Failed to copy pageInfos row: %v", err)
