@@ -115,9 +115,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			if (newClaimDomainId) {
 				$scope.page.hasVote = true;
 				$scope.page.voteType = 'approval';
-				console.log(newClaimDomainId);
 				if (arb.userService.user.domainMembershipMap[newClaimDomainId].canSubmitLinks) {
-				console.log(newClaimDomainId);
 					$scope.page.editDomainId = newClaimDomainId;
 				}
 				$location.search('newClaimDomainId', undefined);

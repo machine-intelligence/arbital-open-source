@@ -110,17 +110,20 @@ func LoadRelevantDomains(db *database.DB, u *CurrentUser, pageMap map[string]*Pa
 	pageIDs := PageIDsListFromMap(pageMap)
 	if len(pageIDs) > 0 {
 		rows := database.NewQuery(`
-			SELECT seeDomainId,editDomainId
+			SELECT seeDomainId,editDomainId,submitToDomainId
 			FROM pageInfos
 			WHERE pageId IN`).AddArgsGroup(pageIDs).ToStatement(db).Query()
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var seeDomainID, editDomainID string
-			err := rows.Scan(&seeDomainID, &editDomainID)
+			var seeDomainID, editDomainID, submitToDomainID string
+			err := rows.Scan(&seeDomainID, &editDomainID, &submitToDomainID)
 			if err != nil {
 				return fmt.Errorf("Failed to scan: %v", err)
 			}
 			domainIDs = append(domainIDs, seeDomainID)
 			domainIDs = append(domainIDs, editDomainID)
+			if submitToDomainID != "" {
+				domainIDs = append(domainIDs, submitToDomainID)
+			}
 			return nil
 		})
 		if err != nil {
