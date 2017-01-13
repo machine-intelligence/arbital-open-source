@@ -415,7 +415,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 		// Submit the page to a feed if appropriate
 		if !oldPage.WasPublished && isNewCurrentEdit && core.IsIntIDValid(oldPage.SubmitToDomainID) {
-			if u.DomainMembershipMap[oldPage.SubmitToDomainID].CanSubmitLinks {
+			if u.CanSubmitLinks(oldPage.SubmitToDomainID) {
 				newFeedSubmission := &core.FeedPage{
 					DomainID:    oldPage.SubmitToDomainID,
 					PageID:      data.PageID,

@@ -35,6 +35,29 @@ func NewUser() *User {
 	return &u
 }
 
+// Returns domain id corresponding to this user.
+func (u *User) MyDomainID() string {
+	for _, dm := range u.DomainMembershipMap {
+		if dm.DomainPageID == u.ID {
+			return dm.DomainID
+		}
+	}
+	return ""
+}
+
+// FullName returns user's first and last name.
+func (u *User) FullName() string {
+	return fmt.Sprintf("%s %s", u.FirstName, u.LastName)
+}
+
+func (u *User) CanSubmitLinks(domainID string) bool {
+	membership, ok := u.DomainMembershipMap[domainID]
+	if !ok {
+		return false
+	}
+	return membership.CanSubmitLinks
+}
+
 // AddUserIdToMap adds a new user with the given user id to the map if it's not
 // in the map already.
 // Returns the new/existing user.
@@ -49,21 +72,6 @@ func AddUserIDToMap(userID string, userMap map[string]*User) *User {
 	u.ID = userID
 	userMap[userID] = u
 	return u
-}
-
-// Returns domain id corresponding to this user.
-func (u *User) MyDomainID() string {
-	for _, dm := range u.DomainMembershipMap {
-		if dm.DomainPageID == u.ID {
-			return dm.DomainID
-		}
-	}
-	return ""
-}
-
-// FullName returns user's first and last name.
-func (u *User) FullName() string {
-	return fmt.Sprintf("%s %s", u.FirstName, u.LastName)
 }
 
 // LoadUsers loads User information (like name) for each user in the given map.
