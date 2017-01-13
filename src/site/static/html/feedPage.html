@@ -42,7 +42,7 @@
 			<div layout="row" layout-align="end center">
 				<md-button ng-href="{{arb.urlService.getNewPageUrl({newClaimDomainId: '2069', submitToDomainId: '2069'})}}"
 						class="claim-button md-raised">
-					{{arb.userService.user.domainMembershipMap[2069].canSubmitLinks ? 'Submit new claim' : 'Propose new claim'}}
+					{{arb.userService.user.canSubmitLinks(2069) ? 'Submit new claim' : 'Propose new claim'}}
 				</md-button>
 			</div>
 
@@ -122,13 +122,13 @@
 			<div layout="row" layout-align="end center">
 				<md-button class="link-button md-raised"
 						ng-click="showSubmissionForm()"
-						ng-if="arb.userService.user.domainMembershipMap[2069].canSubmitLinks">
+						ng-if="arb.userService.user.canSubmitLinks(2069)">
 					Submit new link
 				</md-button>
 				&nbsp; &nbsp; &nbsp;
 				<md-button ng-href="{{arb.urlService.getNewPageUrl({submitToDomainId: '2069'})}}"
 						class="post-button md-raised">
-					{{arb.userService.user.domainMembershipMap[2069].canSubmitLinks ? 'Submit new post' : 'Propose new post'}}
+					{{arb.userService.user.canSubmitLinks(2069) ? 'Submit new post' : 'Propose new post'}}
 				</md-button>
 			</div>
 

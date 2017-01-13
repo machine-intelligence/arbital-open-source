@@ -13,6 +13,14 @@ app.service('userService', function($http, $location, $rootScope, analyticsServi
 	// Map of all user objects.
 	this.userMap = {};
 
+	// These functions will be added to the current user object.
+	let userFuncs = {
+		canSubmitLinks: function(domainId) {
+			let membership = that.user.domainMembershipMap[domainId];
+			return membership && membership.canSubmitLinks;
+		},
+	};
+
 	// Add the given user to userMap, while doing a smart merge.
 	this.addUserToMap = function(newUser) {
 		var oldUser = that.userMap[newUser.id];
@@ -34,9 +42,12 @@ app.service('userService', function($http, $location, $rootScope, analyticsServi
 			that.userMap = {};
 		}
 
-		if (data.resetEverything || (!that.userIsLoggedIn() && (data.user && data.user.id))) {
+		if (data.resetEverything || (!that.userIsLoggedIn() && data.user && data.user.id)) {
 			that.user = data.user;
 			analyticsService.identifyUser(that.user.id, that.user.firstName + ' ' + that.user.lastName, that.user.email, that.user.analyticsId);
+			for (var name in userFuncs) {
+				that.user[name] = userFuncs[name];
+			}
 		}
 
 		for (let userId in data.users) {

@@ -13,7 +13,7 @@
 		<div class="md-whiteframe-1dp md-accent md-hue-1" layout-align="start center">
 			<div ng-repeat="(domainId, submission) in page.domainSubmissions"
 						layout-padding
-						ng-if="arb.userService.user.domainMembershipMap[domainId].canSubmitLinks">
+						ng-if="arb.userService.user.canSubmitLinks(domainId)">
 				<div>
 					<arb-user-name user-id="{{::submission.submitterId}}"></arb-user-name>
 					submitted this page to the
