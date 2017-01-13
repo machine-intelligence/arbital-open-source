@@ -1909,7 +1909,7 @@ func LoadPageToDomainSubmissionsForPages(db *database.DB, pageMap map[string]*Pa
 		return nil
 	}
 
-	queryPart := database.NewQuery(`WHERE pds.pageId IN`).AddArgsGroup(pageIDs)
+	queryPart := database.NewQuery(`WHERE pds.approverId="" AND pds.pageId IN`).AddArgsGroup(pageIDs)
 	err := LoadPageToDomainSubmissions(db, queryPart, func(db *database.DB, submission *PageToDomainSubmission) error {
 		AddPageIDToMap(submission.DomainID, pageMap)
 		AddUserToMap(submission.SubmitterID, userMap)

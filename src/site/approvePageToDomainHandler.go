@@ -71,38 +71,10 @@ func approvePageToDomainHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.FailWith(err2)
 	}
 
-	// Check if the page already has a parent that's in the math domain
-	var parentCount int
-	_, err = database.NewQuery(`
-		SELECT COUNT(*)
-		FROM pagePairs AS pp
-		JOIN pageDomainPairs AS pdp
-		ON (pp.parentId=pdp.pageId)
-		WHERE pp.type=?`, core.ParentPagePairType).Add(`
-			AND pp.childId=?`, submission.PageID).Add(`
-			AND pdp.domainId=?`, submission.DomainID).ToStatement(db).QueryRow().Scan(&parentCount)
-	if err != nil {
-		return pages.Fail("Couldn't load parents", err)
-	}
-
-	// If no parent, add domain as a parent
-	if parentCount <= 0 {
-		handlerData := newPagePairData{
-			ParentID: submission.DomainID,
-			ChildID:  submission.PageID,
-			Type:     core.ParentPagePairType,
-		}
-		result := newPagePairHandlerInternal(db, u, &handlerData)
-		if result.Err != nil {
-			return pages.Fail("Couldn't add domain as parent", fmt.Errorf("Failed to add page pair: %v", result.Err))
-		}
-	}
-
 	// Load the page with the new domain permissions
-	loadOptions := (&core.PageLoadOptions{
-		Parents:     true,
+	loadOptions := &core.PageLoadOptions{
 		SubmittedTo: true,
-	}).Add(core.TitlePlusLoadOptions)
+	}
 	core.AddPageToMap(data.PageID, returnData.PageMap, loadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
@@ -124,6 +96,15 @@ func approvePageToDomainTx(tx *database.Tx, approver *core.CurrentUser, submissi
 	statement := tx.DB.NewInsertStatement("pageToDomainSubmissions", hashmap, "approvedAt", "approverId").WithTx(tx)
 	if _, err := statement.Exec(); err != nil {
 		return sessions.NewError("Couldn't add submission", err)
+	}
+
+	// Update pageInfos
+	hashmap = make(map[string]interface{})
+	hashmap["pageId"] = submission.PageID
+	hashmap["editDomainId"] = submission.DomainID
+	statement = tx.DB.NewInsertStatement("pageInfos", hashmap, "editDomainId").WithTx(tx)
+	if _, err := statement.Exec(); err != nil {
+		return sessions.NewError("Couldn't update pageInfos", err)
 	}
 
 	// Notify page creator and the person who submitted the page to domain

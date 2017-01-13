@@ -59,11 +59,14 @@ func (task DomainWideNewUpdateTask) Execute(db *database.DB) (delay int, err err
 		return -1, fmt.Errorf("Invalid new update task: %v", err)
 	}
 
+	reviewerRoles := core.RolesAtLeast(core.ReviewerDomainRole)
+
 	// Iterate through all users who are members of the domain.
 	rows := database.NewQuery(`
-		SELECT DISTINCT toUserId
-		FROM invites
-		WHERE domainId=?`, task.DomainID).ToStatement(db).Query()
+		SELECT userId
+		FROM domainMembers
+		WHERE domainId=?`, task.DomainID).Add(`
+			AND role IN`).AddArgsGroupStr(reviewerRoles).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var userID string
 		err := rows.Scan(&userID)

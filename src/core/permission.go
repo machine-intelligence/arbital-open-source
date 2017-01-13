@@ -51,6 +51,19 @@ func IsDomainRoleValid(role string) bool {
 	return false
 }
 
+// Returns a list of all roles that are at least as high as the given role.
+func RolesAtLeast(atLeast string) []string {
+	roles := make([]string, 0)
+	metThreshold := false
+	for _, domainRole := range _allDomainRoles {
+		metThreshold = metThreshold || (domainRole == atLeast)
+		if metThreshold {
+			roles = append(roles, domainRole)
+		}
+	}
+	return roles
+}
+
 // Return true iff current user has permission to given the given role to another user
 // in the given domain.
 func CanCurrentUserGiveRole(u *CurrentUser, domainID string, role string) bool {

@@ -4,7 +4,6 @@ package tasks
 
 import (
 	"fmt"
-	"strings"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -37,10 +36,6 @@ func (task PublishPagePairTask) IsValid() error {
 func (task PublishPagePairTask) Execute(db *database.DB) (delay int, err error) {
 	c := db.C
 
-	if !core.IsIntIDValid(task.PagePairID) {
-		// NOTE: this workaround is temporary while bad jobs get processed; if you see this after Jan 13th, 2017 please remove it
-		task.PagePairID = strings.Trim(strings.TrimPrefix(task.PagePairID, `%!s(int64=`), `()`)
-	}
 	if err = task.IsValid(); err != nil {
 		return -1, err
 	}
@@ -59,7 +54,7 @@ func (task PublishPagePairTask) Execute(db *database.DB) (delay int, err error) 
 	if err != nil {
 		return -1, fmt.Errorf("Failed to load the page pair: %v", err)
 	} else if pagePair == nil {
-		return -1, fmt.Errorf("Failed to find the page pair")
+		return 0, fmt.Errorf("Failed to find the page pair")
 	}
 
 	// Load all the involved pages

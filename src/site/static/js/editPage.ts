@@ -111,10 +111,15 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			}
 
 			// See if the user is creating a claim
-			if ($location.search().newClaimDomainId) {
+			var newClaimDomainId = $location.search().newClaimDomainId;
+			if (newClaimDomainId) {
 				$scope.page.hasVote = true;
 				$scope.page.voteType = 'approval';
-				$scope.page.editDomainId = $location.search().newClaimDomainId;
+				console.log(newClaimDomainId);
+				if (arb.userService.user.domainMembershipMap[newClaimDomainId].canSubmitLinks) {
+				console.log(newClaimDomainId);
+					$scope.page.editDomainId = newClaimDomainId;
+				}
 				$location.search('newClaimDomainId', undefined);
 			}
 

@@ -30,7 +30,6 @@ var newPageToDomainSubmissionHandler = siteHandler{
 // updateSettingsHandlerFunc handles submitting the settings from the Settings page
 func newPageToDomainSubmissionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
-	c := params.C
 	u := params.U
 	returnData := core.NewHandlerData(u)
 
@@ -45,28 +44,7 @@ func newPageToDomainSubmissionHandlerFunc(params *pages.HandlerParams) *pages.Re
 
 	// Begin the transaction.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-
-		// Create new submission
-		hashmap := make(map[string]interface{})
-		hashmap["pageId"] = data.PageID
-		hashmap["domainId"] = data.DomainID
-		hashmap["submitterId"] = u.ID
-		hashmap["createdAt"] = database.Now()
-		statement := db.NewInsertStatement("pageToDomainSubmissions", hashmap).WithTx(tx)
-		if _, err = statement.Exec(); err != nil {
-			return sessions.NewError("Couldn't add submission", err)
-		}
-
-		// Notify all domain owners about this new submission
-		var task tasks.DomainWideNewUpdateTask
-		task.UserID = u.ID
-		task.UpdateType = core.PageToDomainSubmissionUpdateType
-		task.DomainID = data.DomainID
-		task.GoToPageID = data.PageID
-		if err := tasks.Enqueue(c, &task, nil); err != nil {
-			return sessions.NewError("Couldn't enqueue a task", err)
-		}
-		return nil
+		return CreatePageToDomainSubmission(tx, u, &data)
 	})
 	if err2 != nil {
 		return pages.FailWith(err2)
@@ -77,4 +55,28 @@ func newPageToDomainSubmissionHandlerFunc(params *pages.HandlerParams) *pages.Re
 		return pages.Fail("Couldn't load submission", err)
 	}
 	return pages.Success(returnData)
+}
+
+func CreatePageToDomainSubmission(tx *database.Tx, u *core.CurrentUser, data *newPageToDomainSubmissionData) sessions.Error {
+	// Create new submission
+	hashmap := make(map[string]interface{})
+	hashmap["pageId"] = data.PageID
+	hashmap["domainId"] = data.DomainID
+	hashmap["submitterId"] = u.ID
+	hashmap["createdAt"] = database.Now()
+	statement := tx.DB.NewInsertStatement("pageToDomainSubmissions", hashmap).WithTx(tx)
+	if _, err := statement.Exec(); err != nil {
+		return sessions.NewError("Couldn't add submission", err)
+	}
+
+	// Notify all domain owners about this new submission
+	var task tasks.DomainWideNewUpdateTask
+	task.UserID = u.ID
+	task.UpdateType = core.PageToDomainSubmissionUpdateType
+	task.DomainID = data.DomainID
+	task.GoToPageID = data.PageID
+	if err := tasks.Enqueue(tx.DB.C, &task, nil); err != nil {
+		return sessions.NewError("Couldn't enqueue a task", err)
+	}
+	return nil
 }

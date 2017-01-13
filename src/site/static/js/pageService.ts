@@ -14,7 +14,7 @@ import {isIntIdValid} from './util.ts';
 
 // pages stores all the loaded pages and provides multiple helper functions for
 // working with pages.
-app.service('pageService', function($http, $compile, $location, $rootScope, $interval, analyticsService, stateService, userService, urlService) {
+app.service('pageService', function($http, $compile, $location, $rootScope, $interval, analyticsService, stateService, userService, popupService, urlService) {
 	var that = this;
 
 	// Call this to process data we received from the server.
@@ -631,8 +631,9 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		};
 		stateService.postData('/json/approvePageToDomain/', data, function(data) {
 			var page = stateService.pageMap[pageId];
-			page.seeDomainId = data.domainId;
+			page.editDomainId = data.domainId;
 			if (successFn) successFn(data);
+			popupService.showToast({text: 'Page approved!'});
 		}, errorFn);
 	};
 

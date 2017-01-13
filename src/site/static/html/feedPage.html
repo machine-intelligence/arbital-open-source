@@ -39,12 +39,10 @@
 		<!-- Recent claims -->
 		<div class="claims-div" flex-gt-sm="50">
 			<!-- Create new ... buttons -->
-			<div layout="row"
-					layout-align="end center"
-					ng-if="arb.userService.user.domainMembershipMap[2069].canSubmitLinks">
+			<div layout="row" layout-align="end center">
 				<md-button ng-href="{{arb.urlService.getNewPageUrl({newClaimDomainId: '2069', submitToDomainId: '2069'})}}"
 						class="claim-button md-raised">
-					Submit new claim
+					{{arb.userService.user.domainMembershipMap[2069].canSubmitLinks ? 'Submit new claim' : 'Propose new claim'}}
 				</md-button>
 			</div>
 
@@ -97,8 +95,11 @@
 								</div>
 							</div>
 							<div class="feed-row-tag-container">
-								<arb-tag ng-repeat="tagId in page.tagIds" class="feed-row-tag"
-									tag-id="{{::tagId}}" url="/feed/{{arb.stateService.pageMap[tagId].alias}}" max-length="20">
+								<arb-tag ng-repeat="tagId in page.tagIds"
+										class="feed-row-tag"
+										tag-id="{{::tagId}}"
+										url="/feed/{{arb.stateService.pageMap[tagId].alias}}"
+										max-length="20">
 								</arb-tag>
 							</div>
 						</div>
@@ -118,16 +119,16 @@
 
 		<div class="feed-rows" flex-gt-sm="30">
 			<!-- Create new ... buttons -->
-			<div layout="row"
-					layout-align="end center"
-					ng-if="arb.userService.user.domainMembershipMap[2069].canSubmitLinks">
-				<md-button class="link-button md-raised" ng-click="showSubmissionForm()">
+			<div layout="row" layout-align="end center">
+				<md-button class="link-button md-raised"
+						ng-click="showSubmissionForm()"
+						ng-if="arb.userService.user.domainMembershipMap[2069].canSubmitLinks">
 					Submit new link
 				</md-button>
 				&nbsp; &nbsp; &nbsp;
 				<md-button ng-href="{{arb.urlService.getNewPageUrl({submitToDomainId: '2069'})}}"
 						class="post-button md-raised">
-					Submit new post
+					{{arb.userService.user.domainMembershipMap[2069].canSubmitLinks ? 'Submit new post' : 'Propose new post'}}
 				</md-button>
 			</div>
 
@@ -189,8 +190,11 @@
 						</div>
 					</div>
 					<div class="feed-row-tag-container">
-						<arb-tag ng-repeat="tagId in page.tagIds" class="feed-row-tag"
-							tag-id="{{::tagId}}" url="/feed/{{arb.stateService.pageMap[tagId].alias}}" max-length="20">
+						<arb-tag ng-repeat="tagId in page.tagIds"
+								class="feed-row-tag"
+								tag-id="{{::tagId}}"
+								url="/feed/{{arb.stateService.pageMap[tagId].alias}}"
+								max-length="20">
 						</arb-tag>
 					</div>
 				</div>

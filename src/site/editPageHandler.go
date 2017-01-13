@@ -415,14 +415,24 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 		// Submit the page to a feed if appropriate
 		if !oldPage.WasPublished && isNewCurrentEdit && core.IsIntIDValid(oldPage.SubmitToDomainID) {
-			newFeedSubmission := &core.FeedPage{
-				DomainID:    oldPage.SubmitToDomainID,
-				PageID:      data.PageID,
-				SubmitterID: u.ID,
-				CreatedAt:   database.Now(),
-			}
-			if err := CreateNewFeedPage(tx, newFeedSubmission); err != nil {
-				return sessions.NewError("Couldn't insert into feedPages", err)
+			if u.DomainMembershipMap[oldPage.SubmitToDomainID].CanSubmitLinks {
+				newFeedSubmission := &core.FeedPage{
+					DomainID:    oldPage.SubmitToDomainID,
+					PageID:      data.PageID,
+					SubmitterID: u.ID,
+					CreatedAt:   database.Now(),
+				}
+				if err := CreateNewFeedPage(tx, newFeedSubmission); err != nil {
+					return sessions.NewError("Couldn't insert into feedPages", err)
+				}
+			} else {
+				submissionData := &newPageToDomainSubmissionData{
+					DomainID: oldPage.SubmitToDomainID,
+					PageID:   data.PageID,
+				}
+				if err := CreatePageToDomainSubmission(tx, u, submissionData); err != nil {
+					return sessions.NewError(err.Message, err.Err)
+				}
 			}
 		}
 		return nil
