@@ -195,6 +195,10 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 
 			// Called when the user casts a "mu" vote
 			scope.muVote = function() {
+				if (scope.page.currentUserVote == -1) {
+					scope.deleteMyVote();
+					return;
+				}
 				scope.setCurrentUserVote(-1);
 			};
 
