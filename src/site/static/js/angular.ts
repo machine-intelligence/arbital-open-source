@@ -2,7 +2,7 @@
 
 // Set up angular module.
 var app = angular.module('arbital', ['ngMaterial', 'ngResource',
-		'ngMessages', 'ngSanitize', 'RecursionHelper', 'as.sortable']);
+		'ngMessages', 'ngSanitize', 'RecursionHelper', 'as.sortable', 'swipe']);
 export default app;
 
 app.config(function($locationProvider, $mdIconProvider, $mdThemingProvider) {
