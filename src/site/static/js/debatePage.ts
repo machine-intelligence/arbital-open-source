@@ -11,6 +11,7 @@ app.directive('arbDebate', function($http, $mdDialog, $mdMedia, arb) {
 			$scope.arb = arb;
 			$scope.pageId = '7qq';
 			$scope.page = arb.stateService.pageMap[$scope.pageId];
+			console.log($scope.page.childIds);
 		},
 		link: function(scope: any, element, attrs) {
 			console.log('in link');
