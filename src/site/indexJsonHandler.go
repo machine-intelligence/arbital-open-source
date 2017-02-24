@@ -53,6 +53,14 @@ func indexJSONHandler(params *pages.HandlerParams) *pages.Result {
 	core.AddPageToMap("1ln", returnData.PageMap, core.TitlePlusLoadOptions)
 	core.AddPageToMap("5zs", returnData.PageMap, core.TitlePlusLoadOptions)
 	core.AddPageToMap("3rb", returnData.PageMap, core.TitlePlusLoadOptions)
+
+	// ROGTODO: this is for the debate page: Is Eric's music better than Steph's?
+	debatePageLoadOptions := (&core.PageLoadOptions{
+		Children: true,
+		// Tags:             true,
+	}).Add(core.TitlePlusLoadOptions)
+	core.AddPageToMap("7qq", returnData.PageMap, debatePageLoadOptions)
+
 	err := core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)

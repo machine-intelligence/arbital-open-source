@@ -1,7 +1,7 @@
 import app from './angular.ts';
 
 // EditClaimDialogController is used for editing a claim in an mdDialog
-app.controller('EditClaimDialogController', function($scope, $mdDialog, $timeout, $interval, $http, arb, originalPageId, title, resumePageId) {
+app.controller('EditClaimDialogController', function($scope, $mdDialog, $timeout, $interval, $http, arb, originalPage, title, resumePageId) {
 	$scope.arb = arb;
 
 	let focusInput = function() {
@@ -12,15 +12,15 @@ app.controller('EditClaimDialogController', function($scope, $mdDialog, $timeout
 	if (!resumePageId) {
 		arb.pageService.getNewPage({
 			type: 'wiki',
-			parentIds: [originalPageId],
+			parentIds: [originalPage.pageId],
 			success: function(newPageId) {
 				$scope.pageId = newPageId;
 				$scope.page = arb.stateService.editMap[$scope.pageId];
 				$scope.page.hasVote = true;
 				$scope.page.voteType = 'approval';
 				$scope.page.text = ' ';
-				$scope.page.seeDomainId = arb.stateService.editMap[originalPageId].seeDomainId;
-				$scope.page.editDomainId = arb.stateService.editMap[originalPageId].editDomainId;
+				$scope.page.seeDomainId = originalPage.seeDomainId;
+				$scope.page.editDomainId = originalPage.editDomainId;
 				if (title) {
 					$scope.page.title = title;
 				}

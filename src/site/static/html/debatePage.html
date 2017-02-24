@@ -1,0 +1,25 @@
+<div class="padding-gt-xs children-margin-gt-xs children-vertical-margin-lt-xs">
+	<div class="children-margin-gt-xs">
+		<div class="md-whiteframe-1dp" layout-padding>
+			<div layout="row" layout-align="center center">
+				<h1>
+					<arb-page-title page-id="7qq"></arb-page-title>
+				</h1>
+			</div>
+		</div>
+	</div>
+
+	<div layout="row" layout-align="center center">
+		<md-button ng-click="showNewClaimDialog($event)" class="claim-button md-raised">
+			New claim
+		</md-button>
+	</div>
+
+	<div arb-page-list
+			panel-title="Claims"
+			show-created-at="true"
+			show-text-length="true"
+			page-ids="::page.childIds"></div>
+
+	<div ng-include="arb.versionUrl('static/html/footer.html')"></div>
+</div>

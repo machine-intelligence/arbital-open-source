@@ -600,6 +600,20 @@ app.run(function($http, $location, arb) {
 			.error($scope.getErrorFunc('index'));
 		},
 	});
+	arb.urlService.addUrlHandler('/debate/', {
+		name: 'DebatePage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/index/'})
+			.success($scope.getSuccessFunc(function(data) {
+				return {
+					title: '',
+					content: $scope.newElement('<arb-debate></arb-debate>'),
+					analytics: {page: 'debate'},
+				};
+			}))
+			.error($scope.getErrorFunc('index'));
+		},
+	});
 	arb.urlService.addUrlHandler('/read/', {
 		name: 'ReadModePage',
 		handler: function(args, $scope) {

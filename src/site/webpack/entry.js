@@ -78,6 +78,7 @@ require('js/writeMode.ts');
 require('js/indexPage.ts');
 require('js/domainIndexPage.ts');
 require('js/projectPage.ts');
+require('js/debatePage.ts');
 require('js/domainsPage.ts');
 require('js/feedPage.ts');
 require('js/userPage.ts');
