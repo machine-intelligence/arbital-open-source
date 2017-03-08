@@ -130,11 +130,11 @@
 						</md-button>
 						<md-button class="wmd-new-claim-button{{::page.pageId}}" ng-show="::gtSmallScreen">
 							<md-icon>assessment</md-icon>
-							[new_claim text] | Ctrl+J
+							<md-tooltip md-delay="500">[new_claim text] | Ctrl+J</md-tooltip>
 						</md-button>
 
 						<!-- Menu with all the Arbital specific stuff -->
-						<div layout="row" ng-show="::gtSmallScreen && !insideDialog">
+						<div layout="row" ng-show="::gtXSmallScreen && !insideDialog">
 							<div class="separator"></div>
 							<md-menu>
 								<md-button ng-click="$mdOpenMenu($event)" aria-label="New page options">
