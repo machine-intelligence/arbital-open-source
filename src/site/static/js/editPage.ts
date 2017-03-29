@@ -739,7 +739,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 						locals: {
 							resumePageId: resumeClaimPageId,
 							title: title,
-							originalPageId: scope.page.pageId,
+							originalPage: scope.page,
 						},
 					})
 					.then(function(result) {

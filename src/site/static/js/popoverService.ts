@@ -294,6 +294,10 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 				// User clicked on a link that's most likely inside a popover
 				return true;
 			}
+			if ($target.closest('arb-intrasite-popover').length > 0) {
+				// Clicking on a link inside the popover.
+				return true;
+			}
 			mouseMovePopoverLink(event);
 			return false;
 		};
