@@ -3,7 +3,9 @@
 		ng-class="::{'touch-device': arb.isTouchDevice}"
 		ng-swipe-left="onSwipe()"
 		ng-swipe-right="onSwipe()">
-	<div class="popover-close-note md-caption" ng-if="arb.isTouchDevice" ng-click="onSwipe()">close</div>
+	<div layout="row" layout-align="end none">
+		<div><md-icon ng-if="arb.isTouchDevice" ng-click="onSwipe()">close</md-icon></div>
+	</div>
 
 	<div class="popover-body toolbarless-version">
 		<div class="popover-tab-body toolbarless-version prevent-scroll-leak"></div>
