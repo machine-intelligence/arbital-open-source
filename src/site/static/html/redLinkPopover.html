@@ -5,8 +5,8 @@
 		}"
 		ng-swipe-left="onSwipe()"
 		ng-swipe-right="onSwipe()">
-	<div layout="row" layout-align="end none">
-		<div><md-icon ng-if="arb.isTouchDevice" ng-click="onSwipe()">close</md-icon></div>
+	<div layout="row" layout-align="end none" ng-if="arb.isTouchDevice">
+		<div><md-icon ng-click="onSwipe()">close</md-icon></div>
 	</div>
 
 	<div layout="column">
