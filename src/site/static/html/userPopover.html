@@ -2,7 +2,7 @@
 <div ng-class="::{'touch-device': arb.isTouchDevice}"
 		ng-swipe-left="onSwipe()"
 		ng-swipe-right="onSwipe()">
-	<div class="popover-close-note md-caption" ng-if="arb.isTouchDevice">Swipe to close</div>
+	<div class="popover-close-note md-caption" ng-if="arb.isTouchDevice" ng-click="onSwipe()">close</div>
 
 	<!-- Loading spinner -->
 	<div layout="column"

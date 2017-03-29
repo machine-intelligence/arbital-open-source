@@ -5,7 +5,7 @@
 		}"
 		ng-swipe-left="onSwipe()"
 		ng-swipe-right="onSwipe()">
-	<div class="popover-close-note md-caption" ng-if="arb.isTouchDevice">Swipe to close</div>
+	<div class="popover-close-note md-caption" ng-if="arb.isTouchDevice" ng-click="onSwipe()">close</div>
 
 	<div layout="column">
 		<md-content class="prevent-scroll-leak popover-tab-body" layout-padding>
