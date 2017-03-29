@@ -79,7 +79,95 @@ app.config(function($locationProvider, $mdIconProvider, $mdThemingProvider) {
 	$locationProvider.html5Mode(true);
 });
 
+
 app.run(function($http, $location, arb) {
+
+	let primaryPageHandler = function(args, $scope, skipCanonPath) {
+		// Check if we are just switching to the primary lens
+		// TODO: this is kind of hacky. We need a better solution (I hope React will help us with this).
+		var primaryPage = arb.stateService.primaryPage;
+		if (primaryPage && !(primaryPage.pageId in arb.stateService.editMap) &&
+				(primaryPage.pageId == args.alias || primaryPage.alias == args.alias)) {
+			return true;
+		}
+
+		// Get the primary page data
+		var postData = {
+			pageAlias: args.alias || '84c',
+			lensId: $location.search().l,
+			markId: $location.search().markId,
+			hubId: $location.search().hubId,
+			pathPageId: $location.search().pathPageId,
+			// Load the path if it's not loaded already
+			pathInstanceId: arb.stateService.path ? arb.stateService.path.id : $location.search().pathId,
+		};
+		$http({method: 'POST', url: '/json/primaryPage/', data: JSON.stringify(postData)})
+		.success($scope.getSuccessFunc(function(data): any {
+			var primaryPageId = data.result.primaryPageId;
+			var page = arb.stateService.pageMap[primaryPageId];
+			var pageTemplate = '<arb-primary-page></arb-primary-page>';
+
+			if (data.result.path) {
+				arb.stateService.path = data.result.path;
+			} else if (arb.stateService.path && !$location.search().pathId) {
+				// We are off the path. Forget the path if it was finished.
+				var isFinished = arb.stateService.path.isFinished ||
+					arb.stateService.path.progress >= arb.stateService.path.pages.length-1;
+				if (isFinished) {
+					arb.stateService.path = undefined;
+				}
+			}
+
+			if (!page) {
+				page = arb.stateService.deletedPagesMap[postData.pageAlias];
+				if (page) {
+					if (page.mergedInto) {
+						arb.urlService.goToUrl(arb.urlService.getPageUrl(page.mergedInto));
+					} else {
+						arb.urlService.goToUrl(arb.urlService.getEditPageUrl(postData.pageAlias));
+					}
+					return {};
+				}
+				return {
+					title: 'Not Found',
+					error: 'Page doesn\'t exist or you don\'t have permission to view it.',
+					analytics: {page: 'pageNotFound'},
+				};
+			}
+
+			// For comments, redirect to the primary page
+			if (page.isComment()) {
+				// TODO: allow BE to catch this case and send correct data, so we don't have to reload
+				arb.urlService.goToUrl(arb.urlService.getPageUrl(page.getCommentParentPage().pageId), {replace: true});
+				return {};
+			}
+
+			// If this page has been merged into another, go there
+			if (page.mergedInto) {
+				arb.urlService.goToUrl(arb.urlService.getPageUrl(page.mergedInto));
+				return {};
+			}
+
+			// If the page is a user page, use the user-page template
+			if (arb.userService.userMap[page.pageId]) {
+				$scope.userPageIdsMap = data.result;
+				pageTemplate = '<arb-user-page user-id=\'' + page.pageId +
+						'\' user_page_data=\'::userPageIdsMap\'></arb-user-page>';
+			}
+
+			arb.stateService.primaryPage = page;
+			if (!skipCanonPath) {
+				arb.urlService.ensureCanonPath(arb.urlService.getPageUrl(page.pageId, {lensId: data.result.lensId}));
+			}
+			arb.pathService.primaryPageChanged();
+			return {
+				title: page.title,
+				content: $scope.newElement(pageTemplate),
+				analytics: {page: 'page', pageId: data.result.lensId ? data.result.lensId : page.pageId},
+			};
+		}))
+		.error($scope.getErrorFunc('primaryPage'));
+	};
 	// Set up mapping from URL path to specific controllers
 	arb.urlService.addUrlHandler('/', {
 		name: 'IndexPage',
@@ -98,17 +186,7 @@ app.run(function($http, $location, arb) {
 				}))
 				.error($scope.getErrorFunc('domainPage'));
 			} else {
-				// TODO: this is duplicated in the FeedPage handler
-				$http({method: 'POST', url: '/json/feed/', data: JSON.stringify({})})
-				.success($scope.getSuccessFunc(function(data) {
-					$scope.feedRows = data.result.feedRows;
-					$scope.claimRows = data.result.claimRows;
-					return {
-						content: $scope.newElement('<arb-feed-page feed-rows=\'feedRows\' claim-rows=\'claimRows\'></arb-feed-page>'),
-						analytics: {page: 'index'},
-					};
-				}))
-				.error($scope.getErrorFunc('index'));
+				primaryPageHandler(args, $scope, true);
 			}
 		},
 	});
@@ -501,90 +579,7 @@ app.run(function($http, $location, arb) {
 	});
 	arb.urlService.addUrlHandler('/p/:alias/:alias2?', {
 		name: 'PrimaryPage',
-		handler: function(args, $scope) {
-			// Check if we are just switching to the primary lens
-			// TODO: this is kind of hacky. We need a better solution (I hope React will help us with this).
-			var primaryPage = arb.stateService.primaryPage;
-			if (primaryPage && !(primaryPage.pageId in arb.stateService.editMap) &&
-					(primaryPage.pageId == args.alias || primaryPage.alias == args.alias)) {
-				return true;
-			}
-
-			// Get the primary page data
-			var postData = {
-				pageAlias: args.alias,
-				lensId: $location.search().l,
-				markId: $location.search().markId,
-				hubId: $location.search().hubId,
-				pathPageId: $location.search().pathPageId,
-				// Load the path if it's not loaded already
-				pathInstanceId: arb.stateService.path ? arb.stateService.path.id : $location.search().pathId,
-			};
-			$http({method: 'POST', url: '/json/primaryPage/', data: JSON.stringify(postData)})
-			.success($scope.getSuccessFunc(function(data): any {
-				var primaryPageId = data.result.primaryPageId;
-				var page = arb.stateService.pageMap[primaryPageId];
-				var pageTemplate = '<arb-primary-page></arb-primary-page>';
-
-				if (data.result.path) {
-					arb.stateService.path = data.result.path;
-				} else if (arb.stateService.path && !$location.search().pathId) {
-					// We are off the path. Forget the path if it was finished.
-					var isFinished = arb.stateService.path.isFinished ||
-						arb.stateService.path.progress >= arb.stateService.path.pages.length-1;
-					if (isFinished) {
-						arb.stateService.path = undefined;
-					}
-				}
-
-				if (!page) {
-					page = arb.stateService.deletedPagesMap[postData.pageAlias];
-					if (page) {
-						if (page.mergedInto) {
-							arb.urlService.goToUrl(arb.urlService.getPageUrl(page.mergedInto));
-						} else {
-							arb.urlService.goToUrl(arb.urlService.getEditPageUrl(postData.pageAlias));
-						}
-						return {};
-					}
-					return {
-						title: 'Not Found',
-						error: 'Page doesn\'t exist or you don\'t have permission to view it.',
-						analytics: {page: 'pageNotFound'},
-					};
-				}
-
-				// For comments, redirect to the primary page
-				if (page.isComment()) {
-					// TODO: allow BE to catch this case and send correct data, so we don't have to reload
-					arb.urlService.goToUrl(arb.urlService.getPageUrl(page.getCommentParentPage().pageId), {replace: true});
-					return {};
-				}
-
-				// If this page has been merged into another, go there
-				if (page.mergedInto) {
-					arb.urlService.goToUrl(arb.urlService.getPageUrl(page.mergedInto));
-					return {};
-				}
-
-				// If the page is a user page, use the user-page template
-				if (arb.userService.userMap[page.pageId]) {
-					$scope.userPageIdsMap = data.result;
-					pageTemplate = '<arb-user-page user-id=\'' + page.pageId +
-							'\' user_page_data=\'::userPageIdsMap\'></arb-user-page>';
-				}
-
-				arb.stateService.primaryPage = page;
-				arb.urlService.ensureCanonPath(arb.urlService.getPageUrl(page.pageId, {lensId: data.result.lensId}));
-				arb.pathService.primaryPageChanged();
-				return {
-					title: page.title,
-					content: $scope.newElement(pageTemplate),
-					analytics: {page: 'page', pageId: data.result.lensId ? data.result.lensId : page.pageId},
-				};
-			}))
-			.error($scope.getErrorFunc('primaryPage'));
-		},
+		handler: primaryPageHandler,
 	});
 	arb.urlService.addUrlHandler('/project/', {
 		name: 'ProjectPage',
