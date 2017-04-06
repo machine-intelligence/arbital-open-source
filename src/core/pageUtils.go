@@ -272,10 +272,16 @@ func ExtractSummaries(pageID string, text string) (map[string]string, []interfac
 		summaries[name] = strings.TrimSpace(text)
 	}
 	if _, ok := summaries[defaultSummary]; !ok {
-		// If no summaries, just extract the first line.
-		re = regexp.MustCompile("^(.*)")
-		submatch := re.FindStringSubmatch(text)
-		summaries[defaultSummary] = strings.TrimSpace(submatch[1])
+		// If no summaries, looks for "[auto-summary-to-here]"
+		stringPieces := strings.Split(text, "[auto-summary-to-here]")
+		if len(stringPieces) > 1 {
+			summaries[defaultSummary] = strings.TrimSpace(stringPieces[0])
+		} else {
+			// Otherwise, just extract the first line.
+			re = regexp.MustCompile("^(.*)")
+			submatch := re.FindStringSubmatch(text)
+			summaries[defaultSummary] = strings.TrimSpace(submatch[1])
+		}
 	}
 
 	// Compute values for doing INSERT

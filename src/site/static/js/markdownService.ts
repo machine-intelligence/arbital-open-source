@@ -132,6 +132,14 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		});
 
+		// Process [auto-summary-to-here] blocks.
+		var summaryToHereBlockRegexp = new RegExp('^\\[auto-summary-to-here\\]', 'gm');
+		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
+			return text.replace(summaryToHereBlockRegexp, function(whole, summaryName, summary) {
+				return runBlockGamut('');
+			});
+		});
+
 		// Process %knows-requisite([alias]):markdown% blocks.
 		var hasReqBlockRegexp = new RegExp('^(%+)(!?)knows-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
