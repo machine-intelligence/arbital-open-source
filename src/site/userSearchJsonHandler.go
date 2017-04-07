@@ -38,8 +38,8 @@ func userSearchJSONHandler(params *pages.HandlerParams) *pages.Result {
 	// Construct the search JSON
 	jsonStr := fmt.Sprintf(`{
 		"query": {
-			"filtered": {
-				"query": {
+			"bool": {
+				"must": {
 					"bool": {
 						"should": [
 							{
