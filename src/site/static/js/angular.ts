@@ -595,6 +595,26 @@ app.run(function($http, $location, arb) {
 			.error($scope.getErrorFunc('index'));
 		},
 	});
+	arb.urlService.addUrlHandler('/search/:query', {
+		name: 'SearchPage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/search/', data: JSON.stringify({term: args['query']})})
+			.success($scope.getSuccessFunc(function(data) {
+				$scope.searchResultPageIds = data.result.search.hits.map(function(hit) {
+					return hit._source.pageId;
+				});
+				return {
+					title: '',
+					content: $scope.newElement('<div arb-page-list ' +
+						'panel-title="Search results" ' +
+						'show-text-length="true" ' +
+						'page-ids="searchResultPageIds"></div>'),
+					analytics: {page: 'search'},
+				};
+			}))
+			.error($scope.getErrorFunc('index'));
+		},
+	});
 	arb.urlService.addUrlHandler('/debate/', {
 		name: 'DebatePage',
 		handler: function(args, $scope) {
