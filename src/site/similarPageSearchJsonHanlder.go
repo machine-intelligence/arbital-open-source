@@ -56,8 +56,8 @@ func similarPageSearchJSONHandler(params *pages.HandlerParams) *pages.Result {
 		"min_score": %v,
 		"size": %d,
 		"query": {
-			"bool": {
-				"must": {
+			"filtered": {
+				"query": {
 					"bool": {
 						"should": [
 							{

@@ -39,8 +39,8 @@ func parentsSearchJSONHandler(params *pages.HandlerParams) *pages.Result {
 		"min_score": %[1]v,
 		"size": %[2]d,
 		"query": {
-			"bool": {
-				"must": {
+			"filtered": {
+				"query": {
 					"bool": {
 						"should": [
 							{
