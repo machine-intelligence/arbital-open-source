@@ -24,7 +24,7 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't convert alias", err)
 	} else if !ok {
-		return pages.Fail("Couldn't find page", err)
+		return pages.RedirectWith("/search/" + pageAlias)
 	}
 
 	// Check if we need to redirect.
