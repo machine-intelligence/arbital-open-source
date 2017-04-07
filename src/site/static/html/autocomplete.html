@@ -46,7 +46,7 @@
 						<md-tooltip>This is a user page</md-tooltip>
 						person
 					</md-icon>
-					<span>{{result.page.title}}</span>
+					<a ng-class="::'intrasite-link' + (page.isDeleted ? ' red-link' : '')" page-id="{{result.page.pageId}}">{{result.page.title}}</a>
 					<span ng-if="::arb.userService.user.isAdmin">&nbsp;&lt;{{result.score}}&gt;</span>
 				</div>
 				<span class="md-caption">{{result.page.clickbait}}</span>
