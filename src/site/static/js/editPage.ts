@@ -121,17 +121,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				$location.search('newClaimDomainId', undefined);
 			}
 
-			// If it's EY, set the domain to VAT
-			if (arb.userService.user.id == '2') { // '2' is EY's userId
-				var desiredIndex = '1';
-				for (var index in arb.stateService.domainMap) {
-					if (arb.stateService.domainMap[index].alias == 'value_alignment') {
-						desiredIndex = index;
-					}
-				}
-				$scope.page.editDomainId = desiredIndex;
-			}
-
 			// If this is a new page, and it had custom alias set, we can now set the title,
 			// since this won't affect tab selection.
 			if (!$scope.page.wasPublished && $scope.page.alias !== $scope.page.pageId) {
