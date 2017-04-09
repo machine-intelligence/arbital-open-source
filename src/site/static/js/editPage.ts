@@ -161,9 +161,40 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				$scope.inPreview = show;
 			};
 
+			$scope.shouldShowLivePreview = function() {
+				if ($scope.isLivePreviewForceHidden) {
+					return false;
+				}
+				if ($scope.isLivePreviewForceShown) {
+					return true;
+				}
+				return $scope.fullView;
+			}
+
+			$scope.isLivePreviewForceHidden = false;
+			$scope.isLivePreviewForceShown = false;
+			$scope.forceHideLivePreview = function() {
+				$scope.isLivePreviewForceHidden = true;
+				$scope.isLivePreviewForceShown = false;
+			};
+			$scope.forceShowLivePreview = function() {
+				$scope.isLivePreviewForceHidden = false;
+				$scope.isLivePreviewForceShown = true;
+			};
+			$scope.toggleForceLivePreview = function() {
+				if ($scope.shouldShowLivePreview()) {
+					$scope.forceHideLivePreview();
+				} else {
+					$scope.forceShowLivePreview();
+				}
+			};
+
 			// Return true if the preview should be shown
 			$scope.isPreviewVisible = function() {
-				return ($scope.fullView || $scope.inPreview) && !$scope.otherDiff && !$scope.sideEdit;
+				if ($scope.otherDiff || $scope.sideEdit) {
+					return false;
+				}
+				return $scope.shouldShowLivePreview() || $scope.inPreview;
 			};
 
 			// Setup all the settings
@@ -680,9 +711,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 						$other.on('scroll', syncScroll);
 					}, 10);*/
 				};
-				if (scope.fullView) {
-					$divs.on('scroll', syncScroll);
-				}
+				$divs.on('scroll', syncScroll);
 
 				if (scope.page.isComment()) {
 					// Scroll to show the entire edit page element and focus on the input.

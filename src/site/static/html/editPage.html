@@ -1,15 +1,14 @@
-<div class="full-height md-whiteframe-1dp"
-		ng-class="::{'layout-row': fullView, 'layout-column': !fullView}"
+<div class="full-height md-whiteframe-1dp" layout="row"
 		ng-keyup="handleKeyPress($event)">
 	<!-- Main edit column (left half) -->
 	<div class="md-primary"
 			layout="column"
-			flex="{{::(fullView ? '50' : undefined)}}"
-			ng-show="!inPreview && (fullView || (!otherDiff && !sideEdit))">
+			flex="{{(shouldShowLivePreview() ? '50' : undefined)}}"
+			ng-show="!inPreview && (shouldShowLivePreview() || (!otherDiff && !sideEdit))">
 		<md-tabs ng-class="::{'hide-tabs': page.isComment()}"
 				class="md-primary md-hue-2"
 				md-selected="selectedTab"
-				md-stretch-tabs="{{::(gtXSmallScreen ? 'always' : 'never')}}"
+				md-stretch-tabs="{{(gtXSmallScreen ? 'always' : 'never')}}"
 				layout="column"
 				flex>
 			<!-- (0) Title tab -->
@@ -705,7 +704,7 @@
 					tooltip-text="Discard the autosave"
 					checker-fn="shouldSkipDiscard()"
 					ng-if="isPublishButtonVisible() && isPageDirty"></arb-confirm-button>
-			<div ng-if="isPublishButtonVisible() && !fullView && !inPreview">
+			<div ng-if="isPublishButtonVisible() && !fullView && !inPreview && !isLivePreviewForceShown">
 				<md-button class="md-primary md-hue-1 md-raised"
 						ng-click="togglePreview(true)"
 						ng-disabled="publishing || snapshotting">
@@ -720,6 +719,14 @@
 					<md-tooltip md-delay="500">Dismiss this edit proposal</md-tooltip>
 					Dismiss edit
 				</md-button>
+				<md-button class="md-primary md-hue-1 md-raised"
+						style="margin-right:8px;"
+						ng-click="togglePublishingOptionsPanel()"
+						aria-label="Publishing options"
+						ng-if="!page.isComment()">
+					<md-tooltip md-delay="500">Publishing options</md-tooltip>
+					options
+				</md-button>
 				<md-button class="md-primary md-raised heap-publish-button"
 						ng-click="publishPage()"
 						ng-disabled="publishing || snapshotting"
@@ -728,28 +735,36 @@
 					<md-tooltip md-delay="500" ng-if="::!page.isComment()">{{getPublishTooltipText()}}</md-tooltip>
 					{{getPublishText()}}
 				</md-button>
-				<md-button class="md-icon-button"
-						ng-class="{'md-raised': showPublishingOptionsPanel}"
-						ng-click="togglePublishingOptionsPanel()"
-						aria-label="Publishing options"
-						ng-if="!page.isComment()">
-					<md-tooltip md-delay="500">Publishing options</md-tooltip>
-					<md-icon>more_vert</md-icon>
-				</md-button>
 				<span ng-if="pageInfoChanged()">
 					<md-tooltip md-delay="500" md-direction="top">
 						Setting changes will be lost if you navigate away
 					</md-tooltip>
 					<md-icon>warning</md-icon>
 				</span>
+				<md-menu ng-if="!page.isComment()">
+					<md-button class="md-icon-button"
+							ng-click="$mdOpenMenu($event)"
+							aria-label="More actions">
+						<md-tooltip md-delay="500">More actions</md-tooltip>
+						<md-icon>more_vert</md-icon>
+					</md-button>
+					<md-menu-content>
+						<md-menu-item>
+							<md-button ng-click="toggleForceLivePreview()">
+								Toggle live preview
+							</md-button>
+						</md-menu-item>
+					</md-menu-content>
+				</md-menu>
 			</div>
 		</div>
 	</div>
 
 	<!-- Right half -->
-	<div ng-class="::{'edit-page-rhs-border': fullView}"
+	<div ng-show="shouldShowLivePreview() || inPreview || otherDiff || sideEdit"
+			ng-class="{'edit-page-rhs-border': shouldShowLivePreview()}"
 			layout="column"
-			flex="{{fullView ? '50' : (inPreview || otherDiff || sideEdit) ? '' : 'none'}}">
+			flex="{{shouldShowLivePreview() ? '50' : (inPreview || otherDiff || sideEdit) ? '' : 'none'}}">
 		<!-- Messages -->
 		<md-list ng-if="!otherDiff && !sideEdit">
 			<md-list-item class="no-margins"
@@ -767,7 +782,7 @@
 
 		<!-- Live preview -->
 		<md-content class="preview-area"
-				ng-class="{'hidden': !isPreviewVisible()}"
+				ng-show="isPreviewVisible()"
 				flex>
 			<div class="md-display-3" ng-if="page.title != '' || page.text != ''">
 				<span ng-bind="page.title"></span>
