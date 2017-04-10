@@ -1,8 +1,9 @@
 <md-dialog class="edit-page-dialog" ng-cloak>
-	<div style="background:white;" layout-padding>
+	<md-progress-linear class="submit-link-message" md-mode="indeterminate" ng-if="!loaded" flex></md-progress-linear>
+	<div style="background:white;" layout-padding ng-if="loaded">
 		You are editing <arb-page-title page-id="{{::page.pageId}}" is-link="true"></arb-page-title>
 	</div>
-	<md-dialog-content>
+	<md-dialog-content ng-if="loaded">
 		<div arb-edit-page
 				summary-edit-mode="true"
 				class="full-height"

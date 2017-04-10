@@ -10,6 +10,7 @@ app.controller('SummaryEditDialogController', function($scope, $mdDialog, $timeo
 		pageAlias: page.pageId,
 		success: function() {
 			$scope.pageId = page.pageId;
+			$scope.loaded = true;
 		},
 	});
 
