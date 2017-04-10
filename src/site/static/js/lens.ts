@@ -635,12 +635,13 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 
 				// Edit the paragraph that the user has highlighted
 				scope.editThisParagraph = function() {
+					// Get the selected text and the surrounding paragraph.
 					var selection = getSelectedParagraphText(cachedSelection);
+
+					// Figure out which paragraph the text matches best.
 					var dmp : any = new DiffMatchPatch.diff_match_patch(); // jscs:ignore requireCapitalizedConstructors
 					dmp.Match_MaxBits = 10000;
 					dmp.Match_Distance = 10000;
-
-					// first, figure out which paragraph the text matches best
 					var pageTextParagraphs = scope.page.text.split('\n\n');
 					var lowestLDistance = Number.MAX_VALUE;
 					var bestParagraph = '';
@@ -653,6 +654,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 						}
 					}
 
+					// Open an edit dialog with just that paragraph showing.
 					scope.openParagraphEditDialog(scope.page.text.indexOf(bestParagraph));
 				};
 
