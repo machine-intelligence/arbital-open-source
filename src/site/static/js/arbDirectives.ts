@@ -95,7 +95,7 @@ app.directive('arbIntrasitePopover', function($timeout, arb) {
 			direction: '@',
 			arrowOffset: '@',
 		},
-		controller: function($scope) {
+		controller: function($scope, $mdDialog) {
 			$scope.arb = arb;
 			$scope.page = arb.stateService.pageMap[$scope.pageId];
 			$scope.summaries = [];
@@ -112,6 +112,19 @@ app.directive('arbIntrasitePopover', function($timeout, arb) {
 			$scope.onSwipe = function() {
 				if (!arb.isTouchDevice) return;
 				arb.popoverService.removePopover();
+			};
+
+			$scope.openEditSummaryDialog = function(summaryName, summaryText) {
+				$mdDialog.show({
+					templateUrl: versionUrl('static/html/summaryEditDialog.html'),
+					controller: 'SummaryEditDialogController',
+					clickOutsideToClose: true,
+					locals: {
+						page: $scope.page,
+						summaryName: summaryName,
+						summaryText: summaryText,
+					},
+				});
 			};
 		},
 		link: function(scope: any, element, attrs) {

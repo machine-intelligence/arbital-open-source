@@ -20,6 +20,10 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// True if this is just a paragraph edit.
 			paragraphEditMode: '=',
 			paragraphIndex: '=',
+			// True if we are just editing a summary.
+			summaryEditMode: '=',
+			summaryName: '=',
+			summaryText: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -39,6 +43,8 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				isProposal: false,
 			};
 			$scope.isReviewingProposal = $scope.page.edit == $scope.page.proposalEditNum;
+
+			$scope.justTextMode = $scope.paragraphEditMode || $scope.summaryEditMode;
 
 			// Set up stuff for when we're just editing one paragraph
 			if ($scope.paragraphEditMode) {
