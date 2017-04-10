@@ -20,10 +20,11 @@ app.directive('arbMarkdown', function($compile, $timeout, arb) {
 			$scope.mark = !!$scope.markId ? arb.markService.markMap[$scope.markId] : undefined;
 		},
 		link: function(scope: any, element, attrs) {
+			var $progressBar = $compile('<md-progress-linear md-mode="query"></md-progress-linear>')(scope);
+			$progressBar.insertBefore(element);
+
 			var doEverything = function() {
 				element.addClass('markdown-text reveal-after-render invisible');
-				var $progressBar = $compile('<md-progress-linear md-mode="query"></md-progress-linear>')(scope);
-				$progressBar.insertBefore(element);
 
 				// Convert page text to html.
 				// Note: converter takes pageId, which might not be set if we are displaying
