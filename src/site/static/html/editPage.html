@@ -5,14 +5,14 @@
 			layout="column"
 			flex="{{(shouldShowLivePreview() ? '50' : undefined)}}"
 			ng-show="!inPreview && (shouldShowLivePreview() || (!otherDiff && !sideEdit))">
-		<md-tabs ng-class="::{'hide-tabs': page.isComment()}"
+		<md-tabs ng-class="::{'hide-tabs': page.isComment() || paragraphEditMode}"
 				class="md-primary md-hue-2"
 				md-selected="selectedTab"
 				md-stretch-tabs="{{(gtXSmallScreen ? 'always' : 'never')}}"
 				layout="column"
 				flex>
 			<!-- (0) Title tab -->
-			<md-tab label="Title" ng-disabled="::(page.isComment())">
+			<md-tab label="Title" ng-disabled="::(page.isComment())" ng-if="!paragraphEditMode">
 				<div flex>
 					<div class="editor-tab" layout="column">
 						<div ng-if="!showAdvancedMode()">
@@ -319,7 +319,7 @@
 			</md-tab>
 
 			<!-- (2) Relationships tab -->
-			<md-tab label="Relationships" ng-disabled="::page.isComment()" ng-if="showAdvancedMode()">
+			<md-tab label="Relationships" ng-disabled="::page.isComment()" ng-if="showAdvancedMode() && !paragraphEditMode">
 
 				<md-tabs class="md-primary"
 						md-selected="selectedRelationshipsTab"
@@ -455,7 +455,8 @@
 
 			<!-- (3) Settings tab -->
 			<md-tab label="Settings"
-					ng-disabled="::!arb.userService.user.isAdmin && (page.isComment() || page.isUser())">
+					ng-disabled="::!arb.userService.user.isAdmin && (page.isComment() || page.isUser())"
+					ng-if="!paragraphEditMode">
 				<div layout="column" flex>
 					<md-content class="editor-tab" flex>
 						<div ng-if="::!showAdvancedMode()">
@@ -625,7 +626,7 @@
 			</md-tab>
 
 			<!-- (4) Changelog tab -->
-			<md-tab label="History" ng-disabled="::(page.isComment())" ng-if="showAdvancedMode()">
+			<md-tab label="History" ng-disabled="::(page.isComment())" ng-if="showAdvancedMode() && !paragraphEditMode">
 				<div class="md-caption" layout-padding ng-if="::(page.changeLogs.length <= 0)">No changes yet</div>
 				<md-list class="editor-tab" flex>
 					<md-list-item ng-repeat="(index,changeLog) in ::page.changeLogs">
@@ -637,7 +638,7 @@
 		</md-tabs>
 
 		<!-- Publishing options panel -->
-		<div class="publishing-options-panel" layout="column" ng-if="showPublishingOptionsPanel">
+		<div class="publishing-options-panel" layout="column" ng-if="showPublishingOptionsPanel && !paragraphEditMode">
 			<md-input-container>
 				<label>Edit summary</label>
 				<input ng-model="page.newEditSummary" md-maxlength="200">
@@ -723,7 +724,7 @@
 						style="margin-right:8px;"
 						ng-click="togglePublishingOptionsPanel()"
 						aria-label="Publishing options"
-						ng-if="!page.isComment()">
+						ng-if="!page.isComment() && !paragraphEditMode">
 					<md-tooltip md-delay="500">Publishing options</md-tooltip>
 					options
 				</md-button>
@@ -741,7 +742,7 @@
 					</md-tooltip>
 					<md-icon>warning</md-icon>
 				</span>
-				<md-menu ng-if="!page.isComment()">
+				<md-menu ng-if="!page.isComment() && !paragraphEditMode">
 					<md-button class="md-icon-button"
 							ng-click="$mdOpenMenu($event)"
 							aria-label="More actions">

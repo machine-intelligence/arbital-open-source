@@ -15,7 +15,7 @@ import {
 
 // Directive to show a lens' content
 app.directive('arbLens', function($http, $location, $compile, $timeout, $interval,
-			$mdMedia, $mdBottomSheet, $rootScope, arb) {
+			$mdMedia, $mdBottomSheet, $rootScope, $mdDialog, arb) {
 	return {
 		templateUrl: versionUrl('static/html/lens.html'),
 		scope: {
@@ -223,6 +223,18 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 
 			$scope.showTagsPanel = function() {
 				$scope.$emit('showTagsPanel');
+			};
+
+			$scope.openParagraphEditDialog = function(paragraphIndex) {
+				$mdDialog.show({
+					templateUrl: versionUrl('static/html/paragraphEditDialog.html'),
+					controller: 'ParagraphEditDialogController',
+					clickOutsideToClose: true,
+					locals: {
+						page: $scope.page,
+						paragraphIndex: paragraphIndex,
+					},
+				});
 			};
 		},
 		link: function(scope: any, element, attrs) {
@@ -641,21 +653,23 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 						}
 					}
 
-					var replacementText = 'your mom is a lovely lady';
+					// var replacementText = 'your mom is a lovely lady';
 
-					var saveData = arb.editService.computeSavePageData(scope.page);
-					saveData.isAutosave = false;
-					saveData.isSnapshot = false;
-					saveData.isProposal = !scope.page.permissions.edit.has;
-					saveData.text = scope.page.text.replace(bestParagraph, replacementText);
+					// var saveData = arb.editService.computeSavePageData(scope.page);
+					// saveData.isAutosave = false;
+					// saveData.isSnapshot = false;
+					// saveData.isProposal = !scope.page.permissions.edit.has;
+					// saveData.text = scope.page.text.replace(bestParagraph, replacementText);
 
-					$http({method: 'POST', url: '/editPage/', data: JSON.stringify(saveData)})
-						.success(function(returnedData) {
-							scope.page.text = saveData.text;
-						})
-						.error(function(returnedData) {
-							console.log('error', returnedData);
-						});
+					scope.openParagraphEditDialog(scope.page.text.indexOf(bestParagraph));
+
+					// $http({method: 'POST', url: '/editPage/', data: JSON.stringify(saveData)})
+					// 	.success(function(returnedData) {
+					// 		scope.page.text = saveData.text;
+					// 	})
+					// 	.error(function(returnedData) {
+					// 		console.log('error', returnedData);
+					// 	});
 				};
 
 				// Show all marks on this lens.

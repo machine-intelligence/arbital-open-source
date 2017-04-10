@@ -17,6 +17,9 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			insideDialog: '=',
 			// Called when the user is done with the edit.
 			doneFn: '&',
+			// True if this is just a paragraph edit.
+			paragraphEditMode: '=',
+			paragraphIndex: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -36,6 +39,17 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				isProposal: false,
 			};
 			$scope.isReviewingProposal = $scope.page.edit == $scope.page.proposalEditNum;
+
+			// Set up stuff for when we're just editing one paragraph
+			if ($scope.paragraphEditMode) {
+				$scope.originalFullText = $scope.page.text;
+				var endIndex = $scope.page.text.indexOf('\n\n', $scope.paragraphIndex);
+				if (endIndex == -1) {
+					endIndex = undefined;
+				}
+				$scope.originalParagraphToEdit = $scope.page.text.substring($scope.paragraphIndex, endIndex);
+				$scope.page.text = $scope.originalParagraphToEdit;
+			}
 
 			// Extract parentId from URL
 			$scope.quickParentId = $location.search().parentId;
@@ -333,8 +347,18 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			var computeAutosaveData = function() {
 				// We have to pull the text from textarea directly, because if it's changed by
 				// Markdown library, AngularJS doesn't notice it and page.text isn't updated.
-				$scope.page.text = ($('#wmd-input' + $scope.pageId)[0] as HTMLTextAreaElement).value;
-				return arb.editService.computeSavePageData($scope.page);
+				var enteredText = ($('#wmd-input' + $scope.pageId)[0] as HTMLTextAreaElement).value;
+
+				if ($scope.paragraphEditMode) {
+					$scope.page.text = $scope.originalFullText.replace($scope.originalParagraphToEdit, enteredText);
+				} else {
+					$scope.page.text = enteredText;
+				}
+				var saveData = arb.editService.computeSavePageData($scope.page);
+
+				$scope.page.text = enteredText;
+
+				return saveData;
 			};
 			// Save the current page.
 			// callback is called with the error (or undefined on success)

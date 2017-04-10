@@ -66,6 +66,7 @@ require('js/hubPageFooter.ts');
 // AngularJS controllers
 require('js/arbitalController.ts');
 require('js/editPageDialog.ts');
+require('js/paragraphEditDialog.ts');
 require('js/editClaimDialog.ts');
 require('js/feedbackDialog.ts');
 require('js/rhsButtons.ts');
