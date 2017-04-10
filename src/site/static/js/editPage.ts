@@ -22,8 +22,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			paragraphIndex: '=',
 			// True if we are just editing a summary.
 			summaryEditMode: '=',
-			summaryName: '=',
-			summaryText: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;

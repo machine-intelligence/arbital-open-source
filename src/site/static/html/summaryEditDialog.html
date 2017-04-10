@@ -1,12 +1,10 @@
 <md-dialog class="edit-page-dialog" ng-cloak>
 	<div style="background:white;" layout-padding>
-		You are editing the {{maybeGetSummaryName()}} summary for <arb-page-title page-id="{{::page.pageId}}" is-link="true"></arb-page-title>
+		You are editing <arb-page-title page-id="{{::page.pageId}}" is-link="true"></arb-page-title>
 	</div>
 	<md-dialog-content>
 		<div arb-edit-page
 				summary-edit-mode="true"
-				summary-name="summaryName"
-				summary-text="summaryText"
 				class="full-height"
 				layout="column"
 				page-id="{{::pageId}}"

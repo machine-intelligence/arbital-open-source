@@ -1,11 +1,9 @@
 import app from './angular.ts';
 
 // EditPageDialogController is used for editing a page in an mdDialog
-app.controller('SummaryEditDialogController', function($scope, $mdDialog, $timeout, arb, page, summaryName, summaryText) {
+app.controller('SummaryEditDialogController', function($scope, $mdDialog, $timeout, arb, page) {
 	$scope.arb = arb;
 	$scope.page = page;
-	$scope.summaryName = summaryName;
-	$scope.summaryText = summaryText;
 
 	// Load the page edit
 	arb.pageService.loadEdit({
@@ -14,13 +12,6 @@ app.controller('SummaryEditDialogController', function($scope, $mdDialog, $timeo
 			$scope.pageId = page.pageId;
 		},
 	});
-
-	$scope.maybeGetSummaryName = function() {
-		if (summaryName == 'Summary') {
-			return;
-		}
-		return summaryName; 
-	};
 
 	// Called when the user is done editing the page
 	$scope.doneFn = function(result) {

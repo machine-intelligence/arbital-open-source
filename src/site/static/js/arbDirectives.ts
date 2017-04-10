@@ -114,16 +114,17 @@ app.directive('arbIntrasitePopover', function($timeout, arb) {
 				arb.popoverService.removePopover();
 			};
 
-			$scope.openEditSummaryDialog = function(summaryName, summaryText) {
+			$scope.openEditSummaryDialog = function() {
 				$mdDialog.show({
 					templateUrl: versionUrl('static/html/summaryEditDialog.html'),
 					controller: 'SummaryEditDialogController',
 					clickOutsideToClose: true,
 					locals: {
 						page: $scope.page,
-						summaryName: summaryName,
-						summaryText: summaryText,
 					},
+				}).then(function() {
+					arb.pageService.loadIntrasitePopover($scope.pageId);
+					$scope.processPageSummaries();
 				});
 			};
 		},
@@ -144,7 +145,7 @@ app.directive('arbIntrasitePopover', function($timeout, arb) {
 			};
 
 			// Convert page's summaries into our local array
-			var processPageSummaries = function() {
+			scope.processPageSummaries = function() {
 				if (!scope.page) return;
 				for (var name in scope.page.summaries) {
 					scope.summaries.push({name: name, text: scope.page.summaries[name]});
@@ -157,7 +158,7 @@ app.directive('arbIntrasitePopover', function($timeout, arb) {
 				}
 			};
 
-			processPageSummaries();
+			scope.processPageSummaries();
 			if (!scope.isLoaded) {
 				// Fetch page summaries from the server.
 				arb.pageService.loadIntrasitePopover(scope.pageId);
@@ -172,7 +173,7 @@ app.directive('arbIntrasitePopover', function($timeout, arb) {
 						return;
 					}
 					scope.page = arb.stateService.pageMap[scope.pageId];
-					processPageSummaries();
+					scope.processPageSummaries();
 					if (scope.isLoaded) {
 						destroyWatcher();
 						// Hack: we need to fix the md-tabs height, because it takes way too long
