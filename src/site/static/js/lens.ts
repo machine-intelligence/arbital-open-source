@@ -653,23 +653,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 						}
 					}
 
-					// var replacementText = 'your mom is a lovely lady';
-
-					// var saveData = arb.editService.computeSavePageData(scope.page);
-					// saveData.isAutosave = false;
-					// saveData.isSnapshot = false;
-					// saveData.isProposal = !scope.page.permissions.edit.has;
-					// saveData.text = scope.page.text.replace(bestParagraph, replacementText);
-
 					scope.openParagraphEditDialog(scope.page.text.indexOf(bestParagraph));
-
-					// $http({method: 'POST', url: '/editPage/', data: JSON.stringify(saveData)})
-					// 	.success(function(returnedData) {
-					// 		scope.page.text = saveData.text;
-					// 	})
-					// 	.error(function(returnedData) {
-					// 		console.log('error', returnedData);
-					// 	});
 				};
 
 				// Show all marks on this lens.

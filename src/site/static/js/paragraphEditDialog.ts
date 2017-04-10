@@ -16,6 +16,12 @@ app.controller('ParagraphEditDialogController', function($scope, $mdDialog, $tim
 
 	// Called when the user is done editing the page
 	$scope.doneFn = function(result) {
+		arb.pageService.loadEdit({
+			pageAlias: page.pageId,
+			success: function() {
+				$scope.pageId = page.pageId;
+			},
+		});
 		$mdDialog.hide(result);
 	};
 
