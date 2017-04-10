@@ -621,6 +621,43 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					}
 				};
 
+				// Edit the paragraph that the user has highlighted
+				scope.editThisParagraph = function() {
+					var selection = getSelectedParagraphText(cachedSelection);
+					var dmp : any = new DiffMatchPatch.diff_match_patch(); // jscs:ignore requireCapitalizedConstructors
+					dmp.Match_MaxBits = 10000;
+					dmp.Match_Distance = 10000;
+
+					// first, figure out which paragraph the text matches best
+					var pageTextParagraphs = scope.page.text.split('\n\n');
+					var lowestLDistance = Number.MAX_VALUE;
+					var bestParagraph = '';
+					for (var i = 0; i < pageTextParagraphs.length; i++) {
+						var currParagraph = pageTextParagraphs[i];
+						var lDistance = dmp.diff_levenshtein(dmp.diff_main(selection.context, currParagraph));
+						if (lDistance < lowestLDistance) {
+							bestParagraph = currParagraph;
+							lowestLDistance = lDistance;
+						}
+					}
+
+					var replacementText = 'your mom is a lovely lady';
+
+					var saveData = arb.editService.computeSavePageData(scope.page);
+					saveData.isAutosave = false;
+					saveData.isSnapshot = false;
+					saveData.isProposal = !scope.page.permissions.edit.has;
+					saveData.text = scope.page.text.replace(bestParagraph, replacementText);
+
+					$http({method: 'POST', url: '/editPage/', data: JSON.stringify(saveData)})
+						.success(function(returnedData) {
+							scope.page.text = saveData.text;
+						})
+						.error(function(returnedData) {
+							console.log('error', returnedData);
+						});
+				};
+
 				// Show all marks on this lens.
 				scope.loadedMarks = false;
 				scope.loadMarks = function() {
