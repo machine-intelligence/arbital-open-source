@@ -82,7 +82,6 @@ app.directive('arbMarkdown', function($compile, $timeout, arb) {
 					});
 				});
 			};
-			doEverything();
 
 			scope.$watch(function() {return scope.page.text;}, function() {
 				doEverything();
