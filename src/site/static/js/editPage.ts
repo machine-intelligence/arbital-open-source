@@ -139,15 +139,31 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				$location.search('newClaimDomainId', undefined);
 			}
 
-			// If it's EY, set the domain to VAT
-			if (arb.userService.user.id == '2') { // '2' is EY's userId
-				var desiredIndex = '1';
-				for (var index in arb.stateService.domainMap) {
-					if (arb.stateService.domainMap[index].alias == 'value_alignment') {
-						desiredIndex = index;
-					}
-				}
-				$scope.page.editDomainId = desiredIndex;
+			$scope.onParentChange = function() {
+				var parentIds = arb.stateService.editMap[$scope.pageId].parentIds;
+				if (parentIds.length != 1) {return;}
+
+				var currentEditDomainId = arb.stateService.editMap[$scope.pageId].editDomainId;
+				var currentEditDomain = arb.stateService.domainMap[currentEditDomainId];
+				var parentDomainId = arb.stateService.pageMap[parentIds[0]].editDomainId;
+				var parentDomain = arb.stateService.domainMap[parentDomainId];
+				if (parentDomain.pageId == currentEditDomain.pageId) {return;}
+
+				var confirmDialog = $mdDialog.confirm()
+					.textContent('Would you like to change this page\'s domain (currently ' + currentEditDomain.alias + ') to match the parent\'s domain (' + parentDomain.alias +')?')
+					.ok('Yes')
+					.cancel('Cancel');
+
+				$mdDialog.show(confirmDialog).then(function() {
+					// If they clicked yes, then do the thing.
+					$scope.page.editDomainId = parentDomainId;
+					$scope.selectedTab = 3;
+					$mdDialog.show(
+						$mdDialog.alert()
+							.textContent('This page\'s domain has been set to ' + parentDomain.alias + '. You will need to publish the page for this change to be saved.')
+							.ok('ok')
+					);
+				});
 			}
 
 			// If this is a new page, and it had custom alias set, we can now set the title,

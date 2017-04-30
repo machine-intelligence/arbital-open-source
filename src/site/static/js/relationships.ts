@@ -14,6 +14,8 @@ app.directive('arbRelationships', function($q, $timeout, $interval, $http, arb) 
 			quickParentId: '@',
 			// If set, will take the page from pageMap not editMap
 			useNormalPageMap: '=',
+			// Function to call when relationships are updated
+			onRelationshipChange: '&',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -52,6 +54,9 @@ app.directive('arbRelationships', function($q, $timeout, $interval, $http, arb) 
 				};
 				arb.pageService.newPagePair(params, function success() {
 					$scope.idsSource.push(params.parentId);
+					if ($scope.onRelationshipChange) {
+						$scope.onRelationshipChange();
+					}
 				});
 			};
 
@@ -64,6 +69,9 @@ app.directive('arbRelationships', function($q, $timeout, $interval, $http, arb) 
 				};
 				arb.pageService.deletePagePair(params, function success() {
 					$scope.idsSource.splice($scope.idsSource.indexOf(params.parentId), 1);
+					if ($scope.onRelationshipChange) {
+						$scope.onRelationshipChange();
+					}
 				});
 			};
 
