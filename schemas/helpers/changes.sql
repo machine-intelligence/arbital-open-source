@@ -111,3 +111,15 @@ insert into userSubscriptions (userId,toUserId,createdAt) (select userId,toId,cr
 delete from subscriptions where toId in (select id from users);
 insert into discussionSubscriptions (userId,toPageId,createdAt) (select userId,toId,createdAt from subscriptions);
 drop table subscriptions;
+
+/* When a page's alias is changed, we add a row in this table. */
+CREATE TABLE aliasRedirects (
+
+	/* The old alias. */
+	oldAlias VARCHAR(64) NOT NULL,
+
+	/* The new alias. */
+	newAlias VARCHAR(64) NOT NULL,
+
+	UNIQUE(oldAlias)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

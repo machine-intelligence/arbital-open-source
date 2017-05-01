@@ -157,6 +157,19 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		} else if exists {
 			return pages.Fail(fmt.Sprintf("Alias '%s' is already in use by: %s", data.Alias, existingPageID), nil)
 		}
+
+		// Check if there is a redirect from this alias
+		// var aliasRedirect string
+		// row := database.NewQuery(`
+		// 	SELECT newAlias
+		// 	FROM aliasRedirects
+		// 	WHERE oldAlias=?`).AddPart(core.PageInfosFilter(u)).ToStatement(db).QueryRow()
+		// exists, err := row.Scan(&aliasRedirect)
+		// if err != nil {
+		// 	return pages.Fail("Failed on looking for conflicting alias", err)
+		// } else if exists {
+		// 	return pages.Fail(fmt.Sprintf("Alias '%s' is already in use by: %s", data.Alias, existingPageID), nil)
+		// }
 	}
 
 	// Check if something is actually different from live edit
@@ -239,6 +252,16 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 					return err2
 				}
 				changeLogIDs = append(changeLogIDs, changeLogID)
+
+				// Create and alias redirect
+				hashmap = make(database.InsertMap)
+				hashmap["oldAlias"] = oldPage.Alias
+				hashmap["newAlias"] = data.Alias
+				statement = tx.DB.NewInsertStatement("aliasRedirects", hashmap, "newAlias").WithTx(tx)
+				_, err10 := statement.Exec()
+				if err10 != nil {
+					return sessions.NewError(fmt.Sprintf("Couldn't insert new "), err10)
+				}
 			}
 			if data.ExternalUrl != oldPage.ExternalUrl {
 				changeLogID, err2 := updateChangeLog(core.NewAliasChangeLog, "", oldPage.ExternalUrl, data.ExternalUrl)
