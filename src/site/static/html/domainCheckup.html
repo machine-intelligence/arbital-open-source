@@ -1,0 +1,28 @@
+<div class="user-page-panel md-whiteframe-1dp" layout="column">
+	<md-toolbar class="md-hue-2">
+		<div class="md-toolbar-tools">
+			<span flex>Pages in this domain</span>
+		</div>
+	</md-toolbar>
+	<md-list>
+		<md-list-item ng-repeat="row in rows">
+			<div>
+				<arb-page-title page-id="{{::row.pageId}}"
+						is-link="true"
+						flex></arb-page-title>
+				<div>Parents:
+					<span ng-repeat="parentId in row.parentIds">
+						<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
+					</span>
+				</div>
+				<div>First parent's edit domain: <arb-page-title page-id="{{::row.domainOfFirstParent.pageId}}" is-link="true"></arb-page-title></div>
+				<button md-button ng-click="updateDomain(row.pageId, row.domainOfFirstParent.pageId)">
+					Change this page's domain to {{row.domainOfFirstParent.alias}}
+				</button>
+			</div>
+			<md-divider ng-if="!$last"></md-divider>
+		</md-list-item>
+ 
+		<md-divider></md-divider>
+	</md-list>
+</div>

@@ -287,6 +287,23 @@ app.run(function($http, $location, arb) {
 			.error($scope.getErrorFunc('domainIndexPage'));
 		},
 	});
+
+	arb.urlService.addUrlHandler('/domainCheckup/:domainAlias', {
+		name: 'DomainCheckupPage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/domainPage/', data: JSON.stringify({domainAlias: args.domainAlias})})
+			.success($scope.getSuccessFunc(function(data) {
+				$scope.domainIndexData = data.result.domain;
+				return {
+					title: arb.pageService.getPrettyAlias($scope.domainIndexData.alias) + ' domain',
+					content: $scope.newElement('<arb-domain-checkup domain-data=\'::domainIndexData\'></arb-domain-checkup>'),
+					analytics: {page: 'domainCheckup', domainId: $scope.domainIndexData.id},
+				};
+			}))
+			.error($scope.getErrorFunc('domainCheckupPage'));
+		},
+	});
+
 	arb.urlService.addUrlHandler('/domains/', {
 		name: 'DomainsPage',
 		handler: function(args, $scope) {

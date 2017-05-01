@@ -79,6 +79,7 @@ require('js/hedonsMode.ts');
 require('js/writeMode.ts');
 require('js/indexPage.ts');
 require('js/domainIndexPage.ts');
+require('js/domainCheckupPage.ts');
 require('js/projectPage.ts');
 require('js/debatePage.ts');
 require('js/domainsPage.ts');
