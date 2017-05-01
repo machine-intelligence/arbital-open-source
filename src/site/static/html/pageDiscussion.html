@@ -1,16 +1,16 @@
 <!-- Discussion section for some page -->
 <a id="discussion"></a>
 <div class="dynamic-hor-padding">
-	<!--<div layout="row" ng-if="page.permissions.comment.has">
+	<div layout="row" ng-if="page.permissions.comment.has">
 		<div flex></div>
 		<div layout="row" layout-align="start center">
 			<div><md-icon>comment</md-icon></div>
 			&nbsp;
-			<md-switch ng-model="showEditorComments"></md-switch>
+			<md-switch ng-model="state.showEditorComments"></md-switch>
 			<div><md-icon>rate_review</md-icon></div>
 			<md-tooltip md-direction="top">Switch between normal and editor comments.</md-tooltip>
 		</div>
-	</div>-->
+	</div>
 
 	<!-- Subscribe -->
 	<div class="page-discussion-toolbar" layout="row" layout-align="end start">
@@ -33,8 +33,8 @@
 				ng-click="newCommentClick()"
 				aria-label="New comment"
 				ng-if="!newCommentId && !showNewCommentLoading && page.permissions.proposeComment.has">
-			<md-icon class="md-raised" ng-if="showEditorComments">rate_review</md-icon>
-			<md-icon class="md-raised" ng-if="!showEditorComments">comment</md-icon>
+			<md-icon class="md-raised" ng-if="state.showEditorComments">rate_review</md-icon>
+			<md-icon class="md-raised" ng-if="!state.showEditorComments">comment</md-icon>
 			<span ng-bind="getNewCommentText()"></span>
 		</md-button>
 		<div ng-if="!page.permissions.proposeComment.has">
