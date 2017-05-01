@@ -24,6 +24,21 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't convert alias", err)
 	} else if !ok {
+		// Try to find it in the alias redirects
+		var newAlias string
+		row := database.NewQuery(`
+			SELECT newAlias
+			FROM aliasRedirects
+			WHERE oldAlias=?`, pageAlias).ToStatement(db).QueryRow()
+		exists, err := row.Scan(&newAlias)
+		if err != nil {
+			return pages.Fail("Couldn't get page info", err)
+		}
+		if exists {
+			return pages.RedirectWith("/p/" + newAlias)
+		}
+
+		// Show a page as though the user had searched for this alias
 		return pages.RedirectWith("/search/" + pageAlias)
 	}
 
