@@ -119,6 +119,7 @@ type corePageData struct {
 	SortChildrenBy    string `json:"sortChildrenBy"`
 	HasVote           bool   `json:"hasVote"`
 	VoteType          string `json:"voteType"`
+	VotesAnonymous    bool   `json:"votesAnonymous"`
 	EditCreatorID     string `json:"editCreatorId"`
 	EditCreatedAt     string `json:"editCreatedAt"`
 	PageCreatorID     string `json:"pageCreatorId"`
@@ -1470,7 +1471,7 @@ func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, domainMap map[
 			pi.isResolved,pi.likeableId,p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,p.editSummary,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset,
 			pi.currentEdit>0,pi.isDeleted,pi.mergedInto,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
-			pi.viewCount,pi.voteType,pi.indirectTeacher
+			pi.viewCount,pi.voteType,pi.indirectTeacher,pi.votesAnonymous
 		FROM pages AS p
 		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId AND p.pageId=?)`, pageID).Add(`
@@ -1485,7 +1486,7 @@ func LoadFullEdit(db *database.DB, pageID string, u *CurrentUser, domainMap map[
 		&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.EditSummary,
 		&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
 		&p.IsDeleted, &p.MergedInto, &p.CurrentEdit, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil,
-		&p.ViewCount, &p.LockedVoteType, &p.IndirectTeacher)
+		&p.ViewCount, &p.LockedVoteType, &p.IndirectTeacher, &p.VotesAnonymous)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if !exists {

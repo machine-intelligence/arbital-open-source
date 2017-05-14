@@ -28,6 +28,8 @@ CREATE TABLE pageInfos (
 	 But once voting is set, it can only be turned on/off, the type cannot be
 	 changed. */
 	voteType VARCHAR(32) NOT NULL,
+	/* If true, votes on this page are anonymous */
+	votesAnonymous BOOL NOT NULL,
 	/* If true, this page teaches its requisites indirectly (e.g. by providing links). */
 	indirectTeacher BOOL NOT NULL,
 	/* True iff this page is currently in a deleted state. */

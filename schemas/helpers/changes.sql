@@ -123,3 +123,5 @@ CREATE TABLE aliasRedirects (
 
 	UNIQUE(oldAlias)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+alter table pageInfos add column votesAnonymous bool not null;

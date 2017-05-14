@@ -30,6 +30,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.gtXSmallScreen = $mdMedia('gt-xs');
 			$scope.gtSmallScreen = $mdMedia('gt-sm');
 			$scope.gtMediumScreen = $mdMedia('gt-md');
+			$scope.votesStartedAnonymous = $scope.page.votesAnonymous;
 			// Set to true if the page has been changed (and therefore can be discarded)
 			$scope.isPageDirty = $scope.page.isAutosave;
 			// Set to true when the user can enter custom snapshot text.

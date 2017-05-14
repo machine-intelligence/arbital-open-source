@@ -568,6 +568,30 @@
 								</div>
 							</div>
 
+							<!-- Make vote bar anonymous -->
+							<div layout="row"
+									layout-margin
+									ng-if="page.voteType && !votesStartedAnonymous">
+								<md-switch ng-model="page.votesAnonymous">
+									Show votes anonymously
+									<span class="md-caption" layout-margin flex>
+										(This cannot be undone)
+									</span>
+								</md-switch>
+							</div>
+
+							<!-- Explain that the votes are anonymous and this can't be undone -->
+							<div layout="row"
+									layout-margin
+									ng-if="page.voteType && votesStartedAnonymous">
+								<div>
+									Votes on this page are shown anonymously
+									<span class="md-caption" layout-margin flex>
+										(This cannot be undone)
+									</span>
+								</div>
+							</div>
+
 							<!-- Sort children option -->
 							<div layout="row" layout-align="start center" ng-if="::!isSecondary">
 								<md-input-container flex>

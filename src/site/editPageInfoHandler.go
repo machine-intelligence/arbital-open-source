@@ -22,6 +22,7 @@ type editPageInfoData struct {
 	Type             string
 	HasVote          bool
 	VoteType         string
+	VotesAnonymous   bool
 	SeeDomainID      string
 	EditDomainID     string
 	SubmitToDomainID string
@@ -115,6 +116,10 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	} else {
 		hasVote = data.VoteType != ""
 	}
+	// Can't un-anonymize votes
+	if oldPage.VotesAnonymous {
+		data.VotesAnonymous = oldPage.VotesAnonymous
+	}
 	// Enforce SortChildrenBy
 	if data.Type == core.CommentPageType {
 		data.SortChildrenBy = core.RecentFirstChildSortingOption
@@ -180,6 +185,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			data.SortChildrenBy == oldPage.SortChildrenBy &&
 			data.HasVote == oldPage.HasVote &&
 			data.VoteType == oldPage.VoteType &&
+			data.VotesAnonymous == oldPage.VotesAnonymous &&
 			data.Type == oldPage.Type &&
 			data.SeeDomainID == oldPage.SeeDomainID &&
 			data.EditDomainID == oldPage.EditDomainID &&
@@ -210,6 +216,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["sortChildrenBy"] = data.SortChildrenBy
 		hashmap["hasVote"] = hasVote
 		hashmap["voteType"] = data.VoteType
+		hashmap["votesAnonymous"] = data.VotesAnonymous
 		hashmap["type"] = data.Type
 		hashmap["seeDomainID"] = data.SeeDomainID
 		hashmap["editDomainID"] = data.EditDomainID
@@ -290,6 +297,13 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			}
 			if data.VoteType != oldPage.VoteType {
 				changeLogID, err2 := updateChangeLog(core.SetVoteTypeChangeLog, "", oldPage.VoteType, data.VoteType)
+				if err2 != nil {
+					return err2
+				}
+				changeLogIDs = append(changeLogIDs, changeLogID)
+			}
+			if data.VotesAnonymous != oldPage.VotesAnonymous {
+				changeLogID, err2 := updateChangeLog(core.SetVoteTypeChangeLog, "", "not anonymous", "anonymous")
 				if err2 != nil {
 					return err2
 				}

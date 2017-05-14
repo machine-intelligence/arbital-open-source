@@ -146,6 +146,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 				submitToDomainId: this.submitToDomainId,
 				hasVote: this.hasVote,
 				voteType: this.voteType,
+				votesAnonymous: this.votesAnonymous,
 				sortChildrenBy: this.sortChildrenBy,
 				indirectTeacher: this.indirectTeacher,
 				isEditorComment: this.isEditorComment,
