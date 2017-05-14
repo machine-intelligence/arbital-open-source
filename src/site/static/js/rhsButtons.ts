@@ -17,5 +17,8 @@ app.controller('RhsButtonsController', function($scope, $mdMedia, $mdBottomSheet
 	$scope.newQueryMark = function() {
 		$mdBottomSheet.hide({func: 'newQueryMark'});
 	};
+	$scope.editThisParagraph = function() {
+		$mdBottomSheet.hide({func: 'editThisParagraph'});
+	};
 });
 

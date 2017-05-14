@@ -549,6 +549,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				if (arb.isTouchDevice) {
 					// On mobile it's very hard to get user's selected text. The best way Alexei found
 					// was to just check for selected text every so often.
+					var bottomSheetOpen = false;
 					$interval(function() {
 						if ($inlineCommentEditPage) return;
 						arb.stateService.lensTextSelected = processSelectedParagraphText(element);
@@ -556,22 +557,39 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 							// Cache the selection we found, because we are pretty much guaranteed to
 							// lose it as soon as the user clicks on anything.
 							cachedSelection = getStartEndSelection();
+
+							if (!bottomSheetOpen) {
+								// Open the rhsButtons sheet
+								$mdBottomSheet.show({
+									templateUrl: versionUrl('static/html/rhsButtons.html'),
+									controller: 'RhsButtonsController',
+									parent: '#fixed-overlay',
+								}).then(function(result) {
+									arb.stateService.lensTextSelected = false;
+									bottomSheetOpen = false;
+									scope[result.func].apply(null, result.params);
+								}).catch(function() {
+									arb.stateService.lensTextSelected = false;
+									bottomSheetOpen = false;
+								});
+								bottomSheetOpen = true;
+							}
 						}
 					}, 500);
 
 					// Called when the fab is clicked when text is selected.
-					scope.$on('fabClicked', function() {
-						scope.newInlineComment();
-						// TODO: bring back the following when we bring back query marks
-						// $mdBottomSheet.show({
-						// 	templateUrl: versionUrl('static/html/rhsButtons.html'),
-						// 	controller: 'RhsButtonsController',
-						// 	parent: '#fixed-overlay',
-						// }).then(function(result) {
-						// 	scope[result.func].apply(null, result.params);
-						// 	arb.stateService.lensTextSelected = false;
-						// });
-					});
+					// scope.$on('fabClicked', function() {
+					// 	scope.newInlineComment();
+					// 	// TODO: bring back the following when we bring back query marks
+					// 	$mdBottomSheet.show({
+					// 		templateUrl: versionUrl('static/html/rhsButtons.html'),
+					// 		controller: 'RhsButtonsController',
+					// 		parent: '#fixed-overlay',
+					// 	}).then(function(result) {
+					// 		scope[result.func].apply(null, result.params);
+					// 		arb.stateService.lensTextSelected = false;
+					// 	});
+					// });
 				} else {
 					var mouseUpFn = function(event) {
 						if ($inlineCommentEditPage) return;

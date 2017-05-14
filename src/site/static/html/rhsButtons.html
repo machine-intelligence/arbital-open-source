@@ -1,37 +1,48 @@
 <!-- TODO: bring this back we we're ready to bring back query marks -->
-<!-- <md-bottom-sheet ng-class="{'md-grid': !isTinyScreen, 'md-list': isTinyScreen}">
-	<div class="center-text">Swipe down to close</div>
+<md-bottom-sheet ng-class="{'md-grid': !isTinyScreen, 'md-list': isTinyScreen}" layout="column" layout-align="center center">
+	<div class="md-caption">Swipe down to close</div><br><br>
 	<md-list layout="row"
 			layout-xs="column"
 			layout-align="center center"
 			flex>
 		<md-list-item>
 			<div>
-				<md-button ng-click="newEditorMark('typo')"
+				<md-button class="rhs-dropdown-button" ng-click="newEditorMark('typo')"
 						aria-label="Spelling/grammar">
 					<md-icon>spellcheck</md-icon>
-					<div>Spelling/grammar</div>
+					Spelling/grammar
 				</md-button>
 			</div>
 		</md-list-item>
 
 		<md-list-item>
 			<div>
-				<md-button ng-click="newQueryMark()" aria-label="Question/objection">
+				<md-button class="rhs-dropdown-button" ng-click="newQueryMark()" aria-label="Question/objection">
 					<md-icon md-svg-icon="cursor_pointer"></md-icon>
-					<div>Question/objection</div>
+					Question/objection
 				</md-button>
 			</div>
 		</md-list-item>
 
 		<md-list-item>
 			<div>
-				<md-button ng-click="newInlineComment()" aria-label="New editor feedback">
+				<md-button class="rhs-dropdown-button" ng-click="newInlineComment()" aria-label="New editor feedback">
 					<md-icon>comment</md-icon>
-					<div>New comment</div>
+					New comment
+				</md-button>
+			</div>
+		</md-list-item>
+
+		<md-list-item>
+			<div>
+				<md-button class="rhs-dropdown-button"
+						ng-click="editThisParagraph()"
+						aria-label="Edit this paragraph"
+						arb-user-check="cool">
+					<md-icon>create</md-icon>
+					Edit this paragraph
 				</md-button>
 			</div>
 		</md-list-item>
 	</md-list>
 </md-bottom-sheet>
- -->
