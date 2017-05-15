@@ -69,6 +69,7 @@ require('js/editPageDialog.ts');
 require('js/paragraphEditDialog.ts');
 require('js/summaryEditDialogController.ts');
 require('js/editClaimDialog.ts');
+require('js/QuickRequisiteDialogController.ts');
 require('js/feedbackDialog.ts');
 require('js/rhsButtons.ts');
 

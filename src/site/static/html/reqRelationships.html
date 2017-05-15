@@ -91,6 +91,14 @@
 			on-select="searchResultSelected(result)"
 			ng-if="::!readonly"></arb-autocomplete>
 
+	<!-- Quick create requisite button -->
+	<div>
+		<md-button ng-click="quickRequisite()">
+			<md-icon>add</md-icon>
+			Create requisite
+		</md-button>
+	</div>
+
 	<!-- Quick teach itself button -->
 	<div ng-if="!relatesToItself && isSubjectType && !readonly">
 		<md-button ng-click="teachItself()">

@@ -3,7 +3,7 @@
 import app from './angular.ts';
 
 // Directive for editing the requirements or subjects.
-app.directive('arbReqRelationships', function($q, $timeout, $interval, $http, arb) {
+app.directive('arbReqRelationships', function($q, $timeout, $interval, $http, arb, $mdDialog) {
 	return {
 		templateUrl: versionUrl('static/html/reqRelationships.html'),
 		scope: {
@@ -106,6 +106,18 @@ app.directive('arbReqRelationships', function($q, $timeout, $interval, $http, ar
 					$scope.relatesToItself = $scope.source.some(function(pagePair) {
 						return pagePair.parentId == $scope.pageId;
 					});
+				});
+			};
+
+			$scope.quickRequisite = function() {
+				$mdDialog.show({
+					templateUrl: versionUrl('static/html/quickRequisiteDialog.html'),
+					controller: 'QuickRequisiteDialogController',
+					locals: {
+						originalPage: $scope.page,
+					},
+				}).then(function(result) {
+					console.log(result);
 				});
 			};
 		},

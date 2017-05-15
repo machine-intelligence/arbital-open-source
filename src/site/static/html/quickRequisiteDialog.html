@@ -1,0 +1,56 @@
+<md-dialog class="edit-claim-dialog" aria-label="New requisite" ng-cloak>
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2>New requisite</h2>
+			<span flex></span>
+			<md-button class="md-icon-button" ng-click="hide()" aria-label="Close">
+				<md-icon>close</md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+	<md-dialog-content>
+
+		<md-content class="md-whiteframe-1dp full-height">
+			<md-progress-circular md-mode="indeterminate" ng-if="!page"></md-progress-circular>
+	
+			<div layout="column" layout-padding ng-if="page">
+				<md-input-container flex>
+					<label>Title</label>
+					<input id="edit-claim-title-input"
+							ng-model="page.title"
+							ng-keypress="titleKeypress($event)"
+							aria-label="Title">
+				</md-input-container>
+
+				<md-input-container flex>
+					<label>Domain</label>
+					<md-select ng-model="page.editDomainId">
+						<md-option ng-repeat="(key,value) in domainOptions" value="{{::key}}" ng-bind="::value"></md-option>
+					</md-select>
+				</md-input-container>
+	
+				<div layout="column">
+					<md-button class="md-primary md-raised heap-publish-button"
+							ng-click="publishPage()"
+							ng-disabled="publishing">
+						Publish
+					</md-button>
+				</div>
+
+			</div>
+
+			<div>
+				<md-list>
+					<md-subheader class="md-primary md-hue-1 md-no-sticky" ng-if="similarPages.length > 0">
+						<span class="black-font">Similar claims</span>
+					</md-subheader>
+					<md-list-item layout="row" ng-repeat="(index,similarPage) in similarPages">
+						<arb-likes object-id="{{::similarPage.pageId}}"></arb-likes>
+						<arb-page-title page-id="{{::similarPage.pageId}}" is-link="true" show-clickbait="true"></arb-page-title>
+					</md-list-item>
+				</md-list>
+			</div>
+		</md-content>
+	
+	</md-dialog-content>
+</md-dialog>
