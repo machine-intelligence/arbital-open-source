@@ -86,7 +86,13 @@
 	<div layout="row">
 		<div flex>
 			<div ng-repeat="vote in getSelectedVotes()">
-				<arb-user-name user-id="{{::vote.userId}}"></arb-user-name>
+				<span ng-if="vote.userId != 0">
+					<arb-user-name user-id="{{::vote.userId}}"></arb-user-name>
+				</span>
+				<span ng-if="vote.userId == 0">
+					Anonymous vote
+				</span>
+
 				<span class="comma">:</span>
 				<span ng-bind="::(typeHelper.toString(vote.value))"></span>
 				<span ng-bind="::(vote.createdAt | smartDateTime)"></span>

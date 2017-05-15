@@ -1573,23 +1573,32 @@ func LoadVotes(db *database.DB, u *CurrentUser, pageMap map[string]*Page, userMa
 
 	pageIDs := PageIDsListFromMap(pageMap)
 	rows := db.NewStatement(`
-		SELECT userId,pageId,value,createdAt
+		SELECT v.userId,v.pageId,v.value,v.createdAt,pi.votesAnonymous
 		FROM (
 			SELECT *
 			FROM votes
 			WHERE pageId IN ` + database.InArgsPlaceholder(len(pageIDs)) + `
 			ORDER BY id DESC
 		) AS v
+		JOIN pageInfos AS pi
+		ON (v.pageId=pi.pageId)
 		GROUP BY userId,pageId`).Query(pageIDs...)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var v Vote
 		var pageID string
-		err := rows.Scan(&v.UserID, &pageID, &v.Value, &v.CreatedAt)
+		var votesAnonymous bool
+		err := rows.Scan(&v.UserID, &pageID, &v.Value, &v.CreatedAt, &votesAnonymous)
 		if err != nil {
 			return fmt.Errorf("failed to scan for a vote: %v", err)
 		} else if v.Value == NoVoteValue {
 			return nil
 		}
+
+		// Anonymize votes we aren't allowed to see
+		if votesAnonymous && v.UserID != u.ID {
+			v.UserID = "0"
+		}
+
 		p := pageMap[pageID]
 		p.Votes = append(p.Votes, &v)
 		if _, ok := userMap[v.UserID]; !ok && p.LoadOptions.Votes {
