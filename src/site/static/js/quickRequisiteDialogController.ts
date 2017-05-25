@@ -3,9 +3,10 @@ import app from './angular.ts';
 // EditClaimDialogController is used for editing a claim in an mdDialog
 app.controller('QuickRequisiteDialogController', function($scope, $mdDialog, $timeout, $interval, $http, arb, originalPage) {
 	$scope.arb = arb;
+	$scope.page = {};
 
 	let focusInput = function() {
-		$('#edit-claim-title-input').focus();
+		$('#edit-requisite-title-input').focus();
 	};
 
 	// Called when a user presses a key inside the title input
@@ -24,6 +25,19 @@ app.controller('QuickRequisiteDialogController', function($scope, $mdDialog, $ti
 	$scope.hide = function() {
 		$mdDialog.hide({hidden: true, pageId: $scope.pageId});
 	};
+
+	arb.pageService.getNewPage({
+		type: 'wiki',
+		success: function(newPageId) {
+			$scope.pageId = newPageId;
+			$scope.page = arb.stateService.editMap[$scope.pageId];
+			$scope.page.text = ' ';
+			$scope.page.seeDomainId = originalPage.seeDomainId;
+			$scope.page.editDomainId = originalPage.editDomainId;
+			$scope.domainOptions = arb.userService.getDomainOptions($scope.page);
+			$timeout(focusInput);
+		},
+	});
 
 	// Called when user clicks Publish button
 	$scope.publishPage = function() {

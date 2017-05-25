@@ -16,10 +16,18 @@
 			<div layout="column" layout-padding ng-if="page">
 				<md-input-container flex>
 					<label>Title</label>
-					<input id="edit-claim-title-input"
+					<input id="edit-requisite-title-input"
 							ng-model="page.title"
 							ng-keypress="titleKeypress($event)"
 							aria-label="Title">
+				</md-input-container>
+
+				<md-input-container flex>
+					<label>Text</label>
+					<input id="edit-requisite-text-input"
+							ng-model="page.text"
+							ng-keypress="titleKeypress($event)"
+							aria-label="text">
 				</md-input-container>
 
 				<md-input-container flex>
