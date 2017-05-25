@@ -107,7 +107,7 @@ func newPagePairHandlerInternal(db *database.DB, u *core.CurrentUser, data *newP
 	var pagePairID string
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Create new page pair
-		pagePairID, err := core.CreateNewPagePair(db, u, &core.CreateNewPagePairOptions{
+		pagePairID, err = core.CreateNewPagePair(db, u, &core.CreateNewPagePairOptions{
 			ParentID: data.ParentID,
 			ChildID:  data.ChildID,
 			Type:     data.Type,
