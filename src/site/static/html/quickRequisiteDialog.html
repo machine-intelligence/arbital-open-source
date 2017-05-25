@@ -1,4 +1,4 @@
-<md-dialog class="edit-claim-dialog" aria-label="New requisite" ng-cloak>
+<md-dialog class="edit-requisite-dialog" aria-label="New requisite" ng-cloak>
 	<md-toolbar>
 		<div class="md-toolbar-tools">
 			<h2>New requisite</h2>
@@ -50,7 +50,7 @@
 			<div>
 				<md-list>
 					<md-subheader class="md-primary md-hue-1 md-no-sticky" ng-if="similarPages.length > 0">
-						<span class="black-font">Similar claims</span>
+						<span class="black-font">Similar pages</span>
 					</md-subheader>
 					<md-list-item layout="row" ng-repeat="(index,similarPage) in similarPages">
 						<arb-likes object-id="{{::similarPage.pageId}}"></arb-likes>

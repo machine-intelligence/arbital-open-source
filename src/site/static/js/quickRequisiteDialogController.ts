@@ -63,7 +63,7 @@ app.controller('QuickRequisiteDialogController', function($scope, $mdDialog, $ti
 
 		var data = {
 			title: $scope.page.title,
-			onlyClaims: true,
+			text: $scope.page.text
 		};
 		if (JSON.stringify(data) == JSON.stringify(prevSimilarData)) {
 			return;
