@@ -46,9 +46,10 @@ app.controller('QuickRequisiteDialogController', function($scope, $mdDialog, $ti
 			$http({method: 'POST', url: '/editPage/', data: JSON.stringify(data)})
 				.success(function(returnedData) {
 					$scope.doneFn({pageId: $scope.page.pageId});
+					arb.popupService.showToast({text: 'Success'});
 				})
 				.error(function(returnedData) {
-					arb.popupService.showToast({text: 'Error saving the claim.', isError: true});
+					arb.popupService.showToast({text: 'Error saving the requisite.', isError: true});
 				});
 		});
 	};
