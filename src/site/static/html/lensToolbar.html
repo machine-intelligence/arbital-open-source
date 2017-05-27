@@ -50,6 +50,13 @@
 				</md-button>
 			</md-menu-item>
 
+			<!-- Edit this paragraph -->
+			<md-menu-item ng-if="arb.stateService.lensTextSelected">
+				<md-button ng-click="editThisParagraph()">
+					Edit this paragraph
+				</md-button>
+			</md-menu-item>
+
 			<!-- Show panel to quickly add tags -->
 			<md-menu-item ng-if="!isTagsPanelVisible">
 				<md-button ng-click="showTagsPanel()">
