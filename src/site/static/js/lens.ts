@@ -558,22 +558,22 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 							// lose it as soon as the user clicks on anything.
 							cachedSelection = getStartEndSelection();
 
-							if (!bottomSheetOpen) {
-								// Open the rhsButtons sheet
-								$mdBottomSheet.show({
-									templateUrl: versionUrl('static/html/rhsButtons.html'),
-									controller: 'RhsButtonsController',
-									parent: '#fixed-overlay',
-								}).then(function(result) {
-									arb.stateService.lensTextSelected = false;
-									bottomSheetOpen = false;
-									scope[result.func].apply(null, result.params);
-								}).catch(function() {
-									arb.stateService.lensTextSelected = false;
-									bottomSheetOpen = false;
-								});
-								bottomSheetOpen = true;
-							}
+							// if (!bottomSheetOpen) {
+							// 	// Open the rhsButtons sheet
+							// 	$mdBottomSheet.show({
+							// 		templateUrl: versionUrl('static/html/rhsButtons.html'),
+							// 		controller: 'RhsButtonsController',
+							// 		parent: '#fixed-overlay',
+							// 	}).then(function(result) {
+							// 		arb.stateService.lensTextSelected = false;
+							// 		bottomSheetOpen = false;
+							// 		scope[result.func].apply(null, result.params);
+							// 	}).catch(function() {
+							// 		arb.stateService.lensTextSelected = false;
+							// 		bottomSheetOpen = false;
+							// 	});
+							// 	bottomSheetOpen = true;
+							// }
 						}
 					}, 500);
 
