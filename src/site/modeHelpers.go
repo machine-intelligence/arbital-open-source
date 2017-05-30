@@ -121,8 +121,8 @@ func loadCommentModeRows(db *database.DB, returnData *core.CommonHandlerData, li
 		FROM pageInfos AS pi
 		JOIN pagePairs AS pp
 		ON (pp.childId=pi.pageId)
-		JOIN subscriptions AS s
-		ON (pp.parentId=s.toId)
+		JOIN discussionSubscriptions AS s
+		ON (pp.parentId=s.toPageId)
 		WHERE s.userId=?`, returnData.User.ID).Add(`
 			AND pi.createdBy!=?`, returnData.User.ID).Add(`
 			AND pi.type=?`, core.CommentPageType).Add(`
