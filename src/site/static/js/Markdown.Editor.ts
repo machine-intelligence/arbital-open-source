@@ -1254,9 +1254,6 @@ function UIManager(postfix, panels, undoManager, previewManager, commandManager,
 		buttons.summary = makeButton('wmd-summary-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
 			return this.doWrap(chunk, postProcessing, 'summary');
 		}));
-		buttons.summary = makeButton('wmd-auto-summary-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
-			return this.doWrap(chunk, postProcessing, 'autoSummary');
-		}));
 		buttons.multipleChoice = makeButton('wmd-multiple-choice-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
 			return this.doWrap(chunk, postProcessing, 'multipleChoice');
 		}));
@@ -1581,8 +1578,6 @@ commandProto.doWrap = function(chunk, postProcessing, wrapType) {
 			linkEnteredCallback('%%%knows-requisite([math]):\n', 'conditional text *with* markdown', '\n%%%\n\n');
 		} else if (wrapType == 'summary') {
 			linkEnteredCallback('[summary: ', 'summary text *with* markdown', ']\n\n');
-		} else if (wrapType == 'autoSummary') {
-			linkEnteredCallback('[auto-summary-to-here]\n\n', '', '');
 		} else if (wrapType == 'hiddenText') {
 			linkEnteredCallback('%%hidden(Show solution):\n', 'Solution *markdown* text', '\n%%\n\n');
 		} else if (wrapType == 'note') {
