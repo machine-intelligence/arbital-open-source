@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"zanaduu3/src/okta"
 	"zanaduu3/src/pages"
-	"zanaduu3/src/stormpath"
 )
 
 // forgotPasswordHandlerData is the data received from the request.
@@ -34,7 +34,7 @@ func forgotPasswordHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Email is not set", nil).Status(http.StatusBadRequest)
 	}
 
-	err = stormpath.ForgotPassword(params.C, data.Email)
+	err = okta.ForgotPassword(params.C, data.Email)
 	if err != nil {
 		return pages.Fail("Invalid email or password", err)
 	}

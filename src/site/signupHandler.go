@@ -11,9 +11,9 @@ import (
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/facebook"
+	"zanaduu3/src/okta"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
-	"zanaduu3/src/stormpath"
 )
 
 const (
@@ -69,7 +69,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	socialMediaSignup := false
 	if len(data.FbAccessToken) > 0 && len(data.FbUserID) >= 0 {
 		// Get data from FB
-		account, err := stormpath.CreateNewFbUser(c, data.FbAccessToken)
+		account, err := okta.CreateNewFbUser(c, data.FbAccessToken)
 		if err != nil {
 			return pages.Fail("Couldn't create a new user", err)
 		}
@@ -146,11 +146,11 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	if len(data.Password) > 0 {
-		// Sign up the user through Stormpath
-		err = stormpath.CreateNewUser(c, data.FirstName, data.LastName, data.Email, data.Password)
+		// Sign up the user through Okta
+		err = okta.CreateNewUser(c, data.FirstName, data.LastName, data.Email, data.Password)
 		if err != nil {
 			// It could be that the user already has an account. Let's try to authenticate.
-			err2 := stormpath.AuthenticateUser(c, data.Email, data.Password)
+			err2 := okta.AuthenticateUser(c, data.Email, data.Password)
 			if err2 != nil {
 				return pages.Fail("Couldn't create a new user", err)
 			}

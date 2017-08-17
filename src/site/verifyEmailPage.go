@@ -3,8 +3,8 @@
 package site
 
 import (
+	"zanaduu3/src/okta"
 	"zanaduu3/src/pages"
-	"zanaduu3/src/stormpath"
 )
 
 var verifyEmailPage = newPage(verifyEmailRenderer, dynamicTmpls)
@@ -17,7 +17,7 @@ func verifyEmailRenderer(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Are you in the right place? (No sptoken found.)", nil)
 	}
 
-	err := stormpath.VerifyEmail(c, params.R.FormValue("sptoken"))
+	err := okta.VerifyEmail(c, params.R.FormValue("sptoken"))
 	if err != nil {
 		return pages.Fail("Verification failed", err)
 	}

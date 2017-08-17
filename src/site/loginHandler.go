@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"zanaduu3/src/core"
+	"zanaduu3/src/okta"
 	"zanaduu3/src/pages"
-	"zanaduu3/src/stormpath"
 )
 
 // loginHandlerData is the data received from the request.
@@ -48,7 +48,7 @@ func loginHandlerInternalFunc(params *pages.HandlerParams, data *loginHandlerDat
 		return pages.Fail("Password has to be specified", nil).Status(http.StatusBadRequest)
 	}
 
-	err := stormpath.AuthenticateUser(params.C, data.Email, data.Password)
+	err := okta.AuthenticateUser(params.C, data.Email, data.Password)
 	if err != nil {
 		return pages.Fail("Invalid email or password", err)
 	}
