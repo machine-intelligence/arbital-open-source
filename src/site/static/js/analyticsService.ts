@@ -5,8 +5,6 @@ import {isLive} from './util.ts';
 
 declare var ga: any;
 declare var heap: any;
-declare var mixpanel: any;
-declare var FS: any;
 
 // arb.analyticsService is a wrapper for Google Analytics
 app.service('analyticsService', function($http, $location, stateService) {
@@ -14,14 +12,12 @@ app.service('analyticsService', function($http, $location, stateService) {
 
 	// Function to send data to both Mixpanel and Heap
 	this.reportEventToHeapAndMixpanel = function(action, data) {
-		mixpanel.track(action, data);
 		heap.track(action, data);
 	};
 	var track = this.reportEventToHeapAndMixpanel;
 
 	// This is called the first time user is signed up.
 	this.signupSuccess = function(userId) {
-		mixpanel.alias(userId);
 		track('Signup', {userId: userId});
 	};
 
@@ -30,21 +26,9 @@ app.service('analyticsService', function($http, $location, stateService) {
 		heap.addUserProperties({
 			'analyticsId': analyticsId,
 		});
-		mixpanel.register({
-			'analyticsId': analyticsId,
-		});
-
-		FS.setUserVars({
-			'analyticsId_str': analyticsId,
-		});
 
 		if (!!userId) {
 			heap.identify(userId);
-			mixpanel.identify(userId);
-			mixpanel.people.set({
-				'$name': fullName,
-				'$email': email,
-			});
 			track('Identify');
 
 			// full story
@@ -53,10 +37,6 @@ app.service('analyticsService', function($http, $location, stateService) {
 				// full story can't handle a user id of '1' (see: http://help.fullstory.com/develop-js/identify)
 				id = 'alexei';
 			}
-			FS.identify(id, {
-				"displayName" : fullName,
-				"email" : email,
-			});
 		}
 
 		if (!isLive()) return;
