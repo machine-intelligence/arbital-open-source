@@ -47,6 +47,7 @@
 						person
 					</md-icon>
 					<a ng-href="/p/{{result.page.pageId}}"
+							ng-click="$event.stopPropagation()"
 							ng-class="::'intrasite-link' + (page.isDeleted ? ' red-link' : '')"
 							page-id="{{result.page.pageId}}">{{result.page.title}}</a>
 					<span ng-if="::arb.userService.user.isAdmin">&nbsp;&lt;{{result.score}}&gt;</span>
