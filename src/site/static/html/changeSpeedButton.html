@@ -191,6 +191,15 @@
 							</li>
 						</ul>
 					</div>
+					<div ng-if="pageBoosters.length > 0">
+						This explanation is boosted by the following concepts:
+						<ul>
+							<li ng-repeat="requirement in pageBoosters | orderBy: ['-isStrong', '-level']">
+								<arb-page-title page-id="{{::requirement.parentId}}"
+										is-link="true"></arb-page-title>
+							</li>
+						</ul>
+					</div>
 					<div class="md-caption" ng-if="pageRequirements.length <= 0">
 						No prerequisites (or may be authors haven't added them yet).
 					</div>

@@ -82,10 +82,14 @@
 			<div layout="row" layout-align="space-between" class="page-subjects-and-requirements-div"
 					ng-if="page.requirements.length > 0 || page.subjects.length > 0">
 				<div>
-					<span ng-if="page.requirements.length > 0">Relies on:</span>
-					<span ng-repeat="requirement in page.requirements | orderBy: ['-isStrong', '-level']">
-						<span class="comma" ng-if="::$index > 0 && $index < page.requirements.length">,</span>
-						<span class="md-caption" ng-if="!requirement.isStrong">(Optional)</span>
+					<span ng-if="page.realRequirements.length > 0">Relies on:</span>
+					<span ng-repeat="requirement in page.realRequirements | orderBy: ['-isStrong', '-level']">
+						<span class="comma" ng-if="::$index > 0 && $index < page.realRequirements.length">,</span>
+						<arb-page-title page-id="{{::requirement.parentId}}" is-link="true"></arb-page-title>
+					</span>
+					<span ng-if="page.boosters.length > 0">Boosted by:</span>
+					<span ng-repeat="requirement in page.boosters | orderBy: ['-isStrong', '-level']">
+						<span class="comma" ng-if="::$index > 0 && $index < page.boosters.length">,</span>
 						<arb-page-title page-id="{{::requirement.parentId}}" is-link="true"></arb-page-title>
 					</span>
 				</div>

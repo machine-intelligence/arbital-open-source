@@ -17,7 +17,13 @@ app.directive('arbChangeSpeedButton', function(arb, $window, $timeout, analytics
 			$scope.pageRequirements = $scope.page.requirements.filter(function(requirement) {
 				// Don't show if the page requires itself
 				if (requirement.parentId == $scope.pageId) return false;
+				// Don't count weak requirements as requirements
+				if (!requirement.isStrong) return false;
 				return true;
+			});
+
+			$scope.pageBoosters = $scope.page.requirements.filter(function(requirement) {
+				return !requirement.isStrong;
 			});
 
 			$scope.pageSubjectsExceptItself = $scope.page.subjects.filter(function(subject) {

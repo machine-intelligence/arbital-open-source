@@ -113,14 +113,23 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				return !arb.masteryService.hasMastery(subject.parentId);
 			});
 
+			$scope.page.realRequirements = $scope.page.requirements.filter(function(requirement) {
+				// Don't count weak requirements as requirements
+				return requirement.isStrong;
+			});
+
+			$scope.page.boosters = $scope.page.requirements.filter(function(requirement) {
+				return !requirement.isStrong;
+			});
+
 			// Check if the user meets all requirements
 			$scope.meetsAllRequirements = function(pageId) {
 				var page = $scope.page;
 				if (pageId) {
 					page = arb.stateService.pageMap[pageId];
 				}
-				for (var n = 0; n < page.requirementIds.length; n++) {
-					if (!arb.masteryService.hasMastery(page.requirementIds[n])) {
+				for (var n = 0; n < page.realRequirements.length; n++) {
+					if (!arb.masteryService.hasMastery(page.realRequirements[n].pageId)) {
 						return false;
 					}
 				}
