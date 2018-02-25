@@ -203,6 +203,12 @@ arb-markdown, [arb-markdown], .preview-area {
 	font-style: italic;
 }
 
+@media (max-width: 599px)  {
+	.content-div em {
+		font-style: normal;
+	}
+}
+
 // Cap the width of some pages, so they look nicer
 .capped-body-width {
 	padding-bottom: 100px;
