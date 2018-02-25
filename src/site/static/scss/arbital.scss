@@ -200,7 +200,13 @@ arb-markdown, [arb-markdown], .preview-area {
 .markdown-text-box {
 	background-color: lightgray;
 	padding: 10px 15px 5px 15px;
-	// font-style: italic;
+	font-style: italic;
+}
+
+@media (max-width: 599px)  {
+	.content-div em {
+		font-style: normal;
+	}
 }
 
 // Cap the width of some pages, so they look nicer
