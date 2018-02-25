@@ -18,7 +18,7 @@ cp -v config.yaml src/queue_daemon/
 dev_appserver.py \
 	src/site/app.yaml \
 	src/queue_daemon/module.yaml \
-	--admin_port 8011 --port 8012 --host 0.0.0.0 --enable_sendmail=yes &
+	--admin_port 8011 --port 8012 --host 0.0.0.0 --enable_sendmail=yes --quiet &
 appserver_PID=$!
 
 # Start webpack-dev-server to serve webpack bundles. The dev server
@@ -30,6 +30,7 @@ npm run webpack-dev-server -- \
     --inline \
     --progress \
     --color \
+		--quiet \
     --port 8014 \
     --output-public-path "http://localhost:8014/static/js/" \
     --hot \

@@ -204,7 +204,7 @@ arb-markdown, [arb-markdown], .preview-area {
 }
 
 @media (max-width: 599px)  {
-	.content-div em {
+	#content-div em {
 		font-style: normal;
 	}
 }
@@ -1965,15 +1965,15 @@ arb-path-nav, [arb-path-nav] {
 		border-radius: 2px;
 		width: 100%;
 		box-sizing: border-box;
-	
+
 		.feed-page-title-row {
 			margin-bottom: 5px;
-	
+
 			a.external-link {
 				color: $link-color;
 			}
 		}
-	
+
 		.feed-page-title-row {
 			font-size: 18px;
 			padding-left: 5px;
@@ -1992,7 +1992,7 @@ arb-path-nav, [arb-path-nav] {
 
 	.claim-rows {
 		margin-top: 10px;
-	
+
 		.claim-row {
 			padding: 10px 10px 0 10px;
 		}
